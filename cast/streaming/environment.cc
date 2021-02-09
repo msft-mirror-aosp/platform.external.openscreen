@@ -4,6 +4,7 @@
 
 #include "cast/streaming/environment.h"
 
+#include <algorithm>
 #include <utility>
 
 #include "cast/streaming/rtp_defines.h"
@@ -37,6 +38,10 @@ IPEndpoint Environment::GetBoundLocalEndpoint() const {
     return socket_->GetLocalEndpoint();
   }
   return IPEndpoint{};
+}
+
+void Environment::SetSocketSubscriber(SocketSubscriber* subscriber) {
+  socket_subscriber_ = subscriber;
 }
 
 void Environment::ConsumeIncomingPackets(PacketConsumer* packet_consumer) {
@@ -74,7 +79,17 @@ void Environment::SendPacket(absl::Span<const uint8_t> packet) {
 
 Environment::PacketConsumer::~PacketConsumer() = default;
 
+void Environment::OnBound(UdpSocket* socket) {
+  OSP_DCHECK(socket == socket_.get());
+  state_ = SocketState::kReady;
+
+  if (socket_subscriber_) {
+    socket_subscriber_->OnSocketReady();
+  }
+}
+
 void Environment::OnError(UdpSocket* socket, Error error) {
+  OSP_DCHECK(socket == socket_.get());
   // Usually OnError() is only called for non-recoverable Errors. However,
   // OnSendError() and OnRead() delegate to this method, to handle their hard
   // error cases as well. So, return early here if |error| is recoverable.
@@ -82,14 +97,14 @@ void Environment::OnError(UdpSocket* socket, Error error) {
     return;
   }
 
-  if (socket_error_handler_) {
-    socket_error_handler_(error);
-    return;
+  state_ = SocketState::kInvalid;
+  if (socket_subscriber_) {
+    socket_subscriber_->OnSocketInvalid(error);
+  } else {
+    // Default behavior when there are no subscribers.
+    OSP_LOG_ERROR << "For UDP socket bound to " << socket_->GetLocalEndpoint()
+                  << ": " << error;
   }
-
-  // Default behavior when no error handler is set.
-  OSP_LOG_ERROR << "For UDP socket bound to " << socket_->GetLocalEndpoint()
-                << ": " << error;
 }
 
 void Environment::OnSendError(UdpSocket* socket, Error error) {

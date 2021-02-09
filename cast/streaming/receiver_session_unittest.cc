@@ -282,8 +282,9 @@ class ReceiverSessionTest : public ::testing::Test {
     auto environment_ = std::make_unique<NiceMock<MockEnvironment>>(
         &FakeClock::now, &task_runner_);
     ON_CALL(*environment_, GetBoundLocalEndpoint())
-        .WillByDefault(
-            Return(IPEndpoint{IPAddress::Parse("127.0.0.1").value(), 12345}));
+        .WillByDefault(Return(IPEndpoint{{127, 0, 0, 1}, 12345}));
+    environment_->set_socket_state_for_testing(
+        Environment::SocketState::kReady);
     return environment_;
   }
 
@@ -609,9 +610,8 @@ TEST_F(ReceiverSessionTest, NotifiesReceiverDestruction) {
 
 TEST_F(ReceiverSessionTest, HandlesInvalidAnswer) {
   // Simulate an unbound local endpoint.
-  EXPECT_CALL(*environment_, GetBoundLocalEndpoint).WillOnce([]() {
-    return IPEndpoint{};
-  });
+  EXPECT_CALL(*environment_, GetBoundLocalEndpoint)
+      .WillOnce(Return(IPEndpoint{}));
 
   message_port_->ReceiveMessage(kValidOfferMessage);
   const auto& messages = message_port_->posted_messages();
@@ -624,5 +624,71 @@ TEST_F(ReceiverSessionTest, HandlesInvalidAnswer) {
   EXPECT_EQ("ANSWER", answer["type"].asString());
   EXPECT_EQ("error", answer["result"].asString());
 }
+
+TEST_F(ReceiverSessionTest, DelaysAnswerUntilEnvironmentIsReady) {
+  environment_->set_socket_state_for_testing(
+      Environment::SocketState::kStarting);
+
+  // We should not have sent an answer yet--the UDP socket is not ready.
+  message_port_->ReceiveMessage(kValidOfferMessage);
+  ASSERT_TRUE(message_port_->posted_messages().empty());
+
+  // Simulate the environment calling back into us with the socket being ready.
+  // state() will not be called again--we just need to get the bind event.
+  EXPECT_CALL(*environment_, GetBoundLocalEndpoint())
+      .WillOnce(Return(IPEndpoint{{10, 0, 0, 2}, 4567}));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
+  EXPECT_CALL(client_,
+              OnReceiversDestroying(session_.get(),
+                                    ReceiverSession::Client::kEndOfSession));
+  session_->OnSocketReady();
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  // We should have set the UDP port based on the ready socket value.
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  const Json::Value& answer_body = message_body.value()["answer"];
+  EXPECT_TRUE(answer_body.isObject());
+  EXPECT_EQ(4567, answer_body["udpPort"].asInt());
+}
+
+TEST_F(ReceiverSessionTest,
+       ReturnsErrorAnswerIfEnvironmentIsAlreadyInvalidated) {
+  environment_->set_socket_state_for_testing(
+      Environment::SocketState::kInvalid);
+
+  // If the environment is already in a bad state, we can respond immediately.
+  message_port_->ReceiveMessage(kValidOfferMessage);
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  EXPECT_EQ("ANSWER", message_body.value()["type"].asString());
+  EXPECT_EQ("error", message_body.value()["result"].asString());
+}
+
+TEST_F(ReceiverSessionTest, ReturnsErrorAnswerIfEnvironmentIsInvalidated) {
+  environment_->set_socket_state_for_testing(
+      Environment::SocketState::kStarting);
+
+  // We should not have sent an answer yet--the environment is not ready.
+  message_port_->ReceiveMessage(kValidOfferMessage);
+  ASSERT_TRUE(message_port_->posted_messages().empty());
+
+  // Simulate the environment calling back into us with invalidation.
+  EXPECT_CALL(client_, OnError(_, _)).Times(1);
+  session_->OnSocketInvalid(Error::Code::kSocketBindFailure);
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  // We should have an error answer.
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  EXPECT_EQ("ANSWER", message_body.value()["type"].asString());
+  EXPECT_EQ("error", message_body.value()["result"].asString());
+}
+
 }  // namespace cast
 }  // namespace openscreen

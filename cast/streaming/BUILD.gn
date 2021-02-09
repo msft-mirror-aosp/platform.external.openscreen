@@ -134,6 +134,7 @@ source_set("test_helpers") {
   sources = [
     "testing/message_pipe.h",
     "testing/simple_message_port.h",
+    "testing/simple_socket_subscriber.h",
   ]
 
   deps = [
