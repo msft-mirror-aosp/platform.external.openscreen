@@ -32,6 +32,7 @@
 #include "cast/streaming/sender_report_parser.h"
 #include "cast/streaming/session_config.h"
 #include "cast/streaming/ssrc.h"
+#include "cast/streaming/testing/simple_socket_subscriber.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "platform/test/fake_clock.h"
@@ -350,8 +351,7 @@ class SenderTest : public testing::Test {
         receiver_to_sender_pipe_(&task_runner_, &sender_packet_router_),
         receiver_(&receiver_to_sender_pipe_),
         sender_to_receiver_pipe_(&task_runner_, &receiver_) {
-    sender_environment_.set_socket_error_handler(
-        [](Error error) { ASSERT_TRUE(error.ok()) << error; });
+    sender_environment_.SetSocketSubscriber(&socket_subscriber_);
     sender_environment_.set_remote_endpoint(
         receiver_to_sender_pipe_.local_endpoint());
     ON_CALL(sender_environment_, SendPacket(_))
@@ -442,6 +442,7 @@ class SenderTest : public testing::Test {
   SimulatedNetworkPipe receiver_to_sender_pipe_;
   NiceMock<MockReceiver> receiver_;
   SimulatedNetworkPipe sender_to_receiver_pipe_;
+  SimpleSubscriber socket_subscriber_;
 };
 
 // Tests that the Sender can send EncodedFrames over an ideal network (i.e., low
