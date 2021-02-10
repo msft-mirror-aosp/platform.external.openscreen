@@ -247,6 +247,10 @@ void FakeMdnsResponderAdapter::OnError(UdpSocket* socket, Error error) {
   OSP_NOTREACHED();
 }
 
+void FakeMdnsResponderAdapter::OnBound(UdpSocket* socket) {
+  OSP_NOTREACHED();
+}
+
 Clock::duration FakeMdnsResponderAdapter::RunTasks() {
   return std::chrono::seconds(1);
 }
