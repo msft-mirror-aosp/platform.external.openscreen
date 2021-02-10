@@ -11,10 +11,10 @@
 #include "absl/types/optional.h"
 #include "osp/impl/presentation/url_availability_requester.h"
 #include "osp/msgs/osp_messages.h"
-#include "osp/msgs/request_response_handler.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/protocol_connection_client.h"
+#include "osp/public/request_response_handler.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
