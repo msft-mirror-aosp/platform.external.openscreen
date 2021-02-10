@@ -9,7 +9,7 @@ third_party {
     type: GIT
     value: "https://chromium.googlesource.com/openscreen"
   }
-  version: "b98dcaa0db83132203774a577c0a64c39f7092e9"
+  version: "9d9da7b805d37b9e1bb890cf0200e8e505ef8b39"
   license_type: NOTICE
   last_upgrade_date {
     year: 2021
