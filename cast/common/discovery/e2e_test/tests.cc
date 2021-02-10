@@ -7,6 +7,10 @@
 #include <map>
 #include <string>
 
+// NOTE: although we use gtest here, prefer OSP_CHECKs to
+// ASSERTS due to asynchronous concerns around test failures.
+// Although this causes the entire test binary to fail instead of
+// just a single test, it makes debugging easier/possible.
 #include "cast/common/public/service_info.h"
 #include "discovery/common/config.h"
 #include "discovery/common/reporting_client.h"
@@ -118,22 +122,19 @@ class FailOnErrorReporting : public discovery::ReportingClient {
 };
 
 discovery::Config GetConfigSettings() {
-  discovery::Config config;
-
   // Get the loopback interface to run on.
-  absl::optional<InterfaceInfo> loopback = GetLoopbackInterfaceForTesting();
-  OSP_CHECK(loopback.has_value());
+  InterfaceInfo loopback = GetLoopbackInterfaceForTesting().value();
+  OSP_LOG_INFO << "Selected network interface for testing: " << loopback;
   discovery::Config::NetworkInfo::AddressFamilies address_families =
       discovery::Config::NetworkInfo::kNoAddressFamily;
-  if (loopback->GetIpAddressV4()) {
+  if (loopback.GetIpAddressV4()) {
     address_families |= discovery::Config::NetworkInfo::kUseIpV4;
   }
-  if (loopback->GetIpAddressV6()) {
+  if (loopback.GetIpAddressV6()) {
     address_families |= discovery::Config::NetworkInfo::kUseIpV6;
   }
-  config.network_info.push_back({loopback.value(), address_families});
 
-  return config;
+  return discovery::Config{{{std::move(loopback), address_families}}};
 }
 
 class DiscoveryE2ETest : public testing::Test {

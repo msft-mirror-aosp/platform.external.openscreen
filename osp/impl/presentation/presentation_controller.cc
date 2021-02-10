@@ -358,7 +358,8 @@ Controller::ReceiverWatch::ReceiverWatch(Controller* controller,
                                          ReceiverObserver* observer)
     : urls_(urls), observer_(observer), controller_(controller) {}
 
-Controller::ReceiverWatch::ReceiverWatch(Controller::ReceiverWatch&& other) {
+Controller::ReceiverWatch::ReceiverWatch(
+    Controller::ReceiverWatch&& other) noexcept {
   swap(*this, other);
 }
 
@@ -392,7 +393,7 @@ Controller::ConnectRequest::ConnectRequest(Controller* controller,
       request_id_(request_id),
       controller_(controller) {}
 
-Controller::ConnectRequest::ConnectRequest(ConnectRequest&& other) {
+Controller::ConnectRequest::ConnectRequest(ConnectRequest&& other) noexcept {
   swap(*this, other);
 }
 

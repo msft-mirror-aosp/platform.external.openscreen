@@ -18,12 +18,10 @@ ServiceInstance::ServiceInstance(TaskRunner* task_runner,
                                  const Config& config,
                                  const Config::NetworkInfo& network_info)
     : task_runner_(task_runner),
-      mdns_service_(
-          MdnsService::Create(task_runner,
-                              reporting_client,
-                              config,
-                              network_info.interface.index,
-                              network_info.supported_address_families)),
+      mdns_service_(MdnsService::Create(task_runner,
+                                        reporting_client,
+                                        config,
+                                        network_info)),
       network_config_(network_info.interface.index,
                       network_info.interface.GetIpAddressV4(),
                       network_info.interface.GetIpAddressV6()) {
