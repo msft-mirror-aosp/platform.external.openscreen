@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef OSP_MSGS_REQUEST_RESPONSE_HANDLER_H_
-#define OSP_MSGS_REQUEST_RESPONSE_HANDLER_H_
+#ifndef OSP_PUBLIC_REQUEST_RESPONSE_HANDLER_H_
+#define OSP_PUBLIC_REQUEST_RESPONSE_HANDLER_H_
 
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "absl/types/optional.h"
 #include "osp/public/message_demuxer.h"
@@ -224,4 +226,4 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
 }  // namespace osp
 }  // namespace openscreen
 
-#endif  // OSP_MSGS_REQUEST_RESPONSE_HANDLER_H_
+#endif  // OSP_PUBLIC_REQUEST_RESPONSE_HANDLER_H_

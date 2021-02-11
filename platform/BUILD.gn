@@ -186,6 +186,11 @@ source_set("test") {
     sources += [ "test/paths_internal_other.cc" ]
   }
 
+  public_deps = [
+    ":api",
+    ":base",
+  ]
+
   deps = [
     ":platform",
     "../third_party/abseil",
