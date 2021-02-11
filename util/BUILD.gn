@@ -73,6 +73,8 @@ source_set("util") {
   ]
 
   public_deps = [
+    "../platform:api",
+    "../platform:base",
     "../third_party/abseil",
     "../third_party/jsoncpp",
   ]
