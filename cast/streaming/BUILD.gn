@@ -67,6 +67,7 @@ source_set("common") {
     "../../third_party/abseil",
     "../../third_party/boringssl",
     "../common:channel",
+    "../common:public",
     "../common/certificate/proto:certificate_proto",
   ]
 
@@ -134,7 +135,10 @@ source_set("test_helpers") {
   sources = [
     "testing/message_pipe.h",
     "testing/simple_message_port.h",
+    "testing/simple_socket_subscriber.h",
   ]
+
+  public_deps = [ ":common" ]
 
   deps = [
     "../../third_party/googletest:gmock",
@@ -183,6 +187,7 @@ source_set("unittests") {
     ":receiver",
     ":sender",
     ":test_helpers",
+    "../../platform:test",
     "../../third_party/googletest:gmock",
     "../../third_party/googletest:gtest",
     "../../util",

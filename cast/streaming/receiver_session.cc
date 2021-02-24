@@ -31,14 +31,15 @@ using ConfiguredReceivers = ReceiverSession::ConfiguredReceivers;
 namespace {
 
 template <typename Stream, typename Codec>
-const Stream* SelectStream(const std::vector<Codec>& preferred_codecs,
-                           const std::vector<Stream>& offered_streams) {
+std::unique_ptr<Stream> SelectStream(
+    const std::vector<Codec>& preferred_codecs,
+    const std::vector<Stream>& offered_streams) {
   for (auto codec : preferred_codecs) {
     for (const Stream& offered_stream : offered_streams) {
       if (offered_stream.codec == codec) {
         OSP_DVLOG << "Selected " << CodecToString(codec)
                   << " as codec for streaming";
-        return &offered_stream;
+        return std::make_unique<Stream>(offered_stream);
       }
     }
   }
@@ -91,10 +92,34 @@ ReceiverSession::ReceiverSession(Client* const client,
   messager_.SetHandler(
       SenderMessage::Type::kOffer,
       [this](SenderMessage message) { OnOffer(std::move(message)); });
+  environment_->SetSocketSubscriber(this);
 }
 
 ReceiverSession::~ReceiverSession() {
   ResetReceivers(Client::kEndOfSession);
+}
+
+void ReceiverSession::OnSocketReady() {
+  if (pending_session_) {
+    InitializeSession(*pending_session_);
+    pending_session_.reset();
+  }
+}
+
+void ReceiverSession::OnSocketInvalid(Error error) {
+  if (pending_session_) {
+    SendErrorAnswerReply(pending_session_->sequence_number,
+                         "Failed to bind UDP socket");
+    pending_session_.reset();
+  }
+
+  client_->OnError(this,
+                   Error(Error::Code::kSocketFailure,
+                         "The environment is invalid and should be replaced."));
+}
+
+bool ReceiverSession::SessionProperties::IsValid() const {
+  return (selected_audio || selected_video) && sequence_number >= 0;
 }
 
 void ReceiverSession::OnOffer(SenderMessage message) {
@@ -115,41 +140,62 @@ void ReceiverSession::OnOffer(SenderMessage message) {
     return;
   }
 
+  auto properties = std::make_unique<SessionProperties>();
+  properties->sequence_number = message.sequence_number;
+
   const Offer& offer = absl::get<Offer>(message.body);
-  const AudioStream* selected_audio_stream = nullptr;
   if (!offer.audio_streams.empty() && !preferences_.audio_codecs.empty()) {
-    selected_audio_stream =
+    properties->selected_audio =
         SelectStream(preferences_.audio_codecs, offer.audio_streams);
   }
 
-  const VideoStream* selected_video_stream = nullptr;
   if (!offer.video_streams.empty() && !preferences_.video_codecs.empty()) {
-    selected_video_stream =
+    properties->selected_video =
         SelectStream(preferences_.video_codecs, offer.video_streams);
   }
 
-  if (!selected_audio_stream && !selected_video_stream) {
+  if (!properties->IsValid()) {
     SendErrorAnswerReply(message.sequence_number,
                          "Failed to select any streams from OFFER");
     return;
   }
 
-  Answer answer = ConstructAnswer(selected_audio_stream, selected_video_stream);
+  switch (environment_->socket_state()) {
+    // If the environment is ready or in a bad state, we can respond
+    // immediately.
+    case Environment::SocketState::kInvalid:
+      SendErrorAnswerReply(message.sequence_number,
+                           "UDP socket is closed, likely due to a bind error.");
+      break;
+
+    case Environment::SocketState::kReady:
+      InitializeSession(*properties);
+      break;
+
+    // Else we need to store the properties we just created until we get a
+    // ready or error event.
+    case Environment::SocketState::kStarting:
+      pending_session_ = std::move(properties);
+      break;
+  }
+}
+
+void ReceiverSession::InitializeSession(const SessionProperties& properties) {
+  Answer answer = ConstructAnswer(properties);
   if (!answer.IsValid()) {
     // If the answer message is invalid, there is no point in setting up a
     // negotiation because the sender won't be able to connect to it.
-    SendErrorAnswerReply(message.sequence_number,
+    SendErrorAnswerReply(properties.sequence_number,
                          "Failed to construct an ANSWER message");
     return;
   }
 
   // Only spawn receivers if we know we have a valid answer message.
-  ConfiguredReceivers receivers =
-      SpawnReceivers(selected_audio_stream, selected_video_stream);
+  ConfiguredReceivers receivers = SpawnReceivers(properties);
   client_->OnNegotiated(this, std::move(receivers));
-  const Error result = messager_.SendMessage(
-      ReceiverMessage{ReceiverMessage::Type::kAnswer, message.sequence_number,
-                      true /* valid */, std::move(answer)});
+  const Error result = messager_.SendMessage(ReceiverMessage{
+      ReceiverMessage::Type::kAnswer, properties.sequence_number,
+      true /* valid */, std::move(answer)});
   if (!result.ok()) {
     client_->OnError(this, std::move(result));
   }
@@ -166,32 +212,38 @@ std::unique_ptr<Receiver> ReceiverSession::ConstructReceiver(
                                     std::move(config));
 }
 
-ConfiguredReceivers ReceiverSession::SpawnReceivers(const AudioStream* audio,
-                                                    const VideoStream* video) {
-  OSP_DCHECK(audio || video);
+ConfiguredReceivers ReceiverSession::SpawnReceivers(
+    const SessionProperties& properties) {
+  OSP_DCHECK(properties.IsValid());
   ResetReceivers(Client::kRenegotiated);
 
   AudioCaptureConfig audio_config;
-  if (audio) {
-    current_audio_receiver_ = ConstructReceiver(audio->stream);
-    audio_config = AudioCaptureConfig{
-        audio->codec, audio->stream.channels, audio->bit_rate,
-        audio->stream.rtp_timebase, audio->stream.target_delay};
+  if (properties.selected_audio) {
+    current_audio_receiver_ =
+        ConstructReceiver(properties.selected_audio->stream);
+    audio_config =
+        AudioCaptureConfig{properties.selected_audio->codec,
+                           properties.selected_audio->stream.channels,
+                           properties.selected_audio->bit_rate,
+                           properties.selected_audio->stream.rtp_timebase,
+                           properties.selected_audio->stream.target_delay};
   }
 
   VideoCaptureConfig video_config;
-  if (video) {
-    current_video_receiver_ = ConstructReceiver(video->stream);
+  if (properties.selected_video) {
+    current_video_receiver_ =
+        ConstructReceiver(properties.selected_video->stream);
     std::vector<DisplayResolution> display_resolutions;
-    std::transform(video->resolutions.begin(), video->resolutions.end(),
+    std::transform(properties.selected_video->resolutions.begin(),
+                   properties.selected_video->resolutions.end(),
                    std::back_inserter(display_resolutions),
                    ToDisplayResolution);
-    video_config =
-        VideoCaptureConfig{video->codec,
-                           FrameRate{video->max_frame_rate.numerator,
-                                     video->max_frame_rate.denominator},
-                           video->max_bit_rate, std::move(display_resolutions),
-                           video->stream.target_delay};
+    video_config = VideoCaptureConfig{
+        properties.selected_video->codec,
+        FrameRate{properties.selected_video->max_frame_rate.numerator,
+                  properties.selected_video->max_frame_rate.denominator},
+        properties.selected_video->max_bit_rate, std::move(display_resolutions),
+        properties.selected_video->stream.target_delay};
   }
 
   return ConfiguredReceivers{
@@ -207,21 +259,19 @@ void ReceiverSession::ResetReceivers(Client::ReceiversDestroyingReason reason) {
   }
 }
 
-Answer ReceiverSession::ConstructAnswer(
-    const AudioStream* selected_audio_stream,
-    const VideoStream* selected_video_stream) {
-  OSP_DCHECK(selected_audio_stream || selected_video_stream);
+Answer ReceiverSession::ConstructAnswer(const SessionProperties& properties) {
+  OSP_DCHECK(properties.IsValid());
 
   std::vector<int> stream_indexes;
   std::vector<Ssrc> stream_ssrcs;
-  if (selected_audio_stream) {
-    stream_indexes.push_back(selected_audio_stream->stream.index);
-    stream_ssrcs.push_back(selected_audio_stream->stream.ssrc + 1);
+  if (properties.selected_audio) {
+    stream_indexes.push_back(properties.selected_audio->stream.index);
+    stream_ssrcs.push_back(properties.selected_audio->stream.ssrc + 1);
   }
 
-  if (selected_video_stream) {
-    stream_indexes.push_back(selected_video_stream->stream.index);
-    stream_ssrcs.push_back(selected_video_stream->stream.ssrc + 1);
+  if (properties.selected_video) {
+    stream_indexes.push_back(properties.selected_video->stream.index);
+    stream_ssrcs.push_back(properties.selected_video->stream.ssrc + 1);
   }
 
   absl::optional<Constraints> constraints;

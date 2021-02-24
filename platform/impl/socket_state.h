@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PLATFORM_BASE_SOCKET_STATE_H_
-#define PLATFORM_BASE_SOCKET_STATE_H_
+#ifndef PLATFORM_IMPL_SOCKET_STATE_H_
+#define PLATFORM_IMPL_SOCKET_STATE_H_
 
 #include <cstdint>
 #include <memory>
@@ -11,10 +11,10 @@
 
 namespace openscreen {
 
-// SocketState should be used by TCP and TLS sockets for indicating
+// TcpSocketState should be used by TCP and TLS sockets for indicating
 // current state. NOTE: socket state transitions should only happen in
 // the listed order. New states should be added in appropriate order.
-enum class SocketState {
+enum class TcpSocketState {
   // Socket is not connected.
   kNotConnected = 0,
 
@@ -34,4 +34,4 @@ enum class SocketState {
 
 }  // namespace openscreen
 
-#endif  // PLATFORM_BASE_SOCKET_STATE_H_
+#endif  // PLATFORM_IMPL_SOCKET_STATE_H_

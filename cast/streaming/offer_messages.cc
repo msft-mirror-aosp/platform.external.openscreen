@@ -16,7 +16,6 @@
 #include "absl/strings/str_split.h"
 #include "cast/streaming/capture_recommendations.h"
 #include "cast/streaming/constants.h"
-#include "cast/streaming/receiver_session.h"
 #include "platform/base/error.h"
 #include "util/big_endian.h"
 #include "util/enum_name_table.h"
