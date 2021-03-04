@@ -84,7 +84,8 @@ MessageDemuxer::MessageWatch::MessageWatch(MessageDemuxer* parent,
       endpoint_id_(endpoint_id),
       message_type_(message_type) {}
 
-MessageDemuxer::MessageWatch::MessageWatch(MessageDemuxer::MessageWatch&& other)
+MessageDemuxer::MessageWatch::MessageWatch(
+    MessageDemuxer::MessageWatch&& other) noexcept
     : parent_(other.parent_),
       is_default_(other.is_default_),
       endpoint_id_(other.endpoint_id_),
@@ -107,7 +108,7 @@ MessageDemuxer::MessageWatch::~MessageWatch() {
 }
 
 MessageDemuxer::MessageWatch& MessageDemuxer::MessageWatch::operator=(
-    MessageWatch&& other) {
+    MessageWatch&& other) noexcept {
   using std::swap;
   swap(parent_, other.parent_);
   swap(is_default_, other.is_default_);
