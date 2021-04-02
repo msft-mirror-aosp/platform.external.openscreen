@@ -127,7 +127,7 @@ const VideoCaptureConfig kVideoCaptureConfigValidSimplest{
 class FakeClient : public SenderSession::Client {
  public:
   MOCK_METHOD(void,
-              OnMirroringNegotiated,
+              OnNegotiated,
               (const SenderSession*,
                SenderSession::ConfiguredSenders,
                capture_recommendations::Recommendations),
@@ -159,7 +159,7 @@ class SenderSessionTest : public ::testing::Test {
   }
 
   std::string NegotiateOfferAndConstructAnswer() {
-    const Error error = session_->NegotiateMirroring(
+    const Error error = session_->Negotiate(
         std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
         std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
     if (!error.ok()) {
@@ -220,8 +220,8 @@ class SenderSessionTest : public ::testing::Test {
 };
 
 TEST_F(SenderSessionTest, ComplainsIfNoConfigsToOffer) {
-  const Error error = session_->NegotiateMirroring(
-      std::vector<AudioCaptureConfig>{}, std::vector<VideoCaptureConfig>{});
+  const Error error = session_->Negotiate(std::vector<AudioCaptureConfig>{},
+                                          std::vector<VideoCaptureConfig>{});
 
   EXPECT_EQ(error,
             Error(Error::Code::kParameterInvalid,
@@ -229,7 +229,7 @@ TEST_F(SenderSessionTest, ComplainsIfNoConfigsToOffer) {
 }
 
 TEST_F(SenderSessionTest, ComplainsIfInvalidAudioCaptureConfig) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigInvalidChannels},
       std::vector<VideoCaptureConfig>{});
 
@@ -238,7 +238,7 @@ TEST_F(SenderSessionTest, ComplainsIfInvalidAudioCaptureConfig) {
 }
 
 TEST_F(SenderSessionTest, ComplainsIfInvalidVideoCaptureConfig) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigInvalid});
   EXPECT_EQ(error,
@@ -246,7 +246,7 @@ TEST_F(SenderSessionTest, ComplainsIfInvalidVideoCaptureConfig) {
 }
 
 TEST_F(SenderSessionTest, ComplainsIfMissingResolutions) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigMissingResolutions});
   EXPECT_EQ(error,
@@ -259,9 +259,9 @@ TEST_F(SenderSessionTest, SendsOfferWithZeroBitrateOptions) {
   AudioCaptureConfig audio_config = kAudioCaptureConfigValid;
   audio_config.bit_rate = 0;
 
-  const Error error = session_->NegotiateMirroring(
-      std::vector<AudioCaptureConfig>{audio_config},
-      std::vector<VideoCaptureConfig>{video_config});
+  const Error error =
+      session_->Negotiate(std::vector<AudioCaptureConfig>{audio_config},
+                          std::vector<VideoCaptureConfig>{video_config});
   EXPECT_TRUE(error.ok());
 
   const auto& messages = message_port_->posted_messages();
@@ -273,7 +273,7 @@ TEST_F(SenderSessionTest, SendsOfferWithZeroBitrateOptions) {
 }
 
 TEST_F(SenderSessionTest, SendsOfferWithSimpleVideoOnly) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
   EXPECT_TRUE(error.ok());
@@ -287,7 +287,7 @@ TEST_F(SenderSessionTest, SendsOfferWithSimpleVideoOnly) {
 }
 
 TEST_F(SenderSessionTest, SendsOfferAudioOnly) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{});
   EXPECT_TRUE(error.ok());
@@ -301,7 +301,7 @@ TEST_F(SenderSessionTest, SendsOfferAudioOnly) {
 }
 
 TEST_F(SenderSessionTest, SendsOfferMessage) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -346,7 +346,7 @@ TEST_F(SenderSessionTest, SendsOfferMessage) {
 TEST_F(SenderSessionTest, HandlesValidAnswer) {
   std::string answer = NegotiateOfferAndConstructAnswer();
 
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _, _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _, _));
   message_port_->ReceiveMessage(answer);
 }
 
@@ -356,7 +356,7 @@ TEST_F(SenderSessionTest, HandlesInvalidNamespace) {
 }
 
 TEST_F(SenderSessionTest, HandlesMalformedAnswer) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -368,7 +368,7 @@ TEST_F(SenderSessionTest, HandlesMalformedAnswer) {
 }
 
 TEST_F(SenderSessionTest, HandlesImproperlyFormattedAnswer) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -377,7 +377,7 @@ TEST_F(SenderSessionTest, HandlesImproperlyFormattedAnswer) {
 }
 
 TEST_F(SenderSessionTest, HandlesInvalidAnswer) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -386,7 +386,7 @@ TEST_F(SenderSessionTest, HandlesInvalidAnswer) {
 }
 
 TEST_F(SenderSessionTest, HandlesNullAnswer) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -396,7 +396,7 @@ TEST_F(SenderSessionTest, HandlesNullAnswer) {
 }
 
 TEST_F(SenderSessionTest, HandlesInvalidSequenceNumber) {
-  const Error error = session_->NegotiateMirroring(
+  const Error error = session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -405,7 +405,7 @@ TEST_F(SenderSessionTest, HandlesInvalidSequenceNumber) {
 }
 
 TEST_F(SenderSessionTest, HandlesUnknownTypeMessageWithValidSeqNum) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -416,7 +416,7 @@ TEST_F(SenderSessionTest, HandlesUnknownTypeMessageWithValidSeqNum) {
 }
 
 TEST_F(SenderSessionTest, HandlesInvalidTypeMessageWithValidSeqNum) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -427,7 +427,7 @@ TEST_F(SenderSessionTest, HandlesInvalidTypeMessageWithValidSeqNum) {
 }
 
 TEST_F(SenderSessionTest, HandlesInvalidTypeMessage) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -437,7 +437,7 @@ TEST_F(SenderSessionTest, HandlesInvalidTypeMessage) {
 }
 
 TEST_F(SenderSessionTest, HandlesErrorMessage) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 
@@ -447,7 +447,7 @@ TEST_F(SenderSessionTest, HandlesErrorMessage) {
 }
 
 TEST_F(SenderSessionTest, DoesNotCrashOnMessagePortError) {
-  session_->NegotiateMirroring(
+  session_->Negotiate(
       std::vector<AudioCaptureConfig>{kAudioCaptureConfigValid},
       std::vector<VideoCaptureConfig>{kVideoCaptureConfigValid});
 

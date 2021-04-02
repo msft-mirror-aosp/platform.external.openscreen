@@ -289,13 +289,13 @@ void LoopingFileCastAgent::CreateAndStartSession() {
 
   OSP_VLOG << "Starting session negotiation.";
   const Error negotiation_error =
-      current_session_->NegotiateMirroring({audio_config}, {video_config});
+      current_session_->Negotiate({audio_config}, {video_config});
   if (!negotiation_error.ok()) {
     OSP_LOG_ERROR << "Failed to negotiate a session: " << negotiation_error;
   }
 }
 
-void LoopingFileCastAgent::OnMirroringNegotiated(
+void LoopingFileCastAgent::OnNegotiated(
     const SenderSession* session,
     SenderSession::ConfiguredSenders senders,
     capture_recommendations::Recommendations capture_recommendations) {

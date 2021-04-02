@@ -50,23 +50,21 @@ class SenderSession final {
   };
 
   // The embedder should provide a client for handling the negotiation.
-  // When the negotiation is complete, the OnMirroringNegotiated callback is
-  // called.
+  // When the negotiation is complete, the OnNegotiated callback is called.
   class Client {
    public:
     // Called when a new set of senders has been negotiated. This may be
-    // called multiple times during a session, once for every time
-    // NegotiateMirroring() is called on the SenderSession object. The
-    // negotiation call also includes capture recommendations that can be used
-    // by the sender to provide an optimal video stream for the receiver.
-    virtual void OnMirroringNegotiated(
+    // called multiple times during a session, once for every time Negotiate()
+    // is called on the SenderSession object. The negotiation call also includes
+    // capture recommendations that can be used by the sender to provide
+    // an optimal video stream for the receiver.
+    virtual void OnNegotiated(
         const SenderSession* session,
         ConfiguredSenders senders,
         capture_recommendations::Recommendations capture_recommendations) = 0;
 
     // Called whenever an error occurs. Ends the ongoing session, and the caller
-    // must call NegotiateMirroring() again if they wish to re-establish
-    // streaming.
+    // must call Negotiate() again if they wish to re-establish streaming.
     virtual void OnError(const SenderSession* session, Error error) = 0;
 
    protected:
@@ -97,8 +95,8 @@ class SenderSession final {
   // Starts an OFFER/ANSWER exchange with the already configured receiver
   // over the message port. The caller should assume any configured senders
   // become invalid when calling this method.
-  Error NegotiateMirroring(std::vector<AudioCaptureConfig> audio_configs,
-                           std::vector<VideoCaptureConfig> video_configs);
+  Error Negotiate(std::vector<AudioCaptureConfig> audio_configs,
+                  std::vector<VideoCaptureConfig> video_configs);
 
   // Get the current network usage (in bits per second). This includes all
   // senders managed by this session, and is a best guess based on receiver

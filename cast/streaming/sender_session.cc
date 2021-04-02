@@ -165,9 +165,8 @@ SenderSession::SenderSession(IPAddress remote_address,
 
 SenderSession::~SenderSession() = default;
 
-Error SenderSession::NegotiateMirroring(
-    std::vector<AudioCaptureConfig> audio_configs,
-    std::vector<VideoCaptureConfig> video_configs) {
+Error SenderSession::Negotiate(std::vector<AudioCaptureConfig> audio_configs,
+                               std::vector<VideoCaptureConfig> video_configs) {
   // Negotiating with no streams doesn't make any sense.
   if (audio_configs.empty() && video_configs.empty()) {
     return Error(Error::Code::kParameterInvalid,
@@ -213,9 +212,8 @@ void SenderSession::OnAnswer(ReceiverMessage message) {
   if (senders.audio_sender == nullptr && senders.video_sender == nullptr) {
     return;
   }
-  client_->OnMirroringNegotiated(
-      this, std::move(senders),
-      capture_recommendations::GetRecommendations(answer));
+  client_->OnNegotiated(this, std::move(senders),
+                        capture_recommendations::GetRecommendations(answer));
 }
 
 std::unique_ptr<Sender> SenderSession::CreateSender(Ssrc receiver_ssrc,

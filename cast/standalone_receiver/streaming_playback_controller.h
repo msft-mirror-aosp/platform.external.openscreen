@@ -33,9 +33,8 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
                               StreamingPlaybackController::Client* client);
 
   // ReceiverSession::Client overrides.
-  void OnMirroringNegotiated(
-      const ReceiverSession* session,
-      ReceiverSession::ConfiguredReceivers receivers) override;
+  void OnNegotiated(const ReceiverSession* session,
+                    ReceiverSession::ConfiguredReceivers receivers) override;
 
   void OnReceiversDestroying(const ReceiverSession* session,
                              ReceiversDestroyingReason reason) override;

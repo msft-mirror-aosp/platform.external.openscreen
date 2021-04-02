@@ -51,25 +51,23 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   };
 
   // The embedder should provide a client for handling connections.
-  // When a connection is established, the OnMirroringNegotiated callback is
-  // called.
+  // When a connection is established, the OnNegotiated callback is called.
   class Client {
    public:
     enum ReceiversDestroyingReason { kEndOfSession, kRenegotiated };
 
     // Called when a new set of receivers has been negotiated. This may be
     // called multiple times during a session, as renegotiations occur.
-    virtual void OnMirroringNegotiated(const ReceiverSession* session,
-                                       ConfiguredReceivers receivers) = 0;
+    virtual void OnNegotiated(const ReceiverSession* session,
+                              ConfiguredReceivers receivers) = 0;
 
     // Called immediately preceding the destruction of this session's receivers.
-    // If |reason| is |kEndOfSession|, OnMirroringNegotiated() will never be
-    // called again; if it is |kRenegotiated|, OnMirroringNegotiated() will be
-    // called again soon with a new set of Receivers to use.
+    // If |reason| is |kEndOfSession|, OnNegotiated() will never be called
+    // again; if it is |kRenegotiated|, OnNegotiated() will be called again
+    // soon with a new set of Receivers to use.
     //
     // Before returning, the implementation must ensure that all references to
-    // the Receivers, from the last call to OnMirroringNegotiated(), have been
-    // cleared.
+    // the Receivers, from the last call to OnNegotiated(), have been cleared.
     virtual void OnReceiversDestroying(const ReceiverSession* session,
                                        ReceiversDestroyingReason reason) = 0;
 

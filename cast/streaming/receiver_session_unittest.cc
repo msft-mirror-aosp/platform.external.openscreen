@@ -249,7 +249,7 @@ constexpr char kInvalidTypeMessage[] = R"({
 class FakeClient : public ReceiverSession::Client {
  public:
   MOCK_METHOD(void,
-              OnMirroringNegotiated,
+              OnNegotiated,
               (const ReceiverSession*, ReceiverSession::ConfiguredReceivers),
               (override));
   MOCK_METHOD(void,
@@ -315,7 +315,7 @@ class ReceiverSessionTest : public ::testing::Test {
 
 TEST_F(ReceiverSessionTest, CanNegotiateWithDefaultPreferences) {
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _))
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _))
       .WillOnce([](const ReceiverSession* session_,
                    ReceiverSession::ConfiguredReceivers cr) {
         EXPECT_TRUE(cr.audio_receiver);
@@ -378,7 +378,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomCodecPreferences) {
       ReceiverSession::Preferences{{VideoCodec::kVp9}, {AudioCodec::kOpus}});
 
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(&session, _))
+  EXPECT_CALL(client_, OnNegotiated(&session, _))
       .WillOnce([](const ReceiverSession* session_,
                    ReceiverSession::ConfiguredReceivers cr) {
         EXPECT_TRUE(cr.audio_receiver);
@@ -421,7 +421,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomConstraints) {
                                                        std::move(display)});
 
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(&session, _));
+  EXPECT_CALL(client_, OnNegotiated(&session, _));
   EXPECT_CALL(client_, OnReceiversDestroying(
                            &session, ReceiverSession::Client::kEndOfSession));
   message_port_->ReceiveMessage(kValidOfferMessage);
@@ -474,7 +474,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomConstraints) {
 
 TEST_F(ReceiverSessionTest, HandlesNoValidAudioStream) {
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
   EXPECT_CALL(client_,
               OnReceiversDestroying(session_.get(),
                                     ReceiverSession::Client::kEndOfSession));
@@ -511,7 +511,7 @@ TEST_F(ReceiverSessionTest, HandlesInvalidCodec) {
 
 TEST_F(ReceiverSessionTest, HandlesNoValidVideoStream) {
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
   EXPECT_CALL(client_,
               OnReceiversDestroying(session_.get(),
                                     ReceiverSession::Client::kEndOfSession));
@@ -533,8 +533,7 @@ TEST_F(ReceiverSessionTest, HandlesNoValidVideoStream) {
 }
 
 TEST_F(ReceiverSessionTest, HandlesNoValidStreams) {
-  // We shouldn't call OnMirroringNegotiated if we failed to negotiate any
-  // streams.
+  // We shouldn't call OnNegotiated if we failed to negotiate any streams.
   message_port_->ReceiveMessage(kNoAudioOrVideoOfferMessage);
   AssertGotAnErrorAnswerResponse();
 }
@@ -596,11 +595,11 @@ TEST_F(ReceiverSessionTest, DoesNotCrashOnMessagePortError) {
 
 TEST_F(ReceiverSessionTest, NotifiesReceiverDestruction) {
   InSequence s;
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
   EXPECT_CALL(client_,
               OnReceiversDestroying(session_.get(),
                                     ReceiverSession::Client::kRenegotiated));
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
   EXPECT_CALL(client_,
               OnReceiversDestroying(session_.get(),
                                     ReceiverSession::Client::kEndOfSession));
@@ -638,7 +637,7 @@ TEST_F(ReceiverSessionTest, DelaysAnswerUntilEnvironmentIsReady) {
   // state() will not be called again--we just need to get the bind event.
   EXPECT_CALL(*environment_, GetBoundLocalEndpoint())
       .WillOnce(Return(IPEndpoint{{10, 0, 0, 2}, 4567}));
-  EXPECT_CALL(client_, OnMirroringNegotiated(session_.get(), _));
+  EXPECT_CALL(client_, OnNegotiated(session_.get(), _));
   EXPECT_CALL(client_,
               OnReceiversDestroying(session_.get(),
                                     ReceiverSession::Client::kEndOfSession));
