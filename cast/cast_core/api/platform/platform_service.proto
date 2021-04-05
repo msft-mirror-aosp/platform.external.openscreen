@@ -7,6 +7,8 @@ syntax = "proto3";
 
 package cast.platform;
 
+import "cast/cast_core/api/common/service_info.proto";
+
 option optimize_for = LITE_RUNTIME;
 
 // Platform service. Implemented and hosted by Platform.
@@ -23,7 +25,10 @@ service PlatformService {
 }
 
 message StartRuntimeRequest {
+  // Cast Runtime ID assigned in CastCoreService.RegisterRuntime.
   string runtime_id = 1;
+  // gRPC endpoint Cast Runtime must run on.
+  cast.common.ServiceInfo runtime_service_info = 2;
 }
 
 message StartRuntimeResponse {}

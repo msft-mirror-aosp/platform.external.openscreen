@@ -10,7 +10,7 @@ package cast.v2;
 option optimize_for = LITE_RUNTIME;
 
 // Cast V2 request definition.
-message CastMessage {
+message CastMessageRequest {
   // Cast sender ID; distinct from virtual connection source ID.
   string sender_id = 1;
   // Cast namespace.
