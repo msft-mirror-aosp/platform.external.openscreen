@@ -23,7 +23,11 @@ void CheckEncodeDecode(const char* to_encode, const char* encode_expected) {
 
   std::vector<uint8_t> decoded;
   EXPECT_TRUE(Decode(encoded, &decoded));
-  EXPECT_STREQ(to_encode, reinterpret_cast<char*>(decoded.data()));
+
+  // More sophisticated comparisons here, such as EXPECT_STREQ, may
+  // cause memory failures on some platforms (e.g. ASAN) due to mismatched
+  // lengths.
+  EXPECT_EQ(0, std::memcmp(decoded.data(), to_encode, decoded.size()));
 }
 
 }  // namespace
