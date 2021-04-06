@@ -268,13 +268,19 @@ void LoopingFileCastAgent::OnRemoteMessagingOpened(bool success) {
 void LoopingFileCastAgent::CreateAndStartSession() {
   TRACE_DEFAULT_SCOPED(TraceCategory::kStandaloneSender);
 
+  OSP_DCHECK(remote_connection_.has_value());
   environment_ =
       std::make_unique<Environment>(&Clock::now, task_runner_, IPEndpoint{});
-  OSP_DCHECK(remote_connection_.has_value());
-  current_session_ = std::make_unique<SenderSession>(
-      connection_settings_->receiver_endpoint.address, this, environment_.get(),
-      &message_port_, remote_connection_->local_id,
-      remote_connection_->peer_id);
+
+  SenderSession::Configuration config{
+      connection_settings_->receiver_endpoint.address,
+      this,
+      environment_.get(),
+      &message_port_,
+      remote_connection_->local_id,
+      remote_connection_->peer_id,
+      connection_settings_->use_android_rtp_hack};
+  current_session_ = std::make_unique<SenderSession>(std::move(config));
   OSP_DCHECK(!message_port_.client_sender_id().empty());
 
   AudioCaptureConfig audio_config;

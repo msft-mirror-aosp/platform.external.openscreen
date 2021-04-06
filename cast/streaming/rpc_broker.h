@@ -5,6 +5,7 @@
 #ifndef CAST_STREAMING_RPC_BROKER_H_
 #define CAST_STREAMING_RPC_BROKER_H_
 
+#include <string>
 #include <vector>
 
 #include "cast/streaming/remoting.pb.h"
@@ -53,10 +54,13 @@ class RpcBroker {
   void UnregisterMessageReceiverCallback(Handle handle);
 
   // Distributes an incoming RPC message to the registered (if any) component.
-  void ProcessMessageFromRemote(const RpcMessage& message);
+  // The |serialized_message| should be already base64-decoded and ready for
+  // deserialization by protobuf.
+  void ProcessMessageFromRemote(const uint8_t* message,
+                                std::size_t message_len);
 
-  // Executes the |send_message_cb_| using |message|.
-  void SendMessageToRemote(const RpcMessage& message);
+  // Executes the |send_message_cb_| using |rpc|.
+  void SendMessageToRemote(const RpcMessage& rpc);
 
   // Checks if the handle is registered for receiving messages. Test-only.
   bool IsRegisteredForTesting(Handle handle);

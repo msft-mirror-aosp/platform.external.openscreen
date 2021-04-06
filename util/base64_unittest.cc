@@ -4,6 +4,9 @@
 
 #include "util/base64.h"
 
+#include <string>
+#include <vector>
+
 #include "gtest/gtest.h"
 
 namespace openscreen {
@@ -18,9 +21,9 @@ void CheckEncodeDecode(const char* to_encode, const char* encode_expected) {
   std::string encoded = Encode(to_encode);
   EXPECT_EQ(encode_expected, encoded);
 
-  std::string decoded;
+  std::vector<uint8_t> decoded;
   EXPECT_TRUE(Decode(encoded, &decoded));
-  EXPECT_EQ(to_encode, decoded);
+  EXPECT_STREQ(to_encode, reinterpret_cast<char*>(decoded.data()));
 }
 
 }  // namespace
@@ -52,8 +55,9 @@ TEST(Base64Test, InPlace) {
   text = Encode(text);
   EXPECT_EQ(kBase64Text, text);
 
-  EXPECT_TRUE(Decode(text, &text));
-  EXPECT_EQ(text, kText);
+  std::vector<uint8_t> out;
+  EXPECT_TRUE(Decode(text, &out));
+  EXPECT_STREQ(reinterpret_cast<const char*>(out.data()), kText);
 }
 
 }  // namespace base64

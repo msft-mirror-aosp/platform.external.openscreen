@@ -187,7 +187,12 @@ class Error {
     kTypeError,
     kUnknownCodec,
     kSocketFailure,
-    kUnencryptedOffer
+    kUnencryptedOffer,
+    kRemotingNotSupported,
+
+    // A negotiation failure means that the current negotiation must be
+    // restarted by the sender.
+    kNegotiationFailure,
   };
 
   Error();
