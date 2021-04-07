@@ -17,6 +17,13 @@ namespace {
 constexpr char kText[] = "hello world";
 constexpr char kBase64Text[] = "aGVsbG8gd29ybGQ=";
 
+// More sophisticated comparisons here, such as EXPECT_STREQ, may
+// cause memory failures on some platforms (e.g. ASAN) due to mismatched
+// lengths.
+void CheckEquals(const char* expected, const std::vector<uint8_t>& actual) {
+  EXPECT_EQ(0, std::memcmp(actual.data(), expected, actual.size()));
+}
+
 void CheckEncodeDecode(const char* to_encode, const char* encode_expected) {
   std::string encoded = Encode(to_encode);
   EXPECT_EQ(encode_expected, encoded);
@@ -24,10 +31,7 @@ void CheckEncodeDecode(const char* to_encode, const char* encode_expected) {
   std::vector<uint8_t> decoded;
   EXPECT_TRUE(Decode(encoded, &decoded));
 
-  // More sophisticated comparisons here, such as EXPECT_STREQ, may
-  // cause memory failures on some platforms (e.g. ASAN) due to mismatched
-  // lengths.
-  EXPECT_EQ(0, std::memcmp(decoded.data(), to_encode, decoded.size()));
+  CheckEquals(to_encode, decoded);
 }
 
 }  // namespace
@@ -61,7 +65,7 @@ TEST(Base64Test, InPlace) {
 
   std::vector<uint8_t> out;
   EXPECT_TRUE(Decode(text, &out));
-  EXPECT_STREQ(reinterpret_cast<const char*>(out.data()), kText);
+  CheckEquals(kText, out);
 }
 
 }  // namespace base64
