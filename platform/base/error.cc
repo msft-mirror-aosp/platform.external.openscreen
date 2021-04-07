@@ -256,6 +256,8 @@ std::ostream& operator<<(std::ostream& os, const Error::Code& code) {
       return os << "UnknownCodec";
     case Error::Code::kSocketFailure:
       return os << "SocketFailure";
+    case Error::Code::kUnencryptedOffer:
+      return os << "UnencryptedOffer";
     case Error::Code::kNone:
       break;
   }
