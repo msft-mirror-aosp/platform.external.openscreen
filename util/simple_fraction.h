@@ -14,20 +14,25 @@ namespace openscreen {
 
 // SimpleFraction is used to represent simple (or "common") fractions, composed
 // of a rational number written a/b where a and b are both integers.
-
-// Note: Since SimpleFraction is a trivial type, it comes with a
-// default constructor and is copyable, as well as allowing static
-// initialization.
-
 // Some helpful notes on SimpleFraction assumptions/limitations:
 // 1. SimpleFraction does not perform reductions. 2/4 != 1/2, and -1/-1 != 1/1.
 // 2. denominator = 0 is considered undefined.
 // 3. numerator = saturates range to int min or int max
 // 4. A SimpleFraction is "positive" if and only if it is defined and at least
 //    equal to zero. Since reductions are not performed, -1/-1 is negative.
-struct SimpleFraction {
+class SimpleFraction {
+ public:
   static ErrorOr<SimpleFraction> FromString(absl::string_view value);
   std::string ToString() const;
+
+  SimpleFraction();
+  SimpleFraction(int numerator, int denominator);
+  SimpleFraction(int numerator);  // NOLINT
+  SimpleFraction(const SimpleFraction&);
+  SimpleFraction(SimpleFraction&&) noexcept;
+  SimpleFraction& operator=(const SimpleFraction&);
+  SimpleFraction& operator=(SimpleFraction&&);
+  ~SimpleFraction();
 
   bool operator==(const SimpleFraction& other) const;
   bool operator!=(const SimpleFraction& other) const;
@@ -36,8 +41,12 @@ struct SimpleFraction {
   bool is_positive() const;
   explicit operator double() const;
 
-  int numerator = 0;
-  int denominator = 0;
+  int numerator() const { return numerator_; }
+  int denominator() const { return denominator_; }
+
+ private:
+  int numerator_ = 0;
+  int denominator_ = 0;
 };
 
 }  // namespace openscreen

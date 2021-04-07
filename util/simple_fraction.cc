@@ -33,18 +33,32 @@ ErrorOr<SimpleFraction> SimpleFraction::FromString(absl::string_view value) {
     }
   }
 
-  return SimpleFraction{numerator, denominator};
+  return SimpleFraction(numerator, denominator);
 }
 
 std::string SimpleFraction::ToString() const {
-  if (denominator == 1) {
-    return std::to_string(numerator);
+  if (denominator_ == 1) {
+    return std::to_string(numerator_);
   }
-  return absl::StrCat(numerator, "/", denominator);
+  return absl::StrCat(numerator_, "/", denominator_);
 }
 
+SimpleFraction::SimpleFraction() : numerator_(0), denominator_(1) {}
+
+SimpleFraction::SimpleFraction(int numerator, int denominator)
+    : numerator_(numerator), denominator_(denominator) {}
+
+SimpleFraction::SimpleFraction(int numerator)
+    : numerator_(numerator), denominator_(1) {}
+
+SimpleFraction::SimpleFraction(const SimpleFraction&) = default;
+SimpleFraction::SimpleFraction(SimpleFraction&&) = default;
+SimpleFraction& SimpleFraction::operator=(const SimpleFraction&) = default;
+SimpleFraction& SimpleFraction::operator=(SimpleFraction&&) = default;
+SimpleFraction::~SimpleFraction() = default;
+
 bool SimpleFraction::operator==(const SimpleFraction& other) const {
-  return numerator == other.numerator && denominator == other.denominator;
+  return numerator_ == other.numerator_ && denominator_ == other.denominator_;
 }
 
 bool SimpleFraction::operator!=(const SimpleFraction& other) const {
@@ -52,18 +66,18 @@ bool SimpleFraction::operator!=(const SimpleFraction& other) const {
 }
 
 bool SimpleFraction::is_defined() const {
-  return denominator != 0;
+  return denominator_ != 0;
 }
 
 bool SimpleFraction::is_positive() const {
-  return is_defined() && (numerator >= 0) && (denominator > 0);
+  return is_defined() && (numerator_ >= 0) && (denominator_ > 0);
 }
 
 SimpleFraction::operator double() const {
-  if (denominator == 0) {
+  if (denominator_ == 0) {
     return nan("");
   }
-  return static_cast<double>(numerator) / static_cast<double>(denominator);
+  return static_cast<double>(numerator_) / static_cast<double>(denominator_);
 }
 
 }  // namespace openscreen

@@ -116,22 +116,28 @@ const AudioCaptureConfig kAudioCaptureConfigValid{
 };
 
 const VideoCaptureConfig kVideoCaptureConfigMissingResolutions{
-    VideoCodec::kHevc, FrameRate{60, 1}, 300000 /* max_bit_rate */,
-    std::vector<DisplayResolution>{}};
+    VideoCodec::kHevc,
+    {60, 1},
+    300000 /* max_bit_rate */,
+    std::vector<Resolution>{}};
 
 const VideoCaptureConfig kVideoCaptureConfigInvalid{
-    VideoCodec::kHevc, FrameRate{60, 1}, -300000 /* max_bit_rate */,
-    std::vector<DisplayResolution>{DisplayResolution{1920, 1080},
-                                   DisplayResolution{1280, 720}}};
+    VideoCodec::kHevc,
+    {60, 1},
+    -300000 /* max_bit_rate */,
+    std::vector<Resolution>{Resolution{1920, 1080}, Resolution{1280, 720}}};
 
 const VideoCaptureConfig kVideoCaptureConfigValid{
-    VideoCodec::kHevc, FrameRate{60, 1}, 300000 /* max_bit_rate */,
-    std::vector<DisplayResolution>{DisplayResolution{1280, 720},
-                                   DisplayResolution{1920, 1080}}};
+    VideoCodec::kHevc,
+    {60, 1},
+    300000 /* max_bit_rate */,
+    std::vector<Resolution>{Resolution{1280, 720}, Resolution{1920, 1080}}};
 
 const VideoCaptureConfig kVideoCaptureConfigValidSimplest{
-    VideoCodec::kHevc, FrameRate{60, 1}, 300000 /* max_bit_rate */,
-    std::vector<DisplayResolution>{DisplayResolution{1920, 1080}}};
+    VideoCodec::kHevc,
+    {60, 1},
+    300000 /* max_bit_rate */,
+    std::vector<Resolution>{Resolution{1920, 1080}}};
 
 class FakeClient : public SenderSession::Client {
  public:

@@ -115,7 +115,7 @@
     "video_constraints": {
       "properties": {
         "maxPixelsPerSecond": {"type": "number", "minimum": 0},
-        "minDimensions": {"$ref": "#/definitions/dimensions"},
+        "minResolution": {"$ref": "#/definitions/resolution"},
         "maxDimensions": {"$ref": "#/definitions/dimensions"},
         "minBitRate": {"type": "integer", "minimum": 300000},
         "maxBitRate": {"type": "integer", "minimum": 300000},

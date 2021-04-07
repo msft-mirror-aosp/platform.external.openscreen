@@ -13,6 +13,7 @@
 #include "absl/strings/numbers.h"
 #include "cast/common/channel/message_util.h"
 #include "cast/common/public/message_port.h"
+#include "cast/streaming/answer_messages.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/offer_messages.h"
@@ -23,11 +24,6 @@
 
 namespace openscreen {
 namespace cast {
-
-// Using statements for constructor readability.
-using Preferences = ReceiverSession::Preferences;
-using ConfiguredReceivers = ReceiverSession::ConfiguredReceivers;
-
 namespace {
 
 template <typename Stream, typename Codec>
@@ -46,35 +42,14 @@ std::unique_ptr<Stream> SelectStream(
   return nullptr;
 }
 
-DisplayResolution ToDisplayResolution(const Resolution& resolution) {
-  return DisplayResolution{resolution.width, resolution.height};
-}
-
 }  // namespace
 
 ReceiverSession::Client::~Client() = default;
 
-Preferences::Preferences() = default;
-Preferences::Preferences(std::vector<VideoCodec> video_codecs,
-                         std::vector<AudioCodec> audio_codecs)
-    : Preferences(video_codecs, audio_codecs, nullptr, nullptr) {}
-
-Preferences::Preferences(std::vector<VideoCodec> video_codecs,
-                         std::vector<AudioCodec> audio_codecs,
-                         std::unique_ptr<Constraints> constraints,
-                         std::unique_ptr<DisplayDescription> description)
-    : video_codecs(std::move(video_codecs)),
-      audio_codecs(std::move(audio_codecs)),
-      constraints(std::move(constraints)),
-      display_description(std::move(description)) {}
-
-Preferences::Preferences(Preferences&&) noexcept = default;
-Preferences& Preferences::operator=(Preferences&&) noexcept = default;
-
 ReceiverSession::ReceiverSession(Client* const client,
                                  Environment* environment,
                                  MessagePort* message_port,
-                                 Preferences preferences)
+                                 ReceiverSession::Preferences preferences)
     : client_(client),
       environment_(environment),
       preferences_(std::move(preferences)),
@@ -212,7 +187,7 @@ std::unique_ptr<Receiver> ReceiverSession::ConstructReceiver(
                                     std::move(config));
 }
 
-ConfiguredReceivers ReceiverSession::SpawnReceivers(
+ReceiverSession::ConfiguredReceivers ReceiverSession::SpawnReceivers(
     const SessionProperties& properties) {
   OSP_DCHECK(properties.IsValid());
   ResetReceivers(Client::kRenegotiated);
@@ -233,17 +208,12 @@ ConfiguredReceivers ReceiverSession::SpawnReceivers(
   if (properties.selected_video) {
     current_video_receiver_ =
         ConstructReceiver(properties.selected_video->stream);
-    std::vector<DisplayResolution> display_resolutions;
-    std::transform(properties.selected_video->resolutions.begin(),
-                   properties.selected_video->resolutions.end(),
-                   std::back_inserter(display_resolutions),
-                   ToDisplayResolution);
-    video_config = VideoCaptureConfig{
-        properties.selected_video->codec,
-        FrameRate{properties.selected_video->max_frame_rate.numerator,
-                  properties.selected_video->max_frame_rate.denominator},
-        properties.selected_video->max_bit_rate, std::move(display_resolutions),
-        properties.selected_video->stream.target_delay};
+    video_config =
+        VideoCaptureConfig{properties.selected_video->codec,
+                           properties.selected_video->max_frame_rate,
+                           properties.selected_video->max_bit_rate,
+                           properties.selected_video->resolutions,
+                           properties.selected_video->stream.target_delay};
   }
 
   return ConfiguredReceivers{
@@ -264,31 +234,59 @@ Answer ReceiverSession::ConstructAnswer(const SessionProperties& properties) {
 
   std::vector<int> stream_indexes;
   std::vector<Ssrc> stream_ssrcs;
+  Constraints constraints;
   if (properties.selected_audio) {
     stream_indexes.push_back(properties.selected_audio->stream.index);
     stream_ssrcs.push_back(properties.selected_audio->stream.ssrc + 1);
+
+    for (const auto& limit : preferences_.audio_limits) {
+      if (limit.codec == properties.selected_audio->codec ||
+          limit.applies_to_all_codecs) {
+        constraints.audio = AudioConstraints{
+            limit.max_sample_rate, limit.max_channels, limit.min_bit_rate,
+            limit.max_bit_rate,    limit.max_delay,
+        };
+        break;
+      }
+    }
   }
 
   if (properties.selected_video) {
     stream_indexes.push_back(properties.selected_video->stream.index);
     stream_ssrcs.push_back(properties.selected_video->stream.ssrc + 1);
-  }
 
-  absl::optional<Constraints> constraints;
-  if (preferences_.constraints) {
-    constraints = absl::optional<Constraints>(*preferences_.constraints);
+    for (const auto& limit : preferences_.video_limits) {
+      if (limit.codec == properties.selected_video->codec ||
+          limit.applies_to_all_codecs) {
+        constraints.video = VideoConstraints{
+            limit.max_pixels_per_second, absl::nullopt, /* min dimensions */
+            limit.max_dimensions,        limit.min_bit_rate,
+            limit.max_bit_rate,          limit.max_delay,
+        };
+        break;
+      }
+    }
   }
 
   absl::optional<DisplayDescription> display;
   if (preferences_.display_description) {
-    display =
-        absl::optional<DisplayDescription>(*preferences_.display_description);
+    const auto* d = preferences_.display_description.get();
+    display = DisplayDescription{d->dimensions, absl::nullopt,
+                                 d->can_scale_content
+                                     ? AspectRatioConstraint::kVariable
+                                     : AspectRatioConstraint::kFixed};
   }
 
+  // Only set the constraints in the answer if they are valid (meaning we
+  // successfully found limits above).
+  absl::optional<Constraints> answer_constraints;
+  if (constraints.IsValid()) {
+    answer_constraints = std::move(constraints);
+  }
   return Answer{environment_->GetBoundLocalEndpoint().port,
                 std::move(stream_indexes),
                 std::move(stream_ssrcs),
-                std::move(constraints),
+                answer_constraints,
                 std::move(display),
                 std::vector<int>{},  // receiver_rtcp_event_log
                 std::vector<int>{},  // receiver_rtcp_dscp

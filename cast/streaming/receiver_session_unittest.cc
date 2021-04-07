@@ -15,6 +15,7 @@
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
+#include "util/json/json_serialization.h"
 
 using ::testing::_;
 using ::testing::InSequence;
@@ -400,24 +401,28 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomCodecPreferences) {
   message_port_->ReceiveMessage(kValidOfferMessage);
 }
 
-TEST_F(ReceiverSessionTest, CanNegotiateWithCustomConstraints) {
-  auto constraints = std::make_unique<Constraints>(Constraints{
-      AudioConstraints{48001, 2, 32001, 32002, milliseconds(3001)},
-      VideoConstraints{3.14159,
-                       absl::optional<Dimensions>(
-                           Dimensions{320, 240, SimpleFraction{24, 1}}),
-                       Dimensions{1920, 1080, SimpleFraction{144, 1}}, 300000,
-                       90000000, milliseconds(1000)}});
+TEST_F(ReceiverSessionTest, CanNegotiateWithLimits) {
+  std::vector<ReceiverSession::AudioLimits> audio_limits = {
+      {false, AudioCodec::kOpus, 48001, 2, 32001, 32002, milliseconds(3001)}};
 
-  auto display = std::make_unique<DisplayDescription>(DisplayDescription{
-      absl::optional<Dimensions>(Dimensions{640, 480, SimpleFraction{60, 1}}),
-      absl::optional<AspectRatio>(AspectRatio{16, 9}),
-      absl::optional<AspectRatioConstraint>(AspectRatioConstraint::kFixed)});
+  std::vector<ReceiverSession::VideoLimits> video_limits = {
+      {true,
+       VideoCodec::kVp9,
+       62208000,
+       {1920, 1080, {144, 1}},
+       300000,
+       90000000,
+       milliseconds(1000)}};
+
+  auto display =
+      std::make_unique<ReceiverSession::Display>(ReceiverSession::Display{
+          {640, 480, {60, 1}}, false /* can scale content */});
 
   ReceiverSession session(&client_, environment_.get(), message_port_.get(),
                           ReceiverSession::Preferences{{VideoCodec::kVp9},
                                                        {AudioCodec::kOpus},
-                                                       std::move(constraints),
+                                                       std::move(audio_limits),
+                                                       std::move(video_limits),
                                                        std::move(display)});
 
   InSequence s;
@@ -434,14 +439,13 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomConstraints) {
   const Json::Value answer = std::move(message_body.value());
 
   const Json::Value& answer_body = answer["answer"];
-  ASSERT_TRUE(answer_body.isObject());
+  ASSERT_TRUE(answer_body.isObject()) << messages[0];
 
   // Constraints and display should be valid with valid preferences.
   ASSERT_FALSE(answer_body["constraints"].isNull());
   ASSERT_FALSE(answer_body["display"].isNull());
 
   const Json::Value& display_json = answer_body["display"];
-  EXPECT_EQ("16:9", display_json["aspectRatio"].asString());
   EXPECT_EQ("60", display_json["dimensions"]["frameRate"].asString());
   EXPECT_EQ(640, display_json["dimensions"]["width"].asInt());
   EXPECT_EQ(480, display_json["dimensions"]["height"].asInt());
@@ -465,11 +469,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomConstraints) {
   EXPECT_EQ("144", video["maxDimensions"]["frameRate"].asString());
   EXPECT_EQ(1920, video["maxDimensions"]["width"].asInt());
   EXPECT_EQ(1080, video["maxDimensions"]["height"].asInt());
-  EXPECT_DOUBLE_EQ(3.14159, video["maxPixelsPerSecond"].asDouble());
   EXPECT_EQ(300000, video["minBitRate"].asInt());
-  EXPECT_EQ("24", video["minDimensions"]["frameRate"].asString());
-  EXPECT_EQ(320, video["minDimensions"]["width"].asInt());
-  EXPECT_EQ(240, video["minDimensions"]["height"].asInt());
 }
 
 TEST_F(ReceiverSessionTest, HandlesNoValidAudioStream) {

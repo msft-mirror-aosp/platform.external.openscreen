@@ -47,7 +47,7 @@ static constexpr char kMaxPixelsPerSecond[] = "maxPixelsPerSecond";
 // Minimum dimensions. If omitted, the sender will assume a reasonable minimum
 // with the same aspect ratio as maxDimensions, as close to 320*180 as possible.
 // Should reflect the true operational minimum.
-static constexpr char kMinDimensions[] = "minDimensions";
+static constexpr char kMinResolution[] = "minResolution";
 // Maximum dimensions, not necessarily ideal dimensions.
 static constexpr char kMaxDimensions[] = "maxDimensions";
 
@@ -56,15 +56,6 @@ static constexpr char kMaxDimensions[] = "maxDimensions";
 static constexpr char kMaxSampleRate[] = "maxSampleRate";
 // Maximum number of audio channels (1 is mono, 2 is stereo, etc.).
 static constexpr char kMaxChannels[] = "maxChannels";
-
-/// Dimension properties.
-// Width in pixels.
-static constexpr char kWidth[] = "width";
-// Height in pixels.
-static constexpr char kHeight[] = "height";
-// Frame rate as a rational decimal number or fraction.
-// E.g. 30 and "3000/1001" are both valid representations.
-static constexpr char kFrameRate[] = "frameRate";
 
 /// Display description properties
 // If this optional field is included in the ANSWER message, the receiver is
@@ -243,37 +234,14 @@ bool AudioConstraints::IsValid() const {
          max_bit_rate >= min_bit_rate;
 }
 
-bool Dimensions::ParseAndValidate(const Json::Value& root, Dimensions* out) {
-  if (!json::ParseAndValidateInt(root[kWidth], &(out->width)) ||
-      !json::ParseAndValidateInt(root[kHeight], &(out->height)) ||
-      !json::ParseAndValidateSimpleFraction(root[kFrameRate],
-                                            &(out->frame_rate))) {
-    return false;
-  }
-  return out->IsValid();
-}
-
-bool Dimensions::IsValid() const {
-  return width > 0 && height > 0 && frame_rate.is_positive();
-}
-
-Json::Value Dimensions::ToJson() const {
-  OSP_DCHECK(IsValid());
-  Json::Value root;
-  root[kWidth] = width;
-  root[kHeight] = height;
-  root[kFrameRate] = frame_rate.ToString();
-  return root;
-}
-
 // static
 bool VideoConstraints::ParseAndValidate(const Json::Value& root,
                                         VideoConstraints* out) {
   if (!Dimensions::ParseAndValidate(root[kMaxDimensions],
                                     &(out->max_dimensions)) ||
       !json::ParseAndValidateInt(root[kMaxBitRate], &(out->max_bit_rate)) ||
-      !ParseOptional<Dimensions>(root[kMinDimensions],
-                                 &(out->min_dimensions))) {
+      !ParseOptional<Dimensions>(root[kMinResolution],
+                                 &(out->min_resolution))) {
     return false;
   }
 
@@ -299,8 +267,8 @@ bool VideoConstraints::IsValid() const {
          max_bit_rate > min_bit_rate &&
          (!max_delay.has_value() || max_delay->count() > 0) &&
          max_dimensions.IsValid() &&
-         (!min_dimensions.has_value() || min_dimensions->IsValid()) &&
-         max_dimensions.frame_rate.numerator > 0;
+         (!min_resolution.has_value() || min_resolution->IsValid()) &&
+         max_dimensions.frame_rate.numerator() > 0;
 }
 
 Json::Value VideoConstraints::ToJson() const {
@@ -313,8 +281,8 @@ Json::Value VideoConstraints::ToJson() const {
     root[kMaxPixelsPerSecond] = max_pixels_per_second.value();
   }
 
-  if (min_dimensions.has_value()) {
-    root[kMinDimensions] = min_dimensions->ToJson();
+  if (min_resolution.has_value()) {
+    root[kMinResolution] = min_resolution->ToJson();
   }
 
   if (max_delay.has_value()) {

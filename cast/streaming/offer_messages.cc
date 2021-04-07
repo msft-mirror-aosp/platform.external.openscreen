@@ -14,7 +14,6 @@
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_split.h"
-#include "cast/streaming/capture_recommendations.h"
 #include "cast/streaming/constants.h"
 #include "platform/base/error.h"
 #include "util/big_endian.h"
@@ -60,10 +59,10 @@ ErrorOr<int> ParseRtpTimebase(const Json::Value& parent,
   // The spec demands a leading 1, so this isn't really a fraction.
   const auto fraction = SimpleFraction::FromString(error_or_raw.value());
   if (fraction.is_error() || !fraction.value().is_positive() ||
-      fraction.value().numerator != 1) {
+      fraction.value().numerator() != 1) {
     return json::CreateParseError("RTP timebase");
   }
-  return fraction.value().denominator;
+  return fraction.value().denominator();
 }
 
 // For a hex byte, the conversion is 4 bits to 1 character, e.g.
@@ -130,8 +129,7 @@ ErrorOr<Stream> ParseStream(const Json::Value& value, Stream::Type type) {
     return rtp_timebase.error();
   }
   if (rtp_timebase.value() <
-          std::min(capture_recommendations::kDefaultAudioMinSampleRate,
-                   kRtpVideoTimebase) ||
+          std::min(kDefaultAudioMinSampleRate, kRtpVideoTimebase) ||
       rtp_timebase.value() > kRtpVideoTimebase) {
     return json::CreateParameterError("rtp_timebase (sample rate)");
   }
@@ -172,7 +170,7 @@ ErrorOr<AudioStream> ParseAudioStream(const Json::Value& value) {
     return bit_rate.error();
   }
 
-  auto codec_name = json::ParseString(value, "codecName");
+  auto codec_name = json::ParseString(value, kCodecName);
   if (!codec_name) {
     return codec_name.error();
   }
@@ -189,21 +187,6 @@ ErrorOr<AudioStream> ParseAudioStream(const Json::Value& value) {
   return AudioStream{stream.value(), codec.value(), bit_rate.value()};
 }
 
-ErrorOr<Resolution> ParseResolution(const Json::Value& value) {
-  auto width = json::ParseInt(value, "width");
-  if (!width) {
-    return width.error();
-  }
-  auto height = json::ParseInt(value, "height");
-  if (!height) {
-    return height.error();
-  }
-  if (width.value() <= 0 || height.value() <= 0) {
-    return json::CreateParameterError("resolution");
-  }
-  return Resolution{width.value(), height.value()};
-}
-
 ErrorOr<std::vector<Resolution>> ParseResolutions(const Json::Value& parent,
                                                   const std::string& field) {
   std::vector<Resolution> resolutions;
@@ -214,11 +197,11 @@ ErrorOr<std::vector<Resolution>> ParseResolutions(const Json::Value& parent,
   }
 
   for (Json::ArrayIndex i = 0; i < value.size(); ++i) {
-    auto r = ParseResolution(value[i]);
-    if (!r) {
-      return r.error();
+    Resolution resolution;
+    if (!Resolution::ParseAndValidate(value[i], &resolution)) {
+      return Error(Error::Code::kJsonParseError);
     }
-    resolutions.push_back(r.value());
+    resolutions.push_back(std::move(resolution));
   }
 
   return resolutions;
@@ -229,7 +212,7 @@ ErrorOr<VideoStream> ParseVideoStream(const Json::Value& value) {
   if (!stream) {
     return stream.error();
   }
-  auto codec_name = json::ParseString(value, "codecName");
+  auto codec_name = json::ParseString(value, kCodecName);
   if (!codec_name) {
     return codec_name.error();
   }
@@ -323,20 +306,9 @@ ErrorOr<Json::Value> AudioStream::ToJson() const {
     return error_or_stream;
   }
 
-  error_or_stream.value()["codecName"] = CodecToString(codec);
+  error_or_stream.value()[kCodecName] = CodecToString(codec);
   error_or_stream.value()["bitRate"] = bit_rate;
   return error_or_stream;
-}
-
-ErrorOr<Json::Value> Resolution::ToJson() const {
-  if (width <= 0 || height <= 0) {
-    return json::CreateParameterError("Resolution");
-  }
-
-  Json::Value root;
-  root["width"] = width;
-  root["height"] = height;
-  return root;
 }
 
 ErrorOr<Json::Value> VideoStream::ToJson() const {
@@ -360,11 +332,7 @@ ErrorOr<Json::Value> VideoStream::ToJson() const {
 
   Json::Value rs;
   for (auto resolution : resolutions) {
-    auto eoj = resolution.ToJson();
-    if (eoj.is_error()) {
-      return eoj;
-    }
-    rs.append(eoj.value());
+    rs.append(resolution.ToJson());
   }
   stream["resolutions"] = std::move(rs);
   return error_or_stream;

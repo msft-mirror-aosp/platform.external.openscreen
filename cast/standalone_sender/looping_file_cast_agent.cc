@@ -291,7 +291,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   video_config.max_bit_rate =
       connection_settings_->max_bitrate - audio_config.bit_rate;
   // Use default display resolution of 1080P.
-  video_config.resolutions.emplace_back(DisplayResolution{});
+  video_config.resolutions.emplace_back(Resolution{});
 
   OSP_VLOG << "Starting session negotiation.";
   const Error negotiation_error =

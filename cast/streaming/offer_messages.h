@@ -12,6 +12,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "cast/streaming/message_fields.h"
+#include "cast/streaming/resolution.h"
 #include "cast/streaming/rtp_defines.h"
 #include "cast/streaming/session_config.h"
 #include "json/value.h"
@@ -73,12 +74,6 @@ struct AudioStream {
   int bit_rate = 0;
 };
 
-struct Resolution {
-  ErrorOr<Json::Value> ToJson() const;
-
-  int width = 0;
-  int height = 0;
-};
 
 struct VideoStream {
   ErrorOr<Json::Value> ToJson() const;

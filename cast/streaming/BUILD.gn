@@ -40,6 +40,8 @@ source_set("common") {
     "packet_util.h",
     "receiver_message.cc",
     "receiver_message.h",
+    "resolution.cc",
+    "resolution.h",
     "rpc_broker.cc",
     "rpc_broker.h",
     "rtcp_common.cc",

@@ -491,7 +491,7 @@ TEST(OfferTest, ToJsonFailsWithInvalidStreams) {
   const Offer valid_offer = std::move(offer.value());
 
   Offer video_stream_invalid = valid_offer;
-  video_stream_invalid.video_streams[0].max_frame_rate.denominator = 0;
+  video_stream_invalid.video_streams[0].max_frame_rate = SimpleFraction{1, 0};
   EXPECT_TRUE(video_stream_invalid.ToJson().is_error());
 
   Offer audio_stream_invalid = valid_offer;

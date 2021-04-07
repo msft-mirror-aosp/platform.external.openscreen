@@ -11,14 +11,14 @@
 #include <vector>
 
 #include "cast/common/public/message_port.h"
-#include "cast/streaming/answer_messages.h"
 #include "cast/streaming/capture_configs.h"
+#include "cast/streaming/constants.h"
 #include "cast/streaming/offer_messages.h"
 #include "cast/streaming/receiver_packet_router.h"
+#include "cast/streaming/resolution.h"
 #include "cast/streaming/sender_message.h"
 #include "cast/streaming/session_config.h"
 #include "cast/streaming/session_messager.h"
-#include "util/json/json_serialization.h"
 
 namespace openscreen {
 namespace cast {
@@ -77,30 +77,86 @@ class ReceiverSession final : public Environment::SocketSubscriber {
     virtual ~Client();
   };
 
+  // Information about the display the receiver is attached to.
+  struct Display {
+    // The display limitations of the actual screen, used to provide upper
+    // bounds on mirroring and remoting streams. For example, we will never
+    // send 60FPS if it is going to be displayed on a 30FPS screen.
+    // Note that we may exceed the display width and height for standard
+    // content sizes like 720p or 1080p.
+    Dimensions dimensions;
+
+    // Whether the embedder is capable of scaling content. If set to false,
+    // the sender will manage the aspect ratio scaling.
+    bool can_scale_content = false;
+  };
+
+  // Codec-specific audio limits for playback.
+  struct AudioLimits {
+    // Whether or not these limits apply to all codecs.
+    bool applies_to_all_codecs = false;
+
+    // Audio codec these limits apply to. Note that if |applies_to_all_codecs|
+    // is true this field is ignored.
+    AudioCodec codec;
+
+    // Maximum audio sample rate.
+    int max_sample_rate = kDefaultAudioSampleRate;
+
+    // Maximum audio channels, default is currently stereo.
+    int max_channels = kDefaultAudioChannels;
+
+    // Minimum and maximum bitrates. Generally capture is done at the maximum
+    // bit rate, since audio bandwidth is much lower than video for most
+    // content.
+    int min_bit_rate = kDefaultAudioMinBitRate;
+    int max_bit_rate = kDefaultAudioMaxBitRate;
+
+    // Max playout delay in milliseconds.
+    std::chrono::milliseconds max_delay = kDefaultMaxDelayMs;
+  };
+
+  // Codec-specific video limits for playback.
+  struct VideoLimits {
+    // Whether or not these limits apply to all codecs.
+    bool applies_to_all_codecs = false;
+
+    // Video codec these limits apply to. Note that if |applies_to_all_codecs|
+    // is true this field is ignored.
+    VideoCodec codec;
+
+    // Maximum pixels per second. Value is the standard amount of pixels
+    // for 1080P at 30FPS.
+    int max_pixels_per_second = 1920 * 1080 * 30;
+
+    // Maximum dimensions. Minimum dimensions try to use the same aspect
+    // ratio and are generated from the spec.
+    Dimensions max_dimensions = {1920, 1080, {kDefaultFrameRate, 1}};
+
+    // Minimum and maximum bitrates. Default values are based on default min and
+    // max dimensions, embedders that support different display dimensions
+    // should strongly consider setting these fields.
+    int min_bit_rate = kDefaultVideoMinBitRate;
+    int max_bit_rate = kDefaultVideoMaxBitRate;
+
+    // Max playout delay in milliseconds.
+    std::chrono::milliseconds max_delay = kDefaultMaxDelayMs;
+  };
+
   // Note: embedders are required to implement the following
   // codecs to be Cast V2 compliant: H264, VP8, AAC, Opus.
   struct Preferences {
-    Preferences();
-    Preferences(std::vector<VideoCodec> video_codecs,
-                std::vector<AudioCodec> audio_codecs);
-    Preferences(std::vector<VideoCodec> video_codecs,
-                std::vector<AudioCodec> audio_codecs,
-                std::unique_ptr<Constraints> constraints,
-                std::unique_ptr<DisplayDescription> description);
-
-    Preferences(Preferences&&) noexcept;
-    Preferences(const Preferences&) = delete;
-    Preferences& operator=(Preferences&&) noexcept;
-    Preferences& operator=(const Preferences&) = delete;
-
     std::vector<VideoCodec> video_codecs{VideoCodec::kVp8, VideoCodec::kH264};
     std::vector<AudioCodec> audio_codecs{AudioCodec::kOpus, AudioCodec::kAac};
 
-    // The embedder has the option of directly specifying the display
-    // information and video/audio constraints that will be passed along to
-    // senders during the offer/answer exchange. If nullptr, these are ignored.
-    std::unique_ptr<Constraints> constraints;
-    std::unique_ptr<DisplayDescription> display_description;
+    // Optional limitation fields that help the sender provide a delightful
+    // cast experience. Although optional, highly recommended.
+    // NOTE: embedders that wish to apply the same limits for all codecs can
+    // pass a vector of size 1 with the |applies_to_all_codecs| field set to
+    // true.
+    std::vector<AudioLimits> audio_limits;
+    std::vector<VideoLimits> video_limits;
+    std::unique_ptr<Display> display_description;
   };
 
   ReceiverSession(Client* const client,
