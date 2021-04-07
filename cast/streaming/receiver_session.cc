@@ -192,7 +192,7 @@ void ReceiverSession::InitializeSession(const SessionProperties& properties) {
 
   // Only spawn receivers if we know we have a valid answer message.
   ConfiguredReceivers receivers = SpawnReceivers(properties);
-  client_->OnNegotiated(this, std::move(receivers));
+  client_->OnMirroringNegotiated(this, std::move(receivers));
   const Error result = messager_.SendMessage(ReceiverMessage{
       ReceiverMessage::Type::kAnswer, properties.sequence_number,
       true /* valid */, std::move(answer)});
