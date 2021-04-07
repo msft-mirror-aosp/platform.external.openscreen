@@ -5,7 +5,9 @@
 #ifndef CAST_STREAMING_RPC_BROKER_H_
 #define CAST_STREAMING_RPC_BROKER_H_
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "cast/streaming/remoting.pb.h"
@@ -29,7 +31,8 @@ namespace cast {
 class RpcBroker {
  public:
   using Handle = int;
-  using ReceiveMessageCallback = std::function<void(const RpcMessage&)>;
+  using ReceiveMessageCallback =
+      std::function<void(std::unique_ptr<RpcMessage>)>;
   using SendMessageCallback = std::function<void(std::vector<uint8_t>)>;
 
   explicit RpcBroker(SendMessageCallback send_message_cb);
@@ -64,6 +67,12 @@ class RpcBroker {
 
   // Checks if the handle is registered for receiving messages. Test-only.
   bool IsRegisteredForTesting(Handle handle);
+
+  // Consumers of RPCBroker may set the send message callback post-hoc
+  // in order to simulate different scenarios.
+  void set_send_message_cb_for_testing(SendMessageCallback cb) {
+    send_message_cb_ = std::move(cb);
+  }
 
   // Predefined invalid handle value for RPC message.
   static constexpr Handle kInvalidHandle = -1;

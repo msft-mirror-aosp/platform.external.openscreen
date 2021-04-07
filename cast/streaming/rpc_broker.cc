@@ -4,6 +4,7 @@
 
 #include "cast/streaming/rpc_broker.h"
 
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -69,20 +70,20 @@ void RpcBroker::UnregisterMessageReceiverCallback(RpcBroker::Handle handle) {
 
 void RpcBroker::ProcessMessageFromRemote(const uint8_t* message,
                                          std::size_t message_len) {
-  RpcMessage rpc;
-  if (!rpc.ParseFromArray(message, message_len)) {
+  auto rpc = std::make_unique<RpcMessage>();
+  if (!rpc->ParseFromArray(message, message_len)) {
     OSP_LOG_WARN << "Failed to parse RPC message from remote: " << message;
     return;
   }
-  OSP_DVLOG << "Received RPC message: " << rpc;
+  OSP_DVLOG << "Received RPC message: " << *rpc;
 
-  const auto entry = receive_callbacks_.find(rpc.handle());
+  const auto entry = receive_callbacks_.find(rpc->handle());
   if (entry == receive_callbacks_.end()) {
     OSP_DVLOG << "Dropping message due to unregistered handle: "
-              << rpc.handle();
+              << rpc->handle();
     return;
   }
-  entry->second(rpc);
+  entry->second(std::move(rpc));
 }
 
 void RpcBroker::SendMessageToRemote(const RpcMessage& rpc) {

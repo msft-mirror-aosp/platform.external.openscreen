@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "cast/streaming/remoting.pb.h"
@@ -22,8 +23,8 @@ namespace {
 
 class FakeMessager {
  public:
-  void OnReceivedRpc(const RpcMessage& message) {
-    received_rpc_ = message;
+  void OnReceivedRpc(std::unique_ptr<RpcMessage> message) {
+    received_rpc_ = std::move(message);
     received_count_++;
   }
 
@@ -33,7 +34,7 @@ class FakeMessager {
   }
 
   int received_count() const { return received_count_; }
-  const RpcMessage& received_rpc() const { return received_rpc_; }
+  const RpcMessage& received_rpc() const { return *received_rpc_; }
 
   int sent_count() const { return sent_count_; }
   const RpcMessage& sent_rpc() const { return sent_rpc_; }
@@ -42,7 +43,7 @@ class FakeMessager {
   RpcBroker::Handle handle() { return handle_; }
 
  private:
-  RpcMessage received_rpc_;
+  std::unique_ptr<RpcMessage> received_rpc_;
   int received_count_ = 0;
 
   RpcMessage sent_rpc_;
@@ -67,8 +68,9 @@ class RpcBrokerTest : public testing::Test {
     const auto handle = rpc_broker_->GetUniqueHandle();
     fake_messager_->set_handle(handle);
     rpc_broker_->RegisterMessageReceiverCallback(
-        handle, [p = fake_messager_.get()](const RpcMessage& message) {
-          p->OnReceivedRpc(message);
+        handle,
+        [p = fake_messager_.get()](std::unique_ptr<RpcMessage> message) {
+          p->OnReceivedRpc(std::move(message));
         });
   }
 
