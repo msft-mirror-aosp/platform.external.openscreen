@@ -53,7 +53,7 @@ StreamingPlaybackController::StreamingPlaybackController(
 }
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
 
-void StreamingPlaybackController::OnNegotiated(
+void StreamingPlaybackController::OnMirroringNegotiated(
     const ReceiverSession* session,
     ReceiverSession::ConfiguredReceivers receivers) {
   TRACE_DEFAULT_SCOPED(TraceCategory::kStandaloneReceiver);

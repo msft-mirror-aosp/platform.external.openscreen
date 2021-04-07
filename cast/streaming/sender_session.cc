@@ -165,8 +165,9 @@ SenderSession::SenderSession(IPAddress remote_address,
 
 SenderSession::~SenderSession() = default;
 
-Error SenderSession::Negotiate(std::vector<AudioCaptureConfig> audio_configs,
-                               std::vector<VideoCaptureConfig> video_configs) {
+Error SenderSession::NegotiateMirroring(
+    std::vector<AudioCaptureConfig> audio_configs,
+    std::vector<VideoCaptureConfig> video_configs) {
   // Negotiating with no streams doesn't make any sense.
   if (audio_configs.empty() && video_configs.empty()) {
     return Error(Error::Code::kParameterInvalid,
@@ -185,6 +186,10 @@ Error SenderSession::Negotiate(std::vector<AudioCaptureConfig> audio_configs,
                     true, std::move(offer)},
       ReceiverMessage::Type::kAnswer,
       [this](ReceiverMessage message) { OnAnswer(message); });
+}
+
+int SenderSession::GetEstimatedNetworkBandwidth() const {
+  return packet_router_.ComputeNetworkBandwidth();
 }
 
 void SenderSession::OnAnswer(ReceiverMessage message) {
@@ -208,8 +213,9 @@ void SenderSession::OnAnswer(ReceiverMessage message) {
   if (senders.audio_sender == nullptr && senders.video_sender == nullptr) {
     return;
   }
-  client_->OnNegotiated(this, std::move(senders),
-                        capture_recommendations::GetRecommendations(answer));
+  client_->OnMirroringNegotiated(
+      this, std::move(senders),
+      capture_recommendations::GetRecommendations(answer));
 }
 
 std::unique_ptr<Sender> SenderSession::CreateSender(Ssrc receiver_ssrc,
@@ -274,6 +280,7 @@ SenderSession::ConfiguredSenders SenderSession::SpawnSenders(
   // stream until we get the ANSWER message here.
   environment_->set_remote_endpoint(
       IPEndpoint{remote_address_, static_cast<uint16_t>(answer.udp_port)});
+  OSP_LOG_INFO << "Streaming to " << environment_->remote_endpoint() << "...";
 
   ConfiguredSenders senders;
   for (size_t i = 0; i < answer.send_indexes.size(); ++i) {
