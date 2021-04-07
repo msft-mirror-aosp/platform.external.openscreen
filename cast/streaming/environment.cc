@@ -22,13 +22,14 @@ Environment::Environment(ClockNowFunctionPtr now_function,
   OSP_DCHECK(task_runner_);
   ErrorOr<std::unique_ptr<UdpSocket>> result =
       UdpSocket::Create(task_runner_, this, local_endpoint);
-  const_cast<std::unique_ptr<UdpSocket>&>(socket_) = std::move(result.value());
-  if (socket_) {
-    socket_->Bind();
-  } else {
+  if (result.is_error()) {
     OSP_LOG_ERROR << "Unable to create a UDP socket bound to " << local_endpoint
                   << ": " << result.error();
+    return;
   }
+  const_cast<std::unique_ptr<UdpSocket>&>(socket_) = std::move(result.value());
+  OSP_DCHECK(socket_);
+  socket_->Bind();
 }
 
 Environment::~Environment() = default;

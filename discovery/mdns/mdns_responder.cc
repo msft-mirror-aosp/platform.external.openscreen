@@ -4,6 +4,7 @@
 
 #include "discovery/mdns/mdns_responder.h"
 
+#include <array>
 #include <string>
 #include <utility>
 
@@ -20,7 +21,7 @@ namespace openscreen {
 namespace discovery {
 namespace {
 
-const std::array<std::string, 3> kServiceEnumerationDomainLabels{
+constexpr std::array<const char*, 3> kServiceEnumerationDomainLabels{
     "_services", "_dns-sd", "_udp"};
 
 enum AddResult { kNonePresent = 0, kAdded, kAlreadyKnown };
