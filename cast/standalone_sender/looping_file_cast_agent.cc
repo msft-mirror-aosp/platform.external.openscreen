@@ -278,19 +278,24 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   OSP_DCHECK(!message_port_.client_sender_id().empty());
 
   AudioCaptureConfig audio_config;
+  // Opus does best at 192kbps, so we cap that here.
+  audio_config.bit_rate = 192 * 1000;
   VideoCaptureConfig video_config;
+  // The video config is allowed to use whatever is left over after audio.
+  video_config.max_bit_rate =
+      connection_settings_->max_bitrate - audio_config.bit_rate;
   // Use default display resolution of 1080P.
   video_config.resolutions.emplace_back(DisplayResolution{});
 
   OSP_VLOG << "Starting session negotiation.";
   const Error negotiation_error =
-      current_session_->Negotiate({audio_config}, {video_config});
+      current_session_->NegotiateMirroring({audio_config}, {video_config});
   if (!negotiation_error.ok()) {
     OSP_LOG_ERROR << "Failed to negotiate a session: " << negotiation_error;
   }
 }
 
-void LoopingFileCastAgent::OnNegotiated(
+void LoopingFileCastAgent::OnMirroringNegotiated(
     const SenderSession* session,
     SenderSession::ConfiguredSenders senders,
     capture_recommendations::Recommendations capture_recommendations) {
@@ -299,11 +304,9 @@ void LoopingFileCastAgent::OnNegotiated(
     return;
   }
 
-  OSP_LOG_INFO << "Streaming to " << connection_settings_->receiver_endpoint
-               << "...";
   file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_->path_to_file.c_str(), senders,
-      connection_settings_->max_bitrate);
+      environment_.get(), connection_settings_->path_to_file.c_str(), session,
+      std::move(senders), connection_settings_->max_bitrate);
 }
 
 void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {

@@ -1,3 +1,8 @@
+// Copyright 2021 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+//
+// **** DO NOT EDIT - this .proto was automatically generated. ****
 syntax = "proto3";
 
 package cast.media;
@@ -305,11 +310,16 @@ service CastRuntimeAudioChannel {
   // will be in the same state.
   rpc SetPlayback(SetPlaybackRateRequest) returns (google.protobuf.Empty);
 
-  // Streams decoded bits and responses to the audio service.
+  // Sends decoded bits and responses to the audio service. The client must
+  // wait for a response from the server before sending another
+  // PushBufferRequest.
   //
   // May only be called in the 'Playing' or 'Paused' states, and following
   // this call the state machine will remain the same state.
-  rpc PushBuffer(stream PushBufferRequest) returns (PushBufferResponse);
+  //
+  // TODO(b/178523159): validate that this isn't a performance bottleneck as a
+  // non-streaming API. If it is, we should make this a bidirectional stream.
+  rpc PushBuffer(PushBufferRequest) returns (PushBufferResponse);
 
   // Returns the current media time that has been rendered.
   rpc GetMediaTime(google.protobuf.Empty) returns (GetMediaTimeResponse);
