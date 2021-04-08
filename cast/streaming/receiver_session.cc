@@ -46,10 +46,32 @@ std::unique_ptr<Stream> SelectStream(
 
 ReceiverSession::Client::~Client() = default;
 
+using Preferences = ReceiverSession::Preferences;
+
+Preferences::Preferences() = default;
+Preferences::Preferences(std::vector<VideoCodec> video_codecs,
+                         std::vector<AudioCodec> audio_codecs)
+    : video_codecs(std::move(video_codecs)),
+      audio_codecs(std::move(audio_codecs)) {}
+
+Preferences::Preferences(std::vector<VideoCodec> video_codecs,
+                         std::vector<AudioCodec> audio_codecs,
+                         std::vector<AudioLimits> audio_limits,
+                         std::vector<VideoLimits> video_limits,
+                         std::unique_ptr<Display> description)
+    : video_codecs(std::move(video_codecs)),
+      audio_codecs(std::move(audio_codecs)),
+      audio_limits(std::move(audio_limits)),
+      video_limits(std::move(video_limits)),
+      display_description(std::move(description)) {}
+
+Preferences::Preferences(Preferences&&) noexcept = default;
+Preferences& Preferences::operator=(Preferences&&) noexcept = default;
+
 ReceiverSession::ReceiverSession(Client* const client,
                                  Environment* environment,
                                  MessagePort* message_port,
-                                 ReceiverSession::Preferences preferences)
+                                 Preferences preferences)
     : client_(client),
       environment_(environment),
       preferences_(std::move(preferences)),

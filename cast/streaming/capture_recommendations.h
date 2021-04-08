@@ -85,7 +85,7 @@ struct Audio {
 constexpr Resolution kDefaultMinResolution{kMinVideoWidth, kMinVideoHeight};
 
 // Currently mirroring only supports 1080P.
-const Dimensions kDefaultMaxResolution{1920, 1080, kDefaultFrameRate};
+constexpr Dimensions kDefaultMaxResolution{1920, 1080, kDefaultFrameRate};
 
 // The mirroring spec suggests 300kbps as the absolute minimum bitrate.
 constexpr int kDefaultVideoMinBitRate = 300 * 1000;
@@ -93,7 +93,7 @@ constexpr int kDefaultVideoMinBitRate = 300 * 1000;
 // The theoretical maximum pixels per second is the maximum bit rate
 // divided by 8 (the max byte rate). In practice it should generally be
 // less.
-const int kDefaultVideoMaxPixelsPerSecond =
+constexpr int kDefaultVideoMaxPixelsPerSecond =
     kDefaultMaxResolution.effective_bit_rate() / 8;
 
 // Our default limits are merely the product of the minimum and maximum

@@ -146,6 +146,20 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // Note: embedders are required to implement the following
   // codecs to be Cast V2 compliant: H264, VP8, AAC, Opus.
   struct Preferences {
+    Preferences();
+    Preferences(std::vector<VideoCodec> video_codecs,
+                std::vector<AudioCodec> audio_codecs);
+    Preferences(std::vector<VideoCodec> video_codecs,
+                std::vector<AudioCodec> audio_codecs,
+                std::vector<AudioLimits> audio_limits,
+                std::vector<VideoLimits> video_limits,
+                std::unique_ptr<Display> description);
+
+    Preferences(Preferences&&) noexcept;
+    Preferences(const Preferences&) = delete;
+    Preferences& operator=(Preferences&&) noexcept;
+    Preferences& operator=(const Preferences&) = delete;
+
     std::vector<VideoCodec> video_codecs{VideoCodec::kVp8, VideoCodec::kH264};
     std::vector<AudioCodec> audio_codecs{AudioCodec::kOpus, AudioCodec::kAac};
 

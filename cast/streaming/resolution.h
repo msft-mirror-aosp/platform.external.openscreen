@@ -41,10 +41,12 @@ struct Dimensions {
   bool operator!=(const Dimensions& other) const;
 
   // Get just the width and height fields (for comparisons).
-  Resolution ToResolution() const;
+  constexpr Resolution ToResolution() const { return {width, height}; }
 
   // The effective bit rate is the width * height * frame rate.
-  int effective_bit_rate() const;
+  constexpr int effective_bit_rate() const {
+    return width * height * static_cast<double>(frame_rate);
+  }
 
   // Width and height in pixels.
   int width = 0;

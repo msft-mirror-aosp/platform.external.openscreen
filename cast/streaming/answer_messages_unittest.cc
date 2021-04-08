@@ -102,7 +102,7 @@ const Answer kValidAnswer{
 };
 
 constexpr int kValidMaxPixelsPerSecond = 1920 * 1080 * 30;
-const Dimensions kValidDimensions{1920, 1080, SimpleFraction{60, 1}};
+constexpr Dimensions kValidDimensions{1920, 1080, SimpleFraction{60, 1}};
 static const VideoConstraints kValidVideoConstraints{
     kValidMaxPixelsPerSecond, absl::optional<Dimensions>(kValidDimensions),
     kValidDimensions,         300 * 1000,
@@ -442,15 +442,15 @@ TEST(AnswerMessagesTest, AudioConstraintsIsValid) {
 
 TEST(AnswerMessagesTest, DimensionsIsValid) {
   // NOTE: in some cases (such as min dimensions) a frame rate of zero is valid.
-  const Dimensions kValidZeroFrameRate{1920, 1080, SimpleFraction{0, 60}};
-  const Dimensions kInvalidWidth{0, 1080, SimpleFraction{60, 1}};
-  const Dimensions kInvalidHeight{1920, 0, SimpleFraction{60, 1}};
-  const Dimensions kInvalidFrameRateZeroDenominator{1920, 1080,
-                                                    SimpleFraction{60, 0}};
-  const Dimensions kInvalidFrameRateNegativeNumerator{1920, 1080,
-                                                      SimpleFraction{-1, 30}};
-  const Dimensions kInvalidFrameRateNegativeDenominator{1920, 1080,
-                                                        SimpleFraction{30, -1}};
+  constexpr Dimensions kValidZeroFrameRate{1920, 1080, SimpleFraction{0, 60}};
+  constexpr Dimensions kInvalidWidth{0, 1080, SimpleFraction{60, 1}};
+  constexpr Dimensions kInvalidHeight{1920, 0, SimpleFraction{60, 1}};
+  constexpr Dimensions kInvalidFrameRateZeroDenominator{1920, 1080,
+                                                        SimpleFraction{60, 0}};
+  constexpr Dimensions kInvalidFrameRateNegativeNumerator{
+      1920, 1080, SimpleFraction{-1, 30}};
+  constexpr Dimensions kInvalidFrameRateNegativeDenominator{
+      1920, 1080, SimpleFraction{30, -1}};
 
   EXPECT_TRUE(kValidDimensions.IsValid());
   EXPECT_TRUE(kValidZeroFrameRate.IsValid());

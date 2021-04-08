@@ -95,14 +95,6 @@ Json::Value Dimensions::ToJson() const {
   return root;
 }
 
-Resolution Dimensions::ToResolution() const {
-  return {width, height};
-}
-
-int Dimensions::effective_bit_rate() const {
-  return width * height * static_cast<double>(frame_rate);
-}
-
 bool Dimensions::operator==(const Dimensions& other) const {
   return (std::tie(width, height) == std::tie(other.width, other.height) &&
           FrameRateEquals(static_cast<double>(frame_rate),

@@ -5,6 +5,8 @@
 #ifndef UTIL_SIMPLE_FRACTION_H_
 #define UTIL_SIMPLE_FRACTION_H_
 
+#include <cmath>
+#include <limits>
 #include <string>
 
 #include "absl/strings/string_view.h"
@@ -25,28 +27,45 @@ class SimpleFraction {
   static ErrorOr<SimpleFraction> FromString(absl::string_view value);
   std::string ToString() const;
 
-  SimpleFraction();
-  SimpleFraction(int numerator, int denominator);
-  SimpleFraction(int numerator);  // NOLINT
-  SimpleFraction(const SimpleFraction&);
-  SimpleFraction(SimpleFraction&&) noexcept;
-  SimpleFraction& operator=(const SimpleFraction&);
-  SimpleFraction& operator=(SimpleFraction&&);
-  ~SimpleFraction();
+  constexpr SimpleFraction() = default;
+  constexpr SimpleFraction(int numerator)  // NOLINT
+      : numerator_(numerator) {}
+  constexpr SimpleFraction(int numerator, int denominator)
+      : numerator_(numerator), denominator_(denominator) {}
 
-  bool operator==(const SimpleFraction& other) const;
-  bool operator!=(const SimpleFraction& other) const;
+  constexpr SimpleFraction(const SimpleFraction&) = default;
+  constexpr SimpleFraction(SimpleFraction&&) noexcept = default;
+  constexpr SimpleFraction& operator=(const SimpleFraction&) = default;
+  constexpr SimpleFraction& operator=(SimpleFraction&&) = default;
+  ~SimpleFraction() = default;
 
-  bool is_defined() const;
-  bool is_positive() const;
-  explicit operator double() const;
+  constexpr bool operator==(const SimpleFraction& other) const {
+    return numerator_ == other.numerator_ && denominator_ == other.denominator_;
+  }
 
-  int numerator() const { return numerator_; }
-  int denominator() const { return denominator_; }
+  constexpr bool operator!=(const SimpleFraction& other) const {
+    return !(*this == other);
+  }
+
+  constexpr bool is_defined() const { return denominator_ != 0; }
+
+  constexpr bool is_positive() const {
+    return (numerator_ >= 0) && (denominator_ > 0);
+  }
+
+  constexpr explicit operator double() const {
+    if (denominator_ == 0) {
+      return nan("");
+    }
+    return static_cast<double>(numerator_) / static_cast<double>(denominator_);
+  }
+
+  constexpr int numerator() const { return numerator_; }
+  constexpr int denominator() const { return denominator_; }
 
  private:
   int numerator_ = 0;
-  int denominator_ = 0;
+  int denominator_ = 1;
 };
 
 }  // namespace openscreen
