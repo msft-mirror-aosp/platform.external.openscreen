@@ -23,7 +23,6 @@ namespace {
 
 EnumNameTable<ReceiverMessage::Type, 5> kMessageTypeNames{
     {{kMessageTypeAnswer, ReceiverMessage::Type::kAnswer},
-     {"STATUS_RESPONSE", ReceiverMessage::Type::kStatusResponse},
      {"CAPABILITIES_RESPONSE", ReceiverMessage::Type::kCapabilitiesResponse},
      {"RPC", ReceiverMessage::Type::kRpc}}};
 
@@ -127,34 +126,6 @@ Json::Value ReceiverCapability::ToJson() const {
 }
 
 // static
-ErrorOr<ReceiverWifiStatus> ReceiverWifiStatus::Parse(
-    const Json::Value& value) {
-  if (!value) {
-    return Error(Error::Code::kParameterInvalid,
-                 "Empty JSON in status parsing");
-  }
-
-  double wifi_snr;
-  std::vector<int32_t> wifi_speed;
-  if (!json::ParseAndValidateDouble(value["wifiSnr"], &wifi_snr, true) ||
-      !json::ParseAndValidateIntArray(value["wifiSpeed"], &wifi_speed)) {
-    return Error::Code::kJsonParseError;
-  }
-  return ReceiverWifiStatus{wifi_snr, std::move(wifi_speed)};
-}
-
-Json::Value ReceiverWifiStatus::ToJson() const {
-  Json::Value root;
-  root["wifiSnr"] = wifi_snr;
-  Json::Value speeds(Json::ValueType::arrayValue);
-  for (const auto& speed : wifi_speed) {
-    speeds.append(speed);
-  }
-  root["wifiSpeed"] = std::move(speeds);
-  return root;
-}
-
-// static
 ErrorOr<ReceiverMessage> ReceiverMessage::Parse(const Json::Value& value) {
   ReceiverMessage message;
   if (!value || !json::ParseAndValidateInt(value[kSequenceNumber],
@@ -190,15 +161,6 @@ ErrorOr<ReceiverMessage> ReceiverMessage::Parse(const Json::Value& value) {
       }
     } break;
 
-    case Type::kStatusResponse: {
-      ErrorOr<ReceiverWifiStatus> status =
-          ReceiverWifiStatus::Parse(value[kStatusMessageBody]);
-      if (status.is_value()) {
-        message.body = std::move(status.value());
-        message.valid = true;
-      }
-    } break;
-
     case Type::kCapabilitiesResponse: {
       ErrorOr<ReceiverCapability> capability =
           ReceiverCapability::Parse(value[kCapabilitiesMessageBody]);
@@ -218,9 +180,7 @@ ErrorOr<ReceiverMessage> ReceiverMessage::Parse(const Json::Value& value) {
       }
     } break;
 
-    case Type::kUnknown:
     default:
-      message.valid = false;
       break;
   }
 
@@ -246,11 +206,6 @@ ErrorOr<Json::Value> ReceiverMessage::ToJson() const {
         root[kResult] = kResultError;
         root[kErrorMessageBody] = absl::get<ReceiverError>(body).ToJson();
       }
-      break;
-
-    case (ReceiverMessage::Type::kStatusResponse):
-      root[kResult] = kResultOk;
-      root[kStatusMessageBody] = absl::get<ReceiverWifiStatus>(body).ToJson();
       break;
 
     case ReceiverMessage::Type::kCapabilitiesResponse:

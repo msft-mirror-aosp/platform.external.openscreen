@@ -30,7 +30,6 @@
     },
     "receiverRtcpEventLog": [0, 1],
     "receiverRtcpDscp": [234, 567],
-    "receiverGetStatus": true,
     "rtpExtensions": ["adaptive_playout_delay"]
   }
 }

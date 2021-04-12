@@ -306,13 +306,8 @@ Answer ReceiverSession::ConstructAnswer(const SessionProperties& properties) {
     answer_constraints = std::move(constraints);
   }
   return Answer{environment_->GetBoundLocalEndpoint().port,
-                std::move(stream_indexes),
-                std::move(stream_ssrcs),
-                answer_constraints,
-                std::move(display),
-                std::vector<int>{},  // receiver_rtcp_event_log
-                std::vector<int>{},  // receiver_rtcp_dscp
-                supports_wifi_status_reporting_};
+                std::move(stream_indexes), std::move(stream_ssrcs),
+                std::move(answer_constraints), std::move(display)};
 }
 
 void ReceiverSession::SendErrorAnswerReply(int sequence_number,

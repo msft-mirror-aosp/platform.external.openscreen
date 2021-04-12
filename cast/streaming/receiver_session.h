@@ -236,7 +236,6 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // binding.
   std::unique_ptr<SessionProperties> pending_session_;
 
-  bool supports_wifi_status_reporting_ = false;
   ReceiverPacketRouter packet_router_;
 
   std::unique_ptr<Receiver> current_audio_receiver_;

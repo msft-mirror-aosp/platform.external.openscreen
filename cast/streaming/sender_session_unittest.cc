@@ -352,7 +352,6 @@ TEST_F(SenderSessionTest, SendsOfferMessage) {
   ASSERT_FALSE(offer_body.isNull());
   ASSERT_TRUE(offer_body.isObject());
   EXPECT_EQ("mirroring", offer_body["castMode"].asString());
-  EXPECT_EQ(false, offer_body["receiverGetStatus"].asBool());
 
   const Json::Value& streams = offer_body["supportedStreams"];
   EXPECT_TRUE(streams.isArray());

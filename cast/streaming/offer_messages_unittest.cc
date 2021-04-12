@@ -21,7 +21,6 @@ namespace {
 
 constexpr char kValidOffer[] = R"({
   "castMode": "mirroring",
-  "receiverGetStatus": true,
   "supportedStreams": [
     {
       "index": 0,
@@ -100,7 +99,6 @@ void ExpectFailureOnParse(
 
 void ExpectEqualsValidOffer(const Offer& offer) {
   EXPECT_EQ(CastMode::kMirroring, offer.cast_mode);
-  EXPECT_EQ(true, offer.supports_wifi_status_reporting);
 
   // Verify list of video streams.
   EXPECT_EQ(2u, offer.video_streams.size());

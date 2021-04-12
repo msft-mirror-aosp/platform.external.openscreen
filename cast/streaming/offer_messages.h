@@ -96,9 +96,6 @@ struct Offer {
   ErrorOr<Json::Value> ToJson() const;
 
   CastMode cast_mode = CastMode::kMirroring;
-  // This field is poorly named in the spec (receiverGetStatus), so we use
-  // a more descriptive name here.
-  bool supports_wifi_status_reporting = {};
   std::vector<AudioStream> audio_streams = {};
   std::vector<VideoStream> video_streams = {};
 };

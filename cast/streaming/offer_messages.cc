@@ -343,10 +343,8 @@ ErrorOr<Offer> Offer::Parse(const Json::Value& root) {
   if (!root.isObject()) {
     return json::CreateParseError("null offer");
   }
-  ErrorOr<CastMode> cast_mode =
+  const ErrorOr<CastMode> cast_mode =
       GetEnum(kCastModeNames, root["castMode"].asString());
-  const ErrorOr<bool> get_status = json::ParseBool(root, "receiverGetStatus");
-
   Json::Value supported_streams = root[kSupportedStreams];
   if (!supported_streams.isArray()) {
     return json::CreateParseError("supported streams in offer");
@@ -388,16 +386,14 @@ ErrorOr<Offer> Offer::Parse(const Json::Value& root) {
     }
   }
 
-  return Offer{cast_mode.value(CastMode::kMirroring), get_status.value({}),
-               std::move(audio_streams), std::move(video_streams)};
+  return Offer{cast_mode.value(CastMode::kMirroring), std::move(audio_streams),
+               std::move(video_streams)};
 }
 
 ErrorOr<Json::Value> Offer::ToJson() const {
   Json::Value root;
 
   root["castMode"] = GetEnumName(kCastModeNames, cast_mode).value();
-  root["receiverGetStatus"] = supports_wifi_status_reporting;
-
   Json::Value streams;
   for (auto& as : audio_streams) {
     auto eoj = as.ToJson();

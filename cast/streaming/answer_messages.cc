@@ -106,8 +106,6 @@ static constexpr char kReceiverRtcpEventLog[] = "receiverRtcpEventLog";
 // OPtional array of numbers specifying the indexes of streams that will use
 // DSCP values specified in the OFFER message for RTCP packets.
 static constexpr char kReceiverRtcpDscp[] = "receiverRtcpDscp";
-// True if receiver can report wifi status.
-static constexpr char kReceiverGetStatus[] = "receiverGetStatus";
 // If this optional field is present the receiver supports the specific
 // RTP extensions (such as adaptive playout delay).
 static constexpr char kRtpExtensions[] = "rtpExtensions";
@@ -379,10 +377,6 @@ bool Answer::ParseAndValidate(const Json::Value& root, Answer* out) {
       !ParseOptional<DisplayDescription>(root[kDisplay], &(out->display))) {
     return false;
   }
-  if (!json::ParseBool(root[kReceiverGetStatus],
-                       &(out->supports_wifi_status_reporting))) {
-    out->supports_wifi_status_reporting = false;
-  }
 
   // These function set to empty array if not present, so we can ignore
   // the return value for optional values.
@@ -427,7 +421,6 @@ Json::Value Answer::ToJson() const {
     root[kDisplay] = display->ToJson();
   }
   root[kUdpPort] = udp_port;
-  root[kReceiverGetStatus] = supports_wifi_status_reporting;
   root[kSendIndexes] = PrimitiveVectorToJson(send_indexes);
   root[kSsrcs] = PrimitiveVectorToJson(ssrcs);
   // Some sender do not handle empty array properly, so we omit these fields

@@ -63,7 +63,6 @@ constexpr char kValidAnswerJson[] = R"({
   },
   "receiverRtcpEventLog": [0, 1],
   "receiverRtcpDscp": [234, 567],
-  "receiverGetStatus": true,
   "rtpExtensions": ["adaptive_playout_delay"]
 })";
 
@@ -97,7 +96,6 @@ const Answer kValidAnswer{
     }),
     std::vector<int>{7, 8, 9},              // receiver_rtcp_event_log
     std::vector<int>{11, 12, 13},           // receiver_rtcp_dscp
-    true,                                   // receiver_get_status
     std::vector<std::string>{"foo", "bar"}  // rtp_extensions
 };
 
@@ -149,7 +147,6 @@ void ExpectEqualsValidAnswerJson(const Answer& answer) {
 
   EXPECT_THAT(answer.receiver_rtcp_event_log, ElementsAre(0, 1));
   EXPECT_THAT(answer.receiver_rtcp_dscp, ElementsAre(234, 567));
-  EXPECT_TRUE(answer.supports_wifi_status_reporting);
   EXPECT_THAT(answer.rtp_extensions, ElementsAre("adaptive_playout_delay"));
 }
 
@@ -247,8 +244,6 @@ TEST(AnswerMessagesTest, ProperlyPopulatedAnswerSerializesProperly) {
   EXPECT_EQ(receiver_rtcp_dscp[1], 12);
   EXPECT_EQ(receiver_rtcp_dscp[2], 13);
 
-  EXPECT_EQ(root["receiverGetStatus"], true);
-
   Json::Value rtp_extensions = std::move(root["rtpExtensions"]);
   EXPECT_EQ(rtp_extensions.type(), Json::ValueType::arrayValue);
   EXPECT_EQ(rtp_extensions[0], "foo");
@@ -319,8 +314,7 @@ TEST(AnswerMessagesTest, SucceedsWithMissingRtpFields) {
   ExpectSuccessOnParse(R"({
   "udpPort": 1234,
   "sendIndexes": [1, 3],
-  "ssrcs": [1233324, 2234222],
-  "receiverGetStatus": true
+  "ssrcs": [1233324, 2234222]
   })");
 }
 
@@ -331,37 +325,22 @@ TEST(AnswerMessagesTest, ErrorOnEmptyAnswer) {
 TEST(AnswerMessagesTest, ErrorOnMissingUdpPort) {
   ExpectFailureOnParse(R"({
     "sendIndexes": [1, 3],
-    "ssrcs": [1233324, 2234222],
-    "receiverGetStatus": true
+    "ssrcs": [1233324, 2234222]
   })");
 }
 
 TEST(AnswerMessagesTest, ErrorOnMissingSsrcs) {
   ExpectFailureOnParse(R"({
     "udpPort": 1234,
-    "sendIndexes": [1, 3],
-    "receiverGetStatus": true
+    "sendIndexes": [1, 3]
   })");
 }
 
 TEST(AnswerMessagesTest, ErrorOnMissingSendIndexes) {
   ExpectFailureOnParse(R"({
     "udpPort": 1234,
-    "ssrcs": [1233324, 2234222],
-    "receiverGetStatus": true
-  })");
-}
-
-TEST(AnswerMessagesTest, AssumesNoReportingIfGetStatusFalse) {
-  Answer answer;
-  ExpectSuccessOnParse(R"({
-    "udpPort": 1234,
-    "sendIndexes": [1, 3],
     "ssrcs": [1233324, 2234222]
-  })",
-                       &answer);
-
-  EXPECT_FALSE(answer.supports_wifi_status_reporting);
+  })");
 }
 
 TEST(AnswerMessagesTest, AllowsReceiverSideScaling) {
@@ -409,8 +388,7 @@ TEST(AnswerMessagesTest, AssumesMinBitRateIfOmitted) {
         "maxBitRate": 10000000,
         "maxDelay": 5000
       }
-    },
-    "receiverGetStatus": true
+    }
   })",
                        &answer);
 
