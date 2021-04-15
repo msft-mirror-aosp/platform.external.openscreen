@@ -143,10 +143,10 @@ class LoopingFileCastAgent final
   void CreateAndStartSession();
 
   // SenderSession::Client overrides.
-  void OnNegotiated(const SenderSession* session,
-                    SenderSession::ConfiguredSenders senders,
-                    capture_recommendations::Recommendations
-                        capture_recommendations) override;
+  void OnMirroringNegotiated(const SenderSession* session,
+                             SenderSession::ConfiguredSenders senders,
+                             capture_recommendations::Recommendations
+                                 capture_recommendations) override;
   void OnError(const SenderSession* session, Error error) override;
 
   // Helper for stopping the current session, and/or unwinding a remote
