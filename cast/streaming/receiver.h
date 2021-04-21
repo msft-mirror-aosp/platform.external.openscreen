@@ -346,8 +346,8 @@ class Receiver {
   // The interval between sending ACK/NACK feedback RTCP messages while
   // incomplete frames exist in the queue.
   //
-  // TODO(miu): This should be a function of the current target playout delay,
-  // similar to the Sender's kickstart interval logic.
+  // TODO(jophba): This should be a function of the current target playout
+  // delay, similar to the Sender's kickstart interval logic.
   static constexpr std::chrono::milliseconds kNackFeedbackInterval{30};
 };
 
