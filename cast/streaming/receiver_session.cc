@@ -42,6 +42,34 @@ std::unique_ptr<Stream> SelectStream(
   return nullptr;
 }
 
+MediaCapability ToCapability(AudioCodec codec) {
+  switch (codec) {
+    case AudioCodec::kAac:
+      return MediaCapability::kAac;
+    case AudioCodec::kOpus:
+      return MediaCapability::kOpus;
+    default:
+      OSP_DLOG_FATAL << "Invalid audio codec: " << static_cast<int>(codec);
+      OSP_NOTREACHED();
+  }
+}
+
+MediaCapability ToCapability(VideoCodec codec) {
+  switch (codec) {
+    case VideoCodec::kVp8:
+      return MediaCapability::kVp8;
+    case VideoCodec::kVp9:
+      return MediaCapability::kVp9;
+    case VideoCodec::kH264:
+      return MediaCapability::kH264;
+    case VideoCodec::kHevc:
+      return MediaCapability::kHevc;
+    default:
+      OSP_DLOG_FATAL << "Invalid video codec: " << static_cast<int>(codec);
+      OSP_NOTREACHED();
+  }
+}
+
 }  // namespace
 
 ReceiverSession::Client::~Client() = default;
@@ -89,6 +117,10 @@ ReceiverSession::ReceiverSession(Client* const client,
   messager_.SetHandler(
       SenderMessage::Type::kOffer,
       [this](SenderMessage message) { OnOffer(std::move(message)); });
+  messager_.SetHandler(SenderMessage::Type::kGetCapabilities,
+                       [this](SenderMessage message) {
+                         OnCapabilitiesRequest(std::move(message));
+                       });
   environment_->SetSocketSubscriber(this);
 }
 
@@ -140,7 +172,15 @@ void ReceiverSession::OnOffer(SenderMessage message) {
   auto properties = std::make_unique<SessionProperties>();
   properties->sequence_number = message.sequence_number;
 
+  // TODO(issuetracker.google.com/184186390): ReceiverSession needs to support
+  // fielding remoting offers.
   const Offer& offer = absl::get<Offer>(message.body);
+  if (offer.cast_mode == CastMode::kRemoting) {
+    SendErrorAnswerReply(message.sequence_number,
+                         "Remoting support is not complete in libcast");
+    return;
+  }
+
   if (!offer.audio_streams.empty() && !preferences_.audio_codecs.empty()) {
     properties->selected_audio =
         SelectStream(preferences_.audio_codecs, offer.audio_streams);
@@ -174,6 +214,32 @@ void ReceiverSession::OnOffer(SenderMessage message) {
     case Environment::SocketState::kStarting:
       pending_session_ = std::move(properties);
       break;
+  }
+}
+
+void ReceiverSession::OnCapabilitiesRequest(SenderMessage message) {
+  if (message.sequence_number < 0) {
+    OSP_DLOG_WARN
+        << "Dropping offer with missing sequence number, can't respond";
+    return;
+  }
+
+  ReceiverMessage response{
+      ReceiverMessage::Type::kCapabilitiesResponse, message.sequence_number,
+      true /* valid */
+  };
+  if (preferences_.remoting) {
+    response.body = CreateRemotingCapabilityV2();
+  } else {
+    response.valid = false;
+    response.body =
+        ReceiverError{static_cast<int>(Error::Code::kRemotingNotSupported),
+                      "Remoting is not supported"};
+  }
+
+  const Error result = messager_.SendMessage(std::move(response));
+  if (!result.ok()) {
+    client_->OnError(this, std::move(result));
   }
 }
 
@@ -307,7 +373,30 @@ Answer ReceiverSession::ConstructAnswer(const SessionProperties& properties) {
   }
   return Answer{environment_->GetBoundLocalEndpoint().port,
                 std::move(stream_indexes), std::move(stream_ssrcs),
-                std::move(answer_constraints), std::move(display)};
+                answer_constraints, std::move(display)};
+}
+
+ReceiverCapability ReceiverSession::CreateRemotingCapabilityV2() {
+  // If we don't support remoting, there is no reason to respond to
+  // capability requests--they are not used for mirroring.
+  OSP_DCHECK(preferences_.remoting);
+  ReceiverCapability capability;
+  capability.remoting_version = kSupportedRemotingVersion;
+
+  for (const AudioCodec& codec : preferences_.audio_codecs) {
+    capability.media_capabilities.push_back(ToCapability(codec));
+  }
+  for (const VideoCodec& codec : preferences_.video_codecs) {
+    capability.media_capabilities.push_back(ToCapability(codec));
+  }
+
+  if (preferences_.remoting->supports_chrome_audio_codecs) {
+    capability.media_capabilities.push_back(MediaCapability::kAudio);
+  }
+  if (preferences_.remoting->supports_4k) {
+    capability.media_capabilities.push_back(MediaCapability::k4k);
+  }
+  return capability;
 }
 
 void ReceiverSession::SendErrorAnswerReply(int sequence_number,

@@ -31,8 +31,6 @@ namespace cast {
 
 namespace {
 
-constexpr int kSupportedRemotingVersion = 3;
-
 AudioStream CreateStream(int index,
                          const AudioCaptureConfig& config,
                          bool use_android_rtp_hack) {

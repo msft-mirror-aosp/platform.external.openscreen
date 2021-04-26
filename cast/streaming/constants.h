@@ -96,6 +96,11 @@ constexpr int kDefaultAudioChannels = 2;
 // to provide any constraints.
 constexpr std::chrono::milliseconds kDefaultMaxDelayMs(1500);
 
+// TODO(issuetracker.google.com/184189100): As part of updating remoting
+// OFFER/ANSWER and capabilities exchange, remoting version should be updated
+// to 3.
+constexpr int kSupportedRemotingVersion = 2;
+
 // Codecs known and understood by cast senders and receivers. Note: receivers
 // are required to implement the following codecs to be Cast V2 compliant: H264,
 // VP8, AAC, Opus. Senders have to implement at least one codec from this

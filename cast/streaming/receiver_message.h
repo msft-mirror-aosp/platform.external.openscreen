@@ -47,6 +47,8 @@ struct ReceiverError {
   static ErrorOr<ReceiverError> Parse(const Json::Value& value);
 
   // Error code.
+  // TODO(issuetracker.google.com/184766188): Error codes should be well
+  // defined.
   int32_t code = -1;
 
   // Error description.

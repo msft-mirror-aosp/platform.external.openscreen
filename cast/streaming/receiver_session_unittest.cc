@@ -239,6 +239,11 @@ constexpr char kInvalidTypeMessage[] = R"({
   "seqNum": 1337
 })";
 
+constexpr char kGetCapabilitiesMessage[] = R"({
+  "seqNum": 820263770,
+  "type": "GET_CAPABILITIES"
+})";
+
 class FakeClient : public ReceiverSession::Client {
  public:
   MOCK_METHOD(void,
@@ -281,12 +286,17 @@ class ReceiverSessionTest : public ::testing::Test {
     return environment_;
   }
 
-  void SetUp() {
+  void SetUp() { SetUpWithPreferences(ReceiverSession::Preferences{}); }
+
+  // Since preferences are constant throughout the life of a session,
+  // changing them requires configuring a new session.
+  void SetUpWithPreferences(ReceiverSession::Preferences preferences) {
+    session_.reset();
     message_port_ = std::make_unique<SimpleMessagePort>("sender-12345");
     environment_ = MakeEnvironment();
-    session_ = std::make_unique<ReceiverSession>(
-        &client_, environment_.get(), message_port_.get(),
-        ReceiverSession::Preferences{});
+    session_ = std::make_unique<ReceiverSession>(&client_, environment_.get(),
+                                                 message_port_.get(),
+                                                 std::move(preferences));
   }
 
  protected:
@@ -393,7 +403,6 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomCodecPreferences) {
 TEST_F(ReceiverSessionTest, CanNegotiateWithLimits) {
   std::vector<ReceiverSession::AudioLimits> audio_limits = {
       {false, AudioCodec::kOpus, 48001, 2, 32001, 32002, milliseconds(3001)}};
-
   std::vector<ReceiverSession::VideoLimits> video_limits = {
       {true,
        VideoCodec::kVp9,
@@ -677,6 +686,70 @@ TEST_F(ReceiverSessionTest, ReturnsErrorAnswerIfEnvironmentIsInvalidated) {
   EXPECT_TRUE(message_body.is_value());
   EXPECT_EQ("ANSWER", message_body.value()["type"].asString());
   EXPECT_EQ("error", message_body.value()["result"].asString());
+}
+
+TEST_F(ReceiverSessionTest, ReturnsErrorCapabilitiesIfRemotingDisabled) {
+  message_port_->ReceiveMessage(kGetCapabilitiesMessage);
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  // We should have an error response.
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  EXPECT_EQ("CAPABILITIES_RESPONSE", message_body.value()["type"].asString());
+  EXPECT_EQ("error", message_body.value()["result"].asString());
+}
+
+TEST_F(ReceiverSessionTest, ReturnsCapabilitiesWithRemotingDefaults) {
+  ReceiverSession::Preferences preferences;
+  preferences.remoting =
+      std::make_unique<ReceiverSession::RemotingPreferences>();
+
+  SetUpWithPreferences(std::move(preferences));
+  message_port_->ReceiveMessage(kGetCapabilitiesMessage);
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  // We should have an error response.
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  EXPECT_EQ("CAPABILITIES_RESPONSE", message_body.value()["type"].asString());
+  EXPECT_EQ("ok", message_body.value()["result"].asString());
+  const ReceiverCapability response =
+      ReceiverCapability::Parse(message_body.value()["capabilities"]).value();
+
+  EXPECT_THAT(
+      response.media_capabilities,
+      testing::ElementsAre(MediaCapability::kOpus, MediaCapability::kAac,
+                           MediaCapability::kVp8, MediaCapability::kH264));
+}
+
+TEST_F(ReceiverSessionTest, ReturnsCapabilitiesWithRemotingPreferences) {
+  ReceiverSession::Preferences preferences;
+  preferences.video_codecs = {VideoCodec::kH264};
+  preferences.remoting =
+      std::make_unique<ReceiverSession::RemotingPreferences>();
+  preferences.remoting->supports_chrome_audio_codecs = true;
+  preferences.remoting->supports_4k = true;
+
+  SetUpWithPreferences(std::move(preferences));
+  message_port_->ReceiveMessage(kGetCapabilitiesMessage);
+  const auto& messages = message_port_->posted_messages();
+  ASSERT_EQ(1u, messages.size());
+
+  // We should have an error response.
+  auto message_body = json::Parse(messages[0]);
+  EXPECT_TRUE(message_body.is_value());
+  EXPECT_EQ("CAPABILITIES_RESPONSE", message_body.value()["type"].asString());
+  EXPECT_EQ("ok", message_body.value()["result"].asString());
+  const ReceiverCapability response =
+      ReceiverCapability::Parse(message_body.value()["capabilities"]).value();
+
+  EXPECT_THAT(
+      response.media_capabilities,
+      testing::ElementsAre(MediaCapability::kOpus, MediaCapability::kAac,
+                           MediaCapability::kH264, MediaCapability::kAudio,
+                           MediaCapability::k4k));
 }
 
 }  // namespace cast
