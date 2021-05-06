@@ -111,6 +111,8 @@ source_set("receiver") {
     "packet_receive_stats_tracker.h",
     "receiver.cc",
     "receiver.h",
+    "receiver_base.cc",
+    "receiver_base.h",
     "receiver_packet_router.cc",
     "receiver_packet_router.h",
     "receiver_session.cc",

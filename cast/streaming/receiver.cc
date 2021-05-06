@@ -61,6 +61,16 @@ Receiver::~Receiver() {
   packet_router_->OnReceiverDestroyed(rtcp_session_.sender_ssrc());
 }
 
+const SessionConfig& Receiver::config() const {
+  return config_;
+}
+int Receiver::rtp_timebase() const {
+  return rtp_timebase_;
+}
+Ssrc Receiver::ssrc() const {
+  return rtcp_session_.receiver_ssrc();
+}
+
 void Receiver::SetConsumer(Consumer* consumer) {
   consumer_ = consumer;
   ScheduleFrameReadyCheck();
@@ -464,8 +474,6 @@ void Receiver::ScheduleFrameReadyCheck(Clock::time_point when) {
       },
       when);
 }
-
-Receiver::Consumer::~Consumer() = default;
 
 Receiver::PendingFrame::PendingFrame() = default;
 Receiver::PendingFrame::~PendingFrame() = default;
