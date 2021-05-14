@@ -93,7 +93,7 @@ ErrorOr<Json::Value> SenderMessage::ToJson() const {
 
   switch (type) {
     case SenderMessage::Type::kOffer:
-      root[kOfferMessageBody] = absl::get<Offer>(body).ToJson().value();
+      root[kOfferMessageBody] = absl::get<Offer>(body).ToJson();
       break;
 
     case SenderMessage::Type::kRpc:

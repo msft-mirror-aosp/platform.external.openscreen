@@ -46,7 +46,8 @@ constexpr int kDefaultNumAudioChannels = 2;
 struct Stream {
   enum class Type : uint8_t { kAudioSource, kVideoSource };
 
-  ErrorOr<Json::Value> ToJson() const;
+  Json::Value ToJson() const;
+  bool IsValid() const;
 
   int index = 0;
   Type type = {};
@@ -67,7 +68,8 @@ struct Stream {
 };
 
 struct AudioStream {
-  ErrorOr<Json::Value> ToJson() const;
+  Json::Value ToJson() const;
+  bool IsValid() const;
 
   Stream stream = {};
   AudioCodec codec;
@@ -76,7 +78,8 @@ struct AudioStream {
 
 
 struct VideoStream {
-  ErrorOr<Json::Value> ToJson() const;
+  Json::Value ToJson() const;
+  bool IsValid() const;
 
   Stream stream = {};
   VideoCodec codec;
@@ -93,7 +96,8 @@ enum class CastMode : uint8_t { kMirroring, kRemoting };
 
 struct Offer {
   static ErrorOr<Offer> Parse(const Json::Value& root);
-  ErrorOr<Json::Value> ToJson() const;
+  Json::Value ToJson() const;
+  bool IsValid() const;
 
   CastMode cast_mode = CastMode::kMirroring;
   std::vector<AudioStream> audio_streams = {};

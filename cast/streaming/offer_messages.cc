@@ -268,12 +268,8 @@ EnumNameTable<CastMode, 2> kCastModeNames{
 
 }  // namespace
 
-ErrorOr<Json::Value> Stream::ToJson() const {
-  if (channels < 1 || index < 0 || target_delay.count() <= 0 ||
-      target_delay.count() > std::numeric_limits<int>::max() ||
-      rtp_timebase < 1) {
-    return json::CreateParameterError("Stream");
-  }
+Json::Value Stream::ToJson() const {
+  OSP_DCHECK(IsValid());
 
   Json::Value root;
   root["index"] = index;
@@ -295,47 +291,47 @@ ErrorOr<Json::Value> Stream::ToJson() const {
   return root;
 }
 
-ErrorOr<Json::Value> AudioStream::ToJson() const {
-  // A bit rate of 0 is valid for some codec types, so we don't enforce here.
-  if (bit_rate < 0) {
-    return json::CreateParameterError("AudioStream");
-  }
-
-  auto error_or_stream = stream.ToJson();
-  if (error_or_stream.is_error()) {
-    return error_or_stream;
-  }
-
-  error_or_stream.value()[kCodecName] = CodecToString(codec);
-  error_or_stream.value()["bitRate"] = bit_rate;
-  return error_or_stream;
+bool Stream::IsValid() const {
+  return channels >= 1 && index >= 0 && target_delay.count() > 0 &&
+         target_delay.count() <= std::numeric_limits<int>::max() &&
+         rtp_timebase >= 1;
 }
 
-ErrorOr<Json::Value> VideoStream::ToJson() const {
-  if (max_bit_rate <= 0 || !max_frame_rate.is_positive()) {
-    return json::CreateParameterError("VideoStream");
-  }
+Json::Value AudioStream::ToJson() const {
+  OSP_DCHECK(IsValid());
 
-  auto error_or_stream = stream.ToJson();
-  if (error_or_stream.is_error()) {
-    return error_or_stream;
-  }
+  Json::Value out = stream.ToJson();
+  out[kCodecName] = CodecToString(codec);
+  out["bitRate"] = bit_rate;
+  return out;
+}
 
-  auto& stream = error_or_stream.value();
-  stream["codecName"] = CodecToString(codec);
-  stream["maxFrameRate"] = max_frame_rate.ToString();
-  stream["maxBitRate"] = max_bit_rate;
-  stream["protection"] = protection;
-  stream["profile"] = profile;
-  stream["level"] = level;
-  stream["errorRecoveryMode"] = error_recovery_mode;
+bool AudioStream::IsValid() const {
+  return bit_rate >= 0 && stream.IsValid();
+}
+
+Json::Value VideoStream::ToJson() const {
+  OSP_DCHECK(IsValid());
+
+  Json::Value out = stream.ToJson();
+  out["codecName"] = CodecToString(codec);
+  out["maxFrameRate"] = max_frame_rate.ToString();
+  out["maxBitRate"] = max_bit_rate;
+  out["protection"] = protection;
+  out["profile"] = profile;
+  out["level"] = level;
+  out["errorRecoveryMode"] = error_recovery_mode;
 
   Json::Value rs;
   for (auto resolution : resolutions) {
     rs.append(resolution.ToJson());
   }
-  stream["resolutions"] = std::move(rs);
-  return error_or_stream;
+  out["resolutions"] = std::move(rs);
+  return out;
+}
+
+bool VideoStream::IsValid() const {
+  return max_bit_rate > 0 && max_frame_rate.is_positive();
 }
 
 // static
@@ -390,30 +386,28 @@ ErrorOr<Offer> Offer::Parse(const Json::Value& root) {
                std::move(video_streams)};
 }
 
-ErrorOr<Json::Value> Offer::ToJson() const {
+Json::Value Offer::ToJson() const {
+  OSP_DCHECK(IsValid());
   Json::Value root;
-
   root["castMode"] = GetEnumName(kCastModeNames, cast_mode).value();
   Json::Value streams;
-  for (auto& as : audio_streams) {
-    auto eoj = as.ToJson();
-    if (eoj.is_error()) {
-      return eoj;
-    }
-    streams.append(eoj.value());
+  for (auto& stream : audio_streams) {
+    streams.append(stream.ToJson());
   }
 
-  for (auto& vs : video_streams) {
-    auto eoj = vs.ToJson();
-    if (eoj.is_error()) {
-      return eoj;
-    }
-    streams.append(eoj.value());
+  for (auto& stream : video_streams) {
+    streams.append(stream.ToJson());
   }
 
   root[kSupportedStreams] = std::move(streams);
   return root;
 }
 
+bool Offer::IsValid() const {
+  return std::all_of(audio_streams.begin(), audio_streams.end(),
+                     [](const AudioStream& a) { return a.IsValid(); }) &&
+         std::all_of(video_streams.begin(), video_streams.end(),
+                     [](const VideoStream& v) { return v.IsValid(); });
+}
 }  // namespace cast
 }  // namespace openscreen
