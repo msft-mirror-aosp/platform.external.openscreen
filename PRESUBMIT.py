@@ -15,8 +15,11 @@ sys.path.extend(os.path.join(_REPO_PATH, p) for p in _IMPORT_SUBFOLDERS)
 
 import licenses
 from checkdeps import DepsChecker
-from cpp_checker import CppChecker
-from rules import Rule
+
+# Opt-in to using Python3 instead of Python2, as part of the ongoing Python2
+# deprecation. For more information, see
+# https://issuetracker.google.com/173766869.
+USE_PYTHON3 = True
 
 # Rather than pass this to all of the checks, we override the global excluded
 # list with this one.

@@ -29,6 +29,9 @@ vars = {
   # TODO(issuetracker.google.com/155195126): Change this to False and update
   # buildbot to call tools/download-clang-update-script.py instead.
   'checkout_clang_coverage_tools': True,
+
+  # GN CIPD package version.
+  'gn_version': 'git_revision:39a87c0b36310bdf06b692c098f199a0d97fc810',
 }
 
 deps = {
@@ -36,15 +39,32 @@ deps = {
   # of the commits to the buildtools directory in the Chromium repository. This
   # should be regularly updated with the tip of the MIRRORED master branch,
   # found here:
-  # TODO(issuetracker.google.com/172242670): update to "main" when buildtools
-  # has a main branch stood up.
-  # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/master.
+  # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/main.
   'buildtools': {
-    'url': Var('chromium_git')+ '/chromium/src/buildtools' +
-      '@' + '6302c1175607a436e18947a5abe9df2209e845fc',
+    'url': Var('chromium_git') + '/chromium/src/buildtools' +
+      '@' + 'fba2905150c974240f14aa5334c3e5c93f873032',
     'condition': 'not build_with_chromium',
   },
-
+  'buildtools/linux64': {
+    'packages': [
+      {
+        'package': 'gn/gn/linux-amd64',
+        'version': Var('gn_version'),
+      }
+    ],
+    'dep_type': 'cipd',
+    'condition': 'host_os == "linux"',
+  },
+  'buildtools/mac': {
+    'packages': [
+      {
+        'package': 'gn/gn/mac-${{arch}}',
+        'version': Var('gn_version'),
+      }
+    ],
+    'dep_type': 'cipd',
+    'condition': 'host_os == "mac"',
+  },
   'third_party/protobuf/src': {
     'url': Var('chromium_git') +
       '/external/github.com/protocolbuffers/protobuf.git' +
