@@ -10,12 +10,12 @@ import("//build_overrides/build.gni")
 # application.
 if (!build_with_chromium) {
   declare_args() {
-    have_libs = have_ffmpeg && have_libopus && have_libvpx
+    have_external_libs = have_ffmpeg && have_libopus && have_libvpx
   }
 
   config("standalone_external_libs") {
     defines = []
-    if (have_libs) {
+    if (have_external_libs) {
       defines += [ "CAST_STANDALONE_SENDER_HAVE_EXTERNAL_LIBS" ]
     }
   }

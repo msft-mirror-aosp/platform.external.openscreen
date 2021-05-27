@@ -239,7 +239,9 @@ int main(int argc, char* argv[]) {
 #else
   OSP_LOG_ERROR
       << "It compiled! However, you need to configure the build to point to "
-         "external libraries in order to build a useful app.";
+         "external libraries in order to build a useful app. For more "
+         "information, see "
+         "[external_libraries.md](../../build/config/external_libraries.md).";
   return 1;
 #endif
 }

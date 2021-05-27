@@ -132,6 +132,14 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
   return 1;
 #endif
 
+#if !defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
+  OSP_LOG_INFO
+      << "Note: compiled without external libs. The dummy player will "
+         "be linked and no video decoding will occur. If this is not desired, "
+         "install the required external libraries. For more information, see: "
+         "[external_libraries.md](../../build/config/external_libraries.md).";
+#endif
+
   // A note about modifying command line arguments: consider uniformity
   // between all Open Screen executables. If it is a platform feature
   // being exposed, consider if it applies to the standalone receiver,

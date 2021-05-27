@@ -26,13 +26,16 @@ USE_PYTHON3 = True
 _EXCLUDED_PATHS = (
   # Exclude all of third_party/ except for BUILD.gns that we maintain.
   r'third_party[\\\/].*(?<!BUILD.gn)$',
+
   # Exclude everything under third_party/chromium_quic/{src|build}
   r'third_party/chromium_quic/(src|build)/.*',
+
   # Output directories (just in case)
   r'.*\bDebug[\\\/].*',
   r'.*\bRelease[\\\/].*',
   r'.*\bxcodebuild[\\\/].*',
   r'.*\bout[\\\/].*',
+
   # There is no point in processing a patch file.
   r'.+\.diff$',
   r'.+\.patch$',
@@ -128,7 +131,7 @@ def _CheckNoexceptOnMove(filename, clean_lines, linenum, error):
 def _CheckChangeLintsClean(input_api, output_api):
     """Checks that all '.cc' and '.h' files pass cpplint.py."""
     cpplint = input_api.cpplint
-    # Access to a protected member _XX of a client class
+    # Directive that allows access to a protected member _XX of a client class.
     # pylint: disable=protected-access
     cpplint._cpplint_state.ResetErrorCounts()
 
@@ -170,31 +173,32 @@ def _CommonChecks(input_api, output_api):
         input_api.canned_checks.CheckChangeHasNoCrAndHasOnlyOneEol(
             input_api, output_api))
 
-    # Gender inclusivity
+    # Ensure code change is gender inclusive.
     results.extend(
         input_api.canned_checks.CheckGenderNeutral(input_api, output_api))
 
-    # TODO(bug) format required
+    # Ensure code change to do items uses TODO(bug) or TODO(user) format.
+    #  TODO(bug) is generally preferred.
     results.extend(
         input_api.canned_checks.CheckChangeTodoHasOwner(input_api, output_api))
 
-    # Linter.
+    # Ensure code change passes linter cleanly.
     results.extend(_CheckChangeLintsClean(input_api, output_api))
 
-    # clang-format
+    # Ensure code change has already had clang-format ran.
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api,
                                                     output_api,
                                                     bypass_warnings=False))
 
-    # GN formatting
+    # Ensure code change has had GN formatting ran.
     results.extend(
         input_api.canned_checks.CheckGNFormatted(input_api, output_api))
 
-    # buildtools/checkdeps
+    # Run buildtools/checkdeps on code change.
     results.extend(_CheckDeps(input_api, output_api))
 
-    # tools/licenses
+    # Run tools/licenses on code change.
     results.extend(_CheckLicenses(input_api, output_api))
 
     return results
