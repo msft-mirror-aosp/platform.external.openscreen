@@ -32,6 +32,7 @@ vars = {
 
   # GN CIPD package version.
   'gn_version': 'git_revision:39a87c0b36310bdf06b692c098f199a0d97fc810',
+  'clang_format_revision':    '99803d74e35962f63a775f29477882afd4d57d94',
 }
 
 deps = {
@@ -45,6 +46,12 @@ deps = {
       '@' + 'fba2905150c974240f14aa5334c3e5c93f873032',
     'condition': 'not build_with_chromium',
   },
+  'buildtools/clang_format/script': {
+    'url': Var('chromium_git') +
+      '/external/github.com/llvm/llvm-project/clang/tools/clang-format.git' +
+      '@' + Var('clang_format_revision'),
+    'condition': 'not build_with_chromium',
+  },
   'buildtools/linux64': {
     'packages': [
       {
@@ -53,7 +60,7 @@ deps = {
       }
     ],
     'dep_type': 'cipd',
-    'condition': 'host_os == "linux"',
+    'condition': 'host_os == "linux" and not build_with_chromium',
   },
   'buildtools/mac': {
     'packages': [
@@ -63,7 +70,7 @@ deps = {
       }
     ],
     'dep_type': 'cipd',
-    'condition': 'host_os == "mac"',
+    'condition': 'host_os == "mac" and not build_with_chromium',
   },
   'third_party/protobuf/src': {
     'url': Var('chromium_git') +
