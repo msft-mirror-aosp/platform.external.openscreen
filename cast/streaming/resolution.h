@@ -19,7 +19,7 @@ namespace cast {
 
 // A resolution in pixels.
 struct Resolution {
-  static bool ParseAndValidate(const Json::Value& value, Resolution* out);
+  static bool TryParse(const Json::Value& value, Resolution* out);
   bool IsValid() const;
   Json::Value ToJson() const;
 
@@ -33,7 +33,7 @@ struct Resolution {
 
 // A resolution in pixels and a frame rate.
 struct Dimensions {
-  static bool ParseAndValidate(const Json::Value& value, Dimensions* out);
+  static bool TryParse(const Json::Value& value, Dimensions* out);
   bool IsValid() const;
   Json::Value ToJson() const;
 

@@ -90,10 +90,12 @@ void ExpectFailureOnParse(
     absl::optional<Error::Code> expected = absl::nullopt) {
   ErrorOr<Json::Value> root = json::Parse(body);
   ASSERT_TRUE(root.is_value()) << root.error();
-  ErrorOr<Offer> error_or_offer = Offer::Parse(std::move(root.value()));
-  EXPECT_TRUE(error_or_offer.is_error());
+
+  Offer offer;
+  Error error = Offer::TryParse(std::move(root.value()), &offer);
+  EXPECT_FALSE(error.ok());
   if (expected) {
-    EXPECT_EQ(expected, error_or_offer.error().code());
+    EXPECT_EQ(expected, error.code());
   }
 }
 
@@ -200,7 +202,9 @@ TEST(OfferTest, CanParseValidButStreamlessOffer) {
     "supportedStreams": []
   })");
   ASSERT_TRUE(root.is_value()) << root.error();
-  EXPECT_TRUE(Offer::Parse(std::move(root.value())).is_value());
+
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
 }
 
 TEST(OfferTest, ErrorOnMissingAudioStreamMandatoryField) {
@@ -249,7 +253,8 @@ TEST(OfferTest, CanParseValidButMinimalAudioOffer) {
     }]
   })");
   ASSERT_TRUE(root.is_value());
-  EXPECT_TRUE(Offer::Parse(std::move(root.value())).is_value());
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
 }
 
 TEST(OfferTest, CanParseValidZeroBitRateAudioOffer) {
@@ -270,8 +275,8 @@ TEST(OfferTest, CanParseValidZeroBitRateAudioOffer) {
     }]
   })");
   ASSERT_TRUE(root.is_value()) << root.error();
-  const auto offer = Offer::Parse(std::move(root.value()));
-  EXPECT_TRUE(offer.is_value()) << offer.error();
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
 }
 
 TEST(OfferTest, ErrorOnInvalidRtpTimebase) {
@@ -439,26 +444,29 @@ TEST(OfferTest, CanParseValidButMinimalVideoOffer) {
   })");
 
   ASSERT_TRUE(root.is_value());
-  EXPECT_TRUE(Offer::Parse(std::move(root.value())).is_value());
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
 }
 
 TEST(OfferTest, CanParseValidOffer) {
   ErrorOr<Json::Value> root = json::Parse(kValidOffer);
   ASSERT_TRUE(root.is_value());
-  ErrorOr<Offer> offer = Offer::Parse(std::move(root.value()));
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
 
-  ExpectEqualsValidOffer(offer.value());
+  ExpectEqualsValidOffer(offer);
 }
 
 TEST(OfferTest, ParseAndToJsonResultsInSameOffer) {
   ErrorOr<Json::Value> root = json::Parse(kValidOffer);
   ASSERT_TRUE(root.is_value());
-  ErrorOr<Offer> offer = Offer::Parse(std::move(root.value()));
-  ExpectEqualsValidOffer(offer.value());
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
+  ExpectEqualsValidOffer(offer);
 
-  ErrorOr<Offer> reparsed_offer =
-      Offer::Parse(std::move(offer.value().ToJson()));
-  ExpectEqualsValidOffer(reparsed_offer.value());
+  Offer reparsed_offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &reparsed_offer).ok());
+  ExpectEqualsValidOffer(reparsed_offer);
 }
 
 // We don't want to enforce that a given offer must have both audio and
@@ -466,9 +474,10 @@ TEST(OfferTest, ParseAndToJsonResultsInSameOffer) {
 TEST(OfferTest, IsValidWithMissingStreams) {
   ErrorOr<Json::Value> root = json::Parse(kValidOffer);
   ASSERT_TRUE(root.is_value());
-  ErrorOr<Offer> offer = Offer::Parse(std::move(root.value()));
-  ExpectEqualsValidOffer(offer.value());
-  const Offer valid_offer = std::move(offer.value());
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
+  ExpectEqualsValidOffer(offer);
+  const Offer valid_offer = std::move(offer);
 
   Offer missing_audio_streams = valid_offer;
   missing_audio_streams.audio_streams.clear();
@@ -482,15 +491,15 @@ TEST(OfferTest, IsValidWithMissingStreams) {
 TEST(OfferTest, InvalidIfInvalidStreams) {
   ErrorOr<Json::Value> root = json::Parse(kValidOffer);
   ASSERT_TRUE(root.is_value());
-  ErrorOr<Offer> offer = Offer::Parse(std::move(root.value()));
-  ExpectEqualsValidOffer(offer.value());
-  const Offer valid_offer = std::move(offer.value());
+  Offer offer;
+  EXPECT_TRUE(Offer::TryParse(std::move(root.value()), &offer).ok());
+  ExpectEqualsValidOffer(offer);
 
-  Offer video_stream_invalid = valid_offer;
+  Offer video_stream_invalid = offer;
   video_stream_invalid.video_streams[0].max_frame_rate = SimpleFraction{1, 0};
   EXPECT_FALSE(video_stream_invalid.IsValid());
 
-  Offer audio_stream_invalid = valid_offer;
+  Offer audio_stream_invalid = offer;
   video_stream_invalid.audio_streams[0].bit_rate = 0;
   EXPECT_FALSE(video_stream_invalid.IsValid());
 }

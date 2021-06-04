@@ -132,8 +132,7 @@ void LoopingFileCastAgent::OnMessage(VirtualConnectionRouter* router,
       HandleReceiverStatus(payload.value());
     } else if (HasType(payload.value(), CastMessageType::kLaunchError)) {
       std::string reason;
-      if (!json::ParseAndValidateString(payload.value()[kMessageKeyReason],
-                                        &reason)) {
+      if (!json::TryParseString(payload.value()[kMessageKeyReason], &reason)) {
         reason = "UNKNOWN";
       }
       OSP_LOG_ERROR
@@ -142,8 +141,7 @@ void LoopingFileCastAgent::OnMessage(VirtualConnectionRouter* router,
       Shutdown();
     } else if (HasType(payload.value(), CastMessageType::kInvalidRequest)) {
       std::string reason;
-      if (!json::ParseAndValidateString(payload.value()[kMessageKeyReason],
-                                        &reason)) {
+      if (!json::TryParseString(payload.value()[kMessageKeyReason], &reason)) {
         reason = "UNKNOWN";
       }
       OSP_LOG_ERROR << "Cast Receiver thinks our request is invalid: "
@@ -167,8 +165,7 @@ void LoopingFileCastAgent::HandleReceiverStatus(const Json::Value& status) {
           : Json::Value();
 
   std::string running_app_id;
-  if (!json::ParseAndValidateString(details[kMessageKeyAppId],
-                                    &running_app_id) ||
+  if (!json::TryParseString(details[kMessageKeyAppId], &running_app_id) ||
       running_app_id != GetMirroringAppId()) {
     // The mirroring app is not running. If it was just stopped, Shutdown() will
     // tear everything down. If it has been stopped already, Shutdown() is a
@@ -178,8 +175,7 @@ void LoopingFileCastAgent::HandleReceiverStatus(const Json::Value& status) {
   }
 
   std::string session_id;
-  if (!json::ParseAndValidateString(details[kMessageKeySessionId],
-                                    &session_id) ||
+  if (!json::TryParseString(details[kMessageKeySessionId], &session_id) ||
       session_id.empty()) {
     OSP_LOG_ERROR
         << "Cannot continue: Cast Receiver did not provide a session ID for "
@@ -207,8 +203,8 @@ void LoopingFileCastAgent::HandleReceiverStatus(const Json::Value& status) {
   }
 
   std::string message_destination_id;
-  if (!json::ParseAndValidateString(details[kMessageKeyTransportId],
-                                    &message_destination_id) ||
+  if (!json::TryParseString(details[kMessageKeyTransportId],
+                            &message_destination_id) ||
       message_destination_id.empty()) {
     OSP_LOG_ERROR
         << "Cannot continue: Cast Receiver did not provide a transport ID for "

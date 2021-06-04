@@ -147,8 +147,8 @@ void SenderSessionMessager::OnMessage(const std::string& source_id,
   }
 
   int sequence_number;
-  if (!json::ParseAndValidateInt(message_body.value()[kSequenceNumber],
-                                 &sequence_number)) {
+  if (!json::TryParseInt(message_body.value()[kSequenceNumber],
+                         &sequence_number)) {
     OSP_DLOG_WARN << "Received a message without a sequence number";
     return;
   }
