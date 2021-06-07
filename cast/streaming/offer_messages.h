@@ -100,6 +100,8 @@ struct VideoStream {
 enum class CastMode : uint8_t { kMirroring, kRemoting };
 
 struct Offer {
+  // TODO(jophba): remove deprecated declaration in a separate patch.
+  static Error Parse(const Json::Value& root, Offer* out);
   static Error TryParse(const Json::Value& root, Offer* out);
   Json::Value ToJson() const;
   bool IsValid() const;
