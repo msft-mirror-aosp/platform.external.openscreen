@@ -315,8 +315,11 @@ bool VideoStream::IsValid() const {
 }
 
 // static
-Error Offer::Parse(const Json::Value& root, Offer* out) {
-  return TryParse(root, out);
+ErrorOr<Offer> Offer::Parse(const Json::Value& root) {
+  Offer out;
+  Error error = TryParse(root, &out);
+  return error.ok() ? ErrorOr<Offer>(std::move(out))
+                    : ErrorOr<Offer>(std::move(error));
 }
 
 // static
