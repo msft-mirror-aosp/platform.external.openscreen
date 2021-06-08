@@ -68,7 +68,7 @@ usage: %s <options> addr[:port] media_file
                                R"(
       -a, --android-hack:
            Use the wrong RTP payload types, for compatibility with older Android
-           TV receivers.
+           TV receivers. See https://crbug.com/631828.
 
       -t, --tracing: Enable performance tracing logging.
 

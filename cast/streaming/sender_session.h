@@ -121,7 +121,7 @@ class SenderSession final {
     std::string message_destination_id;
 
     // Whether or not the android RTP value hack should be used (for legacy
-    // android devices).
+    // android devices). For more information, see https://crbug.com/631828.
     bool use_android_rtp_hack = true;
   };
 
