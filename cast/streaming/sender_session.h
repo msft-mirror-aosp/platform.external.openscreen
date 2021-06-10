@@ -20,7 +20,7 @@
 #include "cast/streaming/sender.h"
 #include "cast/streaming/sender_packet_router.h"
 #include "cast/streaming/session_config.h"
-#include "cast/streaming/session_messager.h"
+#include "cast/streaming/session_messenger.h"
 #include "json/value.h"
 #include "util/json/json_serialization.h"
 
@@ -230,10 +230,10 @@ class SenderSession final {
   // This session's configuration.
   Configuration config_;
 
-  // The session messager, which uses the message port for sending control
+  // The session messenger, which uses the message port for sending control
   // messages. For message formats, see
   // cast/protocol/castv2/streaming_schema.json.
-  SenderSessionMessager messager_;
+  SenderSessionMessenger messenger_;
 
   // The packet router used for RTP/RTCP messaging across all senders.
   SenderPacketRouter packet_router_;

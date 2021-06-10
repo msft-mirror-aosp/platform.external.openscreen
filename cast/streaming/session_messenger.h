@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CAST_STREAMING_SESSION_MESSAGER_H_
-#define CAST_STREAMING_SESSION_MESSAGER_H_
+#ifndef CAST_STREAMING_SESSION_MESSENGER_H_
+#define CAST_STREAMING_SESSION_MESSENGER_H_
 
 #include <functional>
 #include <string>
@@ -27,14 +27,14 @@ namespace cast {
 
 // A message port interface designed specifically for use by the Receiver
 // and Sender session classes.
-class SessionMessager : public MessagePort::Client {
+class SessionMessenger : public MessagePort::Client {
  public:
   using ErrorCallback = std::function<void(Error)>;
 
-  SessionMessager(MessagePort* message_port,
-                  std::string source_id,
-                  ErrorCallback cb);
-  ~SessionMessager() override;
+  SessionMessenger(MessagePort* message_port,
+                   std::string source_id,
+                   ErrorCallback cb);
+  ~SessionMessenger() override;
 
  protected:
   // Barebones message sending method shared by both children.
@@ -50,15 +50,15 @@ class SessionMessager : public MessagePort::Client {
   ErrorCallback error_callback_;
 };
 
-class SenderSessionMessager final : public SessionMessager {
+class SenderSessionMessenger final : public SessionMessenger {
  public:
   using ReplyCallback = std::function<void(ReceiverMessage)>;
 
-  SenderSessionMessager(MessagePort* message_port,
-                        std::string source_id,
-                        std::string receiver_id,
-                        ErrorCallback cb,
-                        TaskRunner* task_runner);
+  SenderSessionMessenger(MessagePort* message_port,
+                         std::string source_id,
+                         std::string receiver_id,
+                         ErrorCallback cb,
+                         TaskRunner* task_runner);
 
   // Set receiver message handler. Note that this should only be
   // applied for messages that don't have sequence numbers, like RPC
@@ -80,7 +80,7 @@ class SenderSessionMessager final : public SessionMessager {
  private:
   TaskRunner* const task_runner_;
 
-  // This messager should only be connected to one receiver, so |receiver_id_|
+  // This messenger should only be connected to one receiver, so |receiver_id_|
   // should not change.
   const std::string receiver_id_;
 
@@ -93,15 +93,15 @@ class SenderSessionMessager final : public SessionMessager {
   // a flatmap here.
   ReplyCallback rpc_callback_;
 
-  WeakPtrFactory<SenderSessionMessager> weak_factory_{this};
+  WeakPtrFactory<SenderSessionMessenger> weak_factory_{this};
 };
 
-class ReceiverSessionMessager final : public SessionMessager {
+class ReceiverSessionMessenger final : public SessionMessenger {
  public:
   using RequestCallback = std::function<void(SenderMessage)>;
-  ReceiverSessionMessager(MessagePort* message_port,
-                          std::string source_id,
-                          ErrorCallback cb);
+  ReceiverSessionMessenger(MessagePort* message_port,
+                           std::string source_id,
+                           ErrorCallback cb);
 
   // Set sender message handler.
   void SetHandler(SenderMessage::Type type, RequestCallback cb);
@@ -125,4 +125,4 @@ class ReceiverSessionMessager final : public SessionMessager {
 }  // namespace cast
 }  // namespace openscreen
 
-#endif  // CAST_STREAMING_SESSION_MESSAGER_H_
+#endif  // CAST_STREAMING_SESSION_MESSENGER_H_

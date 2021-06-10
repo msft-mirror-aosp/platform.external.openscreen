@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/session_messager.h"
+#include "cast/streaming/session_messenger.h"
 
 #include "absl/strings/ascii.h"
 #include "cast/common/public/message_port.h"
@@ -19,7 +19,7 @@ namespace {
 void ReplyIfTimedOut(
     int sequence_number,
     ReceiverMessage::Type reply_type,
-    std::vector<std::pair<int, SenderSessionMessager::ReplyCallback>>*
+    std::vector<std::pair<int, SenderSessionMessenger::ReplyCallback>>*
         replies) {
   for (auto it = replies->begin(); it != replies->end(); ++it) {
     if (it->first == sequence_number) {
@@ -35,22 +35,22 @@ void ReplyIfTimedOut(
 
 }  // namespace
 
-SessionMessager::SessionMessager(MessagePort* message_port,
-                                 std::string source_id,
-                                 ErrorCallback cb)
+SessionMessenger::SessionMessenger(MessagePort* message_port,
+                                   std::string source_id,
+                                   ErrorCallback cb)
     : message_port_(message_port), error_callback_(std::move(cb)) {
   OSP_DCHECK(message_port_);
   OSP_DCHECK(!source_id.empty());
   message_port_->SetClient(this, source_id);
 }
 
-SessionMessager::~SessionMessager() {
+SessionMessenger::~SessionMessenger() {
   message_port_->ResetClient();
 }
 
-Error SessionMessager::SendMessage(const std::string& destination_id,
-                                   const std::string& namespace_,
-                                   const Json::Value& message_root) {
+Error SessionMessenger::SendMessage(const std::string& destination_id,
+                                    const std::string& namespace_,
+                                    const Json::Value& message_root) {
   OSP_DCHECK(namespace_ == kCastRemotingNamespace ||
              namespace_ == kCastWebrtcNamespace);
   auto body_or_error = json::Stringify(message_root);
@@ -64,40 +64,40 @@ Error SessionMessager::SendMessage(const std::string& destination_id,
   return Error::None();
 }
 
-void SessionMessager::ReportError(Error error) {
+void SessionMessenger::ReportError(Error error) {
   error_callback_(std::move(error));
 }
 
-SenderSessionMessager::SenderSessionMessager(MessagePort* message_port,
-                                             std::string source_id,
-                                             std::string receiver_id,
-                                             ErrorCallback cb,
-                                             TaskRunner* task_runner)
-    : SessionMessager(message_port, std::move(source_id), std::move(cb)),
+SenderSessionMessenger::SenderSessionMessenger(MessagePort* message_port,
+                                               std::string source_id,
+                                               std::string receiver_id,
+                                               ErrorCallback cb,
+                                               TaskRunner* task_runner)
+    : SessionMessenger(message_port, std::move(source_id), std::move(cb)),
       task_runner_(task_runner),
       receiver_id_(std::move(receiver_id)) {}
 
-void SenderSessionMessager::SetHandler(ReceiverMessage::Type type,
-                                       ReplyCallback cb) {
+void SenderSessionMessenger::SetHandler(ReceiverMessage::Type type,
+                                        ReplyCallback cb) {
   // Currently the only handler allowed is for RPC messages.
   OSP_DCHECK(type == ReceiverMessage::Type::kRpc);
   rpc_callback_ = std::move(cb);
 }
 
-Error SenderSessionMessager::SendOutboundMessage(SenderMessage message) {
+Error SenderSessionMessenger::SendOutboundMessage(SenderMessage message) {
   const auto namespace_ = (message.type == SenderMessage::Type::kRpc)
                               ? kCastRemotingNamespace
                               : kCastWebrtcNamespace;
 
   ErrorOr<Json::Value> jsonified = message.ToJson();
   OSP_CHECK(jsonified.is_value()) << "Tried to send an invalid message";
-  return SessionMessager::SendMessage(receiver_id_, namespace_,
-                                      jsonified.value());
+  return SessionMessenger::SendMessage(receiver_id_, namespace_,
+                                       jsonified.value());
 }
 
-Error SenderSessionMessager::SendRequest(SenderMessage message,
-                                         ReceiverMessage::Type reply_type,
-                                         ReplyCallback cb) {
+Error SenderSessionMessenger::SendRequest(SenderMessage message,
+                                          ReceiverMessage::Type reply_type,
+                                          ReplyCallback cb) {
   static constexpr std::chrono::milliseconds kReplyTimeout{4000};
   // RPC messages are not meant to be request/reply.
   OSP_DCHECK(reply_type != ReceiverMessage::Type::kRpc);
@@ -122,9 +122,9 @@ Error SenderSessionMessager::SendRequest(SenderMessage message,
   return Error::None();
 }
 
-void SenderSessionMessager::OnMessage(const std::string& source_id,
-                                      const std::string& message_namespace,
-                                      const std::string& message) {
+void SenderSessionMessenger::OnMessage(const std::string& source_id,
+                                       const std::string& message_namespace,
+                                       const std::string& message) {
   if (source_id != receiver_id_) {
     OSP_DLOG_WARN << "Received message from unknown/incorrect Cast Receiver, "
                      "expected id \""
@@ -191,22 +191,22 @@ void SenderSessionMessager::OnMessage(const std::string& source_id,
   }
 }
 
-void SenderSessionMessager::OnError(Error error) {
-  OSP_DLOG_WARN << "Received an error in the session messager: " << error;
+void SenderSessionMessenger::OnError(Error error) {
+  OSP_DLOG_WARN << "Received an error in the session messenger: " << error;
 }
 
-ReceiverSessionMessager::ReceiverSessionMessager(MessagePort* message_port,
-                                                 std::string source_id,
-                                                 ErrorCallback cb)
-    : SessionMessager(message_port, std::move(source_id), std::move(cb)) {}
+ReceiverSessionMessenger::ReceiverSessionMessenger(MessagePort* message_port,
+                                                   std::string source_id,
+                                                   ErrorCallback cb)
+    : SessionMessenger(message_port, std::move(source_id), std::move(cb)) {}
 
-void ReceiverSessionMessager::SetHandler(SenderMessage::Type type,
-                                         RequestCallback cb) {
+void ReceiverSessionMessenger::SetHandler(SenderMessage::Type type,
+                                          RequestCallback cb) {
   OSP_DCHECK(callbacks_.find(type) == callbacks_.end());
   callbacks_.emplace_back(type, std::move(cb));
 }
 
-Error ReceiverSessionMessager::SendMessage(ReceiverMessage message) {
+Error ReceiverSessionMessenger::SendMessage(ReceiverMessage message) {
   if (sender_session_id_.empty()) {
     return Error(Error::Code::kInitializationFailure,
                  "Tried to send a message without receiving one first");
@@ -218,13 +218,13 @@ Error ReceiverSessionMessager::SendMessage(ReceiverMessage message) {
 
   ErrorOr<Json::Value> message_json = message.ToJson();
   OSP_CHECK(message_json.is_value()) << "Tried to send an invalid message";
-  return SessionMessager::SendMessage(sender_session_id_, namespace_,
-                                      message_json.value());
+  return SessionMessenger::SendMessage(sender_session_id_, namespace_,
+                                       message_json.value());
 }
 
-void ReceiverSessionMessager::OnMessage(const std::string& source_id,
-                                        const std::string& message_namespace,
-                                        const std::string& message) {
+void ReceiverSessionMessenger::OnMessage(const std::string& source_id,
+                                         const std::string& message_namespace,
+                                         const std::string& message) {
   // We assume we are connected to the first sender_id we receive.
   if (sender_session_id_.empty()) {
     sender_session_id_ = source_id;
@@ -274,8 +274,8 @@ void ReceiverSessionMessager::OnMessage(const std::string& source_id,
   }
 }
 
-void ReceiverSessionMessager::OnError(Error error) {
-  OSP_DLOG_WARN << "Received an error in the session messager: " << error;
+void ReceiverSessionMessenger::OnError(Error error) {
+  OSP_DLOG_WARN << "Received an error in the session messenger: " << error;
 }
 
 }  // namespace cast

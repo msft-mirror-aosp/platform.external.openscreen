@@ -18,7 +18,7 @@
 #include "cast/streaming/resolution.h"
 #include "cast/streaming/sender_message.h"
 #include "cast/streaming/session_config.h"
-#include "cast/streaming/session_messager.h"
+#include "cast/streaming/session_messenger.h"
 
 namespace openscreen {
 namespace cast {
@@ -294,8 +294,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // The sender_id of this session.
   const std::string session_id_;
 
-  // The session messager used for the lifetime of this session.
-  ReceiverSessionMessager messager_;
+  // The session messenger used for the lifetime of this session.
+  ReceiverSessionMessenger messenger_;
 
   // The packet router to be used for all Receivers spawned by this session.
   ReceiverPacketRouter packet_router_;

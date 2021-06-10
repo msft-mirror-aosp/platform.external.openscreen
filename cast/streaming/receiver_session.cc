@@ -104,23 +104,23 @@ ReceiverSession::ReceiverSession(Client* const client,
       environment_(environment),
       preferences_(std::move(preferences)),
       session_id_(MakeUniqueSessionId("streaming_receiver")),
-      messager_(message_port,
-                session_id_,
-                [this](Error error) {
-                  OSP_DLOG_WARN << "Got a session messager error: " << error;
-                  client_->OnError(this, error);
-                }),
+      messenger_(message_port,
+                 session_id_,
+                 [this](Error error) {
+                   OSP_DLOG_WARN << "Got a session messenger error: " << error;
+                   client_->OnError(this, error);
+                 }),
       packet_router_(environment_) {
   OSP_DCHECK(client_);
   OSP_DCHECK(environment_);
 
-  messager_.SetHandler(
+  messenger_.SetHandler(
       SenderMessage::Type::kOffer,
       [this](SenderMessage message) { OnOffer(std::move(message)); });
-  messager_.SetHandler(SenderMessage::Type::kGetCapabilities,
-                       [this](SenderMessage message) {
-                         OnCapabilitiesRequest(std::move(message));
-                       });
+  messenger_.SetHandler(SenderMessage::Type::kGetCapabilities,
+                        [this](SenderMessage message) {
+                          OnCapabilitiesRequest(std::move(message));
+                        });
   environment_->SetSocketSubscriber(this);
 }
 
@@ -237,7 +237,7 @@ void ReceiverSession::OnCapabilitiesRequest(SenderMessage message) {
                       "Remoting is not supported"};
   }
 
-  const Error result = messager_.SendMessage(std::move(response));
+  const Error result = messenger_.SendMessage(std::move(response));
   if (!result.ok()) {
     client_->OnError(this, std::move(result));
   }
@@ -256,7 +256,7 @@ void ReceiverSession::InitializeSession(const SessionProperties& properties) {
   // Only spawn receivers if we know we have a valid answer message.
   ConfiguredReceivers receivers = SpawnReceivers(properties);
   client_->OnNegotiated(this, std::move(receivers));
-  const Error result = messager_.SendMessage(ReceiverMessage{
+  const Error result = messenger_.SendMessage(ReceiverMessage{
       ReceiverMessage::Type::kAnswer, properties.sequence_number,
       true /* valid */, std::move(answer)});
   if (!result.ok()) {
@@ -403,7 +403,7 @@ void ReceiverSession::SendErrorAnswerReply(int sequence_number,
                                            const char* message) {
   const Error error(Error::Code::kParseError, message);
   OSP_DLOG_WARN << message;
-  const Error result = messager_.SendMessage(ReceiverMessage{
+  const Error result = messenger_.SendMessage(ReceiverMessage{
       ReceiverMessage::Type::kAnswer, sequence_number, false /* valid */,
       ReceiverError{static_cast<int>(Error::Code::kParseError), message}});
   if (!result.ok()) {

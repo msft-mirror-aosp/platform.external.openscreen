@@ -17,7 +17,7 @@ namespace openscreen {
 namespace cast {
 
 // Processes incoming and outgoing RPC messages and links them to desired
-// components on both end points. For outgoing messages, the messager
+// components on both end points. For outgoing messages, the messenger
 // must send an RPC message with associated handle value. On the messagee side,
 // the message is sent to a pre-registered component using that handle.
 // Before RPC communication starts, both sides need to negotiate the handle
@@ -25,7 +25,7 @@ namespace cast {
 // |kAcquire*Handle|.
 //
 // NOTE: RpcBroker doesn't actually send RPC messages to the remote. The session
-// messager needs to set SendMessageCallback, and call ProcessMessageFromRemote
+// messenger needs to set SendMessageCallback, and call ProcessMessageFromRemote
 // as appropriate. The RpcBroker then distributes each RPC message to the
 // subscribed component.
 class RpcBroker {

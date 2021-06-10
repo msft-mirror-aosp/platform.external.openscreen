@@ -201,7 +201,7 @@ SenderSession::Client::~Client() = default;
 
 SenderSession::SenderSession(Configuration config)
     : config_(config),
-      messager_(
+      messenger_(
           config_.message_port,
           config_.message_source_id,
           config_.message_destination_id,
@@ -217,10 +217,10 @@ SenderSession::SenderSession(Configuration config)
   // We may or may not do remoting this session, however our RPC handler
   // is not negotiation-specific and registering on construction here allows us
   // to record any unexpected RPC messages.
-  messager_.SetHandler(ReceiverMessage::Type::kRpc,
-                       [this](ReceiverMessage message) {
-                         this->OnRpcMessage(std::move(message));
-                       });
+  messenger_.SetHandler(ReceiverMessage::Type::kRpc,
+                        [this](ReceiverMessage message) {
+                          this->OnRpcMessage(std::move(message));
+                        });
 }
 
 SenderSession::~SenderSession() = default;
@@ -276,7 +276,7 @@ Error SenderSession::StartNegotiation(
       std::unique_ptr<InProcessNegotiation>(new InProcessNegotiation{
           offer, std::move(audio_configs), std::move(video_configs)});
 
-  return messager_.SendRequest(
+  return messenger_.SendRequest(
       SenderMessage{SenderMessage::Type::kOffer, ++current_sequence_number_,
                     true, std::move(offer)},
       ReceiverMessage::Type::kAnswer,
@@ -310,7 +310,7 @@ void SenderSession::OnAnswer(ReceiverMessage message) {
     // receiver's capabilities are. So, we cache the Answer until the
     // capabilites request is completed.
     current_negotiation_->answer = answer;
-    const Error result = messager_.SendRequest(
+    const Error result = messenger_.SendRequest(
         SenderMessage{SenderMessage::Type::kGetCapabilities,
                       ++current_sequence_number_, true},
         ReceiverMessage::Type::kCapabilitiesResponse,
@@ -362,7 +362,7 @@ void SenderSession::OnCapabilitiesResponse(ReceiverMessage message) {
     return;
   }
   broker_ = std::make_unique<RpcBroker>([this](std::vector<uint8_t> message) {
-    Error error = this->messager_.SendOutboundMessage(SenderMessage{
+    Error error = this->messenger_.SendOutboundMessage(SenderMessage{
         SenderMessage::Type::kRpc, ++(this->current_sequence_number_), true,
         std::move(message)});
 
