@@ -67,6 +67,11 @@ options:
     -v, --verbose: Enable verbose logging.
 
     -h, --help: Show this help message.
+
+    -x, --disable-discovery: Disable discovery, useful for platforms like Mac OS
+                             where our implementation is incompatible with
+                             the native Bonjour service.
+
 )";
 
   std::cerr << StringPrintf(kTemplate, argv0);
@@ -95,30 +100,22 @@ InterfaceInfo GetInterfaceInfoFromName(const char* name) {
   return interface_info;
 }
 
-void RunCastService(TaskRunnerImpl* task_runner,
-                    const InterfaceInfo& interface,
-                    GeneratedCredentials creds,
-                    const std::string& friendly_name,
-                    const std::string& model_name,
-                    bool discovery_enabled) {
+void RunCastService(TaskRunnerImpl* runner, CastService::Configuration config) {
   std::unique_ptr<CastService> service;
-  task_runner->PostTask([&] {
-    service = std::make_unique<CastService>(task_runner, interface,
-                                            std::move(creds), friendly_name,
-                                            model_name, discovery_enabled);
-  });
+  runner->PostTask(
+      [&] { service = std::make_unique<CastService>(std::move(config)); });
 
   OSP_LOG_INFO << "CastService is running. CTRL-C (SIGINT), or send a "
                   "SIGTERM to exit.";
-  task_runner->RunUntilSignaled();
+  runner->RunUntilSignaled();
 
   // Spin the TaskRunner to execute destruction/shutdown tasks.
   OSP_LOG_INFO << "Shutting down...";
-  task_runner->PostTask([&] {
+  runner->PostTask([&] {
     service.reset();
-    task_runner->RequestStopSoon();
+    runner->RequestStopSoon();
   });
-  task_runner->RunUntilStopped();
+  runner->RunUntilStopped();
   OSP_LOG_INFO << "Bye!";
 }
 
@@ -160,7 +157,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
       {nullptr, 0, nullptr, 0}};
 
   bool is_verbose = false;
-  bool discovery_enabled = true;
+  bool enable_discovery = true;
   std::string private_key_path;
   std::string developer_certificate_path;
   std::string friendly_name = "Cast Standalone Receiver";
@@ -168,7 +165,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
   bool should_generate_credentials = false;
   std::unique_ptr<TextTraceLoggingPlatform> trace_logger;
   int ch = -1;
-  while ((ch = getopt_long(argc, argv, "p:d:f:m:gtvhx", kArgumentOptions,
+  while ((ch = getopt_long(argc, argv, "p:d:f:m:grtvhx", kArgumentOptions,
                            nullptr)) != -1) {
     switch (ch) {
       case 'p':
@@ -193,7 +190,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
         is_verbose = true;
         break;
       case 'x':
-        discovery_enabled = false;
+        enable_discovery = false;
         break;
       case 'h':
         LogUsage(argv[0]);
@@ -234,14 +231,16 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
         << "Hardware address is empty. Either you are on a loopback device "
            "or getting the network interface information failed somehow. "
            "Discovery publishing will be disabled.";
-    discovery_enabled = false;
+    enable_discovery = false;
   }
 
   auto* const task_runner = new TaskRunnerImpl(&Clock::now);
   PlatformClientPosix::Create(milliseconds(50),
                               std::unique_ptr<TaskRunnerImpl>(task_runner));
-  RunCastService(task_runner, interface, std::move(creds.value()),
-                 friendly_name, model_name, discovery_enabled);
+  RunCastService(task_runner,
+                 CastService::Configuration{
+                     task_runner, interface, std::move(creds.value()),
+                     friendly_name, model_name, enable_discovery});
   PlatformClientPosix::ShutDown();
 
   return 0;

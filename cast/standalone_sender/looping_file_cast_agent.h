@@ -95,6 +95,10 @@ class LoopingFileCastAgent final
     // Whether we should use the hacky RTP stream IDs for legacy android
     // receivers, or if we should use the proper values.
     bool use_android_rtp_hack = true;
+
+    // Whether we should use remoting for the video, instead of the default of
+    // mirroring.
+    bool use_remoting = false;
   };
 
   // Connect to a Cast Receiver, and start the workflow to establish a
@@ -147,6 +151,9 @@ class LoopingFileCastAgent final
                     SenderSession::ConfiguredSenders senders,
                     capture_recommendations::Recommendations
                         capture_recommendations) override;
+  void OnRemotingNegotiated(
+      const SenderSession* session,
+      SenderSession::RemotingNegotiation negotiation) override;
   void OnError(const SenderSession* session, Error error) override;
 
   // Helper for stopping the current session, and/or unwinding a remote

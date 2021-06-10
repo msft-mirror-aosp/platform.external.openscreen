@@ -70,6 +70,8 @@ usage: %s <options> addr[:port] media_file
            Use the wrong RTP payload types, for compatibility with older Android
            TV receivers. See https://crbug.com/631828.
 
+      -r, --remoting: Enable remoting content instead of mirroring.
+
       -t, --tracing: Enable performance tracing logging.
 
       -v, --verbose: Enable verbose logging.
@@ -111,6 +113,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
     {"developer-certificate", required_argument, nullptr, 'd'},
 #endif
     {"android-hack", no_argument, nullptr, 'a'},
+    {"remoting", no_argument, nullptr, 'r'},
     {"tracing", no_argument, nullptr, 't'},
     {"verbose", no_argument, nullptr, 'v'},
     {"help", no_argument, nullptr, 'h'},
@@ -120,10 +123,11 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   bool is_verbose = false;
   std::string developer_certificate_path;
   bool use_android_rtp_hack = false;
+  bool use_remoting = false;
   int max_bitrate = kDefaultMaxBitrate;
   std::unique_ptr<TextTraceLoggingPlatform> trace_logger;
   int ch = -1;
-  while ((ch = getopt_long(argc, argv, "m:d:atvh", kArgumentOptions,
+  while ((ch = getopt_long(argc, argv, "m:d:artvh", kArgumentOptions,
                            nullptr)) != -1) {
     switch (ch) {
       case 'm':
@@ -142,6 +146,9 @@ int StandaloneSenderMain(int argc, char* argv[]) {
 #endif
       case 'a':
         use_android_rtp_hack = true;
+        break;
+      case 'r':
+        use_remoting = true;
         break;
       case 't':
         trace_logger = std::make_unique<TextTraceLoggingPlatform>();
@@ -206,8 +213,9 @@ int StandaloneSenderMain(int argc, char* argv[]) {
     cast_agent = new LoopingFileCastAgent(
         task_runner, [&] { task_runner->RequestStopSoon(); });
     cast_agent->Connect({remote_endpoint, path, max_bitrate,
-                         true /* should_include_video */,
-                         use_android_rtp_hack});
+                         .should_include_video = true,
+                         .use_android_rtp_hack = use_android_rtp_hack,
+                         .use_remoting = use_remoting});
   });
 
   // Run the event loop until SIGINT (e.g., CTRL-C at the console) or

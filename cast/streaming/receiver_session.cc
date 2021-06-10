@@ -74,6 +74,14 @@ MediaCapability ToCapability(VideoCodec codec) {
 
 ReceiverSession::Client::~Client() = default;
 
+using RemotingPreferences = ReceiverSession::RemotingPreferences;
+
+RemotingPreferences::RemotingPreferences() = default;
+RemotingPreferences::RemotingPreferences(RemotingPreferences&&) noexcept =
+    default;
+RemotingPreferences& RemotingPreferences::operator=(
+    RemotingPreferences&&) noexcept = default;
+
 using Preferences = ReceiverSession::Preferences;
 
 Preferences::Preferences() = default;
@@ -172,25 +180,17 @@ void ReceiverSession::OnOffer(SenderMessage message) {
   auto properties = std::make_unique<SessionProperties>();
   properties->sequence_number = message.sequence_number;
 
-  // TODO(issuetracker.google.com/184186390): ReceiverSession needs to support
-  // fielding remoting offers.
   const Offer& offer = absl::get<Offer>(message.body);
   if (offer.cast_mode == CastMode::kRemoting) {
-    SendErrorAnswerReply(message.sequence_number,
-                         "Remoting support is not complete in libcast");
-    return;
+    if (!preferences_.remoting) {
+      SendErrorAnswerReply(message.sequence_number,
+                           "This receiver does not have remoting enabled.");
+      return;
+    }
   }
 
-  if (!offer.audio_streams.empty() && !preferences_.audio_codecs.empty()) {
-    properties->selected_audio =
-        SelectStream(preferences_.audio_codecs, offer.audio_streams);
-  }
-
-  if (!offer.video_streams.empty() && !preferences_.video_codecs.empty()) {
-    properties->selected_video =
-        SelectStream(preferences_.video_codecs, offer.video_streams);
-  }
-
+  properties->mode = offer.cast_mode;
+  SelectStreams(offer, properties.get());
   if (!properties->IsValid()) {
     SendErrorAnswerReply(message.sequence_number,
                          "Failed to select any streams from OFFER");
@@ -243,6 +243,31 @@ void ReceiverSession::OnCapabilitiesRequest(SenderMessage message) {
   }
 }
 
+void ReceiverSession::SelectStreams(const Offer& offer,
+                                    SessionProperties* properties) {
+  if (offer.cast_mode == CastMode::kMirroring) {
+    if (!offer.audio_streams.empty() && !preferences_.audio_codecs.empty()) {
+      properties->selected_audio =
+          SelectStream(preferences_.audio_codecs, offer.audio_streams);
+    }
+    if (!offer.video_streams.empty() && !preferences_.video_codecs.empty()) {
+      properties->selected_video =
+          SelectStream(preferences_.video_codecs, offer.video_streams);
+    }
+  } else {
+    OSP_DCHECK(offer.cast_mode == CastMode::kRemoting);
+
+    if (offer.audio_streams.size() == 1) {
+      properties->selected_audio =
+          std::make_unique<AudioStream>(offer.audio_streams[0]);
+    }
+    if (offer.video_streams.size() == 1) {
+      properties->selected_video =
+          std::make_unique<VideoStream>(offer.video_streams[0]);
+    }
+  }
+}
+
 void ReceiverSession::InitializeSession(const SessionProperties& properties) {
   Answer answer = ConstructAnswer(properties);
   if (!answer.IsValid()) {
@@ -255,7 +280,22 @@ void ReceiverSession::InitializeSession(const SessionProperties& properties) {
 
   // Only spawn receivers if we know we have a valid answer message.
   ConfiguredReceivers receivers = SpawnReceivers(properties);
-  client_->OnNegotiated(this, std::move(receivers));
+  if (properties.mode == CastMode::kMirroring) {
+    client_->OnNegotiated(this, std::move(receivers));
+  } else {
+    // TODO(jophba): cleanup sequence number usage.
+    broker_ = std::make_unique<RpcBroker>([this](std::vector<uint8_t> message) {
+      Error error = this->messenger_.SendMessage(
+          ReceiverMessage{ReceiverMessage::Type::kRpc, -1, true /* valid */,
+                          std::move(message)});
+
+      if (!error.ok()) {
+        OSP_LOG_WARN << "Failed to send RPC message: " << error;
+      }
+    });
+    client_->OnRemotingNegotiated(
+        this, RemotingNegotiation{std::move(receivers), broker_.get()});
+  }
   const Error result = messenger_.SendMessage(ReceiverMessage{
       ReceiverMessage::Type::kAnswer, properties.sequence_number,
       true /* valid */, std::move(answer)});

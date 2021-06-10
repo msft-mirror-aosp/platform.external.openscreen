@@ -35,10 +35,11 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
   // ReceiverSession::Client overrides.
   void OnNegotiated(const ReceiverSession* session,
                     ReceiverSession::ConfiguredReceivers receivers) override;
-
+  void OnRemotingNegotiated(
+      const ReceiverSession* session,
+      ReceiverSession::RemotingNegotiation negotiation) override;
   void OnReceiversDestroying(const ReceiverSession* session,
                              ReceiversDestroyingReason reason) override;
-
   void OnError(const ReceiverSession* session, Error error) override;
 
  private:

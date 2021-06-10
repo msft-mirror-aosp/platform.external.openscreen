@@ -50,8 +50,6 @@ class SenderSession final {
 
   // This struct contains all of the information necessary to begin remoting
   // after we receive the capabilities from the receiver.
-  // TODO(issuetracker.google.com/184189241): capture recommendations should be
-  // exposed as part of the remoting negotiation.
   struct RemotingNegotiation {
     ConfiguredSenders senders;
 
@@ -258,8 +256,7 @@ class SenderSession final {
   std::unique_ptr<Sender> current_video_sender_;
 
   // If remoting, we store the RpcBroker used by the embedder to send RPC
-  // messages from the remoting protobuf specification. For more information,
-  // see //cast/streaming/remoting.proto.
+  // messages from the remoting protobuf specification.
   std::unique_ptr<RpcBroker> broker_;
 };  // namespace cast
 

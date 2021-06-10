@@ -83,6 +83,14 @@ void StreamingPlaybackController::OnNegotiated(
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
 }
 
+void StreamingPlaybackController::OnRemotingNegotiated(
+    const ReceiverSession* session,
+    ReceiverSession::RemotingNegotiation negotiation) {
+  // TODO(issuetracker.google.com/190078859): need ability to initialize
+  // remoting codecs.
+  OSP_UNIMPLEMENTED();
+}
+
 void StreamingPlaybackController::OnReceiversDestroying(
     const ReceiverSession* session,
     ReceiversDestroyingReason reason) {

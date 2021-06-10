@@ -268,8 +268,14 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   video_config.resolutions.emplace_back(Resolution{1920, 1080});
 
   OSP_VLOG << "Starting session negotiation.";
-  const Error negotiation_error =
-      current_session_->Negotiate({audio_config}, {video_config});
+  Error negotiation_error;
+  if (connection_settings_->use_remoting) {
+    negotiation_error =
+        current_session_->NegotiateRemoting(audio_config, video_config);
+  } else {
+    negotiation_error =
+        current_session_->Negotiate({audio_config}, {video_config});
+  }
   if (!negotiation_error.ok()) {
     OSP_LOG_ERROR << "Failed to negotiate a session: " << negotiation_error;
   }
@@ -287,6 +293,22 @@ void LoopingFileCastAgent::OnNegotiated(
   file_sender_ = std::make_unique<LoopingFileSender>(
       environment_.get(), connection_settings_->path_to_file.c_str(), session,
       std::move(senders), connection_settings_->max_bitrate);
+}
+
+void LoopingFileCastAgent::OnRemotingNegotiated(
+    const SenderSession* session,
+    SenderSession::RemotingNegotiation negotiation) {
+  // TODO(jophba): this needs to be hashed out as part of
+  // figuring out the embedder workflow.
+  if (negotiation.senders.audio_sender == nullptr &&
+      negotiation.senders.video_sender == nullptr) {
+    OSP_LOG_ERROR << "Missing both audio and video, so exiting...";
+    return;
+  }
+
+  file_sender_ = std::make_unique<LoopingFileSender>(
+      environment_.get(), connection_settings_->path_to_file.c_str(), session,
+      std::move(negotiation.senders), connection_settings_->max_bitrate);
 }
 
 void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {
