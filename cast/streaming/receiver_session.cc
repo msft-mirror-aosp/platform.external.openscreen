@@ -122,6 +122,13 @@ ReceiverSession::ReceiverSession(Client* const client,
   OSP_DCHECK(client_);
   OSP_DCHECK(environment_);
 
+  OSP_DCHECK(!std::any_of(
+      preferences_.video_codecs.begin(), preferences_.video_codecs.end(),
+      [](VideoCodec c) { return c == VideoCodec::kNotSpecified; }));
+  OSP_DCHECK(!std::any_of(
+      preferences_.audio_codecs.begin(), preferences_.audio_codecs.end(),
+      [](AudioCodec c) { return c == AudioCodec::kNotSpecified; }));
+
   messenger_.SetHandler(
       SenderMessage::Type::kOffer,
       [this](SenderMessage message) { OnOffer(std::move(message)); });
