@@ -66,6 +66,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // This struct contains all of the information necessary to begin remoting
   // once we get a remoting request from a Sender.
   struct RemotingNegotiation {
+    // The configured receivers set to be used for handling audio and
+    // video streams.
     ConfiguredReceivers receivers;
 
     // The RPC messenger to be used for subscribing to remoting proto messages.
@@ -76,6 +78,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // When a connection is established, the OnNegotiated callback is called.
   class Client {
    public:
+    // Currently we only care about the session ending or being renegotiated,
+    // which means that we don't have to tear down as much state.
     enum ReceiversDestroyingReason { kEndOfSession, kRenegotiated };
 
     // Called when a set of streaming receivers has been negotiated. Both this
@@ -100,6 +104,9 @@ class ReceiverSession final : public Environment::SocketSubscriber {
     virtual void OnReceiversDestroying(const ReceiverSession* session,
                                        ReceiversDestroyingReason reason) = 0;
 
+    // Called whenever an error that the client may care about occurs.
+    // Recoverable errors are usually logged by the receiver session instead
+    // of reported here.
     virtual void OnError(const ReceiverSession* session, Error error) = 0;
 
    protected:
@@ -173,15 +180,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   };
 
   // This struct is used to provide preferences for setting up and running
-  // remoting streams. The kludgy properties are based on the current control
-  // protocol and allow remoting with current senders. Once libcast has
-  // been adopted in Chrome, new, cleaner APIs will be added here to replace
-  // these.
-  //
-  // TODO(issuetracker.google.com/184759616): Chrome should use libcast
-  // for mirroring and remoting.
-  // TODO(issuetracker.google.com/184429130): the mirroring control
-  // protocol needs to be updated to allow more discrete support.
+  // remoting streams. These properties are based on the current control
+  // protocol and allow remoting with current senders.
   struct RemotingPreferences {
     RemotingPreferences();
     RemotingPreferences(RemotingPreferences&&) noexcept;
@@ -228,6 +228,10 @@ class ReceiverSession final : public Environment::SocketSubscriber {
     Preferences& operator=(Preferences&&) noexcept;
     Preferences& operator=(const Preferences&) = delete;
 
+    // Audio and video codec preferences. Should be supplied in order of
+    // preference, e.g. in this example if we get both VP8 and H264 we will
+    // generally select the VP8 offer. If a codec is omitted from these fields
+    // it will never be selected in the OFFER/ANSWER negotiation.
     std::vector<VideoCodec> video_codecs{VideoCodec::kVp8, VideoCodec::kH264};
     std::vector<AudioCodec> audio_codecs{AudioCodec::kOpus, AudioCodec::kAac};
 
