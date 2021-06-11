@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/rpc_broker.h"
+#include "cast/streaming/rpc_messenger.h"
 
 #include <memory>
 #include <string>
@@ -39,8 +39,8 @@ class FakeMessenger {
   int sent_count() const { return sent_count_; }
   const RpcMessage& sent_rpc() const { return sent_rpc_; }
 
-  void set_handle(RpcBroker::Handle handle) { handle_ = handle; }
-  RpcBroker::Handle handle() { return handle_; }
+  void set_handle(RpcMessenger::Handle handle) { handle_ = handle; }
+  RpcMessenger::Handle handle() { return handle_; }
 
  private:
   std::unique_ptr<RpcMessage> received_rpc_;
@@ -49,25 +49,25 @@ class FakeMessenger {
   RpcMessage sent_rpc_;
   int sent_count_ = 0;
 
-  RpcBroker::Handle handle_ = -1;
+  RpcMessenger::Handle handle_ = -1;
 };
 
 }  // namespace
 
-class RpcBrokerTest : public testing::Test {
+class RpcMessengerTest : public testing::Test {
  protected:
   void SetUp() override {
     fake_messenger_ = std::make_unique<FakeMessenger>();
     ASSERT_FALSE(fake_messenger_->received_count());
 
-    rpc_broker_ = std::make_unique<RpcBroker>(
+    rpc_messenger_ = std::make_unique<RpcMessenger>(
         [p = fake_messenger_.get()](std::vector<uint8_t> message) {
           p->OnSentRpc(message);
         });
 
-    const auto handle = rpc_broker_->GetUniqueHandle();
+    const auto handle = rpc_messenger_->GetUniqueHandle();
     fake_messenger_->set_handle(handle);
-    rpc_broker_->RegisterMessageReceiverCallback(
+    rpc_messenger_->RegisterMessageReceiverCallback(
         handle,
         [p = fake_messenger_.get()](std::unique_ptr<RpcMessage> message) {
           p->OnReceivedRpc(std::move(message));
@@ -77,41 +77,41 @@ class RpcBrokerTest : public testing::Test {
   void ProcessMessage(const RpcMessage& rpc) {
     std::vector<uint8_t> message(rpc.ByteSizeLong());
     rpc.SerializeToArray(message.data(), message.size());
-    rpc_broker_->ProcessMessageFromRemote(message.data(), message.size());
+    rpc_messenger_->ProcessMessageFromRemote(message.data(), message.size());
   }
 
   std::unique_ptr<FakeMessenger> fake_messenger_;
-  std::unique_ptr<RpcBroker> rpc_broker_;
+  std::unique_ptr<RpcMessenger> rpc_messenger_;
 };
 
-TEST_F(RpcBrokerTest, TestProcessMessageFromRemoteRegistered) {
+TEST_F(RpcMessengerTest, TestProcessMessageFromRemoteRegistered) {
   RpcMessage rpc;
   rpc.set_handle(fake_messenger_->handle());
   ProcessMessage(rpc);
   ASSERT_EQ(1, fake_messenger_->received_count());
 }
 
-TEST_F(RpcBrokerTest, TestProcessMessageFromRemoteUnregistered) {
+TEST_F(RpcMessengerTest, TestProcessMessageFromRemoteUnregistered) {
   RpcMessage rpc;
-  rpc_broker_->UnregisterMessageReceiverCallback(fake_messenger_->handle());
+  rpc_messenger_->UnregisterMessageReceiverCallback(fake_messenger_->handle());
   ProcessMessage(rpc);
   ASSERT_EQ(0, fake_messenger_->received_count());
 }
 
-TEST_F(RpcBrokerTest, CanSendMultipleMessages) {
+TEST_F(RpcMessengerTest, CanSendMultipleMessages) {
   for (int i = 0; i < 10; ++i) {
-    rpc_broker_->SendMessageToRemote(RpcMessage{});
+    rpc_messenger_->SendMessageToRemote(RpcMessage{});
   }
   EXPECT_EQ(10, fake_messenger_->sent_count());
 }
 
-TEST_F(RpcBrokerTest, SendMessageCallback) {
-  // Send message for RPC broker to process.
+TEST_F(RpcMessengerTest, SendMessageCallback) {
+  // Send message for RPC messenger to process.
   RpcMessage sent_rpc;
   sent_rpc.set_handle(fake_messenger_->handle());
   sent_rpc.set_proc(RpcMessage::RPC_R_SETVOLUME);
   sent_rpc.set_double_value(2.3);
-  rpc_broker_->SendMessageToRemote(sent_rpc);
+  rpc_messenger_->SendMessageToRemote(sent_rpc);
 
   // Check if received message is identical to the one sent earlier.
   ASSERT_EQ(1, fake_messenger_->sent_count());
@@ -121,8 +121,8 @@ TEST_F(RpcBrokerTest, SendMessageCallback) {
   ASSERT_EQ(2.3, message.double_value());
 }
 
-TEST_F(RpcBrokerTest, ProcessMessageWithRegisteredHandle) {
-  // Send message for RPC broker to process.
+TEST_F(RpcMessengerTest, ProcessMessageWithRegisteredHandle) {
+  // Send message for RPC messenger to process.
   RpcMessage sent_rpc;
   sent_rpc.set_handle(fake_messenger_->handle());
   sent_rpc.set_proc(RpcMessage::RPC_R_SETVOLUME);
@@ -137,10 +137,10 @@ TEST_F(RpcBrokerTest, ProcessMessageWithRegisteredHandle) {
   ASSERT_EQ(3.4, received_rpc.double_value());
 }
 
-TEST_F(RpcBrokerTest, ProcessMessageWithUnregisteredHandle) {
-  // Send message for RPC broker to process.
+TEST_F(RpcMessengerTest, ProcessMessageWithUnregisteredHandle) {
+  // Send message for RPC messenger to process.
   RpcMessage sent_rpc;
-  RpcBroker::Handle different_handle = fake_messenger_->handle() + 1;
+  RpcMessenger::Handle different_handle = fake_messenger_->handle() + 1;
   sent_rpc.set_handle(different_handle);
   sent_rpc.set_proc(RpcMessage::RPC_R_SETVOLUME);
   sent_rpc.set_double_value(4.5);
@@ -150,12 +150,12 @@ TEST_F(RpcBrokerTest, ProcessMessageWithUnregisteredHandle) {
   ASSERT_EQ(0, fake_messenger_->received_count());
 }
 
-TEST_F(RpcBrokerTest, Registration) {
+TEST_F(RpcMessengerTest, Registration) {
   const auto handle = fake_messenger_->handle();
-  ASSERT_TRUE(rpc_broker_->IsRegisteredForTesting(handle));
+  ASSERT_TRUE(rpc_messenger_->IsRegisteredForTesting(handle));
 
-  rpc_broker_->UnregisterMessageReceiverCallback(handle);
-  ASSERT_FALSE(rpc_broker_->IsRegisteredForTesting(handle));
+  rpc_messenger_->UnregisterMessageReceiverCallback(handle);
+  ASSERT_FALSE(rpc_messenger_->IsRegisteredForTesting(handle));
 }
 
 }  // namespace cast

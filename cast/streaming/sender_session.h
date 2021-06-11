@@ -16,7 +16,7 @@
 #include "cast/streaming/capture_recommendations.h"
 #include "cast/streaming/offer_messages.h"
 #include "cast/streaming/remoting_capabilities.h"
-#include "cast/streaming/rpc_broker.h"
+#include "cast/streaming/rpc_messenger.h"
 #include "cast/streaming/sender.h"
 #include "cast/streaming/sender_packet_router.h"
 #include "cast/streaming/session_config.h"
@@ -59,8 +59,8 @@ class SenderSession final {
     // a version check when using these capabilities to offer remoting.
     RemotingCapabilities capabilities;
 
-    // The RPC broker to be used for subscribing to remoting proto messages.
-    RpcBroker* broker;
+    // The RPC messenger to be used for subscribing to remoting proto messages.
+    RpcMessenger* messenger;
   };
 
   // The embedder should provide a client for handling negotiation events.
@@ -255,9 +255,10 @@ class SenderSession final {
   std::unique_ptr<Sender> current_audio_sender_;
   std::unique_ptr<Sender> current_video_sender_;
 
-  // If remoting, we store the RpcBroker used by the embedder to send RPC
-  // messages from the remoting protobuf specification.
-  std::unique_ptr<RpcBroker> broker_;
+  // If remoting, we store the RpcMessenger used by the embedder to send RPC
+  // messages from the remoting protobuf specification. For more information,
+  // see //cast/streaming/remoting.proto.
+  std::unique_ptr<RpcMessenger> rpc_messenger_;
 };  // namespace cast
 
 }  // namespace cast

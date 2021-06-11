@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CAST_STREAMING_RPC_BROKER_H_
-#define CAST_STREAMING_RPC_BROKER_H_
+#ifndef CAST_STREAMING_RPC_MESSENGER_H_
+#define CAST_STREAMING_RPC_MESSENGER_H_
 
 #include <memory>
 #include <string>
@@ -24,23 +24,23 @@ namespace cast {
 // value in the existing RPC communication channel using the special handles
 // |kAcquire*Handle|.
 //
-// NOTE: RpcBroker doesn't actually send RPC messages to the remote. The session
+// NOTE: RpcMessenger doesn't actually send RPC messages to the remote. The session
 // messenger needs to set SendMessageCallback, and call ProcessMessageFromRemote
-// as appropriate. The RpcBroker then distributes each RPC message to the
+// as appropriate. The RpcMessenger then distributes each RPC message to the
 // subscribed component.
-class RpcBroker {
+class RpcMessenger {
  public:
   using Handle = int;
   using ReceiveMessageCallback =
       std::function<void(std::unique_ptr<RpcMessage>)>;
   using SendMessageCallback = std::function<void(std::vector<uint8_t>)>;
 
-  explicit RpcBroker(SendMessageCallback send_message_cb);
-  RpcBroker(const RpcBroker&) = delete;
-  RpcBroker(RpcBroker&&) noexcept;
-  RpcBroker& operator=(const RpcBroker&) = delete;
-  RpcBroker& operator=(RpcBroker&&);
-  ~RpcBroker();
+  explicit RpcMessenger(SendMessageCallback send_message_cb);
+  RpcMessenger(const RpcMessenger&) = delete;
+  RpcMessenger(RpcMessenger&&) noexcept;
+  RpcMessenger& operator=(const RpcMessenger&) = delete;
+  RpcMessenger& operator=(RpcMessenger&&);
+  ~RpcMessenger();
 
   // Get unique handle value for RPC message handles.
   Handle GetUniqueHandle();
@@ -68,7 +68,7 @@ class RpcBroker {
   // Checks if the handle is registered for receiving messages. Test-only.
   bool IsRegisteredForTesting(Handle handle);
 
-  // Consumers of RPCBroker may set the send message callback post-hoc
+  // Consumers of RPCMessenger may set the send message callback post-hoc
   // in order to simulate different scenarios.
   void set_send_message_cb_for_testing(SendMessageCallback cb) {
     send_message_cb_ = std::move(cb);
@@ -99,4 +99,4 @@ class RpcBroker {
 }  // namespace cast
 }  // namespace openscreen
 
-#endif  // CAST_STREAMING_RPC_BROKER_H_
+#endif  // CAST_STREAMING_RPC_MESSENGER_H_

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/rpc_broker.h"
+#include "cast/streaming/rpc_messenger.h"
 
 #include <memory>
 #include <string>
@@ -37,25 +37,25 @@ std::ostream& operator<<(std::ostream& out, const RpcMessage& message) {
 
 }  // namespace
 
-constexpr RpcBroker::Handle RpcBroker::kInvalidHandle;
-constexpr RpcBroker::Handle RpcBroker::kAcquireRendererHandle;
-constexpr RpcBroker::Handle RpcBroker::kAcquireDemuxerHandle;
-constexpr RpcBroker::Handle RpcBroker::kFirstHandle;
+constexpr RpcMessenger::Handle RpcMessenger::kInvalidHandle;
+constexpr RpcMessenger::Handle RpcMessenger::kAcquireRendererHandle;
+constexpr RpcMessenger::Handle RpcMessenger::kAcquireDemuxerHandle;
+constexpr RpcMessenger::Handle RpcMessenger::kFirstHandle;
 
-RpcBroker::RpcBroker(SendMessageCallback send_message_cb)
+RpcMessenger::RpcMessenger(SendMessageCallback send_message_cb)
     : next_handle_(kFirstHandle),
       send_message_cb_(std::move(send_message_cb)) {}
 
-RpcBroker::~RpcBroker() {
+RpcMessenger::~RpcMessenger() {
   receive_callbacks_.clear();
 }
 
-RpcBroker::Handle RpcBroker::GetUniqueHandle() {
+RpcMessenger::Handle RpcMessenger::GetUniqueHandle() {
   return next_handle_++;
 }
 
-void RpcBroker::RegisterMessageReceiverCallback(
-    RpcBroker::Handle handle,
+void RpcMessenger::RegisterMessageReceiverCallback(
+    RpcMessenger::Handle handle,
     ReceiveMessageCallback callback) {
   OSP_DCHECK(receive_callbacks_.find(handle) == receive_callbacks_.end())
       << "must deregister before re-registering";
@@ -63,12 +63,12 @@ void RpcBroker::RegisterMessageReceiverCallback(
   receive_callbacks_.emplace_back(handle, std::move(callback));
 }
 
-void RpcBroker::UnregisterMessageReceiverCallback(RpcBroker::Handle handle) {
+void RpcMessenger::UnregisterMessageReceiverCallback(RpcMessenger::Handle handle) {
   OSP_DVLOG << "unregistering handle: " << handle;
   receive_callbacks_.erase_key(handle);
 }
 
-void RpcBroker::ProcessMessageFromRemote(const uint8_t* message,
+void RpcMessenger::ProcessMessageFromRemote(const uint8_t* message,
                                          std::size_t message_len) {
   auto rpc = std::make_unique<RpcMessage>();
   if (!rpc->ParseFromArray(message, message_len)) {
@@ -86,14 +86,14 @@ void RpcBroker::ProcessMessageFromRemote(const uint8_t* message,
   entry->second(std::move(rpc));
 }
 
-void RpcBroker::SendMessageToRemote(const RpcMessage& rpc) {
+void RpcMessenger::SendMessageToRemote(const RpcMessage& rpc) {
   OSP_DVLOG << "Sending RPC message: " << rpc;
   std::vector<uint8_t> message(rpc.ByteSizeLong());
   rpc.SerializeToArray(message.data(), message.size());
   send_message_cb_(std::move(message));
 }
 
-bool RpcBroker::IsRegisteredForTesting(RpcBroker::Handle handle) {
+bool RpcMessenger::IsRegisteredForTesting(RpcMessenger::Handle handle) {
   return receive_callbacks_.find(handle) != receive_callbacks_.end();
 }
 

@@ -543,11 +543,11 @@ TEST_F(SenderSessionTest, SuccessfulRemotingNegotiationYieldsValidObject) {
   EXPECT_THAT(negotiation.capabilities.video,
               testing::ElementsAre(VideoCapability::kVp8));
 
-  // The broker is tested elsewhere, but we can sanity check that we got a valid
+  // The messenger is tested elsewhere, but we can sanity check that we got a valid
   // one here.
-  EXPECT_TRUE(negotiation.broker);
-  const RpcBroker::Handle handle = negotiation.broker->GetUniqueHandle();
-  EXPECT_NE(RpcBroker::kInvalidHandle, handle);
+  EXPECT_TRUE(negotiation.messenger);
+  const RpcMessenger::Handle handle = negotiation.messenger->GetUniqueHandle();
+  EXPECT_NE(RpcMessenger::kInvalidHandle, handle);
 }
 
 }  // namespace cast

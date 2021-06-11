@@ -16,7 +16,7 @@
 #include "cast/streaming/offer_messages.h"
 #include "cast/streaming/receiver_packet_router.h"
 #include "cast/streaming/resolution.h"
-#include "cast/streaming/rpc_broker.h"
+#include "cast/streaming/rpc_messenger.h"
 #include "cast/streaming/sender_message.h"
 #include "cast/streaming/session_config.h"
 #include "cast/streaming/session_messenger.h"
@@ -68,8 +68,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   struct RemotingNegotiation {
     ConfiguredReceivers receivers;
 
-    // The RPC broker to be used for subscribing to remoting proto messages.
-    RpcBroker* broker;
+    // The RPC messenger to be used for subscribing to remoting proto messages.
+    RpcMessenger* messenger;
   };
 
   // The embedder should provide a client for handling connections.
@@ -335,9 +335,9 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   std::unique_ptr<Receiver> current_audio_receiver_;
   std::unique_ptr<Receiver> current_video_receiver_;
 
-  // If remoting, we store the RpcBroker used by the embedder to send RPC
+  // If remoting, we store the RpcMessenger used by the embedder to send RPC
   // messages from the remoting protobuf specification.
-  std::unique_ptr<RpcBroker> broker_;
+  std::unique_ptr<RpcMessenger> rpc_messenger_;
 };
 
 }  // namespace cast

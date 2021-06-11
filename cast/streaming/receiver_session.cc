@@ -291,7 +291,7 @@ void ReceiverSession::InitializeSession(const SessionProperties& properties) {
     client_->OnNegotiated(this, std::move(receivers));
   } else {
     // TODO(jophba): cleanup sequence number usage.
-    broker_ = std::make_unique<RpcBroker>([this](std::vector<uint8_t> message) {
+    rpc_messenger_ = std::make_unique<RpcMessenger>([this](std::vector<uint8_t> message) {
       Error error = this->messenger_.SendMessage(
           ReceiverMessage{ReceiverMessage::Type::kRpc, -1, true /* valid */,
                           std::move(message)});
@@ -301,7 +301,7 @@ void ReceiverSession::InitializeSession(const SessionProperties& properties) {
       }
     });
     client_->OnRemotingNegotiated(
-        this, RemotingNegotiation{std::move(receivers), broker_.get()});
+        this, RemotingNegotiation{std::move(receivers), rpc_messenger_.get()});
   }
   const Error result = messenger_.SendMessage(ReceiverMessage{
       ReceiverMessage::Type::kAnswer, properties.sequence_number,

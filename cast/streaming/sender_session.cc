@@ -265,7 +265,7 @@ void SenderSession::ResetState() {
   current_negotiation_.reset();
   current_audio_sender_.reset();
   current_video_sender_.reset();
-  broker_.reset();
+  rpc_messenger_.reset();
 }
 
 Error SenderSession::StartNegotiation(
@@ -361,7 +361,7 @@ void SenderSession::OnCapabilitiesResponse(ReceiverMessage message) {
                                   "Failed to negotiate a remoting session."));
     return;
   }
-  broker_ = std::make_unique<RpcBroker>([this](std::vector<uint8_t> message) {
+  rpc_messenger_ = std::make_unique<RpcMessenger>([this](std::vector<uint8_t> message) {
     Error error = this->messenger_.SendOutboundMessage(SenderMessage{
         SenderMessage::Type::kRpc, ++(this->current_sequence_number_), true,
         std::move(message)});
@@ -373,12 +373,12 @@ void SenderSession::OnCapabilitiesResponse(ReceiverMessage message) {
 
   config_.client->OnRemotingNegotiated(
       this, RemotingNegotiation{std::move(senders), ToCapabilities(caps),
-                                broker_.get()});
+                                rpc_messenger_.get()});
 }
 
 void SenderSession::OnRpcMessage(ReceiverMessage message) {
-  if (!broker_) {
-    OSP_LOG_INFO << "Received an RPC message without having an RPCBroker.";
+  if (!rpc_messenger_) {
+    OSP_LOG_INFO << "Received an RPC message without having an RPCMessenger.";
     return;
   }
 
@@ -390,7 +390,7 @@ void SenderSession::OnRpcMessage(ReceiverMessage message) {
   }
 
   const auto& body = absl::get<std::vector<uint8_t>>(message.body);
-  broker_->ProcessMessageFromRemote(body.data(), body.size());
+  rpc_messenger_->ProcessMessageFromRemote(body.data(), body.size());
 }
 
 void SenderSession::HandleErrorMessage(ReceiverMessage message,
