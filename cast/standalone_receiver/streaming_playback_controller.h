@@ -11,11 +11,11 @@
 #include "platform/impl/task_runner.h"
 
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
-#include "cast/standalone_receiver/sdl_audio_player.h"
-#include "cast/standalone_receiver/sdl_glue.h"
-#include "cast/standalone_receiver/sdl_video_player.h"
+#include "cast/standalone_receiver/sdl_audio_player.h"  // nogncheck
+#include "cast/standalone_receiver/sdl_glue.h"          // nogncheck
+#include "cast/standalone_receiver/sdl_video_player.h"  // nogncheck
 #else
-#include "cast/standalone_receiver/dummy_player.h"
+#include "cast/standalone_receiver/dummy_player.h"  // nogncheck
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
 
 namespace openscreen {

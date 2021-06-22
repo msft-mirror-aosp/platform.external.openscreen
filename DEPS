@@ -75,14 +75,14 @@ deps = {
   'third_party/protobuf/src': {
     'url': Var('chromium_git') +
       '/external/github.com/protocolbuffers/protobuf.git' +
-      '@' + '2514f0bd7da7e2af1bed4c5d1b84f031c4d12c10', # version 3.14
+      '@' + '909a0f36a10075c4b4bc70fdee2c7e32dd612a72', # version 3.17.3
     'condition': 'not build_with_chromium',
   },
 
   'third_party/libprotobuf-mutator/src': {
     'url': Var('chromium_git') +
       '/external/github.com/google/libprotobuf-mutator.git' +
-      '@' + 'e5869dd9690c3f4dfb842fb90bd07a5a9ee32172',
+      '@' + '8942a9ba43d8bb196230c321d46d6a137957a719',
     'condition': 'not build_with_chromium',
   },
 

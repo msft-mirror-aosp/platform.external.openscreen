@@ -21,7 +21,12 @@ if (!build_with_chromium) {
   ]
 
   shared_deps = [
+    "../../discovery:common",
+    "../../discovery:public",
+    "../../platform:standalone_impl",
     "../common:public",
+    "../receiver:agent",
+    "../receiver:channel",
     "../streaming:receiver",
   ]
 
@@ -65,11 +70,7 @@ if (!build_with_chromium) {
   executable("cast_receiver") {
     sources = [ "main.cc" ]
 
-    deps = [
-      "../receiver:agent",
-      "../receiver:channel",
-    ]
-
+    deps = shared_deps
     configs += [ "../common:certificate_config" ]
 
     if (have_external_libs) {

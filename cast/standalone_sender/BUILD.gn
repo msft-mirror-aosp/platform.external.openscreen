@@ -22,7 +22,9 @@ if (!build_with_chromium) {
 
   executable("cast_sender") {
     deps = [
+      "../../discovery:public",
       "../../platform",
+      "../../platform:standalone_impl",
       "../../third_party/jsoncpp",
       "../../util",
       "../common:public",
