@@ -115,6 +115,10 @@ class ReceiverSession final : public Environment::SocketSubscriber {
 
   // Information about the display the receiver is attached to.
   struct Display {
+    // Returns true if all configurations supported by |other| are also
+    // supported by this instance.
+    bool IsSupersetOf(const Display& other) const;
+
     // The display limitations of the actual screen, used to provide upper
     // bounds on streams. For example, we will never
     // send 60FPS if it is going to be displayed on a 30FPS screen.
@@ -129,6 +133,10 @@ class ReceiverSession final : public Environment::SocketSubscriber {
 
   // Codec-specific audio limits for playback.
   struct AudioLimits {
+    // Returns true if all configurations supported by |other| are also
+    // supported by this instance.
+    bool IsSupersetOf(const AudioLimits& other) const;
+
     // Whether or not these limits apply to all codecs.
     bool applies_to_all_codecs = false;
 
@@ -154,6 +162,10 @@ class ReceiverSession final : public Environment::SocketSubscriber {
 
   // Codec-specific video limits for playback.
   struct VideoLimits {
+    // Returns true if all configurations supported by |other| are also
+    // supported by this instance.
+    bool IsSupersetOf(const VideoLimits& other) const;
+
     // Whether or not these limits apply to all codecs.
     bool applies_to_all_codecs = false;
 
@@ -183,11 +195,9 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // remoting streams. These properties are based on the current control
   // protocol and allow remoting with current senders.
   struct RemotingPreferences {
-    RemotingPreferences();
-    RemotingPreferences(RemotingPreferences&&) noexcept;
-    RemotingPreferences(const RemotingPreferences&) = delete;
-    RemotingPreferences& operator=(RemotingPreferences&&) noexcept;
-    RemotingPreferences& operator=(const RemotingPreferences&) = delete;
+    // Returns true if all configurations supported by |other| are also
+    // supported by this instance.
+    bool IsSupersetOf(const RemotingPreferences& other) const;
 
     // Current remoting senders take an "all or nothing" support for audio
     // codec support. While Opus and AAC support is handled in our Preferences'
@@ -224,9 +234,13 @@ class ReceiverSession final : public Environment::SocketSubscriber {
                 std::unique_ptr<Display> description);
 
     Preferences(Preferences&&) noexcept;
-    Preferences(const Preferences&) = delete;
+    Preferences(const Preferences&);
     Preferences& operator=(Preferences&&) noexcept;
-    Preferences& operator=(const Preferences&) = delete;
+    Preferences& operator=(const Preferences&);
+
+    // Returns true if all configurations supported by |other| are also
+    // supported by this instance.
+    bool IsSupersetOf(const Preferences& other) const;
 
     // Audio and video codec preferences. Should be supplied in order of
     // preference, e.g. in this example if we get both VP8 and H264 we will

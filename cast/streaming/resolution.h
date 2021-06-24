@@ -23,6 +23,10 @@ struct Resolution {
   bool IsValid() const;
   Json::Value ToJson() const;
 
+  // Returns true if both |width| and |height| of this instance are greater than
+  // or equal to that of |other|.
+  bool IsSupersetOf(const Resolution& other) const;
+
   bool operator==(const Resolution& other) const;
   bool operator!=(const Resolution& other) const;
 
@@ -36,6 +40,10 @@ struct Dimensions {
   static bool TryParse(const Json::Value& value, Dimensions* out);
   bool IsValid() const;
   Json::Value ToJson() const;
+
+  // Returns true if all properties of this instance are greater than or equal
+  // to those of |other|.
+  bool IsSupersetOf(const Dimensions& other) const;
 
   bool operator==(const Dimensions& other) const;
   bool operator!=(const Dimensions& other) const;
