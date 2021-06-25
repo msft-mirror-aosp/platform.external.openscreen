@@ -753,7 +753,7 @@ TEST_F(ReceiverSessionTest, ReturnsCapabilitiesWithRemotingPreferences) {
 }
 
 TEST_F(ReceiverSessionTest, VideoLimitsIsSupersetOf) {
-  ReceiverSession::VideoLimits first;
+  ReceiverSession::VideoLimits first{};
   ReceiverSession::VideoLimits second = first;
 
   EXPECT_TRUE(first.IsSupersetOf(second));
@@ -807,7 +807,7 @@ TEST_F(ReceiverSessionTest, VideoLimitsIsSupersetOf) {
 }
 
 TEST_F(ReceiverSessionTest, AudioLimitsIsSupersetOf) {
-  ReceiverSession::AudioLimits first;
+  ReceiverSession::AudioLimits first{};
   ReceiverSession::AudioLimits second = first;
 
   EXPECT_TRUE(first.IsSupersetOf(second));
