@@ -107,14 +107,12 @@ cast_core_proto_library("service_info_proto") {
 
 cast_core_grpc_library("cast_core_service_proto") {
   sources = [ "core/cast_core_service.proto" ]
-  deps = [
-    ":runtime_metadata_proto",
-    ":service_info_proto",
-  ]
+  deps = [ ":runtime_metadata_proto" ]
 }
 
 cast_core_grpc_library("platform_service_proto") {
   sources = [ "platform/platform_service.proto" ]
+  deps = [ ":service_info_proto" ]
 }
 
 cast_core_grpc_library("cast_audio_channel_service_proto") {
@@ -123,7 +121,11 @@ cast_core_grpc_library("cast_audio_channel_service_proto") {
 
 cast_core_grpc_library("runtime_service_proto") {
   sources = [ "runtime/runtime_service.proto" ]
-  deps = [ ":service_info_proto" ]
+  deps = [
+    ":application_config_proto",
+    ":service_info_proto",
+    ":url_rewrite_proto",
+  ]
 }
 
 cast_core_proto_library("cast_message_proto") {
