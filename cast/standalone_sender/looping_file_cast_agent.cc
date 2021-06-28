@@ -291,8 +291,8 @@ void LoopingFileCastAgent::OnNegotiated(
   }
 
   file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_->path_to_file.c_str(), session,
-      std::move(senders), connection_settings_->max_bitrate);
+      environment_.get(), connection_settings_.value(), session,
+      std::move(senders), [this]() { shutdown_callback_(); });
 }
 
 void LoopingFileCastAgent::OnRemotingNegotiated(
@@ -307,8 +307,8 @@ void LoopingFileCastAgent::OnRemotingNegotiated(
   }
 
   file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_->path_to_file.c_str(), session,
-      std::move(negotiation.senders), connection_settings_->max_bitrate);
+      environment_.get(), connection_settings_.value(), session,
+      std::move(negotiation.senders), [this]() { shutdown_callback_(); });
 }
 
 void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {

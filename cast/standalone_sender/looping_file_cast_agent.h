@@ -19,6 +19,7 @@
 #include "cast/common/channel/virtual_connection_router.h"
 #include "cast/common/public/cast_socket.h"
 #include "cast/sender/public/sender_socket_factory.h"
+#include "cast/standalone_sender/connection_settings.h"
 #include "cast/standalone_sender/looping_file_sender.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/sender_session.h"
@@ -77,29 +78,6 @@ class LoopingFileCastAgent final
   LoopingFileCastAgent(TaskRunner* task_runner,
                        ShutdownCallback shutdown_callback);
   ~LoopingFileCastAgent();
-
-  struct ConnectionSettings {
-    // The endpoint of the receiver we wish to connect to.
-    IPEndpoint receiver_endpoint;
-
-    // The path to the file that we want to play.
-    std::string path_to_file;
-
-    // The maximum bitrate. Default value means a reasonable default will be
-    // selected.
-    int max_bitrate = 0;
-
-    // Whether the stream should include video, or just be audio only.
-    bool should_include_video = true;
-
-    // Whether we should use the hacky RTP stream IDs for legacy android
-    // receivers, or if we should use the proper values.
-    bool use_android_rtp_hack = true;
-
-    // Whether we should use remoting for the video, instead of the default of
-    // mirroring.
-    bool use_remoting = false;
-  };
 
   // Connect to a Cast Receiver, and start the workflow to establish a
   // mirroring/streaming session. Destroy the LoopingFileCastAgent to shutdown

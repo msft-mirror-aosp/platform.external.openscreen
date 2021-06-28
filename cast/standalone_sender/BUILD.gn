@@ -40,6 +40,7 @@ if (!build_with_chromium) {
     libs = []
     if (have_ffmpeg && have_libopus && have_libvpx) {
       sources += [
+        "connection_settings.h",
         "ffmpeg_glue.cc",
         "ffmpeg_glue.h",
         "looping_file_cast_agent.cc",

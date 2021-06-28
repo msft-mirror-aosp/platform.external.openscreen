@@ -54,6 +54,10 @@ usage: %s <options> addr[:port] media_file
            Specifies the maximum bits per second for the media streams.
 
            Default if not set: %d
+
+      -n, --no-looping
+           Disable looping the passed in video after it finishes playing.
+
 )"
 #if defined(CAST_ALLOW_DEVELOPER_CERTIFICATE)
                                R"(
@@ -109,6 +113,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   // standalone sender, osp demo, and test_main argument options.
   const struct option kArgumentOptions[] = {
     {"max-bitrate", required_argument, nullptr, 'm'},
+    {"no-looping", no_argument, nullptr, 'n'},
 #if defined(CAST_ALLOW_DEVELOPER_CERTIFICATE)
     {"developer-certificate", required_argument, nullptr, 'd'},
 #endif
@@ -120,14 +125,15 @@ int StandaloneSenderMain(int argc, char* argv[]) {
     {nullptr, 0, nullptr, 0}
   };
 
-  bool is_verbose = false;
+  int max_bitrate = kDefaultMaxBitrate;
+  bool should_loop_video = true;
   std::string developer_certificate_path;
   bool use_android_rtp_hack = false;
   bool use_remoting = false;
-  int max_bitrate = kDefaultMaxBitrate;
+  bool is_verbose = false;
   std::unique_ptr<TextTraceLoggingPlatform> trace_logger;
   int ch = -1;
-  while ((ch = getopt_long(argc, argv, "m:d:artvh", kArgumentOptions,
+  while ((ch = getopt_long(argc, argv, "m:nd:artvh", kArgumentOptions,
                            nullptr)) != -1) {
     switch (ch) {
       case 'm':
@@ -138,6 +144,9 @@ int StandaloneSenderMain(int argc, char* argv[]) {
           LogUsage(argv[0]);
           return 1;
         }
+        break;
+      case 'n':
+        should_loop_video = false;
         break;
 #if defined(CAST_ALLOW_DEVELOPER_CERTIFICATE)
       case 'd':
