@@ -212,7 +212,10 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   task_runner->PostTask([&] {
     cast_agent = new LoopingFileCastAgent(
         task_runner, [&] { task_runner->RequestStopSoon(); });
-    cast_agent->Connect({remote_endpoint, path, max_bitrate,
+
+    cast_agent->Connect({.receiver_endpoint = remote_endpoint,
+                         .path_to_file = path,
+                         .max_bitrate = max_bitrate,
                          .should_include_video = true,
                          .use_android_rtp_hack = use_android_rtp_hack,
                          .use_remoting = use_remoting});
