@@ -62,7 +62,9 @@ group("gn_all") {
       "third_party/zlib",
     ]
   } else {
-    deps += [ "cast/cast_core/api" ]
+    if (!is_mac) {
+      deps += [ "cast/cast_core/api" ]
+    }
   }
 }
 
