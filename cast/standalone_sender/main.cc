@@ -227,7 +227,8 @@ int StandaloneSenderMain(int argc, char* argv[]) {
                          .max_bitrate = max_bitrate,
                          .should_include_video = true,
                          .use_android_rtp_hack = use_android_rtp_hack,
-                         .use_remoting = use_remoting});
+                         .use_remoting = use_remoting,
+                         .should_loop_video = should_loop_video});
   });
 
   // Run the event loop until SIGINT (e.g., CTRL-C at the console) or
