@@ -140,7 +140,6 @@ Error MapToOpenscreenError(Error::Code error, bool crl_required) {
       return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
                    "Failed verifying cast device certificate.");
   }
-  return Error::None();
 }
 
 Error VerifyAndMapDigestAlgorithm(HashAlgorithm response_digest_algorithm,
