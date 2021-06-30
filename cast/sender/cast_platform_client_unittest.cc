@@ -9,7 +9,7 @@
 #include "cast/common/channel/testing/fake_cast_socket.h"
 #include "cast/common/channel/testing/mock_socket_error_handler.h"
 #include "cast/common/channel/virtual_connection_router.h"
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 #include "cast/sender/testing/test_helpers.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -51,7 +51,7 @@ class CastPlatformClientTest : public ::testing::Test {
   FakeClock clock_{Clock::now()};
   FakeTaskRunner task_runner_{&clock_};
   CastPlatformClient platform_client_{&router_, &FakeClock::now, &task_runner_};
-  ServiceInfo receiver_;
+  ReceiverInfo receiver_;
 };
 
 TEST_F(CastPlatformClientTest, AppAvailability) {

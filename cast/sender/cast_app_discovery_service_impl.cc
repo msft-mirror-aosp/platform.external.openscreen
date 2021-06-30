@@ -76,7 +76,7 @@ void CastAppDiscoveryServiceImpl::Refresh() {
 }
 
 void CastAppDiscoveryServiceImpl::AddOrUpdateReceiver(
-    const ServiceInfo& receiver) {
+    const ReceiverInfo& receiver) {
   const std::string& device_id = receiver.unique_id;
   receivers_by_id_[device_id] = receiver;
 
@@ -89,7 +89,7 @@ void CastAppDiscoveryServiceImpl::AddOrUpdateReceiver(
   }
 }
 
-void CastAppDiscoveryServiceImpl::RemoveReceiver(const ServiceInfo& receiver) {
+void CastAppDiscoveryServiceImpl::RemoveReceiver(const ReceiverInfo& receiver) {
   const std::string& device_id = receiver.unique_id;
   receivers_by_id_.erase(device_id);
   UpdateAvailabilityQueries(
@@ -135,16 +135,16 @@ void CastAppDiscoveryServiceImpl::UpdateAvailabilityQueries(
       continue;
     std::vector<std::string> device_ids =
         availability_tracker_.GetAvailableDevices(source);
-    std::vector<ServiceInfo> receivers = GetReceiversByIds(device_ids);
+    std::vector<ReceiverInfo> receivers = GetReceiversByIds(device_ids);
     for (const auto& callback : it->second) {
       callback.callback(source, receivers);
     }
   }
 }
 
-std::vector<ServiceInfo> CastAppDiscoveryServiceImpl::GetReceiversByIds(
+std::vector<ReceiverInfo> CastAppDiscoveryServiceImpl::GetReceiversByIds(
     const std::vector<std::string>& device_ids) const {
-  std::vector<ServiceInfo> receivers;
+  std::vector<ReceiverInfo> receivers;
   for (const std::string& device_id : device_ids) {
     auto entry = receivers_by_id_.find(device_id);
     if (entry != receivers_by_id_.end()) {

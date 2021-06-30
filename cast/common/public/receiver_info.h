@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CAST_COMMON_PUBLIC_SERVICE_INFO_H_
-#define CAST_COMMON_PUBLIC_SERVICE_INFO_H_
+#ifndef CAST_COMMON_PUBLIC_RECEIVER_INFO_H_
+#define CAST_COMMON_PUBLIC_RECEIVER_INFO_H_
 
 #include <memory>
 #include <string>
@@ -53,14 +53,13 @@ constexpr uint64_t kIsDevModeEnabled = 1 << 4;
 
 constexpr uint64_t kNoCapabilities = 0;
 
-// This is the top-level service info class for CastV2. It describes a specific
+// This is the top-level receiver info class for CastV2. It describes a specific
 // service instance.
-// TODO(crbug.com/openscreen/112): Rename this to CastReceiverInfo or similar.
-struct ServiceInfo {
-  // returns the instance id associated with this ServiceInfo instance.
+struct ReceiverInfo {
+  // returns the instance id associated with this ReceiverInfo instance.
   const std::string& GetInstanceId() const;
 
-  // Returns whether all fields of this ServiceInfo are valid.
+  // Returns whether all fields of this ReceiverInfo are valid.
   bool IsValid() const;
 
   // Addresses for the service. Present if an address of this address type
@@ -98,7 +97,7 @@ struct ServiceInfo {
   mutable std::string instance_id_ = "";
 };
 
-inline bool operator==(const ServiceInfo& lhs, const ServiceInfo& rhs) {
+inline bool operator==(const ReceiverInfo& lhs, const ReceiverInfo& rhs) {
   return lhs.v4_address == rhs.v4_address && lhs.v6_address == rhs.v6_address &&
          lhs.port == rhs.port && lhs.unique_id == rhs.unique_id &&
          lhs.protocol_version == rhs.protocol_version &&
@@ -107,18 +106,19 @@ inline bool operator==(const ServiceInfo& lhs, const ServiceInfo& rhs) {
          lhs.friendly_name == rhs.friendly_name;
 }
 
-inline bool operator!=(const ServiceInfo& lhs, const ServiceInfo& rhs) {
+inline bool operator!=(const ReceiverInfo& lhs, const ReceiverInfo& rhs) {
   return !(lhs == rhs);
 }
 
 // Functions responsible for converting between CastV2 and DNS-SD
 // representations of a service instance.
-discovery::DnsSdInstance ServiceInfoToDnsSdInstance(const ServiceInfo& service);
+discovery::DnsSdInstance ReceiverInfoToDnsSdInstance(
+    const ReceiverInfo& service);
 
-ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
+ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
     const discovery::DnsSdInstanceEndpoint& endpoint);
 
 }  // namespace cast
 }  // namespace openscreen
 
-#endif  // CAST_COMMON_PUBLIC_SERVICE_INFO_H_
+#endif  // CAST_COMMON_PUBLIC_RECEIVER_INFO_H_

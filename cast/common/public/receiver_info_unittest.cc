@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 
 #include <cstdio>
 #include <sstream>
@@ -20,13 +20,13 @@ constexpr NetworkInterfaceIndex kNetworkInterface = 0;
 
 }
 
-TEST(ServiceInfoTests, ConvertValidFromDnsSd) {
+TEST(ReceiverInfoTests, ConvertValidFromDnsSd) {
   std::string instance = "InstanceId";
   discovery::DnsSdTxtRecord txt = CreateValidTxt();
   discovery::DnsSdInstanceEndpoint record(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  ErrorOr<ServiceInfo> info = DnsSdInstanceEndpointToServiceInfo(record);
+  ErrorOr<ReceiverInfo> info = DnsSdInstanceEndpointToReceiverInfo(record);
   ASSERT_TRUE(info.is_value()) << info;
   EXPECT_EQ(info.value().unique_id, kTestUniqueId);
   EXPECT_TRUE(info.value().v4_address);
@@ -44,7 +44,7 @@ TEST(ServiceInfoTests, ConvertValidFromDnsSd) {
   record = discovery::DnsSdInstanceEndpoint(instance, kCastV2ServiceId,
                                             kCastV2DomainId, txt,
                                             kNetworkInterface, kEndpointV4);
-  info = DnsSdInstanceEndpointToServiceInfo(record);
+  info = DnsSdInstanceEndpointToReceiverInfo(record);
   ASSERT_TRUE(info.is_value());
   EXPECT_EQ(info.value().unique_id, kTestUniqueId);
   EXPECT_TRUE(info.value().v4_address);
@@ -60,7 +60,7 @@ TEST(ServiceInfoTests, ConvertValidFromDnsSd) {
   record = discovery::DnsSdInstanceEndpoint(instance, kCastV2ServiceId,
                                             kCastV2DomainId, txt,
                                             kNetworkInterface, kEndpointV6);
-  info = DnsSdInstanceEndpointToServiceInfo(record);
+  info = DnsSdInstanceEndpointToReceiverInfo(record);
   ASSERT_TRUE(info.is_value());
   EXPECT_EQ(info.value().unique_id, kTestUniqueId);
   EXPECT_FALSE(info.value().v4_address);
@@ -74,42 +74,42 @@ TEST(ServiceInfoTests, ConvertValidFromDnsSd) {
   EXPECT_EQ(info.value().friendly_name, kFriendlyName);
 }
 
-TEST(ServiceInfoTests, ConvertInvalidFromDnsSd) {
+TEST(ReceiverInfoTests, ConvertInvalidFromDnsSd) {
   std::string instance = "InstanceId";
   discovery::DnsSdTxtRecord txt = CreateValidTxt();
   txt.ClearValue(kUniqueIdKey);
   discovery::DnsSdInstanceEndpoint record(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  EXPECT_TRUE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_TRUE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 
   txt = CreateValidTxt();
   txt.ClearValue(kVersionKey);
   record = discovery::DnsSdInstanceEndpoint(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  EXPECT_TRUE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_TRUE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 
   txt = CreateValidTxt();
   txt.ClearValue(kCapabilitiesKey);
   record = discovery::DnsSdInstanceEndpoint(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  EXPECT_TRUE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_TRUE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 
   txt = CreateValidTxt();
   txt.ClearValue(kStatusKey);
   record = discovery::DnsSdInstanceEndpoint(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  EXPECT_TRUE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_TRUE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 
   txt = CreateValidTxt();
   txt.ClearValue(kFriendlyNameKey);
   record = discovery::DnsSdInstanceEndpoint(
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
-  EXPECT_TRUE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_TRUE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 
   txt = CreateValidTxt();
   txt.ClearValue(kModelNameKey);
@@ -117,11 +117,11 @@ TEST(ServiceInfoTests, ConvertInvalidFromDnsSd) {
       instance, kCastV2ServiceId, kCastV2DomainId, txt, kNetworkInterface,
       kEndpointV4, kEndpointV6);
   // Note: Model name is an optional field.
-  EXPECT_FALSE(DnsSdInstanceEndpointToServiceInfo(record).is_error());
+  EXPECT_FALSE(DnsSdInstanceEndpointToReceiverInfo(record).is_error());
 }
 
-TEST(ServiceInfoTests, ConvertValidToDnsSd) {
-  ServiceInfo info;
+TEST(ReceiverInfoTests, ConvertValidToDnsSd) {
+  ReceiverInfo info;
   info.v4_address = kAddressV4;
   info.v6_address = kAddressV6;
   info.port = kPort;
@@ -131,7 +131,7 @@ TEST(ServiceInfoTests, ConvertValidToDnsSd) {
   info.status = kStatusParsed;
   info.model_name = kModelName;
   info.friendly_name = kFriendlyName;
-  discovery::DnsSdInstance instance = ServiceInfoToDnsSdInstance(info);
+  discovery::DnsSdInstance instance = ReceiverInfoToDnsSdInstance(info);
   CompareTxtString(instance.txt(), kUniqueIdKey, kTestUniqueId);
   CompareTxtString(instance.txt(), kCapabilitiesKey, kCapabilitiesString);
   CompareTxtString(instance.txt(), kModelNameKey, kModelName);
@@ -140,7 +140,7 @@ TEST(ServiceInfoTests, ConvertValidToDnsSd) {
   CompareTxtInt(instance.txt(), kStatusKey, kStatus);
 }
 
-TEST(ServiceInfoTests, ParseServiceInfoFromRealTXT) {
+TEST(ReceiverInfoTests, ParseReceiverInfoFromRealTXT) {
   constexpr struct {
     const char* key;
     const char* value;
@@ -168,9 +168,9 @@ TEST(ServiceInfoTests, ParseServiceInfoFromRealTXT) {
       "InstanceId", kCastV2ServiceId, kCastV2DomainId, std::move(txt),
       kNetworkInterface, kEndpointV4, kEndpointV6);
 
-  const ErrorOr<ServiceInfo> result =
-      DnsSdInstanceEndpointToServiceInfo(record);
-  const ServiceInfo& info = result.value();
+  const ErrorOr<ReceiverInfo> result =
+      DnsSdInstanceEndpointToReceiverInfo(record);
+  const ReceiverInfo& info = result.value();
   EXPECT_EQ(info.unique_id, "4ef522244a5a877f35ddead7d98702e6");
   EXPECT_EQ(info.protocol_version, 5);
   EXPECT_TRUE(info.capabilities & (kHasVideoOutput | kHasAudioOutput));

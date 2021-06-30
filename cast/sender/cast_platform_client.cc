@@ -11,7 +11,7 @@
 #include "absl/strings/str_cat.h"
 #include "cast/common/channel/virtual_connection_router.h"
 #include "cast/common/public/cast_socket.h"
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
 #include "util/stringprintf.h"
@@ -82,12 +82,12 @@ absl::optional<int> CastPlatformClient::RequestAppAvailability(
   return request_id;
 }
 
-void CastPlatformClient::AddOrUpdateReceiver(const ServiceInfo& device,
+void CastPlatformClient::AddOrUpdateReceiver(const ReceiverInfo& device,
                                              int socket_id) {
   socket_id_by_device_id_[device.unique_id] = socket_id;
 }
 
-void CastPlatformClient::RemoveReceiver(const ServiceInfo& device) {
+void CastPlatformClient::RemoveReceiver(const ReceiverInfo& device) {
   auto pending_requests_it =
       pending_requests_by_device_id_.find(device.unique_id);
   if (pending_requests_it != pending_requests_by_device_id_.end()) {

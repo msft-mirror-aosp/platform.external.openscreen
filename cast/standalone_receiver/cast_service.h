@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 #include "cast/receiver/application_agent.h"
 #include "cast/receiver/channel/static_credentials.h"
 #include "cast/receiver/public/receiver_socket_factory.h"
@@ -67,7 +67,7 @@ class CastService final : public discovery::ReportingClient {
  private:
   using LazyDeletedDiscoveryService = SerialDeletePtr<discovery::DnsSdService>;
   using LazyDeletedDiscoveryPublisher =
-      SerialDeletePtr<discovery::DnsSdServicePublisher<ServiceInfo>>;
+      SerialDeletePtr<discovery::DnsSdServicePublisher<ReceiverInfo>>;
 
   // discovery::ReportingClient overrides.
   void OnFatalError(Error error) final;

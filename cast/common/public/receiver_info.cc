@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 
 #include <cctype>
 #include <cinttypes>
@@ -35,7 +35,7 @@ const size_t kMaxDeviceModelSize = 20;
 // convention will be followed here. That being said, the Eureka receiver does
 // not use the instance ID in any way, so the specific calculation used should
 // not be important.
-std::string CalculateInstanceId(const ServiceInfo& info) {
+std::string CalculateInstanceId(const ReceiverInfo& info) {
   // First set the device model, truncated to 20 bytes at most. Replace any
   // whitespace characters (" ") with hyphens ("-") in the device model before
   // truncation.
@@ -71,7 +71,7 @@ std::string GetStringFromRecord(const discovery::DnsSdTxtRecord& txt,
 
 }  // namespace
 
-const std::string& ServiceInfo::GetInstanceId() const {
+const std::string& ReceiverInfo::GetInstanceId() const {
   if (instance_id_ == std::string("")) {
     instance_id_ = CalculateInstanceId(*this);
   }
@@ -79,7 +79,7 @@ const std::string& ServiceInfo::GetInstanceId() const {
   return instance_id_;
 }
 
-bool ServiceInfo::IsValid() const {
+bool ReceiverInfo::IsValid() const {
   return (
       discovery::IsInstanceValid(GetInstanceId()) && port != 0 &&
       !unique_id.empty() &&
@@ -98,7 +98,7 @@ bool ServiceInfo::IsValid() const {
                                                  friendly_name));
 }
 
-discovery::DnsSdInstance ServiceInfoToDnsSdInstance(const ServiceInfo& info) {
+discovery::DnsSdInstance ReceiverInfoToDnsSdInstance(const ReceiverInfo& info) {
   OSP_DCHECK(discovery::IsServiceValid(kCastV2ServiceId));
   OSP_DCHECK(discovery::IsDomainValid(kCastV2DomainId));
 
@@ -121,13 +121,13 @@ discovery::DnsSdInstance ServiceInfoToDnsSdInstance(const ServiceInfo& info) {
                                   kCastV2DomainId, std::move(txt), info.port);
 }
 
-ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
+ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
     const discovery::DnsSdInstanceEndpoint& endpoint) {
   if (endpoint.service_id() != kCastV2ServiceId) {
     return {Error::Code::kParameterInvalid, "Not a Cast device."};
   }
 
-  ServiceInfo record;
+  ReceiverInfo record;
   for (const IPAddress& address : endpoint.addresses()) {
     if (!record.v4_address && address.IsV4()) {
       record.v4_address = address;

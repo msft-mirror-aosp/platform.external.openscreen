@@ -20,7 +20,7 @@
 namespace openscreen {
 namespace cast {
 
-struct ServiceInfo;
+struct ReceiverInfo;
 class VirtualConnectionRouter;
 
 // This class handles Cast messages that generally relate to the "platform", in
@@ -48,8 +48,8 @@ class CastPlatformClient final : public CastMessageHandler {
 
   // Notifies this object about general receiver connectivity or property
   // changes.
-  void AddOrUpdateReceiver(const ServiceInfo& device, int socket_id);
-  void RemoveReceiver(const ServiceInfo& device);
+  void AddOrUpdateReceiver(const ReceiverInfo& device, int socket_id);
+  void RemoveReceiver(const ReceiverInfo& device);
 
   void CancelRequest(int request_id);
 

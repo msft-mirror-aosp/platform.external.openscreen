@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 #include "cast/sender/cast_app_availability_tracker.h"
 #include "cast/sender/cast_platform_client.h"
 #include "cast/sender/public/cast_app_discovery_service.h"
@@ -37,8 +37,8 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
   // app_id) pairs whose status is kUnavailable or kUnknown.
   void Refresh() override;
 
-  void AddOrUpdateReceiver(const ServiceInfo& receiver);
-  void RemoveReceiver(const ServiceInfo& receiver);
+  void AddOrUpdateReceiver(const ReceiverInfo& receiver);
+  void RemoveReceiver(const ReceiverInfo& receiver);
 
  private:
   struct AvailabilityCallbackEntry {
@@ -60,7 +60,7 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
   // Updates the availability query results for |sources|.
   void UpdateAvailabilityQueries(const std::vector<CastMediaSource>& sources);
 
-  std::vector<ServiceInfo> GetReceiversByIds(
+  std::vector<ReceiverInfo> GetReceiversByIds(
       const std::vector<std::string>& device_ids) const;
 
   // Returns true if an app availability request should be issued for
@@ -72,7 +72,7 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
 
   void RemoveAvailabilityCallback(uint32_t id) override;
 
-  std::map<std::string, ServiceInfo> receivers_by_id_;
+  std::map<std::string, ReceiverInfo> receivers_by_id_;
 
   // Registered availability queries and their associated callbacks keyed by
   // media source IDs.

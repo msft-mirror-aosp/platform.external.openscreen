@@ -83,8 +83,8 @@ source_set("public") {
   sources = [
     "public/cast_socket.h",
     "public/message_port.h",
-    "public/service_info.cc",
-    "public/service_info.h",
+    "public/receiver_info.cc",
+    "public/receiver_info.h",
   ]
 
   deps = [
@@ -154,7 +154,7 @@ source_set("unittests") {
     "channel/message_framer_unittest.cc",
     "channel/namespace_router_unittest.cc",
     "channel/virtual_connection_router_unittest.cc",
-    "public/service_info_unittest.cc",
+    "public/receiver_info_unittest.cc",
   ]
 
   deps = [

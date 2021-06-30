@@ -56,17 +56,18 @@ CastService::CastService(CastService::Configuration config)
                              : LazyDeletedDiscoveryService()),
       discovery_publisher_(
           discovery_service_
-              ? MakeSerialDelete<discovery::DnsSdServicePublisher<ServiceInfo>>(
+              ? MakeSerialDelete<
+                    discovery::DnsSdServicePublisher<ReceiverInfo>>(
                     config.task_runner,
                     discovery_service_.get(),
                     kCastV2ServiceId,
-                    ServiceInfoToDnsSdInstance)
+                    ReceiverInfoToDnsSdInstance)
               : LazyDeletedDiscoveryPublisher()) {
   connection_factory_->SetListenCredentials(credentials_.tls_credentials);
   connection_factory_->Listen(local_endpoint_, kDefaultListenOptions);
 
   if (discovery_publisher_) {
-    ServiceInfo info;
+    ReceiverInfo info;
     info.port = local_endpoint_.port;
     info.unique_id = HexEncode(config.interface.hardware_address);
     info.friendly_name = config.friendly_name;

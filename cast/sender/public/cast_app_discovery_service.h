@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "cast/common/public/service_info.h"
+#include "cast/common/public/receiver_info.h"
 
 namespace openscreen {
 namespace cast {
@@ -19,7 +19,7 @@ class CastAppDiscoveryService {
  public:
   using AvailabilityCallback =
       std::function<void(const CastMediaSource& source,
-                         const std::vector<ServiceInfo>& devices)>;
+                         const std::vector<ReceiverInfo>& devices)>;
 
   class Subscription {
    public:
