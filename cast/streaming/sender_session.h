@@ -58,9 +58,6 @@ class SenderSession final {
     // about legacy devices, such as pre-1.27 Earth receivers should do
     // a version check when using these capabilities to offer remoting.
     RemotingCapabilities capabilities;
-
-    // The RPC messenger to be used for subscribing to remoting proto messages.
-    RpcMessenger* messenger;
   };
 
   // The embedder should provide a client for handling negotiation events.
@@ -158,6 +155,11 @@ class SenderSession final {
   // feedback. Embedders may use this information to throttle capture devices.
   int GetEstimatedNetworkBandwidth() const;
 
+  // The RPC messenger for this session. NOTE: RPC messages may come at
+  // any time from the receiver, so subscriptions to RPC remoting messages
+  // should be done before calling |NegotiateRemoting|.
+  RpcMessenger* rpc_messenger() { return &rpc_messenger_; }
+
  private:
   // We store the current negotiation, so that when we get an answer from the
   // receiver we can line up the selected streams with the original
@@ -183,7 +185,7 @@ class SenderSession final {
     kIdle,
 
     // Currently mirroring content to a receiver.
-    kMirroring,
+    kStreaming,
 
     // Currently remoting content to a receiver.
     kRemoting
@@ -225,6 +227,9 @@ class SenderSession final {
   // Spawn a set of configured senders from the currently stored negotiation.
   ConfiguredSenders SpawnSenders(const Answer& answer);
 
+  // Used by the RPC messenger to send outbound messages.
+  void SendRpcMessage(std::vector<uint8_t> message_body);
+
   // This session's configuration.
   Configuration config_;
 
@@ -232,6 +237,10 @@ class SenderSession final {
   // messages. For message formats, see
   // cast/protocol/castv2/streaming_schema.json.
   SenderSessionMessenger messenger_;
+
+  // The RPC messenger, which uses the session messager for sending RPC messages
+  // and handles subscriptions to RPC messages.
+  RpcMessenger rpc_messenger_;
 
   // The packet router used for RTP/RTCP messaging across all senders.
   SenderPacketRouter packet_router_;
@@ -246,7 +255,7 @@ class SenderSession final {
   std::unique_ptr<InProcessNegotiation> current_negotiation_;
 
   // The current state of the session. Note that the state is intentionally
-  // limited. |kMirroring| or |kRemoting| means that we are either starting
+  // limited. |kStreaming| or |kRemoting| means that we are either starting
   // a negotiation or actively sending to a receiver.
   State state_ = State::kIdle;
 
@@ -254,11 +263,6 @@ class SenderSession final {
   // senders used for this session. Either or both may be nullptr.
   std::unique_ptr<Sender> current_audio_sender_;
   std::unique_ptr<Sender> current_video_sender_;
-
-  // If remoting, we store the RpcMessenger used by the embedder to send RPC
-  // messages from the remoting protobuf specification. For more information,
-  // see //cast/streaming/remoting.proto.
-  std::unique_ptr<RpcMessenger> rpc_messenger_;
 };  // namespace cast
 
 }  // namespace cast

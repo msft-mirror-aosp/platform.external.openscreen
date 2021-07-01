@@ -128,10 +128,8 @@ Json::Value ReceiverCapability::ToJson() const {
 // static
 ErrorOr<ReceiverMessage> ReceiverMessage::Parse(const Json::Value& value) {
   ReceiverMessage message;
-  if (!value ||
-      !json::TryParseInt(value[kSequenceNumber], &(message.sequence_number))) {
-    return Error(Error::Code::kJsonParseError,
-                 "Failed to parse sequence number");
+  if (!value) {
+    return Error(Error::Code::kJsonParseError, "Invalid message body");
   }
 
   std::string result;
@@ -182,6 +180,12 @@ ErrorOr<ReceiverMessage> ReceiverMessage::Parse(const Json::Value& value) {
 
     default:
       break;
+  }
+
+  if (message.type != ReceiverMessage::Type::kRpc &&
+      !json::TryParseInt(value[kSequenceNumber], &(message.sequence_number))) {
+    message.sequence_number = -1;
+    message.valid = false;
   }
 
   return message;

@@ -49,6 +49,8 @@ if (!build_with_chromium) {
         "looping_file_sender.h",
         "receiver_chooser.cc",
         "receiver_chooser.h",
+        "remoting_sender.cc",
+        "remoting_sender.h",
         "simulated_capturer.cc",
         "simulated_capturer.h",
         "streaming_opus_encoder.cc",

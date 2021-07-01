@@ -270,6 +270,10 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   OSP_VLOG << "Starting session negotiation.";
   Error negotiation_error;
   if (connection_settings_->use_remoting) {
+    remoting_sender_ = std::make_unique<RemotingSender>(
+        current_session_->rpc_messenger(), AudioCodec::kOpus, VideoCodec::kVp8,
+        [this]() { OnRemotingReceiverReady(); });
+
     negotiation_error =
         current_session_->NegotiateRemoting(audio_config, video_config);
   } else {
@@ -298,22 +302,39 @@ void LoopingFileCastAgent::OnNegotiated(
 void LoopingFileCastAgent::OnRemotingNegotiated(
     const SenderSession* session,
     SenderSession::RemotingNegotiation negotiation) {
-  // TODO(jophba): this needs to be hashed out as part of
-  // figuring out the embedder workflow.
   if (negotiation.senders.audio_sender == nullptr &&
       negotiation.senders.video_sender == nullptr) {
     OSP_LOG_ERROR << "Missing both audio and video, so exiting...";
     return;
   }
 
-  file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_.value(), session,
-      std::move(negotiation.senders), [this]() { shutdown_callback_(); });
+  current_negotiation_ =
+      std::make_unique<SenderSession::RemotingNegotiation>(negotiation);
+  if (is_ready_for_remoting_) {
+    StartRemotingSenders();
+  }
 }
 
 void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {
   OSP_LOG_ERROR << "SenderSession fatal error: " << error;
   Shutdown();
+}
+
+void LoopingFileCastAgent::OnRemotingReceiverReady() {
+  is_ready_for_remoting_ = true;
+  if (current_negotiation_) {
+    StartRemotingSenders();
+  }
+}
+
+void LoopingFileCastAgent::StartRemotingSenders() {
+  OSP_DCHECK(current_negotiation_);
+  file_sender_ = std::make_unique<LoopingFileSender>(
+      environment_.get(), connection_settings_.value(), current_session_.get(),
+      std::move(current_negotiation_->senders),
+      [this]() { shutdown_callback_(); });
+  current_negotiation_.reset();
+  is_ready_for_remoting_ = false;
 }
 
 void LoopingFileCastAgent::Shutdown() {

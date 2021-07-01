@@ -125,16 +125,16 @@ TEST_F(RpcMessengerTest, ProcessMessageWithRegisteredHandle) {
   // Send message for RPC messenger to process.
   RpcMessage sent_rpc;
   sent_rpc.set_handle(fake_messenger_->handle());
-  sent_rpc.set_proc(RpcMessage::RPC_R_SETVOLUME);
-  sent_rpc.set_double_value(3.4);
+  sent_rpc.set_proc(RpcMessage::RPC_DS_INITIALIZE);
+  sent_rpc.set_integer_value(4004);
   ProcessMessage(sent_rpc);
 
   // Checks if received message is identical to the one sent earlier.
   ASSERT_EQ(1, fake_messenger_->received_count());
   const RpcMessage& received_rpc = fake_messenger_->received_rpc();
   ASSERT_EQ(fake_messenger_->handle(), received_rpc.handle());
-  ASSERT_EQ(RpcMessage::RPC_R_SETVOLUME, received_rpc.proc());
-  ASSERT_EQ(3.4, received_rpc.double_value());
+  ASSERT_EQ(RpcMessage::RPC_DS_INITIALIZE, received_rpc.proc());
+  ASSERT_EQ(4004, received_rpc.integer_value());
 }
 
 TEST_F(RpcMessengerTest, ProcessMessageWithUnregisteredHandle) {

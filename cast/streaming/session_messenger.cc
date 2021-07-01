@@ -146,13 +146,6 @@ void SenderSessionMessenger::OnMessage(const std::string& source_id,
     return;
   }
 
-  int sequence_number;
-  if (!json::TryParseInt(message_body.value()[kSequenceNumber],
-                         &sequence_number)) {
-    OSP_DLOG_WARN << "Received a message without a sequence number";
-    return;
-  }
-
   // If the message is valid JSON and we don't understand it, there are two
   // options: (1) it's an unknown type, or (2) the receiver filled out the
   // message incorrectly. In the first case we can drop it, it's likely just
@@ -173,6 +166,13 @@ void SenderSessionMessenger::OnMessage(const std::string& source_id,
       OSP_DLOG_INFO << "Received RTP message but no callback, dropping";
     }
   } else {
+    int sequence_number;
+    if (!json::TryParseInt(message_body.value()[kSequenceNumber],
+                           &sequence_number)) {
+      OSP_DLOG_WARN << "Received a message without a sequence number";
+      return;
+    }
+
     auto it = awaiting_replies_.find(sequence_number);
     if (it == awaiting_replies_.end()) {
       OSP_DLOG_WARN << "Received a reply I wasn't waiting for: "

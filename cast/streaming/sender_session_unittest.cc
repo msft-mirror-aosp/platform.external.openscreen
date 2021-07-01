@@ -545,8 +545,9 @@ TEST_F(SenderSessionTest, SuccessfulRemotingNegotiationYieldsValidObject) {
 
   // The messenger is tested elsewhere, but we can sanity check that we got a valid
   // one here.
-  EXPECT_TRUE(negotiation.messenger);
-  const RpcMessenger::Handle handle = negotiation.messenger->GetUniqueHandle();
+  EXPECT_TRUE(session_->rpc_messenger());
+  const RpcMessenger::Handle handle =
+      session_->rpc_messenger()->GetUniqueHandle();
   EXPECT_NE(RpcMessenger::kInvalidHandle, handle);
 }
 

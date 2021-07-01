@@ -72,7 +72,8 @@ void RpcMessenger::ProcessMessageFromRemote(const uint8_t* message,
                                          std::size_t message_len) {
   auto rpc = std::make_unique<RpcMessage>();
   if (!rpc->ParseFromArray(message, message_len)) {
-    OSP_LOG_WARN << "Failed to parse RPC message from remote: " << message;
+    OSP_DLOG_WARN << "Failed to parse RPC message from remote: \"" << message
+                  << "\"";
     return;
   }
   OSP_DVLOG << "Received RPC message: " << *rpc;

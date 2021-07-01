@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "cast/standalone_receiver/simple_remoting_receiver.h"
 #include "cast/streaming/receiver_session.h"
 #include "platform/impl/task_runner.h"
 
@@ -46,6 +47,8 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
   TaskRunner* const task_runner_;
   StreamingPlaybackController::Client* client_;
 
+  void Initialize(ReceiverSession::ConfiguredReceivers receivers);
+
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
   // NOTE: member ordering is important, since the sub systems must be
   // first-constructed, last-destroyed. Make sure any new SDL related
@@ -62,6 +65,8 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
   std::unique_ptr<DummyPlayer> audio_player_;
   std::unique_ptr<DummyPlayer> video_player_;
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
+
+  std::unique_ptr<SimpleRemotingReceiver> remoting_receiver_;
 };
 
 }  // namespace cast

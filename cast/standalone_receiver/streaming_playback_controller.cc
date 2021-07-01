@@ -57,6 +57,42 @@ void StreamingPlaybackController::OnNegotiated(
     const ReceiverSession* session,
     ReceiverSession::ConfiguredReceivers receivers) {
   TRACE_DEFAULT_SCOPED(TraceCategory::kStandaloneReceiver);
+  Initialize(receivers);
+}
+
+void StreamingPlaybackController::OnRemotingNegotiated(
+    const ReceiverSession* session,
+    ReceiverSession::RemotingNegotiation negotiation) {
+  remoting_receiver_ =
+      std::make_unique<SimpleRemotingReceiver>(negotiation.messenger);
+  remoting_receiver_->SendInitializeMessage(
+      [this, receivers = negotiation.receivers](AudioCodec audio_codec,
+                                                VideoCodec video_codec) {
+        // The configurations in |negotiation| do not have the actual codecs,
+        // only REMOTE_AUDIO and REMOTE_VIDEO. Once we receive the
+        // initialization callback method, we can override with the actual
+        // codecs here.
+        auto mutable_receivers = receivers;
+        mutable_receivers.audio_config.codec = audio_codec;
+        mutable_receivers.video_config.codec = video_codec;
+        Initialize(mutable_receivers);
+      });
+}
+
+void StreamingPlaybackController::OnReceiversDestroying(
+    const ReceiverSession* session,
+    ReceiversDestroyingReason reason) {
+  audio_player_.reset();
+  video_player_.reset();
+}
+
+void StreamingPlaybackController::OnError(const ReceiverSession* session,
+                                          Error error) {
+  client_->OnPlaybackError(this, error);
+}
+
+void StreamingPlaybackController::Initialize(
+    ReceiverSession::ConfiguredReceivers receivers) {
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
   if (receivers.audio_receiver) {
     audio_player_ = std::make_unique<SDLAudioPlayer>(
@@ -81,26 +117,6 @@ void StreamingPlaybackController::OnNegotiated(
     video_player_ = std::make_unique<DummyPlayer>(receivers.video_receiver);
   }
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
-}
-
-void StreamingPlaybackController::OnRemotingNegotiated(
-    const ReceiverSession* session,
-    ReceiverSession::RemotingNegotiation negotiation) {
-  // TODO(issuetracker.google.com/190078859): need ability to initialize
-  // remoting codecs.
-  OSP_UNIMPLEMENTED();
-}
-
-void StreamingPlaybackController::OnReceiversDestroying(
-    const ReceiverSession* session,
-    ReceiversDestroyingReason reason) {
-  audio_player_.reset();
-  video_player_.reset();
-}
-
-void StreamingPlaybackController::OnError(const ReceiverSession* session,
-                                          Error error) {
-  client_->OnPlaybackError(this, error);
 }
 
 }  // namespace cast

@@ -16,6 +16,8 @@ if (!build_with_chromium) {
     "cast_service.h",
     "mirroring_application.cc",
     "mirroring_application.h",
+    "simple_remoting_receiver.cc",
+    "simple_remoting_receiver.h",
     "streaming_playback_controller.cc",
     "streaming_playback_controller.h",
   ]

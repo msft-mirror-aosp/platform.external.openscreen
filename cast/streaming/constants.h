@@ -111,6 +111,8 @@ constexpr int kSupportedRemotingVersion = 2;
 enum class AudioCodec { kAac, kOpus, kNotSpecified };
 enum class VideoCodec { kH264, kVp8, kHevc, kVp9, kNotSpecified };
 
+enum class CastMode : uint8_t { kMirroring, kRemoting };
+
 }  // namespace cast
 }  // namespace openscreen
 
