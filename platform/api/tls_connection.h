@@ -41,7 +41,7 @@ class TlsConnection {
   [[nodiscard]] virtual bool Send(const void* data, size_t len) = 0;
 
   // Get the local address.
-  virtual IPEndpoint GetLocalEndpoint() const = 0;
+  virtual IPEndpoint GetLocalEndpoint() const { return IPEndpoint(); }
 
   // Get the connected remote address.
   virtual IPEndpoint GetRemoteEndpoint() const = 0;
