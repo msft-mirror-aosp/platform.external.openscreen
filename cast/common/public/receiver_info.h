@@ -87,10 +87,10 @@ struct ReceiverInfo {
   // Status of the service instance.
   ReceiverStatus status = ReceiverStatus::kIdle;
 
-  // The model name of the device, e.g. “Eureka v1”, “Mollie”.
+  // The model name of the receiver, e.g. “Eureka v1”, “Mollie”.
   std::string model_name;
 
-  // The friendly name of the device, e.g. “Living Room TV".
+  // The friendly name of the receiver, e.g. “Living Room TV".
   std::string friendly_name;
 
  private:

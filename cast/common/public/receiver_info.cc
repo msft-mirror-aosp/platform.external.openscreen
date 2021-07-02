@@ -11,24 +11,22 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_replace.h"
+#include "discovery/mdns/public/mdns_constants.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
 namespace cast {
 namespace {
 
-// Maximum size for registered MDNS service instance names.
-const size_t kMaxDeviceNameSize = 63;
-
-// Maximum size for the device model prefix at start of MDNS service instance
+// Maximum size for the receiver model prefix at start of MDNS service instance
 // names. Any model names that are larger than this size will be truncated.
-const size_t kMaxDeviceModelSize = 20;
+const size_t kMaxReceiverModelSize = 20;
 
-// Build the MDNS instance name for service. This will be the device model (up
-// to 20 bytes) appended with the virtual device ID (device UUID) and optionally
-// appended with extension at the end to resolve name conflicts. The total MDNS
-// service instance name is kept below 64 bytes so it can easily fit into a
-// single domain name label.
+// Build the MDNS instance name for service. This will be the receiver model (up
+// to 20 bytes) appended with the virtual receiver ID (receiver UUID) and
+// optionally appended with extension at the end to resolve name conflicts. The
+// total MDNS service instance name is kept below 64 bytes so it can easily fit
+// into a single domain name label.
 //
 // NOTE: This value is based on what is currently done by Eureka, not what is
 // called out in the CastV2 spec. Eureka uses |model|-|uuid|, so the same
@@ -36,24 +34,24 @@ const size_t kMaxDeviceModelSize = 20;
 // not use the instance ID in any way, so the specific calculation used should
 // not be important.
 std::string CalculateInstanceId(const ReceiverInfo& info) {
-  // First set the device model, truncated to 20 bytes at most. Replace any
-  // whitespace characters (" ") with hyphens ("-") in the device model before
+  // First set the receiver model, truncated to 20 bytes at most. Replace any
+  // whitespace characters (" ") with hyphens ("-") in the receiver model before
   // truncation.
   std::string instance_name =
       absl::StrReplaceAll(info.model_name, {{" ", "-"}});
-  instance_name = std::string(instance_name, 0, kMaxDeviceModelSize);
+  instance_name = std::string(instance_name, 0, kMaxReceiverModelSize);
 
-  // Append the virtual device ID to the instance name separated by a single
-  // '-' character if not empty. Strip all hyphens from the device ID prior
+  // Append the receiver ID to the instance name separated by a single
+  // '-' character if not empty. Strip all hyphens from the receiver ID prior
   // to appending it.
-  std::string device_id = absl::StrReplaceAll(info.unique_id, {{"-", ""}});
+  std::string receiver_id = absl::StrReplaceAll(info.unique_id, {{"-", ""}});
 
   if (!instance_name.empty()) {
     instance_name.push_back('-');
   }
-  instance_name.append(device_id);
+  instance_name.append(receiver_id);
 
-  return std::string(instance_name, 0, kMaxDeviceNameSize);
+  return std::string(instance_name, 0, discovery::kMaxLabelLength);
 }
 
 // Returns the value for the provided |key| in the |txt| record if it exists;
@@ -124,7 +122,7 @@ discovery::DnsSdInstance ReceiverInfoToDnsSdInstance(const ReceiverInfo& info) {
 ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
     const discovery::DnsSdInstanceEndpoint& endpoint) {
   if (endpoint.service_id() != kCastV2ServiceId) {
-    return {Error::Code::kParameterInvalid, "Not a Cast device."};
+    return {Error::Code::kParameterInvalid, "Not a Cast receiver."};
   }
 
   ReceiverInfo record;
@@ -148,7 +146,7 @@ ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
   record.unique_id = GetStringFromRecord(endpoint.txt(), kUniqueIdKey);
   if (record.unique_id.empty()) {
     return {Error::Code::kParameterInvalid,
-            "Missing device unique ID in record."};
+            "Missing receiver unique ID in record."};
   }
 
   // Cast protocol version supported. Begins at 2 and is incremented by 1 with
@@ -169,15 +167,15 @@ ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
   }
   record.protocol_version = static_cast<uint8_t>(version);
 
-  // A bitset of device capabilities.
+  // A bitset of receiver capabilities.
   a_decimal_number = GetStringFromRecord(endpoint.txt(), kCapabilitiesKey);
   if (a_decimal_number.empty()) {
     return {Error::Code::kParameterInvalid,
-            "Missing device capabilities in record."};
+            "Missing receiver capabilities in record."};
   }
   if (!absl::SimpleAtoi(a_decimal_number, &record.capabilities)) {
     return {Error::Code::kParameterInvalid,
-            "Invalid device capabilities field in record."};
+            "Invalid receiver capabilities field in record."};
   }
 
   // Receiver status flag.
@@ -194,11 +192,11 @@ ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
   // [Optional] Receiver model name.
   record.model_name = GetStringFromRecord(endpoint.txt(), kModelNameKey);
 
-  // The friendly name of the device.
+  // The friendly name of the receiver.
   record.friendly_name = GetStringFromRecord(endpoint.txt(), kFriendlyNameKey);
   if (record.friendly_name.empty()) {
     return {Error::Code::kParameterInvalid,
-            "Missing device friendly name in record."};
+            "Missing receiver friendly name in record."};
   }
 
   return record;

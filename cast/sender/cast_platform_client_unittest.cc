@@ -34,7 +34,7 @@ class CastPlatformClientTest : public ::testing::Test {
 
     receiver_.v4_address = IPAddress{192, 168, 0, 17};
     receiver_.port = 4434;
-    receiver_.unique_id = "deviceId1";
+    receiver_.unique_id = "receiverId1";
     platform_client_.AddOrUpdateReceiver(receiver_, socket_->socket_id());
   }
 
@@ -64,7 +64,7 @@ TEST_F(CastPlatformClientTest, AppAvailability) {
       });
   bool ran = false;
   platform_client_.RequestAppAvailability(
-      "deviceId1", "AAA",
+      "receiverId1", "AAA",
       [&ran](const std::string& app_id, AppAvailabilityResult availability) {
         EXPECT_EQ("AAA", app_id);
         EXPECT_EQ(availability, AppAvailabilityResult::kAvailable);
@@ -92,7 +92,7 @@ TEST_F(CastPlatformClientTest, CancelRequest) {
       });
   absl::optional<int> maybe_request_id =
       platform_client_.RequestAppAvailability(
-          "deviceId1", "AAA",
+          "receiverId1", "AAA",
           [](const std::string& app_id, AppAvailabilityResult availability) {
             EXPECT_TRUE(false);
           });

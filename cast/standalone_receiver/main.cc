@@ -58,9 +58,9 @@ options:
                                 private key and certificate can then be used as
                                 values for the -p and -s flags.
 
-    -f, --friendly-name: Friendly name to be used for device discovery.
+    -f, --friendly-name: Friendly name to be used for receiver discovery.
 
-    -m, --model-name: Model name to be used for device discovery.
+    -m, --model-name: Model name to be used for receiver discovery.
 
     -t, --tracing: Enable performance tracing logging.
 
@@ -216,10 +216,10 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
   OSP_CHECK(interface_name && strlen(interface_name) > 0)
       << "No interface name provided.";
 
-  std::string device_id =
+  std::string receiver_id =
       absl::StrCat("Standalone Receiver on ", interface_name);
   ErrorOr<GeneratedCredentials> creds = GenerateCredentials(
-      device_id, private_key_path, developer_certificate_path);
+      receiver_id, private_key_path, developer_certificate_path);
   OSP_CHECK(creds.is_value()) << creds.error();
 
   const InterfaceInfo interface = GetInterfaceInfoFromName(interface_name);

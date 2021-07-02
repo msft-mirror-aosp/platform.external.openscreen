@@ -33,7 +33,7 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
       const CastMediaSource& source,
       AvailabilityCallback callback) override;
 
-  // Reissues app availability requests for currently registered (device_id,
+  // Reissues app availability requests for currently registered (receiver_id,
   // app_id) pairs whose status is kUnavailable or kUnknown.
   void Refresh() override;
 
@@ -47,13 +47,13 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
   };
 
   // Issues an app availability request for |app_id| to the receiver given by
-  // |device_id|.
-  void RequestAppAvailability(const std::string& device_id,
+  // |receiver_id|.
+  void RequestAppAvailability(const std::string& receiver_id,
                               const std::string& app_id);
 
-  // Updates the availability result for |device_id| and |app_id| with |result|,
-  // and notifies callbacks with updated availability query results.
-  void UpdateAppAvailability(const std::string& device_id,
+  // Updates the availability result for |receiver_id| and |app_id| with
+  // |result|, and notifies callbacks with updated availability query results.
+  void UpdateAppAvailability(const std::string& receiver_id,
                              const std::string& app_id,
                              AppAvailabilityResult result);
 
@@ -61,12 +61,12 @@ class CastAppDiscoveryServiceImpl : public CastAppDiscoveryService {
   void UpdateAvailabilityQueries(const std::vector<CastMediaSource>& sources);
 
   std::vector<ReceiverInfo> GetReceiversByIds(
-      const std::vector<std::string>& device_ids) const;
+      const std::vector<std::string>& receiver_ids) const;
 
   // Returns true if an app availability request should be issued for
-  // |device_id| and |app_id|. |now| is used for checking whether previously
+  // |receiver_id| and |app_id|. |now| is used for checking whether previously
   // cached results should be refreshed.
-  bool ShouldRefreshAppAvailability(const std::string& device_id,
+  bool ShouldRefreshAppAvailability(const std::string& receiver_id,
                                     const std::string& app_id,
                                     Clock::time_point now) const;
 
