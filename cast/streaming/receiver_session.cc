@@ -33,8 +33,8 @@ std::unique_ptr<Stream> SelectStream(
   for (auto codec : preferred_codecs) {
     for (const Stream& offered_stream : offered_streams) {
       if (offered_stream.codec == codec) {
-        OSP_DVLOG << "Selected " << CodecToString(codec)
-                  << " as codec for streaming";
+        OSP_VLOG << "Selected " << CodecToString(codec)
+                 << " as codec for streaming";
         return std::make_unique<Stream>(offered_stream);
       }
     }

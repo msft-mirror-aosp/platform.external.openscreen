@@ -59,12 +59,10 @@ void RpcMessenger::RegisterMessageReceiverCallback(
     ReceiveMessageCallback callback) {
   OSP_DCHECK(receive_callbacks_.find(handle) == receive_callbacks_.end())
       << "must deregister before re-registering";
-  OSP_DVLOG << "registering handle: " << handle;
   receive_callbacks_.emplace_back(handle, std::move(callback));
 }
 
 void RpcMessenger::UnregisterMessageReceiverCallback(RpcMessenger::Handle handle) {
-  OSP_DVLOG << "unregistering handle: " << handle;
   receive_callbacks_.erase_key(handle);
 }
 
@@ -76,19 +74,18 @@ void RpcMessenger::ProcessMessageFromRemote(const uint8_t* message,
                   << "\"";
     return;
   }
-  OSP_DVLOG << "Received RPC message: " << *rpc;
 
   const auto entry = receive_callbacks_.find(rpc->handle());
   if (entry == receive_callbacks_.end()) {
-    OSP_DVLOG << "Dropping message due to unregistered handle: "
-              << rpc->handle();
+    OSP_VLOG << "Dropping message due to unregistered handle: "
+             << rpc->handle();
     return;
   }
   entry->second(std::move(rpc));
 }
 
 void RpcMessenger::SendMessageToRemote(const RpcMessage& rpc) {
-  OSP_DVLOG << "Sending RPC message: " << rpc;
+  OSP_VLOG << "Sending RPC message: " << rpc;
   std::vector<uint8_t> message(rpc.ByteSizeLong());
   rpc.SerializeToArray(message.data(), message.size());
   send_message_cb_(std::move(message));

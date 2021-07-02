@@ -106,8 +106,6 @@ void SenderSocketFactory::OnConnectionFailed(TlsConnectionFactory* factory,
                                              const IPEndpoint& remote_address) {
   auto it = FindPendingConnection(remote_address);
   if (it == pending_connections_.end()) {
-    OSP_DVLOG << "OnConnectionFailed reported for untracked address: "
-              << remote_address;
     return;
   }
   pending_connections_.erase(it);

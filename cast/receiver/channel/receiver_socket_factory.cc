@@ -38,7 +38,6 @@ void ReceiverSocketFactory::OnConnected(
 void ReceiverSocketFactory::OnConnectionFailed(
     TlsConnectionFactory* factory,
     const IPEndpoint& remote_address) {
-  OSP_DVLOG << "Receiving connection from endpoint failed: " << remote_address;
   client_->OnError(this, Error(Error::Code::kConnectionFailed,
                                "Accepting connection failed."));
 }

@@ -119,9 +119,6 @@ void CastAppDiscoveryServiceImpl::UpdateAppAvailability(
     return;
   }
 
-  OSP_DVLOG << "App " << app_id << " on receiver " << device_id << " is "
-            << ToString(availability);
-
   UpdateAvailabilityQueries(availability_tracker_.UpdateAppAvailability(
       device_id, app_id, {availability, clock_()}));
 }

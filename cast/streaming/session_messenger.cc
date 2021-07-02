@@ -23,7 +23,7 @@ void ReplyIfTimedOut(
         replies) {
   for (auto it = replies->begin(); it != replies->end(); ++it) {
     if (it->first == sequence_number) {
-      OSP_DVLOG
+      OSP_VLOG
           << "Replying with empty message due to timeout for sequence number: "
           << sequence_number;
       it->second(ReceiverMessage{reply_type, sequence_number});
@@ -57,9 +57,9 @@ Error SessionMessenger::SendMessage(const std::string& destination_id,
   if (body_or_error.is_error()) {
     return std::move(body_or_error.error());
   }
-  OSP_DVLOG << "Sending message: DESTINATION[" << destination_id
-            << "], NAMESPACE[" << namespace_ << "], BODY:\n"
-            << body_or_error.value();
+  OSP_VLOG << "Sending message: DESTINATION[" << destination_id
+           << "], NAMESPACE[" << namespace_ << "], BODY:\n"
+           << body_or_error.value();
   message_port_->PostMessage(destination_id, namespace_, body_or_error.value());
   return Error::None();
 }
@@ -180,8 +180,6 @@ void SenderSessionMessenger::OnMessage(const std::string& source_id,
       return;
     }
 
-    OSP_DVLOG << "Received a valid reply from " << source_id
-              << ". Reply body: " << message;
     it->second(std::move(receiver_message.value({})));
 
     // Calling the function callback may result in the checksum of the pointed
@@ -268,8 +266,6 @@ void ReceiverSessionMessenger::OnMessage(const std::string& source_id,
   if (it == callbacks_.end()) {
     OSP_DLOG_INFO << "Received message without a callback, dropping";
   } else {
-    OSP_DVLOG << "Received valid message from " << source_id
-              << ", executing callback. Message body: " << message;
     it->second(sender_message.value());
   }
 }

@@ -128,7 +128,6 @@ void CastPlatformClient::OnMessage(VirtualConnectionRouter* router,
   }
   ErrorOr<Json::Value> dict_or_error = json::Parse(message.payload_utf8());
   if (dict_or_error.is_error()) {
-    OSP_DVLOG << "Failed to deserialize CastMessage payload.";
     return;
   }
 
@@ -178,7 +177,7 @@ void CastPlatformClient::HandleResponse(const std::string& device_id,
         } else if (result.value() == kMessageValueAppUnavailable) {
           availability_result = AppAvailabilityResult::kUnavailable;
         } else {
-          OSP_DVLOG << "Invalid availability result: " << result.value();
+          OSP_VLOG << "Invalid availability result: " << result.value();
         }
         it->callback(it->app_id, availability_result);
       }

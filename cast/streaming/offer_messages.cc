@@ -360,7 +360,7 @@ Error Offer::TryParse(const Json::Value& root, Offer* out) {
 
     if (!error.ok()) {
       if (error.code() == Error::Code::kUnknownCodec) {
-        OSP_DVLOG << "Dropping audio stream due to unknown codec: " << error;
+        OSP_VLOG << "Dropping audio stream due to unknown codec: " << error;
         continue;
       } else {
         return error;
