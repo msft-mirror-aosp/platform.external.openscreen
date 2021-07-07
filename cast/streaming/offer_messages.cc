@@ -202,8 +202,8 @@ Json::Value Stream::ToJson() const {
                 "this code assumes Ssrc fits in a Json::UInt");
   root["ssrc"] = static_cast<Json::UInt>(ssrc);
   root["targetDelay"] = static_cast<int>(target_delay.count());
-  root["aesKey"] = HexEncode(aes_key);
-  root["aesIvMask"] = HexEncode(aes_iv_mask);
+  root["aesKey"] = HexEncode(aes_key.data(), aes_key.size());
+  root["aesIvMask"] = HexEncode(aes_iv_mask.data(), aes_iv_mask.size());
   root["receiverRtcpEventLog"] = receiver_rtcp_event_log;
   root["receiverRtcpDscp"] = receiver_rtcp_dscp;
   root["timeBase"] = "1/" + std::to_string(rtp_timebase);

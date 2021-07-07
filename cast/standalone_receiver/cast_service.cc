@@ -69,7 +69,8 @@ CastService::CastService(CastService::Configuration config)
   if (discovery_publisher_) {
     ReceiverInfo info;
     info.port = local_endpoint_.port;
-    info.unique_id = HexEncode(config.interface.hardware_address);
+    info.unique_id = HexEncode(config.interface.hardware_address.data(),
+                               config.interface.hardware_address.size());
     info.friendly_name = config.friendly_name;
     info.model_name = config.model_name;
     info.capabilities = kHasVideoOutput | kHasAudioOutput;
