@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "cast/common/certificate/types.h"
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
@@ -407,23 +408,30 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
       result_path->intermediate_certs;
   target_cert.reset(ParseX509Der(der_certs[0]));
   if (!target_cert) {
-    return Error::Code::kErrCertsParse;
+    return Error(Error::Code::kErrCertsParse,
+                 "FindCertificatePath: Invalid target certificate");
   }
   for (size_t i = 1; i < der_certs.size(); ++i) {
     intermediate_certs.emplace_back(ParseX509Der(der_certs[i]));
     if (!intermediate_certs.back()) {
-      return Error::Code::kErrCertsParse;
+      return Error(
+          Error::Code::kErrCertsParse,
+          absl::StrCat(
+              "FindCertificatePath: Failed to parse intermediate certificate ",
+              i, " of ", der_certs.size()));
     }
   }
 
   // Basic checks on the target certificate.
-  Error::Code error = VerifyCertTime(target_cert.get(), time);
-  if (error != Error::Code::kNone) {
-    return error;
+  Error::Code valid_time = VerifyCertTime(target_cert.get(), time);
+  if (valid_time != Error::Code::kNone) {
+    return Error(valid_time,
+                 "FindCertificatePath: Failed to verify certificate time");
   }
   bssl::UniquePtr<EVP_PKEY> public_key{X509_get_pubkey(target_cert.get())};
   if (!VerifyPublicKeyLength(public_key.get())) {
-    return Error::Code::kErrCertsVerifyGeneric;
+    return Error(Error::Code::kErrCertsVerifyGeneric,
+                 "FindCertificatePath: Failed with invalid public key length");
   }
   const X509_ALGOR* sig_alg;
   X509_get0_signature(nullptr, &sig_alg, target_cert.get());
@@ -432,12 +440,14 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
   }
   bssl::UniquePtr<ASN1_BIT_STRING> key_usage = GetKeyUsage(target_cert.get());
   if (!key_usage) {
-    return Error::Code::kErrCertsRestrictions;
+    return Error(Error::Code::kErrCertsRestrictions,
+                 "FindCertificatePath: Failed with no key usage");
   }
   int bit =
       ASN1_BIT_STRING_get_bit(key_usage.get(), KeyUsageBits::kDigitalSignature);
   if (bit == 0) {
-    return Error::Code::kErrCertsRestrictions;
+    return Error(Error::Code::kErrCertsRestrictions,
+                 "FindCertificatePath: Failed to get digital signature");
   }
 
   X509* path_head = target_cert.get();
@@ -470,6 +480,8 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
   Error::Code last_error = Error::Code::kNone;
   for (;;) {
     X509_NAME* target_issuer_name = X509_get_issuer_name(path_head);
+    OSP_VLOG << "FindCertificatePath: Target certificate issuer name: "
+             << X509_NAME_oneline(target_issuer_name, 0, 0);
 
     // The next issuer certificate to add to the current path.
     X509* next_issuer = nullptr;
@@ -478,6 +490,8 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
       X509* trust_store_cert = trust_store->certs[i].get();
       X509_NAME* trust_store_cert_name =
           X509_get_subject_name(trust_store_cert);
+      OSP_VLOG << "FindCertificatePath: Trust store certificate issuer name: "
+               << X509_NAME_oneline(trust_store_cert_name, 0, 0);
       if (X509_NAME_cmp(trust_store_cert_name, target_issuer_name) == 0) {
         CertPathStep& next_step = path[--path_index];
         next_step.cert = trust_store_cert;
@@ -512,7 +526,9 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
       if (path_index == first_index) {
         // There are no more paths to try.  Ensure an error is returned.
         if (last_error == Error::Code::kNone) {
-          return Error::Code::kErrCertsVerifyUntrustedCert;
+          return Error(Error::Code::kErrCertsVerifyUntrustedCert,
+                       "FindCertificatePath: Failed after trying all "
+                       "certificate paths, no matches");
         }
         return last_error;
       } else {
@@ -542,6 +558,8 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
     result_path->path.push_back(path[i].cert);
   }
 
+  OSP_VLOG
+      << "FindCertificatePath: Succeeded at validating receiver certificates";
   return Error::Code::kNone;
 }
 
