@@ -19,6 +19,8 @@
 namespace openscreen {
 namespace cast {
 
+StreamingPlaybackController::Client::~Client() = default;
+
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
 StreamingPlaybackController::StreamingPlaybackController(
     TaskRunner* task_runner,

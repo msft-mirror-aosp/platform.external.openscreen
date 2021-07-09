@@ -16,6 +16,8 @@ using ::cast::channel::CastMessage;
 namespace openscreen {
 namespace cast {
 
+SenderSocketFactory::Client::~Client() = default;
+
 bool operator<(const std::unique_ptr<SenderSocketFactory::PendingAuth>& a,
                int b) {
   return a && a->socket->socket_id() < b;

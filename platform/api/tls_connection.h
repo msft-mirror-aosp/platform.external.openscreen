@@ -26,7 +26,7 @@ class TlsConnection {
                         std::vector<uint8_t> block) = 0;
 
    protected:
-    virtual ~Client() = default;
+    virtual ~Client();
   };
 
   virtual ~TlsConnection();

@@ -28,6 +28,9 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
    public:
     virtual void OnPlaybackError(StreamingPlaybackController* controller,
                                  Error error) = 0;
+
+   protected:
+    virtual ~Client();
   };
 
   StreamingPlaybackController(TaskRunner* task_runner,
