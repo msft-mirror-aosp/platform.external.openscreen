@@ -81,6 +81,22 @@ constexpr char kValidOffer[] = R"({
       "channels": 2,
       "aesKey": "51027e4e2347cbcb49d57ef10177aebc",
       "aesIvMask": "7f12a19be62a36c04ae4116caaeff6d1"
+    },
+    {
+      "index": 3,
+      "type": "video_source",
+      "codecName": "av1",
+      "rtpProfile": "cast",
+      "rtpPayloadType": 104,
+      "ssrc": 19088744,
+      "maxFrameRate": "30000/1001",
+      "targetDelay": 1000,
+      "timeBase": "1/90000",
+      "maxBitRate": 5000000,
+      "profile": "main",
+      "level": "5",
+      "aesKey": "bbf109bf84513b456b13a184453b66ce",
+      "aesIvMask": "edaf9e4536e2b66191f560d9c04b2a69"
     }
   ]
 })";
@@ -103,12 +119,13 @@ void ExpectEqualsValidOffer(const Offer& offer) {
   EXPECT_EQ(CastMode::kMirroring, offer.cast_mode);
 
   // Verify list of video streams.
-  EXPECT_EQ(2u, offer.video_streams.size());
+  EXPECT_EQ(3u, offer.video_streams.size());
   const auto& video_streams = offer.video_streams;
 
   const bool flipped = video_streams[0].stream.index != 0;
-  const VideoStream& vs_one = flipped ? video_streams[1] : video_streams[0];
-  const VideoStream& vs_two = flipped ? video_streams[0] : video_streams[1];
+  const VideoStream& vs_one = flipped ? video_streams[2] : video_streams[0];
+  const VideoStream& vs_two = video_streams[1];
+  const VideoStream& vs_three = flipped ? video_streams[0] : video_streams[2];
 
   EXPECT_EQ(0, vs_one.stream.index);
   EXPECT_EQ(1, vs_one.stream.channels);
@@ -162,6 +179,27 @@ void ExpectEqualsValidOffer(const Offer& offer) {
 
   const auto& resolutions_two = vs_two.resolutions;
   EXPECT_EQ(0u, resolutions_two.size());
+
+  EXPECT_EQ(3, vs_three.stream.index);
+  EXPECT_EQ(1, vs_three.stream.channels);
+  EXPECT_EQ(Stream::Type::kVideoSource, vs_three.stream.type);
+  EXPECT_EQ(VideoCodec::kAv1, vs_three.codec);
+  EXPECT_EQ(RtpPayloadType::kVideoAv1, vs_three.stream.rtp_payload_type);
+  EXPECT_EQ(19088744u, vs_three.stream.ssrc);
+  EXPECT_EQ((SimpleFraction{30000, 1001}), vs_three.max_frame_rate);
+  EXPECT_EQ(90000, vs_three.stream.rtp_timebase);
+  EXPECT_EQ(5000000, vs_three.max_bit_rate);
+  EXPECT_EQ("main", vs_three.profile);
+  EXPECT_EQ("5", vs_three.level);
+  EXPECT_THAT(vs_three.stream.aes_key,
+              ElementsAre(0xbb, 0xf1, 0x09, 0xbf, 0x84, 0x51, 0x3b, 0x45, 0x6b,
+                          0x13, 0xa1, 0x84, 0x45, 0x3b, 0x66, 0xce));
+  EXPECT_THAT(vs_three.stream.aes_iv_mask,
+              ElementsAre(0xed, 0xaf, 0x9e, 0x45, 0x36, 0xe2, 0xb6, 0x61, 0x91,
+                          0xf5, 0x60, 0xd9, 0xc0, 0x4b, 0x2a, 0x69));
+
+  const auto& resolutions_three = vs_three.resolutions;
+  EXPECT_EQ(0u, resolutions_three.size());
 
   // Verify list of audio streams.
   EXPECT_EQ(1u, offer.audio_streams.size());
