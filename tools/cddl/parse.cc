@@ -428,7 +428,6 @@ AstNode* ParseGroupChoice(Parser* p) {
       return nullptr;
     }
   }
-  return nullptr;
 }
 
 AstNode* ParseGroup(Parser* p) {
