@@ -12,6 +12,7 @@ use_relative_paths = True
 vars = {
   'boringssl_git': 'https://boringssl.googlesource.com',
   'chromium_git': 'https://chromium.googlesource.com',
+  'quiche_git': 'https://quiche.googlesource.com',
 
   # NOTE: we should only reference GitHub directly for dependencies toggled
   # with the "not build_with_chromium" condition.
@@ -128,6 +129,13 @@ deps = {
   'third_party/chromium_quic/src': {
     'url': Var('chromium_git') + '/openscreen/quic.git' +
       '@' + '79eec3fc28f5c4e1d06c6146825e31def6e3b793',
+    'condition': 'not build_with_chromium',
+  },
+
+  # To roll forward, use quiche_revision from chromium/src/DEPS.
+  'third_party/quiche/src': {
+    'url': Var('quiche_git') + '/quiche.git' +
+      '@' + '51f584db29001036c20db3f72f09b00b875ae625',
     'condition': 'not build_with_chromium',
   },
 
