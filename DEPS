@@ -108,14 +108,6 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
-  'third_party/mDNSResponder/src': {
-    # NOTE: this fork of mDNSResponder is ancient (9 years old), but since
-    # we are moving away from mDNSResponder we will not be updating this.
-    'url': Var('github') + '/jevinskie/mDNSResponder.git' +
-      '@' + '2942dde61f920fbbf96ff9a3840567ebbe7cb1b6',
-    'condition': 'not build_with_chromium',
-  },
-
   # Note about updating BoringSSL: after changing this hash, run the update
   # script in BoringSSL's util folder for generating build files from the
   # <openscreen src-dir>/third_party/boringssl directory:
