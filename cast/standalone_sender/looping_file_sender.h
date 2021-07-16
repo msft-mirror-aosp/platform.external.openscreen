@@ -12,7 +12,7 @@
 #include "cast/standalone_sender/constants.h"
 #include "cast/standalone_sender/simulated_capturer.h"
 #include "cast/standalone_sender/streaming_opus_encoder.h"
-#include "cast/standalone_sender/streaming_vp8_encoder.h"
+#include "cast/standalone_sender/streaming_vpx_encoder.h"
 #include "cast/streaming/sender_session.h"
 
 namespace openscreen {
@@ -73,7 +73,7 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
   int bandwidth_being_utilized_;
 
   StreamingOpusEncoder audio_encoder_;
-  StreamingVp8Encoder video_encoder_;
+  StreamingVpxEncoder video_encoder_;
 
   int num_capturers_running_ = 0;
   Clock::time_point capture_start_time_{};

@@ -23,7 +23,7 @@ LoopingFileSender::LoopingFileSender(Environment* environment,
       audio_encoder_(senders.audio_sender->config().channels,
                      StreamingOpusEncoder::kDefaultCastAudioFramesPerSecond,
                      senders.audio_sender),
-      video_encoder_(StreamingVp8Encoder::Parameters{},
+      video_encoder_(StreamingVpxEncoder::Parameters{.codec = settings.codec},
                      env_->task_runner(),
                      senders.video_sender),
       next_task_(env_->now_function(), env_->task_runner()),
@@ -32,7 +32,8 @@ LoopingFileSender::LoopingFileSender(Environment* environment,
   // to a different value that means we offered a codec that we do not
   // support, which is a developer error.
   OSP_CHECK(senders.audio_config.codec == AudioCodec::kOpus);
-  OSP_CHECK(senders.video_config.codec == VideoCodec::kVp8);
+  OSP_CHECK(senders.video_config.codec == VideoCodec::kVp8 ||
+            senders.video_config.codec == VideoCodec::kVp9);
   OSP_LOG_INFO << "Max allowed media bitrate (audio + video) will be "
                << settings_.max_bitrate;
   bandwidth_being_utilized_ = settings_.max_bitrate / 2;
@@ -117,7 +118,7 @@ void LoopingFileSender::OnVideoFrame(const AVFrame& av_frame,
                                      Clock::time_point capture_time) {
   TRACE_DEFAULT_SCOPED(TraceCategory::kStandaloneSender);
   latest_frame_time_ = std::max(capture_time, latest_frame_time_);
-  StreamingVp8Encoder::VideoFrame frame{};
+  StreamingVpxEncoder::VideoFrame frame{};
   frame.width = av_frame.width - av_frame.crop_left - av_frame.crop_right;
   frame.height = av_frame.height - av_frame.crop_top - av_frame.crop_bottom;
   frame.yuv_planes[0] = av_frame.data[0] + av_frame.crop_left +
