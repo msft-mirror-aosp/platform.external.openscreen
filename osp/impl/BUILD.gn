@@ -32,7 +32,6 @@ source_set("impl") {
     "../public",
   ]
   deps = [
-    "../../discovery:common",
     "../../discovery:dnssd",
     "../../discovery:public",
     "../../platform",

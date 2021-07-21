@@ -1,7 +1,8 @@
 # -*- Mode: Python; -*-
-
 include_rules = [
+  # Layering rule.
+  '-discovery/mdns',
+  # Except ourselves.
   '+discovery/mdns/public',
-  # DNS-SD is layered on top of mDNS.
-  '-discovery/dnssd',
 ]
+

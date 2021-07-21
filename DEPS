@@ -226,6 +226,13 @@ include_rules = [
   '+testing/util',
   '+third_party',
 
+  # Inter-module dependencies must be through public APIs.
+  '-discovery',
+  '+discovery/common',
+  '+discovery/dnssd/public',
+  '+discovery/mdns/public',
+  '+discovery/public',
+
   # Don't include abseil from the root so the path can change via include_dirs
   # rules when in Chromium.
   '-third_party/abseil',
