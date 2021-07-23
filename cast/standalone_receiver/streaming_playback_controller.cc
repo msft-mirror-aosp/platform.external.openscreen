@@ -44,6 +44,11 @@ StreamingPlaybackController::StreamingPlaybackController(
   OSP_CHECK(window_) << "Failed to create SDL window: " << SDL_GetError();
   renderer_ = MakeUniqueSDLRenderer(window_.get(), -1, 0);
   OSP_CHECK(renderer_) << "Failed to create SDL renderer: " << SDL_GetError();
+
+  sdl_event_loop_.RegisterForKeyboardEvent(
+      [this](const SDL_KeyboardEvent& event) {
+        this->HandleKeyboardEvent(event);
+      });
 }
 #else
 StreamingPlaybackController::StreamingPlaybackController(
@@ -120,6 +125,25 @@ void StreamingPlaybackController::Initialize(
   }
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
 }
+
+#if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
+void StreamingPlaybackController::HandleKeyboardEvent(
+    const SDL_KeyboardEvent& event) {
+  // We only handle keyboard events if we are remoting.
+  if (!remoting_receiver_) {
+    return;
+  }
+
+  switch (event.keysym.sym) {
+    // See codes here: https://wiki.libsdl.org/SDL_Scancode
+    case SDLK_KP_SPACE:  // fallthrough, "Keypad Space"
+    case SDLK_SPACE:     // "Space"
+      is_playing_ = !is_playing_;
+      remoting_receiver_->SendPlaybackRateMessage(is_playing_ ? 1.0 : 0.0);
+      break;
+  }
+}
+#endif
 
 }  // namespace cast
 }  // namespace openscreen

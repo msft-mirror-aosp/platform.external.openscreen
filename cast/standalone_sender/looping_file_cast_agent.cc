@@ -273,7 +273,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   if (connection_settings_->use_remoting) {
     remoting_sender_ = std::make_unique<RemotingSender>(
         current_session_->rpc_messenger(), AudioCodec::kOpus,
-        connection_settings_->codec, [this]() { OnRemotingReceiverReady(); });
+        connection_settings_->codec, this);
 
     negotiation_error =
         current_session_->NegotiateRemoting(audio_config, video_config);
@@ -321,11 +321,15 @@ void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {
   Shutdown();
 }
 
-void LoopingFileCastAgent::OnRemotingReceiverReady() {
+void LoopingFileCastAgent::OnReady() {
   is_ready_for_remoting_ = true;
   if (current_negotiation_) {
     StartRemotingSenders();
   }
+}
+
+void LoopingFileCastAgent::OnPlaybackRateChange(double rate) {
+  file_sender_->SetPlaybackRate(rate);
 }
 
 void LoopingFileCastAgent::StartRemotingSenders() {

@@ -76,6 +76,14 @@ void SimpleRemotingReceiver::SendInitializeMessage(
   messenger_->SendMessageToRemote(rpc);
 }
 
+void SimpleRemotingReceiver::SendPlaybackRateMessage(double playback_rate) {
+  openscreen::cast::RpcMessage rpc;
+  rpc.set_handle(RpcMessenger::kAcquireRendererHandle);
+  rpc.set_proc(openscreen::cast::RpcMessage::RPC_R_SETPLAYBACKRATE);
+  rpc.set_double_value(playback_rate);
+  messenger_->SendMessageToRemote(rpc);
+}
+
 void SimpleRemotingReceiver::OnInitializeCallbackMessage(
     std::unique_ptr<RpcMessage> message) {
   OSP_DCHECK(message->proc() == RpcMessage::RPC_DS_INITIALIZE_CALLBACK);

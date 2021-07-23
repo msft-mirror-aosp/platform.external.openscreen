@@ -44,6 +44,11 @@ LoopingFileSender::LoopingFileSender(Environment* environment,
 
 LoopingFileSender::~LoopingFileSender() = default;
 
+void LoopingFileSender::SetPlaybackRate(double rate) {
+  video_capturer_->SetPlaybackRate(rate);
+  audio_capturer_->SetPlaybackRate(rate);
+}
+
 void LoopingFileSender::UpdateEncoderBitrates() {
   if (bandwidth_being_utilized_ >= kHighBandwidthThreshold) {
     audio_encoder_.UseHighQuality();

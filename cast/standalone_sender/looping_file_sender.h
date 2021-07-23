@@ -33,6 +33,8 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
 
   ~LoopingFileSender() final;
 
+  void SetPlaybackRate(double rate);
+
  private:
   void UpdateEncoderBitrates();
   void ControlForNetworkCongestion();
@@ -49,7 +51,7 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
 
   void UpdateStatusOnConsole();
 
-  // SimulatedCapturer overrides.
+  // SimulatedCapturer::Client overrides.
   void OnEndOfFile(SimulatedCapturer* capturer) final;
   void OnError(SimulatedCapturer* capturer, std::string message) final;
 
