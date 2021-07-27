@@ -121,3 +121,16 @@ if (!build_with_chromium && is_posix) {
     ]
   }
 }
+
+if (!build_with_chromium) {
+  source_set("fuzzer_tests_all") {
+    testonly = true
+    deps = [
+      "//cast/common:message_framer_fuzzer",
+      "//cast/streaming:compound_rtcp_parser_fuzzer",
+      "//cast/streaming:rtp_packet_parser_fuzzer",
+      "//cast/streaming:sender_report_parser_fuzzer",
+      "//discovery:mdns_fuzzer",
+    ]
+  }
+}
