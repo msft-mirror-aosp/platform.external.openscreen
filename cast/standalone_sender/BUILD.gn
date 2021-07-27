@@ -22,6 +22,7 @@ if (!build_with_chromium) {
 
   executable("cast_sender") {
     deps = [
+      "../../discovery:dnssd",
       "../../discovery:public",
       "../../platform",
       "../../platform:standalone_impl",
