@@ -186,6 +186,9 @@ RemotingCapabilities ToCapabilities(const ReceiverCapability& capability) {
       case MediaCapability::kHevc:
         out.video.push_back(VideoCapability::kHevc);
         break;
+      case MediaCapability::kAv1:
+        out.video.push_back(VideoCapability::kAv1);
+        break;
       case MediaCapability::kVideo:
         // noop, as "video" is ignored by Chrome remoting.
         break;
