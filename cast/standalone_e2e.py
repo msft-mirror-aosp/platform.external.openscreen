@@ -177,13 +177,17 @@ class StandaloneCastTest(unittest.TestCase):
             return
 
         logging.debug('Credentials out of date, generating new ones...')
-        subprocess.check_output(
-            [
-                cls.build_paths.cast_receiver,
-                '-g',  # Generate certificate and private key.
-                '-v'  # Enable verbose logging.
-            ],
-            stderr=subprocess.STDOUT)
+        try:
+            subprocess.check_output(
+                [
+                    cls.build_paths.cast_receiver,
+                    '-g',  # Generate certificate and private key.
+                    '-v'  # Enable verbose logging.
+                ],
+                stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print('Generation failed with output: ', e.output.decode())
+            raise
 
     def launch_receiver(self):
         """Launches the receiver process with discovery disabled."""
