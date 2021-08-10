@@ -1,10 +1,10 @@
-// Copyright 2020 The Chromium Authors. All rights reserved.
+// Copyright 2021 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/standalone_sender/streaming_vpx_encoder.h"
+#include "cast/standalone_sender/streaming_av1_encoder.h"
 
-#include <vpx/vp8cx.h>
+#include <aom/aomcx.h>
 
 #include <chrono>
 #include <cmath>
@@ -29,39 +29,29 @@ namespace {
 
 constexpr int kBytesPerKilobyte = 1024;
 
-// Lower and upper bounds to the frame duration passed to vpx_codec_encode(), to
+// Lower and upper bounds to the frame duration passed to aom_codec_encode(), to
 // ensure sanity. Note that the upper-bound is especially important in cases
 // where the video paused for some lengthy amount of time.
 constexpr Clock::duration kMinFrameDuration = milliseconds(1);
 constexpr Clock::duration kMaxFrameDuration = milliseconds(125);
 
-// Highest/lowest allowed encoding speed set to the encoder. The valid range is
-// [4, 16], but experiments show that with speed higher than 12, the saving of
-// the encoding time is not worth the dropping of the quality. And, with speed
-// lower than 6, the increasing amount of quality is not worth the increasing
-// amount of encoding time.
-constexpr int kHighestEncodingSpeed = 12;
-constexpr int kLowestEncodingSpeed = 6;
+// Highest/lowest allowed encoding speed set to the encoder.
+constexpr int kHighestEncodingSpeed = 9;
+constexpr int kLowestEncodingSpeed = 0;
 
 }  // namespace
 
-StreamingVpxEncoder::StreamingVpxEncoder(const Parameters& params,
+StreamingAv1Encoder::StreamingAv1Encoder(const Parameters& params,
                                          TaskRunner* task_runner,
                                          Sender* sender)
     : StreamingVideoEncoder(params, task_runner, sender) {
   ideal_speed_setting_ = kHighestEncodingSpeed;
   encode_thread_ = std::thread([this] { ProcessWorkUnitsUntilTimeToQuit(); });
 
-  vpx_codec_iface_t* ctx;
-  if (params_.codec == VideoCodec::kVp9) {
-    ctx = vpx_codec_vp9_cx();
-  } else {
-    OSP_DCHECK(params_.codec == VideoCodec::kVp8);
-    ctx = vpx_codec_vp8_cx();
-  }
-
-  const auto result = vpx_codec_enc_config_default(ctx, &config_, 0);
-  OSP_CHECK_EQ(result, VPX_CODEC_OK);
+  OSP_DCHECK(params_.codec == VideoCodec::kAv1);
+  const auto result =
+      aom_codec_enc_config_default(aom_codec_av1_cx(), &config_, 0);
+  OSP_CHECK_EQ(result, AOM_CODEC_OK);
 
   // This is set to non-zero in ConfigureForNewFrameSize() later, to flag that
   // the encoder has been initialized.
@@ -72,14 +62,14 @@ StreamingVpxEncoder::StreamingVpxEncoder(const Parameters& params,
   config_.g_timebase.den = Clock::duration::period::den;
 
   // |g_pass| and |g_lag_in_frames| must be "one pass" and zero, respectively,
-  // because of the way the libvpx API is used.
-  config_.g_pass = VPX_RC_ONE_PASS;
+  // because of the way the libaom API is used.
+  config_.g_pass = AOM_RC_ONE_PASS;
   config_.g_lag_in_frames = 0;
 
   // Rate control settings.
   config_.rc_dropframe_thresh = 0;  // The encoder may not drop any frames.
-  config_.rc_resize_allowed = 0;
-  config_.rc_end_usage = VPX_CBR;
+  config_.rc_resize_mode = 0;
+  config_.rc_end_usage = AOM_CBR;
   config_.rc_target_bitrate = target_bitrate_ / kBytesPerKilobyte;
   config_.rc_min_quantizer = params_.min_quantizer;
   config_.rc_max_quantizer = params_.max_quantizer;
@@ -93,10 +83,10 @@ StreamingVpxEncoder::StreamingVpxEncoder(const Parameters& params,
   config_.rc_buf_optimal_sz = 600;
   config_.rc_buf_sz = 1000;
 
-  config_.kf_mode = VPX_KF_DISABLED;
+  config_.kf_mode = AOM_KF_DISABLED;
 }
 
-StreamingVpxEncoder::~StreamingVpxEncoder() {
+StreamingAv1Encoder::~StreamingAv1Encoder() {
   {
     std::unique_lock<std::mutex> lock(mutex_);
     target_bitrate_ = 0;
@@ -105,13 +95,13 @@ StreamingVpxEncoder::~StreamingVpxEncoder() {
   encode_thread_.join();
 }
 
-int StreamingVpxEncoder::GetTargetBitrate() const {
+int StreamingAv1Encoder::GetTargetBitrate() const {
   // Note: No need to lock the |mutex_| since this method should be called on
   // the same thread as SetTargetBitrate().
   return target_bitrate_;
 }
 
-void StreamingVpxEncoder::SetTargetBitrate(int new_bitrate) {
+void StreamingAv1Encoder::SetTargetBitrate(int new_bitrate) {
   // Ensure that, when bps is converted to kbps downstream, that the encoder
   // bitrate will not be zero.
   new_bitrate = std::max(new_bitrate, kBytesPerKilobyte);
@@ -124,7 +114,7 @@ void StreamingVpxEncoder::SetTargetBitrate(int new_bitrate) {
   }
 }
 
-void StreamingVpxEncoder::EncodeAndSend(
+void StreamingAv1Encoder::EncodeAndSend(
     const VideoFrame& frame,
     Clock::time_point reference_time,
     std::function<void(Stats)> stats_callback) {
@@ -158,7 +148,7 @@ void StreamingVpxEncoder::EncodeAndSend(
   if (frame_duration <= Clock::duration::zero()) {
     // The caller did not provide the frame duration in |frame|.
     if (reference_time == start_time_) {
-      // Use the max for the first frame so libvpx will spend extra effort on
+      // Use the max for the first frame so libaom will spend extra effort on
       // its quality.
       frame_duration = kMaxFrameDuration;
     } else {
@@ -174,7 +164,7 @@ void StreamingVpxEncoder::EncodeAndSend(
 
   last_enqueued_rtp_timestamp_ = work_unit.rtp_timestamp;
 
-  work_unit.image = CloneAsVpxImage(frame);
+  work_unit.image = CloneAsAv1Image(frame);
   work_unit.reference_time = reference_time;
   work_unit.stats_callback = std::move(stats_callback);
   const bool force_key_frame = sender_->NeedsKeyFrame();
@@ -186,18 +176,18 @@ void StreamingVpxEncoder::EncodeAndSend(
   }
 }
 
-void StreamingVpxEncoder::DestroyEncoder() {
+void StreamingAv1Encoder::DestroyEncoder() {
   OSP_DCHECK_EQ(std::this_thread::get_id(), encode_thread_.get_id());
 
   if (is_encoder_initialized()) {
-    vpx_codec_destroy(&encoder_);
+    aom_codec_destroy(&encoder_);
     // Flag that the encoder is not initialized. See header comments for
     // is_encoder_initialized().
     config_.g_threads = 0;
   }
 }
 
-void StreamingVpxEncoder::ProcessWorkUnitsUntilTimeToQuit() {
+void StreamingAv1Encoder::ProcessWorkUnitsUntilTimeToQuit() {
   OSP_DCHECK_EQ(std::this_thread::get_id(), encode_thread_.get_id());
 
   for (;;) {
@@ -241,14 +231,14 @@ void StreamingVpxEncoder::ProcessWorkUnitsUntilTimeToQuit() {
   DestroyEncoder();
 }
 
-void StreamingVpxEncoder::PrepareEncoder(int width,
+void StreamingAv1Encoder::PrepareEncoder(int width,
                                          int height,
                                          int target_bitrate) {
   OSP_DCHECK_EQ(std::this_thread::get_id(), encode_thread_.get_id());
 
   const int target_kbps = target_bitrate / kBytesPerKilobyte;
 
-  // Translate the |ideal_speed_setting_| into the VP8E_SET_CPUUSED setting and
+  // Translate the |ideal_speed_setting_| into the AOME_SET_CPUUSED setting and
   // the minimum quantizer to use.
   int speed;
   int min_quantizer;
@@ -278,27 +268,19 @@ void StreamingVpxEncoder::PrepareEncoder(int width,
     config_.rc_min_quantizer = min_quantizer;
 
     encoder_ = {};
-    const vpx_codec_flags_t flags = 0;
-
-    vpx_codec_iface_t* ctx;
-    if (params_.codec == VideoCodec::kVp9) {
-      ctx = vpx_codec_vp9_cx();
-    } else {
-      OSP_DCHECK(params_.codec == VideoCodec::kVp8);
-      ctx = vpx_codec_vp8_cx();
-    }
+    const aom_codec_flags_t flags = 0;
 
     const auto init_result =
-        vpx_codec_enc_init(&encoder_, ctx, &config_, flags);
-    OSP_CHECK_EQ(init_result, VPX_CODEC_OK);
+        aom_codec_enc_init(&encoder_, aom_codec_av1_cx(), &config_, flags);
+    OSP_CHECK_EQ(init_result, AOM_CODEC_OK);
 
     // Raise the threshold for considering macroblocks as static. The default is
     // zero, so this setting makes the encoder less sensitive to motion. This
     // lowers the probability of needing to utilize more CPU to search for
     // motion vectors.
     const auto ctl_result =
-        vpx_codec_control(&encoder_, VP8E_SET_STATIC_THRESHOLD, 1);
-    OSP_CHECK_EQ(ctl_result, VPX_CODEC_OK);
+        aom_codec_control(&encoder_, AOME_SET_STATIC_THRESHOLD, 1);
+    OSP_CHECK_EQ(ctl_result, AOM_CODEC_OK);
 
     // Ensure the speed will be set (below).
     current_speed_setting_ = ~speed;
@@ -307,42 +289,39 @@ void StreamingVpxEncoder::PrepareEncoder(int width,
     config_.rc_target_bitrate = target_kbps;
     config_.rc_min_quantizer = min_quantizer;
     const auto update_config_result =
-        vpx_codec_enc_config_set(&encoder_, &config_);
-    OSP_CHECK_EQ(update_config_result, VPX_CODEC_OK);
+        aom_codec_enc_config_set(&encoder_, &config_);
+    OSP_CHECK_EQ(update_config_result, AOM_CODEC_OK);
   }
 
   if (current_speed_setting_ != speed) {
-    // Pass the |speed| as a negative value to turn off VP8/9's automatic speed
-    // selection logic and force the exact setting.
     const auto ctl_result =
-        vpx_codec_control(&encoder_, VP8E_SET_CPUUSED, -speed);
-    OSP_CHECK_EQ(ctl_result, VPX_CODEC_OK);
+        aom_codec_control(&encoder_, AOME_SET_CPUUSED, speed);
+    OSP_CHECK_EQ(ctl_result, AOM_CODEC_OK);
     current_speed_setting_ = speed;
   }
 }
 
-void StreamingVpxEncoder::EncodeFrame(bool force_key_frame,
+void StreamingAv1Encoder::EncodeFrame(bool force_key_frame,
                                       WorkUnitWithResults& work_unit) {
   OSP_DCHECK_EQ(std::this_thread::get_id(), encode_thread_.get_id());
 
   // The presentation timestamp argument here is fixed to zero to force the
   // encoder to base its single-frame bandwidth calculations entirely on
   // |frame_duration| and the target bitrate setting.
-  const vpx_codec_pts_t pts = 0;
-  const vpx_enc_frame_flags_t flags = force_key_frame ? VPX_EFLAG_FORCE_KF : 0;
-  const auto encode_result =
-      vpx_codec_encode(&encoder_, work_unit.image.get(), pts,
-                       work_unit.duration.count(), flags, VPX_DL_REALTIME);
-  OSP_CHECK_EQ(encode_result, VPX_CODEC_OK);
+  const aom_codec_pts_t pts = 0;
+  const aom_enc_frame_flags_t flags = force_key_frame ? AOM_EFLAG_FORCE_KF : 0;
+  const auto encode_result = aom_codec_encode(
+      &encoder_, work_unit.image.get(), pts, work_unit.duration.count(), flags);
+  OSP_CHECK_EQ(encode_result, AOM_CODEC_OK);
 
-  const vpx_codec_cx_pkt_t* pkt;
-  for (vpx_codec_iter_t iter = nullptr;;) {
-    pkt = vpx_codec_get_cx_data(&encoder_, &iter);
-    // vpx_codec_get_cx_data() returns null once the "iteration" is complete.
+  const aom_codec_cx_pkt_t* pkt;
+  for (aom_codec_iter_t iter = nullptr;;) {
+    pkt = aom_codec_get_cx_data(&encoder_, &iter);
+    // aom_codec_get_cx_data() returns null once the "iteration" is complete.
     // However, that point should never be reached because a
-    // VPX_CODEC_CX_FRAME_PKT must be encountered before that.
+    // AOM_CODEC_CX_FRAME_PKT must be encountered before that.
     OSP_CHECK(pkt);
-    if (pkt->kind == VPX_CODEC_CX_FRAME_PKT) {
+    if (pkt->kind == AOM_CODEC_CX_FRAME_PKT) {
       break;
     }
   }
@@ -352,10 +331,10 @@ void StreamingVpxEncoder::EncodeFrame(bool force_key_frame,
   auto* const begin = static_cast<const uint8_t*>(pkt->data.frame.buf);
   auto* const end = begin + pkt->data.frame.sz;
   work_unit.payload.assign(begin, end);
-  work_unit.is_key_frame = !!(pkt->data.frame.flags & VPX_FRAME_IS_KEY);
+  work_unit.is_key_frame = !!(pkt->data.frame.flags & AOM_FRAME_IS_KEY);
 }
 
-void StreamingVpxEncoder::ComputeFrameEncodeStats(
+void StreamingAv1Encoder::ComputeFrameEncodeStats(
     Clock::duration encode_wall_time,
     int target_bitrate,
     WorkUnitWithResults& work_unit) {
@@ -376,12 +355,12 @@ void StreamingVpxEncoder::ComputeFrameEncodeStats(
       target_bitrate * (kBytesPerBit * kSecondsPerClockTick);
   stats.target_size = target_bytes_per_clock_tick * work_unit.duration.count();
 
-  // The quantizer the encoder used. This is the result of the VP8/9 encoder
+  // The quantizer the encoder used. This is the result of the AV1 encoder
   // taking a guess at what quantizer value would produce an encoded frame size
   // as close to the target as possible.
-  const auto get_quantizer_result = vpx_codec_control(
-      &encoder_, VP8E_GET_LAST_QUANTIZER_64, &stats.quantizer);
-  OSP_CHECK_EQ(get_quantizer_result, VPX_CODEC_OK);
+  const auto get_quantizer_result = aom_codec_control(
+      &encoder_, AOME_GET_LAST_QUANTIZER_64, &stats.quantizer);
+  OSP_CHECK_EQ(get_quantizer_result, AOM_CODEC_OK);
 
   // Now that the frame has been encoded and the number of bytes is known, the
   // perfect quantizer value (i.e., the one that should have been used) can be
@@ -389,7 +368,7 @@ void StreamingVpxEncoder::ComputeFrameEncodeStats(
   stats.perfect_quantizer = stats.quantizer * stats.space_utilization();
 }
 
-void StreamingVpxEncoder::SendEncodedFrame(WorkUnitWithResults results) {
+void StreamingAv1Encoder::SendEncodedFrame(WorkUnitWithResults results) {
   OSP_DCHECK(main_task_runner_->IsRunningOnTaskRunner());
 
   EncodedFrame frame;
@@ -419,7 +398,7 @@ void StreamingVpxEncoder::SendEncodedFrame(WorkUnitWithResults results) {
 }
 
 // static
-StreamingVpxEncoder::VpxImageUniquePtr StreamingVpxEncoder::CloneAsVpxImage(
+StreamingAv1Encoder::Av1ImageUniquePtr StreamingAv1Encoder::CloneAsAv1Image(
     const VideoFrame& frame) {
   OSP_DCHECK_GE(frame.width, 0);
   OSP_DCHECK_GE(frame.height, 0);
@@ -428,16 +407,16 @@ StreamingVpxEncoder::VpxImageUniquePtr StreamingVpxEncoder::CloneAsVpxImage(
   OSP_DCHECK_GE(frame.yuv_strides[2], 0);
 
   constexpr int kAlignment = 32;
-  VpxImageUniquePtr image(vpx_img_alloc(nullptr, VPX_IMG_FMT_I420, frame.width,
+  Av1ImageUniquePtr image(aom_img_alloc(nullptr, AOM_IMG_FMT_I420, frame.width,
                                         frame.height, kAlignment));
   OSP_CHECK(image);
 
   CopyPlane(frame.yuv_planes[0], frame.yuv_strides[0], frame.height,
-            image->planes[VPX_PLANE_Y], image->stride[VPX_PLANE_Y]);
+            image->planes[AOM_PLANE_Y], image->stride[AOM_PLANE_Y]);
   CopyPlane(frame.yuv_planes[1], frame.yuv_strides[1], (frame.height + 1) / 2,
-            image->planes[VPX_PLANE_U], image->stride[VPX_PLANE_U]);
+            image->planes[AOM_PLANE_U], image->stride[AOM_PLANE_U]);
   CopyPlane(frame.yuv_planes[2], frame.yuv_strides[2], (frame.height + 1) / 2,
-            image->planes[VPX_PLANE_V], image->stride[VPX_PLANE_V]);
+            image->planes[AOM_PLANE_V], image->stride[AOM_PLANE_V]);
 
   return image;
 }

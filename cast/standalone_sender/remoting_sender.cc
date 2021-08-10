@@ -23,6 +23,8 @@ VideoDecoderConfig::Codec ToProtoCodec(VideoCodec value) {
       return VideoDecoderConfig_Codec_kCodecVP8;
     case VideoCodec::kVp9:
       return VideoDecoderConfig_Codec_kCodecVP9;
+    case VideoCodec::kAv1:
+      return VideoDecoderConfig_Codec_kCodecAV1;
     default:
       return VideoDecoderConfig_Codec_kUnknownVideoCodec;
   }

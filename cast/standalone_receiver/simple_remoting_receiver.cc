@@ -28,6 +28,9 @@ VideoCodec ParseProtoCodec(VideoDecoderConfig::Codec value) {
     case VideoDecoderConfig_Codec_kCodecVP9:
       return VideoCodec::kVp9;
 
+    case VideoDecoderConfig_Codec_kCodecAV1:
+      return VideoCodec::kAv1;
+
     default:
       return VideoCodec::kNotSpecified;
   }
