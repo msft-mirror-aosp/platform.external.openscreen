@@ -8,6 +8,13 @@ CHROMIUM_REPO_URL = "https://chromium.googlesource.com/chromium/src"
 MAC_VERSION = "Mac-10.15"
 REF = "refs/heads/main"
 
+# Enable LUCI Realms support.
+lucicfg.enable_experiment("crbug.com/1085650")
+
+# TODO(crbug/1242892): bump to 100%.
+luci.builder.defaults.experiments.set({"luci.use_realms": 0})
+
+
 luci.project(
     name = "openscreen",
     milo = "luci-milo.appspot.com",
