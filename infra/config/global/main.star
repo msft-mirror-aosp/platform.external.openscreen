@@ -12,7 +12,7 @@ REF = "refs/heads/main"
 lucicfg.enable_experiment("crbug.com/1085650")
 
 # TODO(crbug/1242892): bump to 100%.
-luci.builder.defaults.experiments.set({"luci.use_realms": 0})
+luci.builder.defaults.experiments.set({"luci.use_realms": 30})
 
 
 luci.project(
