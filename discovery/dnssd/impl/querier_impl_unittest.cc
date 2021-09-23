@@ -21,6 +21,7 @@
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/osp_logging.h"
+#include "util/std_util.h"
 
 namespace openscreen {
 namespace discovery {
@@ -225,14 +226,12 @@ class DnsSdQuerierImplTest : public testing::Test {
       size_t expected_size,
       PendingQueryChange::ChangeType change_type) {
     EXPECT_EQ(changes.size(), expected_size);
-    auto it = std::find_if(
-        changes.begin(), changes.end(),
-        [&name, change_type](const PendingQueryChange& change) {
+    EXPECT_TRUE(ContainsIf(
+        changes, [&name, change_type](const PendingQueryChange& change) {
           return change.dns_type == DnsType::kANY &&
                  change.dns_class == DnsClass::kANY &&
                  change.change_type == change_type && change.name == name;
-        });
-    EXPECT_TRUE(it != changes.end());
+        }));
   }
 };
 

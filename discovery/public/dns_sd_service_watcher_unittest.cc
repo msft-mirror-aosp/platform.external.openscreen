@@ -8,6 +8,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "util/std_util.h"
 
 using testing::_;
 using testing::ContainerEq;
@@ -234,10 +235,9 @@ class DnsSdServiceWatcherTests : public testing::Test {
     const std::string& service = record.instance_id();
     const std::vector<TestServiceWatcher::ConstRefT> services =
         watcher_.GetServices();
-    return std::find_if(services.begin(), services.end(),
-                        [&service](const std::string& ref) {
-                          return service == ref;
-                        }) != services.end();
+    return ContainsIf(services, [&service](const std::string& ref) {
+      return service == ref;
+    });
   }
 
   StrictMock<MockDnsSdService> service_;

@@ -39,6 +39,7 @@
 #include "platform/test/fake_task_runner.h"
 #include "util/alarm.h"
 #include "util/chrono_helpers.h"
+#include "util/std_util.h"
 #include "util/yet_another_bit_vector.h"
 
 using testing::_;
@@ -246,13 +247,11 @@ class MockReceiver : public Environment::PacketConsumer {
       ASSERT_TRUE(part_of_frame);
 
       // Return early if simulating packet drops over the network.
-      if (std::find_if(ignore_list_.begin(), ignore_list_.end(),
-                       [&](const PacketNack& baddie) {
-                         return (
-                             baddie.frame_id == part_of_frame->frame_id &&
-                             (baddie.packet_id == kAllPacketsLost ||
-                              baddie.packet_id == part_of_frame->packet_id));
-                       }) != ignore_list_.end()) {
+      if (ContainsIf(ignore_list_, [&](const PacketNack& baddie) {
+            return (baddie.frame_id == part_of_frame->frame_id &&
+                    (baddie.packet_id == kAllPacketsLost ||
+                     baddie.packet_id == part_of_frame->packet_id));
+          })) {
         return;
       }
 
@@ -1029,9 +1028,8 @@ TEST_F(SenderTest, ResendsIndividuallyNackedPackets) {
   EXPECT_CALL(*receiver(), OnRtpPacket(_))
       .Times(3)
       .WillRepeatedly(Invoke([&](const RtpPacketParser::ParseResult& packet) {
-        EXPECT_FALSE(std::find(dropped_packets.begin(), dropped_packets.end(),
-                               PacketNack{packet.frame_id, packet.packet_id}) ==
-                     dropped_packets.end());
+        EXPECT_TRUE(Contains(dropped_packets,
+                             PacketNack{packet.frame_id, packet.packet_id}));
       }));
   SimulateExecution(kOneWayNetworkDelay);
   Mock::VerifyAndClearExpectations(receiver());
