@@ -619,7 +619,7 @@ TEST_F(SenderTest, RejectsEnqueuingBeforeProtocolDesignLimit) {
   // For this test, use 1000 FPS. This makes the frames all one millisecond
   // apart to avoid triggering the media-duration rejection logic.
   constexpr int kFramesPerSecond = 1000;
-  constexpr milliseconds kFrameDuration{1};
+  constexpr milliseconds kSmallFrameDuration{1};
 
   // Send the absolute design-limit maximum number of frames.
   int frame_count = 0;
@@ -629,7 +629,7 @@ TEST_F(SenderTest, RejectsEnqueuingBeforeProtocolDesignLimit) {
                               13 /* bytes */, &frame);
     OverrideRtpTimestamp(frame_count, &frame, kFramesPerSecond);
     ASSERT_EQ(Sender::OK, sender()->EnqueueFrame(frame));
-    SimulateExecution(kFrameDuration);
+    SimulateExecution(kSmallFrameDuration);
   }
 
   // Now, attempting to enqueue just one more frame should fail.
@@ -639,7 +639,7 @@ TEST_F(SenderTest, RejectsEnqueuingBeforeProtocolDesignLimit) {
   OverrideRtpTimestamp(frame_count++, &one_frame_too_much, kFramesPerSecond);
   EXPECT_EQ(Sender::REACHED_ID_SPAN_LIMIT,
             sender()->EnqueueFrame(one_frame_too_much));
-  SimulateExecution(kFrameDuration);
+  SimulateExecution(kSmallFrameDuration);
 
   // Now, simulate the Receiver ACKing the first frame, and enqueuing should
   // then succeed again.
@@ -647,7 +647,7 @@ TEST_F(SenderTest, RejectsEnqueuingBeforeProtocolDesignLimit) {
   receiver()->TransmitRtcpFeedbackPacket();
   SimulateExecution();  // RTCP transmitted to Sender.
   EXPECT_EQ(Sender::OK, sender()->EnqueueFrame(one_frame_too_much));
-  SimulateExecution(kFrameDuration);
+  SimulateExecution(kSmallFrameDuration);
 
   // Finally, attempting to enqueue another frame should fail again.
   EncodedFrameWithBuffer another_frame_too_much;
@@ -657,7 +657,7 @@ TEST_F(SenderTest, RejectsEnqueuingBeforeProtocolDesignLimit) {
                        kFramesPerSecond);
   EXPECT_EQ(Sender::REACHED_ID_SPAN_LIMIT,
             sender()->EnqueueFrame(another_frame_too_much));
-  SimulateExecution(kFrameDuration);
+  SimulateExecution(kSmallFrameDuration);
 }
 
 TEST_F(SenderTest, CanCancelAllInFlightFrames) {
@@ -684,7 +684,7 @@ TEST_F(SenderTest, RejectsEnqueuingIfTooLongMediaDurationIsInFlight) {
   // For this test, use 20 FPS. This makes all frames 50 ms apart, which should
   // make it easy to trigger the media-duration rejection logic.
   constexpr int kFramesPerSecond = 20;
-  constexpr milliseconds kFrameDuration{50};
+  constexpr milliseconds kLargeFrameDuration{50};
 
   // Enqueue frames until one is rejected because the in-flight duration would
   // be too high.
@@ -695,7 +695,7 @@ TEST_F(SenderTest, RejectsEnqueuingIfTooLongMediaDurationIsInFlight) {
                               13 /* bytes */, &frame);
     OverrideRtpTimestamp(frame_count, &frame, kFramesPerSecond);
     const auto result = sender()->EnqueueFrame(frame);
-    SimulateExecution(kFrameDuration);
+    SimulateExecution(kLargeFrameDuration);
     if (result == Sender::MAX_DURATION_IN_FLIGHT) {
       break;
     }
@@ -708,7 +708,7 @@ TEST_F(SenderTest, RejectsEnqueuingIfTooLongMediaDurationIsInFlight) {
   receiver()->TransmitRtcpFeedbackPacket();
   SimulateExecution();  // RTCP transmitted to Sender.
   EXPECT_EQ(Sender::OK, sender()->EnqueueFrame(frame));
-  SimulateExecution(kFrameDuration);
+  SimulateExecution(kLargeFrameDuration);
 
   // However, attempting to enqueue another frame should fail again.
   EncodedFrameWithBuffer one_frame_too_much;
@@ -717,7 +717,7 @@ TEST_F(SenderTest, RejectsEnqueuingIfTooLongMediaDurationIsInFlight) {
   OverrideRtpTimestamp(++frame_count, &one_frame_too_much, kFramesPerSecond);
   EXPECT_EQ(Sender::MAX_DURATION_IN_FLIGHT,
             sender()->EnqueueFrame(one_frame_too_much));
-  SimulateExecution(kFrameDuration);
+  SimulateExecution(kLargeFrameDuration);
 }
 
 // Tests that the Sender propagates the Receiver's picture loss indicator to the

@@ -817,10 +817,10 @@ void MdnsQuerier::ProcessCallbacks(const MdnsRecord& record,
 }
 
 void MdnsQuerier::AddQuestion(const MdnsQuestion& question) {
-  auto tracker = std::make_unique<MdnsQuestionTracker>(
+  auto question_tracker = std::make_unique<MdnsQuestionTracker>(
       question, sender_, task_runner_, now_function_, random_delay_, config_);
-  MdnsQuestionTracker* ptr = tracker.get();
-  questions_.emplace(question.name(), std::move(tracker));
+  MdnsQuestionTracker* ptr = question_tracker.get();
+  questions_.emplace(question.name(), std::move(question_tracker));
 
   // Let all records associated with this question know that there is a new
   // query that can be used for their refresh.

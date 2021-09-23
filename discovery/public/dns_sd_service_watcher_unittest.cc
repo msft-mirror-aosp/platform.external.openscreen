@@ -242,7 +242,6 @@ class DnsSdServiceWatcherTests : public testing::Test {
 
   StrictMock<MockDnsSdService> service_;
   StrictMock<TestServiceWatcher> watcher_;
-  std::vector<std::string> fetched_services;
 };
 
 TEST_F(DnsSdServiceWatcherTests, StartStopDiscoveryWorks) {
