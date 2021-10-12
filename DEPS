@@ -215,7 +215,6 @@ hooks = [
 recursedeps = [
   'third_party/chromium_quic/src',
   'cast',
-  'buildtools',
 ]
 
 include_rules = [
