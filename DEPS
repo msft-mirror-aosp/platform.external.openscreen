@@ -154,7 +154,7 @@ deps = {
 
   'third_party/modp_b64': {
     'url': Var('chromium_git') + '/chromium/src/third_party/modp_b64'
-    '@' + '85754265d3847383704d19232e1ab873547cda9d',
+    '@' + 'ca6144fbeb44934d474cc8030a64de21947e2550',
     'condition': 'not build_with_chromium',
   },
 
