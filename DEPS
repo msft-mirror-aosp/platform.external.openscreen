@@ -185,13 +185,13 @@ hooks = [
     'name': 'update_clang',
     'pattern': '.',
     'condition': 'not build_with_chromium',
-    'action': [ 'python', 'tools/clang/scripts/update.py' ],
+    'action': [ 'python3', 'tools/clang/scripts/update.py' ],
   },
   {
     'name': 'clang_coverage_tools',
     'pattern': '.',
     'condition': 'not build_with_chromium and checkout_clang_coverage_tools',
-    'action': ['python', 'tools/clang/scripts/update.py',
+    'action': ['python3', 'tools/clang/scripts/update.py',
                '--package=coverage_tools'],
   },
   {
