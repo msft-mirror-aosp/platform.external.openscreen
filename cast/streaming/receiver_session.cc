@@ -448,6 +448,9 @@ std::unique_ptr<Receiver> ReceiverSession::ConstructReceiver(
                           stream.rtp_timebase, stream.channels,
                           stream.target_delay, stream.aes_key,
                           stream.aes_iv_mask,  /* is_pli_enabled */ true};
+  if (!config.IsValid()) {
+    return nullptr;
+  }
   return std::make_unique<Receiver>(environment_, &packet_router_,
                                     std::move(config));
 }
