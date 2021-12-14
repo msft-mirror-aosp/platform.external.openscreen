@@ -5,13 +5,8 @@ Open Screen's LUCI configuration for post-submit and pre-submit builders.
 
 REPO_URL = "https://chromium.googlesource.com/openscreen"
 CHROMIUM_REPO_URL = "https://chromium.googlesource.com/chromium/src"
-MAC_VERSION = "Mac-10.15"
+MAC_VERSION = "Mac-11"
 REF = "refs/heads/main"
-
-# Enable LUCI Realms support.
-lucicfg.enable_experiment("crbug.com/1085650")
-luci.builder.defaults.experiments.set({"luci.use_realms": 100})
-
 
 luci.project(
     name = "openscreen",
