@@ -173,9 +173,11 @@ def builder(builder_type, name, properties, os, cpu):
         cpu: the target central processing unit.
     """
     recipe_id = "openscreen"
+    use_python3 = False
     if properties:
         if "builder_group" in properties:
             recipe_id = "chromium"
+            use_python3 = True
         elif "runhooks" in properties:
             recipe_id = "run_presubmit"
 
@@ -197,6 +199,7 @@ def builder(builder_type, name, properties, os, cpu):
                 "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
             cipd_version = "refs/heads/master",
             use_bbagent = True,
+            use_python3 = use_python3,
         ),
         dimensions = {
             "pool": "luci.flex." + builder_type,
