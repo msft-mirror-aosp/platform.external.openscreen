@@ -196,6 +196,7 @@ def builder(builder_type, name, properties, os, cpu):
             cipd_package =
                 "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
             cipd_version = "refs/heads/master",
+            use_bbagent = True,
         ),
         dimensions = {
             "pool": "luci.flex." + builder_type,
