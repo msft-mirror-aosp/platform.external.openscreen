@@ -180,6 +180,7 @@ def builder(builder_type, name, properties, os, cpu):
             use_python3 = True
         elif "runhooks" in properties:
             recipe_id = "run_presubmit"
+            use_python3 = True
 
     caches = []
     if os == MAC_VERSION:
