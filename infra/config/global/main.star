@@ -8,6 +8,9 @@ CHROMIUM_REPO_URL = "https://chromium.googlesource.com/chromium/src"
 MAC_VERSION = "Mac-11"
 REF = "refs/heads/main"
 
+# Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
+lucicfg.enable_experiment("crbug.com/1182002")
+
 luci.project(
     name = "openscreen",
     milo = "luci-milo.appspot.com",
