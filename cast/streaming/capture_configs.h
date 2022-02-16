@@ -9,8 +9,6 @@
 #include <vector>
 
 #include "cast/streaming/constants.h"
-#include "cast/streaming/resolution.h"
-#include "util/simple_fraction.h"
 
 namespace openscreen {
 namespace cast {
@@ -35,11 +33,25 @@ struct AudioCaptureConfig {
 
   // Target playout delay in milliseconds.
   std::chrono::milliseconds target_playout_delay = kDefaultTargetPlayoutDelay;
+};
 
-  // The codec parameter for this configuration. Honors the format laid out
-  // in RFC 6381: https://datatracker.ietf.org/doc/html/rfc6381
-  // NOTE: the "profiles" parameter is not supported in our implementation.
-  std::string codec_parameter;
+// Display resolution in pixels.
+struct DisplayResolution {
+  // Width in pixels.
+  int width = 1920;
+
+  // Height in pixels.
+  int height = 1080;
+};
+
+// Frame rates are expressed as a rational number, and must be positive.
+struct FrameRate {
+  // For simple cases, the frame rate may be provided by simply setting the
+  // number to the desired value, e.g. 30 or 60FPS. Some common frame rates like
+  // 23.98 FPS (for NTSC compatibility) are represented as fractions, in this
+  // case 24000/1001.
+  int numerator = kDefaultFrameRate;
+  int denominator = 1;
 };
 
 // A configuration set that can be used by the sender to capture video, as
@@ -50,11 +62,7 @@ struct VideoCaptureConfig {
   VideoCodec codec = VideoCodec::kVp8;
 
   // Maximum frame rate in frames per second.
-  // For simple cases, the frame rate may be provided by simply setting the
-  // number to the desired value, e.g. 30 or 60FPS. Some common frame rates like
-  // 23.98 FPS (for NTSC compatibility) are represented as fractions, in this
-  // case 24000/1001.
-  SimpleFraction max_frame_rate{kDefaultFrameRate, 1};
+  FrameRate max_frame_rate;
 
   // Number specifying the maximum bit rate for this stream. A value of
   // zero means that the maximum bit rate should be automatically selected by
@@ -63,18 +71,10 @@ struct VideoCaptureConfig {
 
   // Resolutions to be offered to the receiver. At least one resolution
   // must be provided.
-  std::vector<Resolution> resolutions;
+  std::vector<DisplayResolution> resolutions;
 
   // Target playout delay in milliseconds.
   std::chrono::milliseconds target_playout_delay = kDefaultTargetPlayoutDelay;
-
-  // The codec parameter for this configuration. Honors the format laid out
-  // in RFC 6381: https://datatracker.ietf.org/doc/html/rfc6381.
-  // VP8 and VP9 codec parameter versions are defined here:
-  // https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter#webm
-  // https://www.webmproject.org/vp9/mp4/#codecs-parameter-string
-  // NOTE: the "profiles" parameter is not supported in our implementation.
-  std::string codec_parameter;
 };
 
 }  // namespace cast
