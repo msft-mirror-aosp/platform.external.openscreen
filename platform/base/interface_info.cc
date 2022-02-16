@@ -5,7 +5,6 @@
 #include "platform/base/interface_info.h"
 
 #include <algorithm>
-#include <utility>
 
 namespace openscreen {
 
@@ -45,11 +44,6 @@ IPAddress InterfaceInfo::GetIpAddressV6() const {
     }
   }
   return IPAddress{};
-}
-
-bool InterfaceInfo::HasHardwareAddress() const {
-  return std::any_of(hardware_address.begin(), hardware_address.end(),
-                     [](uint8_t e) { return e != 0; });
 }
 
 std::ostream& operator<<(std::ostream& out, const IPSubnet& subnet) {

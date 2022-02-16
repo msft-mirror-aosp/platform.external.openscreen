@@ -4,8 +4,7 @@
 
 package main
 
-// TODO(jophba):
-//  Add response messages from receiver
+// TODO(pthatcher): Add response messages from receiver
 
 //  Inject JS into viewURL to using .Eval and .Bind to send and receiver presentation connection messages
 
@@ -16,9 +15,8 @@ import (
 	"fmt"
 	"log"
 
-	"osp"
+  "osp"
 
-	mdns "github.com/grandcat/zeroconf"
 	"github.com/zserge/webview"
 )
 
@@ -32,7 +30,7 @@ func runServer(ctx context.Context, mdnsInstanceName string, port int) {
 
 func browseMdns(ctx context.Context) {
 	entries, err := osp.BrowseMdns(ctx)
-	if err != nil {
+	if (err != nil) {
 		log.Fatalf("Failed to browse mDNS: %v\n", err)
 	}
 	for entry := range entries {
@@ -40,35 +38,21 @@ func browseMdns(ctx context.Context) {
 	}
 }
 
-func getMdnsHost(entry *mdns.ServiceEntry) string {
-	for _, ipv6 := range entry.AddrIPv6 {
-		log.Printf("Choosing IPv6 address [%s]\n", ipv6)
-		return fmt.Sprintf("[%s]", ipv6)
-	}
-	for _, ipv4 := range entry.AddrIPv4 {
-		log.Printf("Choosing IPv4 address %s\n", ipv4)
-		return fmt.Sprintf("%s", ipv4)
-	}
-
-	// This shouldn't happen
-	log.Printf("No IP address found. Falling back to hostname %s\n", entry.HostName)
-	return entry.HostName
-}
-
 func flingUrl(ctx context.Context, target string, url string) {
 	log.Printf("Search for %s\n", target)
-	entries, err := osp.LookupMdns(ctx, target)
-	if err != nil {
+	entries, err := osp.BrowseMdns(ctx)
+	if (err != nil) {
 		log.Fatalf("Failed to browse mDNS: %v\n", err)
 	}
 	for entry := range entries {
-		log.Printf("Fling %s to %s:%d\n", url, entry.HostName, entry.Port)
-		host := getMdnsHost(entry)
-		err := osp.StartPresentation(ctx, host, entry.Port, url)
-		if err != nil {
-			log.Fatalln("Failed to start presentation.")
+		if entry.Instance == target {
+			log.Printf("Fling %s to %s:%d\n", url, entry.HostName, entry.Port)
+			err := osp.StartPresentation(ctx, entry.HostName, entry.Port, url);
+			if err != nil {
+				log.Fatalln("Failed to start presentation.");
+			}
+			break
 		}
-		break
 	}
 }
 
@@ -107,10 +91,10 @@ func main() {
 			log.Fatalln("Usage: osp server name")
 		}
 		mdnsInstanceName := args[1]
-		runServer(ctx, mdnsInstanceName, *port)
+    runServer(ctx, mdnsInstanceName, *port)
 
 	case "browse":
-		browseMdns(ctx)
+    browseMdns(ctx)
 
 	case "fling":
 		if len(args) < 3 {
@@ -119,7 +103,7 @@ func main() {
 		target := args[1]
 		url := args[2]
 
-		flingUrl(ctx, target, url)
+    flingUrl(ctx, target, url)
 
 	case "view":
 		if len(args) < 2 {
