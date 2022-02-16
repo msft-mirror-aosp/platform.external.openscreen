@@ -54,10 +54,10 @@ void CastAppAvailabilityTracker::UnregisterSource(
 }
 
 std::vector<CastMediaSource> CastAppAvailabilityTracker::UpdateAppAvailability(
-    const std::string& receiver_id,
+    const std::string& device_id,
     const std::string& app_id,
     AppAvailability availability) {
-  auto& availabilities = app_availabilities_[receiver_id];
+  auto& availabilities = app_availabilities_[device_id];
   auto it = availabilities.find(app_id);
 
   AppAvailabilityResult old_availability = it == availabilities.end()
@@ -84,22 +84,21 @@ std::vector<CastMediaSource> CastAppAvailabilityTracker::UpdateAppAvailability(
   return affected_sources;
 }
 
-std::vector<CastMediaSource>
-CastAppAvailabilityTracker::RemoveResultsForReceiver(
-    const std::string& receiver_id) {
-  auto affected_sources = GetSupportedSources(receiver_id);
-  app_availabilities_.erase(receiver_id);
+std::vector<CastMediaSource> CastAppAvailabilityTracker::RemoveResultsForDevice(
+    const std::string& device_id) {
+  auto affected_sources = GetSupportedSources(device_id);
+  app_availabilities_.erase(device_id);
   return affected_sources;
 }
 
 std::vector<CastMediaSource> CastAppAvailabilityTracker::GetSupportedSources(
-    const std::string& receiver_id) const {
-  auto it = app_availabilities_.find(receiver_id);
+    const std::string& device_id) const {
+  auto it = app_availabilities_.find(device_id);
   if (it == app_availabilities_.end()) {
     return std::vector<CastMediaSource>();
   }
 
-  // Find all app IDs that are available on the receiver.
+  // Find all app IDs that are available on the device.
   std::vector<std::string> supported_app_ids;
   for (const auto& availability : it->second) {
     if (availability.second.availability == AppAvailabilityResult::kAvailable) {
@@ -107,7 +106,7 @@ std::vector<CastMediaSource> CastAppAvailabilityTracker::GetSupportedSources(
     }
   }
 
-  // Find all registered sources whose query results contain the receiver ID.
+  // Find all registered sources whose query results contain the device ID.
   std::vector<CastMediaSource> sources;
   for (const auto& source : registered_sources_) {
     if (source.second.ContainsAnyAppIdFrom(supported_app_ids)) {
@@ -118,9 +117,9 @@ std::vector<CastMediaSource> CastAppAvailabilityTracker::GetSupportedSources(
 }
 
 CastAppAvailabilityTracker::AppAvailability
-CastAppAvailabilityTracker::GetAvailability(const std::string& receiver_id,
+CastAppAvailabilityTracker::GetAvailability(const std::string& device_id,
                                             const std::string& app_id) const {
-  auto availabilities_it = app_availabilities_.find(receiver_id);
+  auto availabilities_it = app_availabilities_.find(device_id);
   if (availabilities_it == app_availabilities_.end()) {
     return {AppAvailabilityResult::kUnknown, Clock::time_point{}};
   }
@@ -143,11 +142,10 @@ std::vector<std::string> CastAppAvailabilityTracker::GetRegisteredApps() const {
   return registered_apps;
 }
 
-std::vector<std::string> CastAppAvailabilityTracker::GetAvailableReceivers(
+std::vector<std::string> CastAppAvailabilityTracker::GetAvailableDevices(
     const CastMediaSource& source) const {
-  std::vector<std::string> receiver_ids;
-  // For each receiver, check if there is at least one available app in
-  // |source|.
+  std::vector<std::string> device_ids;
+  // For each device, check if there is at least one available app in |source|.
   for (const auto& availabilities : app_availabilities_) {
     for (const std::string& app_id : source.app_ids()) {
       const auto& availabilities_map = availabilities.second;
@@ -155,12 +153,12 @@ std::vector<std::string> CastAppAvailabilityTracker::GetAvailableReceivers(
       if (availability_it != availabilities_map.end() &&
           availability_it->second.availability ==
               AppAvailabilityResult::kAvailable) {
-        receiver_ids.push_back(availabilities.first);
+        device_ids.push_back(availabilities.first);
         break;
       }
     }
   }
-  return receiver_ids;
+  return device_ids;
 }
 
 }  // namespace cast
