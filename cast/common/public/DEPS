@@ -4,6 +4,5 @@ include_rules = [
   # Dependencies on the implementation are not allowed in public/.
   '-cast/common',
   '+cast/common/public',
-  '+discovery/dnssd/public',
-  '+discovery/mdns/public'
+  '+discovery/dnssd/public'
 ]
