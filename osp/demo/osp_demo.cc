@@ -16,6 +16,7 @@
 #include "absl/strings/string_view.h"
 #include "osp/msgs/osp_messages.h"
 #include "osp/public/mdns_service_listener_factory.h"
+#include "osp/public/mdns_service_publisher_factory.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/presentation/presentation_controller.h"
@@ -26,7 +27,6 @@
 #include "osp/public/protocol_connection_server_factory.h"
 #include "osp/public/service_listener.h"
 #include "osp/public/service_publisher.h"
-#include "osp/public/service_publisher_factory.h"
 #include "platform/api/network_interface.h"
 #include "platform/api/time.h"
 #include "platform/impl/logging.h"
@@ -152,9 +152,7 @@ class DemoPublisherObserver final : public ServicePublisher::Observer {
   void OnStopped() override { OSP_LOG_INFO << "publisher stopped!"; }
   void OnSuspended() override { OSP_LOG_INFO << "publisher suspended!"; }
 
-  void OnError(Error error) override {
-    OSP_LOG_ERROR << "publisher error: " << error;
-  }
+  void OnError(ServicePublisherError) override {}
   void OnMetrics(ServicePublisher::Metrics) override {}
 };
 
@@ -459,10 +457,7 @@ void HandleReceiverCommand(absl::string_view command,
                            DemoReceiverDelegate& delegate,
                            NetworkServiceManager* manager) {
   if (command == "avail") {
-    ServicePublisher* publisher = manager->GetServicePublisher();
-
-    OSP_LOG_INFO << "publisher->state() == "
-                 << static_cast<int>(publisher->state());
+    ServicePublisher* publisher = manager->GetMdnsServicePublisher();
 
     if (publisher->state() == ServicePublisher::State::kSuspended) {
       publisher->Resume();
@@ -502,7 +497,7 @@ void RunReceiverPollLoop(pollfd& file_descriptor,
 void CleanupPublisherDemo(NetworkServiceManager* manager) {
   Receiver::Get()->SetReceiverDelegate(nullptr);
   Receiver::Get()->Deinit();
-  manager->GetServicePublisher()->Stop();
+  manager->GetMdnsServicePublisher()->Stop();
   manager->GetProtocolConnectionServer()->Stop();
 
   NetworkServiceManager::Dispose();
@@ -513,6 +508,7 @@ void PublisherDemo(absl::string_view friendly_name) {
 
   constexpr uint16_t server_port = 6667;
 
+  DemoPublisherObserver publisher_observer;
   // TODO(btolsch): aggregate initialization probably better?
   ServicePublisher::Config publisher_config;
   publisher_config.friendly_name = std::string(friendly_name);
@@ -520,22 +516,20 @@ void PublisherDemo(absl::string_view friendly_name) {
   publisher_config.service_instance_name = "deadbeef";
   publisher_config.connection_server_port = server_port;
 
+  auto mdns_publisher = MdnsServicePublisherFactory::Create(
+      publisher_config, &publisher_observer,
+      PlatformClientPosix::GetInstance()->GetTaskRunner());
+
   ServerConfig server_config;
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
     OSP_VLOG << "Found interface: " << interface;
     if (!interface.addresses.empty()) {
       server_config.connection_endpoints.push_back(
           IPEndpoint{interface.addresses[0].address, server_port});
-      publisher_config.network_interfaces.push_back(interface);
     }
   }
   OSP_LOG_IF(WARN, server_config.connection_endpoints.empty())
       << "No network interfaces had usable addresses for mDNS publishing.";
-
-  DemoPublisherObserver publisher_observer;
-  auto service_publisher = ServicePublisherFactory::Create(
-      publisher_config, &publisher_observer,
-      PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionServerObserver server_observer;
@@ -544,13 +538,13 @@ void PublisherDemo(absl::string_view friendly_name) {
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =
-      NetworkServiceManager::Create(nullptr, std::move(service_publisher),
-                                    nullptr, std::move(connection_server));
+      NetworkServiceManager::Create(nullptr, std::move(mdns_publisher), nullptr,
+                                    std::move(connection_server));
 
   DemoReceiverDelegate receiver_delegate;
   Receiver::Get()->Init();
   Receiver::Get()->SetReceiverDelegate(&receiver_delegate);
-  network_service->GetServicePublisher()->Start();
+  network_service->GetMdnsServicePublisher()->Start();
   network_service->GetProtocolConnectionServer()->Start();
 
   pollfd stdin_pollfd{STDIN_FILENO, POLLIN};

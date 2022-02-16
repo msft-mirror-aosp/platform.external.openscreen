@@ -9,8 +9,6 @@
 namespace openscreen {
 namespace cast {
 
-ReceiverSocketFactory::Client::~Client() = default;
-
 ReceiverSocketFactory::ReceiverSocketFactory(Client* client,
                                              CastSocket::Client* socket_client)
     : client_(client), socket_client_(socket_client) {
@@ -40,6 +38,7 @@ void ReceiverSocketFactory::OnConnected(
 void ReceiverSocketFactory::OnConnectionFailed(
     TlsConnectionFactory* factory,
     const IPEndpoint& remote_address) {
+  OSP_DVLOG << "Receiving connection from endpoint failed: " << remote_address;
   client_->OnError(this, Error(Error::Code::kConnectionFailed,
                                "Accepting connection failed."));
 }

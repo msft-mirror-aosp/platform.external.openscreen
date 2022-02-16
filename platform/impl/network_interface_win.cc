@@ -16,6 +16,7 @@ std::vector<InterfaceInfo> GetAllInterfaces() {
     constexpr size_t INITIAL_BUFFER_SIZE = 15000;
     ULONG outbuflen = INITIAL_BUFFER_SIZE;
     std::vector<unsigned char> charbuf(INITIAL_BUFFER_SIZE);
+    PIP_ADAPTER_ADDRESSES paddrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(charbuf.data());
     DWORD ret = NO_ERROR;
     constexpr int MAX_RETRIES = 5;
 
@@ -24,7 +25,7 @@ std::vector<InterfaceInfo> GetAllInterfaces() {
         ret = GetAdaptersAddresses(AF_UNSPEC /* get both v4/v6 addrs */,
                                    GAA_FLAG_INCLUDE_PREFIX,
                                    NULL,
-                                   reinterpret_cast<IP_ADAPTER_ADDRESSES*>(charbuf.data()),
+                                   paddrs,
                                    &outbuflen);
         if (ret == ERROR_BUFFER_OVERFLOW) {
             charbuf.resize(outbuflen);
@@ -39,7 +40,7 @@ std::vector<InterfaceInfo> GetAllInterfaces() {
     }
 
     std::vector<InterfaceInfo> infos;
-    auto pcurraddrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(charbuf.data());
+    auto pcurraddrs = paddrs;
     while (pcurraddrs != nullptr) {
         // TODO: return the interfaces
         OSP_DVLOG << "\tIfIndex=" << pcurraddrs->IfIndex;
