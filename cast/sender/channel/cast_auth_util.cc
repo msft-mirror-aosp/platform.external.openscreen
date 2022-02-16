@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <memory>
 
-#include "absl/strings/str_cat.h"
 #include "cast/common/certificate/cast_cert_validator.h"
 #include "cast/common/certificate/cast_cert_validator_internal.h"
 #include "cast/common/certificate/cast_crl.h"
@@ -105,56 +104,43 @@ class CastNonce {
   std::chrono::seconds nonce_generation_time_;
 };
 
-// Maps an error from certificate verification to an error reported to the
-// library client.  If crl_required is set to false, all revocation related
-// errors are ignored.
-//
-// TODO(https://issuetracker.google.com/issues/193164666): It would be simpler
-// to just pass the underlying verification error directly to the client.
-Error MapToOpenscreenError(Error verify_error, bool crl_required) {
-  switch (verify_error.code()) {
+// Maps Error::Code from certificate verification to Error.
+// If crl_required is set to false, all revocation related errors are ignored.
+Error MapToOpenscreenError(Error::Code error, bool crl_required) {
+  switch (error) {
     case Error::Code::kErrCertsMissing:
       return Error(Error::Code::kCastV2PeerCertEmpty,
-                   absl::StrCat("Failed to locate certificates: ",
-                                verify_error.message()));
+                   "Failed to locate certificates.");
     case Error::Code::kErrCertsParse:
       return Error(Error::Code::kErrCertsParse,
-                   absl::StrCat("Failed to parse certificates: ",
-                                verify_error.message()));
+                   "Failed to parse certificates.");
     case Error::Code::kErrCertsDateInvalid:
-      return Error(
-          Error::Code::kCastV2CertNotSignedByTrustedCa,
-          absl::StrCat("Failed date validity check: ", verify_error.message()));
+      return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
+                   "Failed date validity check.");
     case Error::Code::kErrCertsVerifyGeneric:
-      return Error(
-          Error::Code::kCastV2CertNotSignedByTrustedCa,
-          absl::StrCat("Failed with a generic certificate verification error: ",
-                       verify_error.message()));
+      return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
+                   "Failed with a generic certificate verification error.");
     case Error::Code::kErrCertsRestrictions:
       return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   absl::StrCat("Failed certificate restrictions: ",
-                                verify_error.message()));
+                   "Failed certificate restrictions.");
     case Error::Code::kErrCertsVerifyUntrustedCert:
       return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   absl::StrCat("Failed with untrusted certificate: ",
-                                verify_error.message()));
+                   "Failed with untrusted certificate.");
     case Error::Code::kErrCrlInvalid:
       // This error is only encountered if |crl_required| is true.
       OSP_DCHECK(crl_required);
       return Error(Error::Code::kErrCrlInvalid,
-                   absl::StrCat("Failed to provide a valid CRL: ",
-                                verify_error.message()));
+                   "Failed to provide a valid CRL.");
     case Error::Code::kErrCertsRevoked:
       return Error(Error::Code::kErrCertsRevoked,
-                   absl::StrCat("Failed certificate revocation check: ",
-                                verify_error.message()));
+                   "Failed certificate revocation check.");
     case Error::Code::kNone:
       return Error::None();
     default:
       return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   absl::StrCat("Failed verifying cast device certificate: ",
-                                verify_error.message()));
+                   "Failed verifying cast device certificate.");
   }
+  return Error::None();
 }
 
 Error VerifyAndMapDigestAlgorithm(HashAlgorithm response_digest_algorithm,
@@ -182,21 +168,6 @@ Error VerifyAndMapDigestAlgorithm(HashAlgorithm response_digest_algorithm,
 // static
 AuthContext AuthContext::Create() {
   return AuthContext(CastNonce::Get());
-}
-
-// static
-AuthContext AuthContext::CreateForTest(const std::string& nonce_data) {
-  std::string nonce;
-  if (nonce_data.empty()) {
-    nonce = std::string(kNonceSizeInBytes, '0');
-  } else {
-    while (nonce.size() < kNonceSizeInBytes) {
-      nonce += nonce_data;
-    }
-    nonce.erase(kNonceSizeInBytes);
-  }
-  OSP_DCHECK_EQ(nonce.size(), kNonceSizeInBytes);
-  return AuthContext(nonce);
 }
 
 AuthContext::AuthContext(const std::string& nonce) : nonce_(nonce) {}
@@ -385,7 +356,7 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
                        &device_policy, crl.get(), crl_policy, cast_trust_store);
 
   // Handle and report errors.
-  Error result = MapToOpenscreenError(verify_result,
+  Error result = MapToOpenscreenError(verify_result.code(),
                                       crl_policy == CRLPolicy::kCrlRequired);
   if (!result.ok()) {
     return result;

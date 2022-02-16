@@ -33,14 +33,37 @@ ErrorOr<SimpleFraction> SimpleFraction::FromString(absl::string_view value) {
     }
   }
 
-  return SimpleFraction(numerator, denominator);
+  return SimpleFraction{numerator, denominator};
 }
 
 std::string SimpleFraction::ToString() const {
-  if (denominator_ == 1) {
-    return std::to_string(numerator_);
+  if (denominator == 1) {
+    return std::to_string(numerator);
   }
-  return absl::StrCat(numerator_, "/", denominator_);
+  return absl::StrCat(numerator, "/", denominator);
+}
+
+bool SimpleFraction::operator==(const SimpleFraction& other) const {
+  return numerator == other.numerator && denominator == other.denominator;
+}
+
+bool SimpleFraction::operator!=(const SimpleFraction& other) const {
+  return !(*this == other);
+}
+
+bool SimpleFraction::is_defined() const {
+  return denominator != 0;
+}
+
+bool SimpleFraction::is_positive() const {
+  return is_defined() && (numerator >= 0) && (denominator > 0);
+}
+
+SimpleFraction::operator double() const {
+  if (denominator == 0) {
+    return nan("");
+  }
+  return static_cast<double>(numerator) / static_cast<double>(denominator);
 }
 
 }  // namespace openscreen

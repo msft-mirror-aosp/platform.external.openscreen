@@ -6,7 +6,6 @@
 #define UTIL_BASE64_H_
 
 #include <string>
-#include <vector>
 
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
@@ -24,7 +23,7 @@ std::string Encode(absl::string_view input);
 // Decodes the base64 input string.  Returns true if successful and false
 // otherwise. The output string is only modified if successful. The decoding can
 // be done in-place.
-bool Decode(absl::string_view input, std::vector<uint8_t>* output);
+bool Decode(absl::string_view input, std::string* output);
 
 }  // namespace base64
 }  // namespace openscreen
