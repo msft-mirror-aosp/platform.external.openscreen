@@ -62,8 +62,6 @@ struct TraceCategory {
     kStandaloneReceiver = 0x01 << 4,
     kDiscovery = 0x01 << 5,
     kStandaloneSender = 0x01 << 6,
-    kReceiver = 0x01 << 7,
-    kSender = 0x01 << 8
   };
 };
 

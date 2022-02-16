@@ -102,11 +102,10 @@ void SenderPacketRouter::OnReceivedPacket(const IPEndpoint& source,
       InspectPacketForRouting(packet);
   if (seems_like.first != ApparentPacketType::RTCP) {
     constexpr int kMaxPartiaHexDumpSize = 96;
-    const std::size_t encode_size =
-        std::min(packet.size(), static_cast<size_t>(kMaxPartiaHexDumpSize));
     OSP_LOG_WARN << "UNKNOWN packet of " << packet.size()
                  << " bytes. Partial hex dump: "
-                 << HexEncode(packet.data(), encode_size);
+                 << HexEncode(absl::Span<const uint8_t>(packet).subspan(
+                        0, kMaxPartiaHexDumpSize));
     return;
   }
   const auto it = FindEntry(seems_like.second);

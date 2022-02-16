@@ -9,6 +9,4 @@ namespace openscreen {
 UdpSocket::UdpSocket() = default;
 UdpSocket::~UdpSocket() = default;
 
-UdpSocket::Client::~Client() = default;
-
 }  // namespace openscreen

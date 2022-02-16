@@ -186,14 +186,8 @@ class Error {
     // Cast streaming errors
     kTypeError,
     kUnknownCodec,
-    kInvalidCodecParameter,
     kSocketFailure,
-    kUnencryptedOffer,
-    kRemotingNotSupported,
-
-    // A negotiation failure means that the current negotiation must be
-    // restarted by the sender.
-    kNegotiationFailure,
+    kUnencryptedOffer
   };
 
   Error();
