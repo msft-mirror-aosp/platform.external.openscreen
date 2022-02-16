@@ -37,6 +37,7 @@ class CompoundRtcpParser {
   class Client {
    public:
     Client();
+    virtual ~Client();
 
     // Called when a Receiver Reference Time Report has been parsed.
     virtual void OnReceiverReferenceTimeAdvanced(
@@ -69,9 +70,6 @@ class CompoundRtcpParser {
     // kAllPacketsLost indicates that all the packets are missing for a frame.
     // The argument's elements are in monotonically increasing order.
     virtual void OnReceiverIsMissingPackets(std::vector<PacketNack> nacks);
-
-   protected:
-    virtual ~Client();
   };
 
   // |session| and |client| must be non-null and must outlive the

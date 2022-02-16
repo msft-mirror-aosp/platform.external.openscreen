@@ -17,11 +17,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   constexpr Ssrc kSenderSsrcInSeedCorpus = 1;
   constexpr Ssrc kReceiverSsrcInSeedCorpus = 2;
 
-  class ClientThatIgnoresEverything : public CompoundRtcpParser::Client {
-   public:
-    ClientThatIgnoresEverything() = default;
-    ~ClientThatIgnoresEverything() override = default;
-  };
   // Allocate the RtcpSession and CompoundRtcpParser statically (i.e., one-time
   // init) to improve the fuzzer's execution rate. This is because RtcpSession
   // also contains a NtpTimeConverter, which samples the system clock at
@@ -31,7 +26,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
   static RtcpSession session(kSenderSsrcInSeedCorpus, kReceiverSsrcInSeedCorpus,
                              openscreen::Clock::time_point{});
-  static ClientThatIgnoresEverything client_that_ignores_everything;
+  static CompoundRtcpParser::Client client_that_ignores_everything;
   static CompoundRtcpParser parser(&session, &client_that_ignores_everything);
 #pragma clang diagnostic pop
 
