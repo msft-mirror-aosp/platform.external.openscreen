@@ -19,6 +19,7 @@ class DnsSdPublisher {
  public:
   class Client {
    public:
+    virtual ~Client() = default;
 
     // Callback called when an endpoint is successfully claimed and published
     // via the Register() method. These values are expected to only differ in
@@ -28,9 +29,6 @@ class DnsSdPublisher {
     virtual void OnEndpointClaimed(
         const DnsSdInstance& requested_instance,
         const DnsSdInstanceEndpoint& claimed_endpoint) = 0;
-
-   protected:
-    virtual ~Client() = default;
   };
 
   virtual ~DnsSdPublisher() = default;
