@@ -4,7 +4,7 @@
 
 package osp
 
-// TODO(jophba):
+// TODO(pthatcher):
 // - Send a response message
 // - Make a nice object API with methods
 // - Make it possible to have a presentation receiver that is a client
