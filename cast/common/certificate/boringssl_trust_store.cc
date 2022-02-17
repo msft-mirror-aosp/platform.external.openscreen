@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/common/certificate/cast_cert_validator_internal.h"
+#include "cast/common/certificate/boringssl_trust_store.h"
 
 #include <openssl/asn1.h>
 #include <openssl/evp.h>
@@ -16,16 +16,59 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "cast/common/certificate/types.h"
+#include "cast/common/certificate/boringssl_parsed_certificate.h"
+#include "cast/common/certificate/boringssl_util.h"
+#include "cast/common/certificate/date_time.h"
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
 namespace cast {
 namespace {
+
+BoringSSLTrustStore* g_cast_trust_store = nullptr;
+BoringSSLTrustStore* g_crl_trust_store = nullptr;
+
+// -------------------------------------------------------------------------
+// Cast trust anchors.
+// -------------------------------------------------------------------------
+
+// There are two trusted roots for Cast certificate chains:
+//
+//   (1) CN=Cast Root CA    (kCastRootCaDer)
+//   (2) CN=Eureka Root CA  (kEurekaRootCaDer)
+//
+// These constants are defined by the files included next:
+
+#include "cast/common/certificate/cast_root_ca_cert_der-inc.h"
+#include "cast/common/certificate/eureka_root_ca_der-inc.h"
+
+// -------------------------------------------------------------------------
+// Cast CRL trust anchors.
+// -------------------------------------------------------------------------
+
+// There is one trusted root for Cast CRL certificate chains:
+//
+//   (1) CN=Cast CRL Root CA    (kCastCRLRootCaDer)
+//
+// These constants are defined by the file included next:
+
+#include "cast/common/certificate/cast_crl_root_ca_cert_der-inc.h"
+
+// Adds a trust anchor given a DER-encoded certificate from static
+// storage.
+template <size_t N>
+bssl::UniquePtr<X509> MakeTrustAnchor(const uint8_t (&data)[N]) {
+  const uint8_t* dptr = data;
+  return bssl::UniquePtr<X509>{d2i_X509(nullptr, &dptr, N)};
+}
+
+inline bssl::UniquePtr<X509> MakeTrustAnchor(const std::vector<uint8_t>& data) {
+  const uint8_t* dptr = data.data();
+  return bssl::UniquePtr<X509>{d2i_X509(nullptr, &dptr, data.size())};
+}
 
 constexpr static int32_t kMinRsaModulusLengthBits = 2048;
 
@@ -72,16 +115,6 @@ bool CertInPath(X509_NAME* name,
   return false;
 }
 
-// Parse the data in |time| at |index| as a two-digit ascii number. Note this
-// function assumes the caller already did a bounds check and checked the inputs
-// are digits.
-uint8_t ParseAsn1TimeDoubleDigit(absl::string_view time, size_t index) {
-  OSP_DCHECK_LT(index + 1, time.size());
-  OSP_DCHECK('0' <= time[index] && time[index] <= '9');
-  OSP_DCHECK('0' <= time[index + 1] && time[index + 1] <= '9');
-  return (time[index] - '0') * 10 + (time[index + 1] - '0');
-}
-
 bssl::UniquePtr<BASIC_CONSTRAINTS> GetConstraints(X509* issuer) {
   // TODO(davidben): This and other |X509_get_ext_d2i| are missing
   // error-handling for syntax errors in certificates. See BoringSSL
@@ -92,13 +125,13 @@ bssl::UniquePtr<BASIC_CONSTRAINTS> GetConstraints(X509* issuer) {
 }
 
 Error::Code VerifyCertTime(X509* cert, const DateTime& time) {
-  DateTime not_before;
-  DateTime not_after;
-  if (!GetCertValidTimeRange(cert, &not_before, &not_after)) {
-    return Error::Code::kErrCertsVerifyGeneric;
+  ErrorOr<DateTime> not_before = GetNotBeforeTime(cert);
+  ErrorOr<DateTime> not_after = GetNotAfterTime(cert);
+  if (!not_before || !not_after) {
+    return Error::Code::kErrCertsParse;
   }
 
-  if ((time < not_before) || (not_after < time)) {
+  if ((time < not_before.value()) || (not_after.value() < time)) {
     return Error::Code::kErrCertsDateInvalid;
   }
   return Error::Code::kNone;
@@ -299,118 +332,90 @@ X509* ParseX509Der(const std::string& der) {
 
 }  // namespace
 
-// Parses DateTime with additional restrictions laid out by RFC 5280
-// 4.1.2.5.2.
-bool ParseAsn1GeneralizedTime(ASN1_GENERALIZEDTIME* time, DateTime* out) {
-  static constexpr uint8_t kDaysPerMonth[] = {
-      31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
-  };
-
-  absl::string_view time_str{
-      reinterpret_cast<const char*>(ASN1_STRING_get0_data(time)),
-      static_cast<size_t>(ASN1_STRING_length(time))};
-  if (time_str.size() != 15) {
-    return false;
+// static
+std::unique_ptr<TrustStore> TrustStore::CreateInstanceFromPemFile(
+    absl::string_view file_path) {
+  std::vector<std::string> der_certs = ReadCertificatesFromPemFile(file_path);
+  std::vector<bssl::UniquePtr<X509>> certs;
+  certs.reserve(der_certs.size());
+  for (const auto& der_cert : der_certs) {
+    const uint8_t* data = reinterpret_cast<const uint8_t*>(der_cert.data());
+    certs.emplace_back(d2i_X509(nullptr, &data, der_cert.size()));
   }
-  if (time_str[14] != 'Z') {
-    return false;
-  }
-  for (size_t i = 0; i < 14; ++i) {
-    if (time_str[i] < '0' || time_str[i] > '9') {
-      return false;
-    }
-  }
-  out->year = ParseAsn1TimeDoubleDigit(time_str, 0) * 100 +
-              ParseAsn1TimeDoubleDigit(time_str, 2);
-  out->month = ParseAsn1TimeDoubleDigit(time_str, 4);
-  out->day = ParseAsn1TimeDoubleDigit(time_str, 6);
-  out->hour = ParseAsn1TimeDoubleDigit(time_str, 8);
-  out->minute = ParseAsn1TimeDoubleDigit(time_str, 10);
-  out->second = ParseAsn1TimeDoubleDigit(time_str, 12);
-  if (out->month == 0 || out->month > 12) {
-    return false;
-  }
-  int days_per_month = kDaysPerMonth[out->month - 1];
-  if (out->month == 2) {
-    if (out->year % 4 == 0 && (out->year % 100 != 0 || out->year % 400 == 0)) {
-      days_per_month = 29;
-    } else {
-      days_per_month = 28;
-    }
-  }
-  if (out->day == 0 || out->day > days_per_month) {
-    return false;
-  }
-  if (out->hour > 23) {
-    return false;
-  }
-  if (out->minute > 59) {
-    return false;
-  }
-  // Leap seconds are allowed.
-  if (out->second > 60) {
-    return false;
-  }
-  return true;
-}
-
-bool GetCertValidTimeRange(X509* cert,
-                           DateTime* not_before,
-                           DateTime* not_after) {
-  bssl::UniquePtr<ASN1_GENERALIZEDTIME> not_before_asn1{
-      ASN1_TIME_to_generalizedtime(X509_get0_notBefore(cert), nullptr)};
-  bssl::UniquePtr<ASN1_GENERALIZEDTIME> not_after_asn1{
-      ASN1_TIME_to_generalizedtime(X509_get0_notAfter(cert), nullptr)};
-  if (!not_before_asn1 || !not_after_asn1) {
-    return false;
-  }
-  return ParseAsn1GeneralizedTime(not_before_asn1.get(), not_before) &&
-         ParseAsn1GeneralizedTime(not_after_asn1.get(), not_after);
+  return std::make_unique<BoringSSLTrustStore>(std::move(certs));
 }
 
 // static
-TrustStore TrustStore::CreateInstanceFromPemFile(absl::string_view file_path) {
-  TrustStore store;
-
-  std::vector<std::string> certs = ReadCertificatesFromPemFile(file_path);
-  for (const auto& der_cert : certs) {
-    const uint8_t* data = (const uint8_t*)der_cert.data();
-    store.certs.emplace_back(d2i_X509(nullptr, &data, der_cert.size()));
+TrustStore* CastTrustStore::GetInstance() {
+  if (!g_cast_trust_store) {
+    std::vector<bssl::UniquePtr<X509>> certs;
+    certs.emplace_back(MakeTrustAnchor(kCastRootCaDer));
+    certs.emplace_back(MakeTrustAnchor(kEurekaRootCaDer));
+    g_cast_trust_store = new BoringSSLTrustStore(std::move(certs));
   }
-
-  return store;
+  return g_cast_trust_store;
 }
 
-bool VerifySignedData(const EVP_MD* digest,
-                      EVP_PKEY* public_key,
-                      const ConstDataSpan& data,
-                      const ConstDataSpan& signature) {
-  // This code assumes the signature algorithm was RSASSA PKCS#1 v1.5 with
-  // |digest|.
-  bssl::ScopedEVP_MD_CTX ctx;
-  if (!EVP_DigestVerifyInit(ctx.get(), nullptr, digest, nullptr, public_key)) {
-    return false;
-  }
-  return (EVP_DigestVerify(ctx.get(), signature.data, signature.length,
-                           data.data, data.length) == 1);
+// static
+void CastTrustStore::ResetInstance() {
+  delete g_cast_trust_store;
+  g_cast_trust_store = nullptr;
 }
 
-Error FindCertificatePath(const std::vector<std::string>& der_certs,
-                          const DateTime& time,
-                          CertificatePathResult* result_path,
-                          TrustStore* trust_store) {
+// static
+TrustStore* CastTrustStore::CreateInstanceForTest(
+    const std::vector<uint8_t>& trust_anchor_der) {
+  OSP_DCHECK(!g_cast_trust_store);
+  g_cast_trust_store = new BoringSSLTrustStore(trust_anchor_der);
+  return g_cast_trust_store;
+}
+
+// static
+TrustStore* CastTrustStore::CreateInstanceFromPemFile(
+    absl::string_view file_path) {
+  OSP_DCHECK(!g_cast_trust_store);
+  g_cast_trust_store = static_cast<BoringSSLTrustStore*>(
+      TrustStore::CreateInstanceFromPemFile(file_path).release());
+  return g_cast_trust_store;
+}
+
+// static
+TrustStore* CastCRLTrustStore::GetInstance() {
+  if (!g_crl_trust_store) {
+    std::vector<bssl::UniquePtr<X509>> certs;
+    certs.emplace_back(MakeTrustAnchor(kCastCRLRootCaDer));
+    g_crl_trust_store = new BoringSSLTrustStore(std::move(certs));
+  }
+  return g_crl_trust_store;
+}
+
+BoringSSLTrustStore::BoringSSLTrustStore() {}
+
+BoringSSLTrustStore::BoringSSLTrustStore(
+    const std::vector<uint8_t>& trust_anchor_der) {
+  certs_.emplace_back(MakeTrustAnchor(trust_anchor_der));
+}
+
+BoringSSLTrustStore::BoringSSLTrustStore(
+    std::vector<bssl::UniquePtr<X509>> certs)
+    : certs_(std::move(certs)) {}
+
+BoringSSLTrustStore::~BoringSSLTrustStore() = default;
+
+ErrorOr<BoringSSLTrustStore::CertificatePathResult>
+BoringSSLTrustStore::FindCertificatePath(
+    const std::vector<std::string>& der_certs,
+    const DateTime& time) {
   if (der_certs.empty()) {
     return Error(Error::Code::kErrCertsMissing, "Missing DER certificates");
   }
 
-  bssl::UniquePtr<X509>& target_cert = result_path->target_cert;
-  std::vector<bssl::UniquePtr<X509>>& intermediate_certs =
-      result_path->intermediate_certs;
-  target_cert.reset(ParseX509Der(der_certs[0]));
+  bssl::UniquePtr<X509> target_cert(ParseX509Der(der_certs[0]));
   if (!target_cert) {
     return Error(Error::Code::kErrCertsParse,
                  "FindCertificatePath: Invalid target certificate");
   }
+  std::vector<bssl::UniquePtr<X509>> intermediate_certs;
   for (size_t i = 1; i < der_certs.size(); ++i) {
     intermediate_certs.emplace_back(ParseX509Der(der_certs[i]));
     if (!intermediate_certs.back()) {
@@ -486,8 +491,8 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
     // The next issuer certificate to add to the current path.
     X509* next_issuer = nullptr;
 
-    for (uint32_t i = trust_store_index; i < trust_store->certs.size(); ++i) {
-      X509* trust_store_cert = trust_store->certs[i].get();
+    for (uint32_t i = trust_store_index; i < certs_.size(); ++i) {
+      X509* trust_store_cert = certs_[i].get();
       X509_NAME* trust_store_cert_name =
           X509_get_subject_name(trust_store_cert);
       OSP_VLOG << "FindCertificatePath: Trust store certificate issuer name: "
@@ -514,7 +519,7 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
                         first_index)) {
           CertPathStep& next_step = path[--path_index];
           next_step.cert = intermediate_cert;
-          next_step.trust_store_index = trust_store->certs.size();
+          next_step.trust_store_index = certs_.size();
           next_step.intermediate_cert_index = i + 1;
           next_issuer = intermediate_cert;
           break;
@@ -553,14 +558,16 @@ Error FindCertificatePath(const std::vector<std::string>& der_certs,
     path_head = next_issuer;
   }
 
-  result_path->path.reserve(path.size() - path_index);
-  for (uint32_t i = path_index; i < path.size(); ++i) {
-    result_path->path.push_back(path[i].cert);
+  CertificatePathResult result_path;
+  result_path.reserve(path.size() - path_index);
+  for (uint32_t i = path.size(); i > path_index; --i) {
+    result_path.push_back(std::make_unique<BoringSSLParsedCertificate>(
+        bssl::UpRef(path[i - 1].cert)));
   }
 
   OSP_VLOG
       << "FindCertificatePath: Succeeded at validating receiver certificates";
-  return Error::Code::kNone;
+  return result_path;
 }
 
 }  // namespace cast

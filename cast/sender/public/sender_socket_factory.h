@@ -5,14 +5,13 @@
 #ifndef CAST_SENDER_PUBLIC_SENDER_SOCKET_FACTORY_H_
 #define CAST_SENDER_PUBLIC_SENDER_SOCKET_FACTORY_H_
 
-#include <openssl/x509.h>
-
 #include <memory>
 #include <set>
 #include <utility>
 #include <vector>
 
 #include "cast/common/public/cast_socket.h"
+#include "cast/common/public/parsed_certificate.h"
 #include "platform/api/serial_delete_ptr.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/tls_connection_factory.h"
@@ -87,7 +86,7 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
     SerialDeletePtr<CastSocket> socket;
     CastSocket::Client* client;
     std::unique_ptr<AuthContext> auth_context;
-    bssl::UniquePtr<X509> peer_cert;
+    std::unique_ptr<ParsedCertificate> peer_cert;
   };
 
   friend bool operator<(const std::unique_ptr<PendingAuth>& a, int b);

@@ -8,12 +8,12 @@
 #include <atomic>
 #include <chrono>
 
-#include "cast/common/certificate/cast_trust_store.h"
 #include "cast/common/certificate/testing/test_helpers.h"
 #include "cast/common/channel/connection_namespace_handler.h"
 #include "cast/common/channel/message_util.h"
 #include "cast/common/channel/virtual_connection_router.h"
 #include "cast/common/public/cast_socket.h"
+#include "cast/common/public/trust_store.h"
 #include "cast/receiver/channel/device_auth_namespace_handler.h"
 #include "cast/receiver/channel/static_credentials.h"
 #include "cast/receiver/public/receiver_socket_factory.h"

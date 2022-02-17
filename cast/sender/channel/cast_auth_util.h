@@ -5,8 +5,6 @@
 #ifndef CAST_SENDER_CHANNEL_CAST_AUTH_UTIL_H_
 #define CAST_SENDER_CHANNEL_CAST_AUTH_UTIL_H_
 
-#include <openssl/x509.h>
-
 #include <chrono>
 #include <string>
 #include <vector>
@@ -26,7 +24,8 @@ namespace cast {
 
 enum class CRLPolicy;
 struct DateTime;
-struct TrustStore;
+class TrustStore;
+class ParsedCertificate;
 
 class AuthContext {
  public:
@@ -58,7 +57,7 @@ class AuthContext {
 // 2. certificate used to sign is rooted to a trusted CA.
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReply(
     const ::cast::channel::CastMessage& challenge_reply,
-    X509* peer_cert,
+    const ParsedCertificate& peer_cert,
     const AuthContext& auth_context);
 
 // Exposed for testing only.
@@ -67,7 +66,7 @@ ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReply(
 // crl policy, trust stores, and verification times.
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyForTest(
     const ::cast::channel::CastMessage& challenge_reply,
-    X509* peer_cert,
+    const ParsedCertificate& peer_cert,
     const AuthContext& auth_context,
     CRLPolicy crl_policy,
     TrustStore* cast_trust_store,
@@ -75,7 +74,7 @@ ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyForTest(
     const DateTime& verification_time);
 
 // Performs a quick check of the TLS certificate for time validity requirements.
-Error VerifyTLSCertificateValidity(X509* peer_cert,
+Error VerifyTLSCertificateValidity(const ParsedCertificate& peer_cert,
                                    std::chrono::seconds verification_time);
 
 // Auth-library specific implementation of cryptographic signature verification

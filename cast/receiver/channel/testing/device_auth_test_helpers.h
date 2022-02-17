@@ -7,6 +7,7 @@
 
 #include <openssl/x509.h>
 
+#include <memory>
 #include <vector>
 
 #include "absl/strings/string_view.h"
@@ -16,12 +17,15 @@
 namespace openscreen {
 namespace cast {
 
-void InitStaticCredentialsFromFiles(StaticCredentialsProvider* creds,
-                                    bssl::UniquePtr<X509>* parsed_cert,
-                                    TrustStore* fake_trust_store,
-                                    absl::string_view privkey_filename,
-                                    absl::string_view chain_filename,
-                                    absl::string_view tls_filename);
+class TrustStore;
+
+void InitStaticCredentialsFromFiles(
+    StaticCredentialsProvider* creds,
+    bssl::UniquePtr<X509>* parsed_cert,
+    std::unique_ptr<TrustStore>* fake_trust_store,
+    absl::string_view privkey_filename,
+    absl::string_view chain_filename,
+    absl::string_view tls_filename);
 
 }  // namespace cast
 }  // namespace openscreen

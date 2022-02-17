@@ -1,30 +1,16 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
+// Copyright 2022 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CAST_COMMON_CERTIFICATE_TYPES_H_
-#define CAST_COMMON_CERTIFICATE_TYPES_H_
+#ifndef CAST_COMMON_CERTIFICATE_DATE_TIME_H_
+#define CAST_COMMON_CERTIFICATE_DATE_TIME_H_
 
 #include <stdint.h>
 
-#include <chrono>
+#include "cast/common/public/certificate_types.h"
 
 namespace openscreen {
 namespace cast {
-
-struct ConstDataSpan {
-  const uint8_t* data;
-  uint32_t length;
-};
-
-struct DateTime {
-  uint16_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t hour;
-  uint8_t minute;
-  uint8_t second;
-};
 
 bool operator<(const DateTime& a, const DateTime& b);
 bool operator>(const DateTime& a, const DateTime& b);
@@ -36,4 +22,4 @@ std::chrono::seconds DateTimeToSeconds(const DateTime& time);
 }  // namespace cast
 }  // namespace openscreen
 
-#endif  // CAST_COMMON_CERTIFICATE_TYPES_H_
+#endif  // CAST_COMMON_CERTIFICATE_DATE_TIME_H_

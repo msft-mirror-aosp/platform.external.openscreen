@@ -80,8 +80,8 @@ void SenderSocketFactory::OnConnected(
   CastSocket::Client* client = it->client;
   pending_connections_.erase(it);
 
-  ErrorOr<bssl::UniquePtr<X509>> peer_cert =
-      ImportCertificate(der_x509_peer_cert.data(), der_x509_peer_cert.size());
+  ErrorOr<std::unique_ptr<ParsedCertificate>> peer_cert =
+      ParsedCertificate::ParseFromDER(der_x509_peer_cert);
   if (!peer_cert) {
     client_->OnError(this, endpoint, peer_cert.error());
     return;
@@ -165,7 +165,7 @@ void SenderSocketFactory::OnMessage(CastSocket* socket, CastMessage message) {
   }
 
   ErrorOr<CastDeviceCertPolicy> policy_or_error = AuthenticateChallengeReply(
-      message, pending->peer_cert.get(), *pending->auth_context);
+      message, *pending->peer_cert, *pending->auth_context);
   if (policy_or_error.is_error()) {
     OSP_DLOG_WARN << "Authentication failed for " << pending->endpoint
                   << " with error: " << policy_or_error.error();
