@@ -160,5 +160,15 @@ bool BoringSSLParsedCertificate::HasPolicyOid(const ConstDataSpan& oid) const {
   return has_oid;
 }
 
+void BoringSSLParsedCertificate::SetNotBeforeTimeForTesting(time_t not_before) {
+  ASN1_TIME_set(const_cast<ASN1_TIME*>(X509_get0_notBefore(cert_.get())),
+                not_before);
+}
+
+void BoringSSLParsedCertificate::SetNotAfterTimeForTesting(time_t not_after) {
+  ASN1_TIME_set(const_cast<ASN1_TIME*>(X509_get0_notAfter(cert_.get())),
+                not_after);
+}
+
 }  // namespace cast
 }  // namespace openscreen

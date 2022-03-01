@@ -67,6 +67,11 @@ class ParsedCertificate {
                                 const ConstDataSpan& signature) const = 0;
 
   virtual bool HasPolicyOid(const ConstDataSpan& oid) const = 0;
+
+  // Set not-before and not-after times for testing (currently fuzzing).  The
+  // time values should be in seconds since the Unix epoch.
+  virtual void SetNotBeforeTimeForTesting(time_t not_before) = 0;
+  virtual void SetNotAfterTimeForTesting(time_t not_after) = 0;
 };
 
 }  // namespace cast

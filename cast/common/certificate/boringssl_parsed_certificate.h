@@ -43,6 +43,9 @@ class BoringSSLParsedCertificate final : public ParsedCertificate {
 
   bool HasPolicyOid(const ConstDataSpan& oid) const override;
 
+  void SetNotBeforeTimeForTesting(time_t not_before) override;
+  void SetNotAfterTimeForTesting(time_t not_after) override;
+
   X509* get() { return cert_.get(); }
 
  private:
