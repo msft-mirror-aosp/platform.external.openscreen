@@ -55,12 +55,11 @@ void RunTest(Error::Code expected_result,
              TrustStoreDependency trust_store_dependency,
              const std::string& optional_signed_data_file_name) {
   std::vector<std::string> certs = ReadCertificatesFromPemFile(certs_file_name);
-  TrustStore* trust_store;
-  std::unique_ptr<TrustStore> fake_trust_store;
+  std::unique_ptr<TrustStore> trust_store;
 
   switch (trust_store_dependency) {
     case TRUST_STORE_BUILTIN:
-      trust_store = nullptr;
+      trust_store = CastTrustStore::Create();
       break;
 
     case TRUST_STORE_FROM_TEST_FILE: {
@@ -69,11 +68,7 @@ void RunTest(Error::Code expected_result,
       // Parse the root certificate of the chain.
       std::vector<uint8_t> data(certs.back().begin(), certs.back().end());
       certs.pop_back();
-      fake_trust_store = std::make_unique<BoringSSLTrustStore>(data);
-
-      // Add a trust anchor and enforce constraints on it (regular mode for
-      // built-in Cast roots).
-      trust_store = fake_trust_store.get();
+      trust_store = std::make_unique<BoringSSLTrustStore>(data);
     }
   }
 
@@ -81,7 +76,7 @@ void RunTest(Error::Code expected_result,
   CastDeviceCertPolicy policy;
 
   Error result = VerifyDeviceCert(certs, time, &target_cert, &policy, nullptr,
-                                  CRLPolicy::kCrlOptional, trust_store);
+                                  CRLPolicy::kCrlOptional, trust_store.get());
 
   ASSERT_EQ(expected_result, result.code());
   if (expected_result != Error::Code::kNone)

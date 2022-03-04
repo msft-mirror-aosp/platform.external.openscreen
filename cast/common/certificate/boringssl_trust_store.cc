@@ -28,9 +28,6 @@ namespace openscreen {
 namespace cast {
 namespace {
 
-BoringSSLTrustStore* g_cast_trust_store = nullptr;
-BoringSSLTrustStore* g_crl_trust_store = nullptr;
-
 // -------------------------------------------------------------------------
 // Cast trust anchors.
 // -------------------------------------------------------------------------
@@ -346,47 +343,30 @@ std::unique_ptr<TrustStore> TrustStore::CreateInstanceFromPemFile(
 }
 
 // static
-TrustStore* CastTrustStore::GetInstance() {
-  if (!g_cast_trust_store) {
-    std::vector<bssl::UniquePtr<X509>> certs;
-    certs.emplace_back(MakeTrustAnchor(kCastRootCaDer));
-    certs.emplace_back(MakeTrustAnchor(kEurekaRootCaDer));
-    g_cast_trust_store = new BoringSSLTrustStore(std::move(certs));
-  }
-  return g_cast_trust_store;
-}
-
-// static
-void CastTrustStore::ResetInstance() {
-  delete g_cast_trust_store;
-  g_cast_trust_store = nullptr;
-}
-
-// static
-TrustStore* CastTrustStore::CreateInstanceForTest(
+std::unique_ptr<TrustStore> TrustStore::CreateInstanceForTest(
     const std::vector<uint8_t>& trust_anchor_der) {
-  OSP_DCHECK(!g_cast_trust_store);
-  g_cast_trust_store = new BoringSSLTrustStore(trust_anchor_der);
-  return g_cast_trust_store;
+  std::unique_ptr<TrustStore> trust_store =
+      std::make_unique<BoringSSLTrustStore>(trust_anchor_der);
+  return trust_store;
 }
 
 // static
-TrustStore* CastTrustStore::CreateInstanceFromPemFile(
-    absl::string_view file_path) {
-  OSP_DCHECK(!g_cast_trust_store);
-  g_cast_trust_store = static_cast<BoringSSLTrustStore*>(
-      TrustStore::CreateInstanceFromPemFile(file_path).release());
-  return g_cast_trust_store;
+std::unique_ptr<TrustStore> CastTrustStore::Create() {
+  std::vector<bssl::UniquePtr<X509>> certs;
+  certs.emplace_back(MakeTrustAnchor(kCastRootCaDer));
+  certs.emplace_back(MakeTrustAnchor(kEurekaRootCaDer));
+  std::unique_ptr<TrustStore> trust_store =
+      std::make_unique<BoringSSLTrustStore>(std::move(certs));
+  return trust_store;
 }
 
 // static
-TrustStore* CastCRLTrustStore::GetInstance() {
-  if (!g_crl_trust_store) {
-    std::vector<bssl::UniquePtr<X509>> certs;
-    certs.emplace_back(MakeTrustAnchor(kCastCRLRootCaDer));
-    g_crl_trust_store = new BoringSSLTrustStore(std::move(certs));
-  }
-  return g_crl_trust_store;
+std::unique_ptr<TrustStore> CastCRLTrustStore::Create() {
+  std::vector<bssl::UniquePtr<X509>> certs;
+  certs.emplace_back(MakeTrustAnchor(kCastCRLRootCaDer));
+  std::unique_ptr<TrustStore> trust_store =
+      std::make_unique<BoringSSLTrustStore>(std::move(certs));
+  return trust_store;
 }
 
 BoringSSLTrustStore::BoringSSLTrustStore() {}

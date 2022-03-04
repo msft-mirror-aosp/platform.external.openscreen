@@ -70,10 +70,6 @@ Error VerifyDeviceCert(const std::vector<std::string>& der_certs,
                        const CastCRL* crl,
                        CRLPolicy crl_policy,
                        TrustStore* trust_store) {
-  if (!trust_store) {
-    trust_store = CastTrustStore::GetInstance();
-  }
-
   // Fail early if CRL is required but not provided.
   if (!crl && crl_policy == CRLPolicy::kCrlRequired) {
     return Error::Code::kErrCrlInvalid;

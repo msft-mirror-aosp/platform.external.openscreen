@@ -105,6 +105,9 @@ bool RunTest(const DeviceCertTest& test_case) {
         GetSpecificTestDataPath() + "certificates/cast_crl_test_root_ca.pem");
     cast_trust_store = TrustStore::CreateInstanceFromPemFile(
         GetSpecificTestDataPath() + "certificates/cast_test_root_ca.pem");
+  } else {
+    crl_trust_store = CastCRLTrustStore::Create();
+    cast_trust_store = CastTrustStore::Create();
   }
 
   std::vector<std::string> der_cert_path;

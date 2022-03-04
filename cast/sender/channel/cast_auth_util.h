@@ -58,12 +58,14 @@ class AuthContext {
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReply(
     const ::cast::channel::CastMessage& challenge_reply,
     const ParsedCertificate& peer_cert,
-    const AuthContext& auth_context);
+    const AuthContext& auth_context,
+    TrustStore* cast_trust_store,
+    TrustStore* crl_trust_store);
 
 // Exposed for testing only.
 //
 // Overloaded version of AuthenticateChallengeReply that allows modifying the
-// crl policy, trust stores, and verification times.
+// crl policy and verification times.
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyForTest(
     const ::cast::channel::CastMessage& challenge_reply,
     const ParsedCertificate& peer_cert,
@@ -83,13 +85,15 @@ Error VerifyTLSCertificateValidity(const ParsedCertificate& peer_cert,
 ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
     const ::cast::channel::AuthResponse& response,
     const std::vector<uint8_t>& signature_input,
+    TrustStore* cast_trust_store,
+    TrustStore* crl_trust_store,
     bool enforce_revocation_checking = false,
     bool enforce_sha256_checking = false);
 
 // Exposed for testing only.
 //
-// Overloaded version of VerifyCredentials that allows modifying the crl policy,
-// trust stores, and verification times.
+// Overloaded version of VerifyCredentials that allows modifying the crl policy
+// and verification times.
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsForTest(
     const ::cast::channel::AuthResponse& response,
     const std::vector<uint8_t>& signature_input,

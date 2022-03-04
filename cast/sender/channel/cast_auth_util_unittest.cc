@@ -181,6 +181,8 @@ class CastAuthUtilTest : public ::testing::Test {
   }
 
   const std::string& data_path_{GetSpecificTestDataPath()};
+  std::unique_ptr<TrustStore> cast_trust_store_{CastTrustStore::Create()};
+  std::unique_ptr<TrustStore> crl_trust_store_{CastCRLTrustStore::Create()};
 };
 
 // Note on expiration: VerifyCredentials() depends on the system clock. In
@@ -192,9 +194,9 @@ TEST_F(CastAuthUtilTest, VerifySuccess) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   DateTime now = {};
   ASSERT_TRUE(DateTimeFromSeconds(GetWallTimeSinceUnixEpoch().count(), &now));
-  ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentialsForTest(auth_response, signed_data,
-                               CRLPolicy::kCrlOptional, nullptr, nullptr, now);
+  ErrorOr<CastDeviceCertPolicy> result = VerifyCredentialsForTest(
+      auth_response, signed_data, CRLPolicy::kCrlOptional,
+      cast_trust_store_.get(), crl_trust_store_.get(), now);
   EXPECT_TRUE(result);
   EXPECT_EQ(CastDeviceCertPolicy::kUnrestricted, result.value());
 }
@@ -205,7 +207,8 @@ TEST_F(CastAuthUtilTest, VerifyBadCA) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   MangleString(auth_response.mutable_intermediate_certificate(0));
   ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentials(auth_response, signed_data);
+      VerifyCredentials(auth_response, signed_data, cast_trust_store_.get(),
+                        crl_trust_store_.get());
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kErrCertsParse, result.error().code());
 }
@@ -216,7 +219,8 @@ TEST_F(CastAuthUtilTest, VerifyBadClientAuthCert) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   MangleString(auth_response.mutable_client_auth_certificate());
   ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentials(auth_response, signed_data);
+      VerifyCredentials(auth_response, signed_data, cast_trust_store_.get(),
+                        crl_trust_store_.get());
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kErrCertsParse, result.error().code());
 }
@@ -227,7 +231,8 @@ TEST_F(CastAuthUtilTest, VerifyBadSignature) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   MangleString(auth_response.mutable_signature());
   ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentials(auth_response, signed_data);
+      VerifyCredentials(auth_response, signed_data, cast_trust_store_.get(),
+                        crl_trust_store_.get());
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kCastV2SignedBlobsMismatch, result.error().code());
 }
@@ -238,7 +243,8 @@ TEST_F(CastAuthUtilTest, VerifyEmptySignature) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   auth_response.mutable_signature()->clear();
   ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentials(auth_response, signed_data);
+      VerifyCredentials(auth_response, signed_data, cast_trust_store_.get(),
+                        crl_trust_store_.get());
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kCastV2SignatureEmpty, result.error().code());
 }
@@ -250,8 +256,8 @@ TEST_F(CastAuthUtilTest, VerifyUnsupportedDigest) {
   DateTime now = {};
   ASSERT_TRUE(DateTimeFromSeconds(GetWallTimeSinceUnixEpoch().count(), &now));
   ErrorOr<CastDeviceCertPolicy> result = VerifyCredentialsForTest(
-      auth_response, signed_data, CRLPolicy::kCrlOptional, nullptr, nullptr,
-      now, true);
+      auth_response, signed_data, CRLPolicy::kCrlOptional,
+      cast_trust_store_.get(), crl_trust_store_.get(), now, true);
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kCastV2DigestUnsupported, result.error().code());
 }
@@ -262,9 +268,9 @@ TEST_F(CastAuthUtilTest, VerifyBackwardsCompatibleDigest) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA1);
   DateTime now = {};
   ASSERT_TRUE(DateTimeFromSeconds(GetWallTimeSinceUnixEpoch().count(), &now));
-  ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentialsForTest(auth_response, signed_data,
-                               CRLPolicy::kCrlOptional, nullptr, nullptr, now);
+  ErrorOr<CastDeviceCertPolicy> result = VerifyCredentialsForTest(
+      auth_response, signed_data, CRLPolicy::kCrlOptional,
+      cast_trust_store_.get(), crl_trust_store_.get(), now);
   EXPECT_TRUE(result);
 }
 
@@ -274,7 +280,8 @@ TEST_F(CastAuthUtilTest, VerifyBadPeerCert) {
       CreateAuthResponse(&signed_data, ::cast::channel::SHA256);
   MangleData(&signed_data);
   ErrorOr<CastDeviceCertPolicy> result =
-      VerifyCredentials(auth_response, signed_data);
+      VerifyCredentials(auth_response, signed_data, cast_trust_store_.get(),
+                        crl_trust_store_.get());
   EXPECT_FALSE(result);
   EXPECT_EQ(Error::Code::kCastV2SignedBlobsMismatch, result.error().code());
 }

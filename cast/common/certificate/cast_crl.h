@@ -79,14 +79,13 @@ class CastCRL {
 // Inputs:
 // * |crl_proto| is a serialized cast_certificate.CrlBundle proto.
 // * |time| is the timestamp to use for determining if the CRL is valid.
-// * |trust_store| is the set of trust anchors to use.  This should be nullptr
-//   in production, but can be overridden in tests.
+// * |trust_store| is the set of trust anchors to use.
 //
 // Output:
 // Returns the CRL object if success, nullptr otherwise.
 std::unique_ptr<CastCRL> ParseAndVerifyCRL(const std::string& crl_proto,
                                            const DateTime& time,
-                                           TrustStore* trust_store = nullptr);
+                                           TrustStore* trust_store);
 
 }  // namespace cast
 }  // namespace openscreen

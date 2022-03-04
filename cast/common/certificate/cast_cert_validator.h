@@ -56,9 +56,8 @@ enum class CRLPolicy {
 //   If CRL_REQUIRED is passed, then an empty |crl| input would result
 //   in a failed verification. Otherwise, |crl| is ignored if it is absent.
 //
-// * |trust_store| is an optional set of trusted certificates that may act as
-//   root CAs during chain verification.  If this is nullptr, the built-in Cast
-//   root certificates will be used.
+// * |trust_store| is a set of trusted certificates that may act as root CAs
+//   during chain verification.
 //
 // Outputs:
 //
@@ -78,7 +77,7 @@ enum class CRLPolicy {
     CastDeviceCertPolicy* policy,
     const CastCRL* crl,
     CRLPolicy crl_policy,
-    TrustStore* trust_store = nullptr);
+    TrustStore* trust_store);
 
 }  // namespace cast
 }  // namespace openscreen

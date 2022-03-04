@@ -179,9 +179,6 @@ bool CastCRL::CheckRevocation(
 std::unique_ptr<CastCRL> ParseAndVerifyCRL(const std::string& crl_proto,
                                            const DateTime& time,
                                            TrustStore* trust_store) {
-  if (!trust_store)
-    trust_store = CastCRLTrustStore::GetInstance();
-
   CrlBundle crl_bundle;
   if (!crl_bundle.ParseFromString(crl_proto)) {
     return nullptr;

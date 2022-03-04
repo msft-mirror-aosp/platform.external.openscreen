@@ -29,6 +29,9 @@ class TrustStore {
   static std::unique_ptr<TrustStore> CreateInstanceFromPemFile(
       absl::string_view file_path);
 
+  static std::unique_ptr<TrustStore> CreateInstanceForTest(
+      const std::vector<uint8_t>& trust_anchor_der);
+
   TrustStore() = default;
   virtual ~TrustStore() = default;
 
@@ -55,22 +58,18 @@ class TrustStore {
       const DateTime& time) = 0;
 };
 
-// Singleton that is the root of trust for Cast device certificates.
 class CastTrustStore {
  public:
-  static TrustStore* GetInstance();
-  static void ResetInstance();
-
-  static TrustStore* CreateInstanceForTest(
-      const std::vector<uint8_t>& trust_anchor_der);
-
-  static TrustStore* CreateInstanceFromPemFile(absl::string_view file_path);
+  // Creates a TrustStore instance that is the root of trust for Cast device
+  // certificates.
+  static std::unique_ptr<TrustStore> Create();
 };
 
-// Singleton that is the root of trust for signed CRL data.
 class CastCRLTrustStore {
  public:
-  static TrustStore* GetInstance();
+  // Creates a TrustStore instance that is the root of trust for signed CRL
+  // data.
+  static std::unique_ptr<TrustStore> Create();
 };
 
 }  // namespace cast

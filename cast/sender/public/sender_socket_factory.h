@@ -21,6 +21,7 @@ namespace openscreen {
 namespace cast {
 
 class AuthContext;
+class TrustStore;
 
 class SenderSocketFactory final : public TlsConnectionFactory::Client,
                                   public CastSocket::Client {
@@ -44,8 +45,13 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
     kIncludesVideo,
   };
 
-  // |client| and |task_runner| must outlive |this|.
+  // |client| and |task_runner| must outlive |this|.  If no trust stores are
+  // passed, the default production certificates are used.
   SenderSocketFactory(Client* client, TaskRunner* task_runner);
+  SenderSocketFactory(Client* client,
+                      TaskRunner* task_runner,
+                      std::unique_ptr<TrustStore> cast_trust_store,
+                      std::unique_ptr<TrustStore> crl_trust_store);
   ~SenderSocketFactory();
 
   // |factory| cannot be nullptr and must outlive |this|.
@@ -105,6 +111,10 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
   TlsConnectionFactory* factory_ = nullptr;
   std::vector<PendingConnection> pending_connections_;
   std::vector<std::unique_ptr<PendingAuth>> pending_auth_;
+
+  // Trust stores for use with AuthenticateChallengeReply.
+  std::unique_ptr<TrustStore> cast_trust_store_;
+  std::unique_ptr<TrustStore> crl_trust_store_;
 };
 
 }  // namespace cast

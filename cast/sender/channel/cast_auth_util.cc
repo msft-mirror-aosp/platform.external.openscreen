@@ -308,13 +308,15 @@ ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyImpl(
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReply(
     const CastMessage& challenge_reply,
     const ParsedCertificate& peer_cert,
-    const AuthContext& auth_context) {
+    const AuthContext& auth_context,
+    TrustStore* cast_trust_store,
+    TrustStore* crl_trust_store) {
   DateTime now = {};
   OSP_CHECK(DateTimeFromSeconds(GetWallTimeSinceUnixEpoch().count(), &now));
   CRLPolicy policy = CRLPolicy::kCrlOptional;
-  return AuthenticateChallengeReplyImpl(
-      challenge_reply, peer_cert, auth_context, policy,
-      /* cast_trust_store */ nullptr, /* crl_trust_store */ nullptr, now);
+  return AuthenticateChallengeReplyImpl(challenge_reply, peer_cert,
+                                        auth_context, policy, cast_trust_store,
+                                        crl_trust_store, now);
 }
 
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyForTest(
@@ -410,14 +412,17 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
 ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
     const AuthResponse& response,
     const std::vector<uint8_t>& signature_input,
+    TrustStore* cast_trust_store,
+    TrustStore* crl_trust_store,
     bool enforce_revocation_checking,
     bool enforce_sha256_checking) {
   DateTime now = {};
   OSP_CHECK(DateTimeFromSeconds(GetWallTimeSinceUnixEpoch().count(), &now));
   CRLPolicy policy = (enforce_revocation_checking) ? CRLPolicy::kCrlRequired
                                                    : CRLPolicy::kCrlOptional;
-  return VerifyCredentialsImpl(response, signature_input, policy, nullptr,
-                               nullptr, now, enforce_sha256_checking);
+  return VerifyCredentialsImpl(response, signature_input, policy,
+                               cast_trust_store, crl_trust_store, now,
+                               enforce_sha256_checking);
 }
 
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsForTest(
