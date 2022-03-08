@@ -8,8 +8,8 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
-#include "cast/common/certificate/boringssl_parsed_certificate.h"
 #include "cast/common/certificate/cast_cert_validator.h"
 #include "cast/common/certificate/cast_crl.h"
 #include "cast/common/certificate/date_time.h"
@@ -37,11 +37,11 @@ namespace {
 
 using ::cast::channel::AuthResponse;
 
-std::unique_ptr<BoringSSLParsedCertificate> ParseX509Der(
-    const std::string& der) {
-  const uint8_t* data = reinterpret_cast<const uint8_t*>(der.data());
-  return std::make_unique<BoringSSLParsedCertificate>(
-      bssl::UniquePtr<X509>(d2i_X509(nullptr, &data, der.size())));
+std::unique_ptr<ParsedCertificate> ParseX509Der(const std::string& der) {
+  auto* data = reinterpret_cast<const uint8_t*>(der.data());
+  return std::move(ParsedCertificate::ParseFromDER(
+                       std::vector<uint8_t>(data, data + der.size()))
+                       .value());
 }
 
 bool ConvertTimeSeconds(const DateTime& time, uint64_t* seconds) {
@@ -316,7 +316,7 @@ TEST_F(CastAuthUtilTest, VerifyTLSCertificateSuccess) {
   std::vector<std::string> tls_cert_der = ReadCertificatesFromPemFile(
       data_path_ + "certificates/test_tls_cert.pem");
   std::string& der_cert = tls_cert_der[0];
-  std::unique_ptr<BoringSSLParsedCertificate> tls_cert = ParseX509Der(der_cert);
+  std::unique_ptr<ParsedCertificate> tls_cert = ParseX509Der(der_cert);
   ErrorOr<DateTime> maybe_not_before = tls_cert->GetNotBeforeTime();
   ASSERT_TRUE(maybe_not_before);
   uint64_t x;
@@ -331,7 +331,7 @@ TEST_F(CastAuthUtilTest, VerifyTLSCertificateTooEarly) {
   std::vector<std::string> tls_cert_der = ReadCertificatesFromPemFile(
       data_path_ + "certificates/test_tls_cert.pem");
   std::string& der_cert = tls_cert_der[0];
-  std::unique_ptr<BoringSSLParsedCertificate> tls_cert = ParseX509Der(der_cert);
+  std::unique_ptr<ParsedCertificate> tls_cert = ParseX509Der(der_cert);
   ErrorOr<DateTime> maybe_not_before = tls_cert->GetNotBeforeTime();
   ASSERT_TRUE(maybe_not_before);
   uint64_t x;
@@ -349,7 +349,7 @@ TEST_F(CastAuthUtilTest, VerifyTLSCertificateTooLate) {
   std::vector<std::string> tls_cert_der = ReadCertificatesFromPemFile(
       data_path_ + "certificates/test_tls_cert.pem");
   std::string& der_cert = tls_cert_der[0];
-  std::unique_ptr<BoringSSLParsedCertificate> tls_cert = ParseX509Der(der_cert);
+  std::unique_ptr<ParsedCertificate> tls_cert = ParseX509Der(der_cert);
   ErrorOr<DateTime> maybe_not_after = tls_cert->GetNotAfterTime();
   ASSERT_TRUE(maybe_not_after);
   uint64_t x;

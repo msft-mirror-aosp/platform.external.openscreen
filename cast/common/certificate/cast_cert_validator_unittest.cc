@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cast/common/certificate/boringssl_trust_store.h"
 #include "cast/common/certificate/date_time.h"
 #include "cast/common/certificate/testing/test_helpers.h"
 #include "cast/common/public/trust_store.h"
@@ -68,7 +67,7 @@ void RunTest(Error::Code expected_result,
       // Parse the root certificate of the chain.
       std::vector<uint8_t> data(certs.back().begin(), certs.back().end());
       certs.pop_back();
-      trust_store = std::make_unique<BoringSSLTrustStore>(data);
+      trust_store = TrustStore::CreateInstanceForTest(data);
     }
   }
 

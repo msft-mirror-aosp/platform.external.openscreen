@@ -50,9 +50,8 @@ class TestCredentialsProvider final
  public:
   TestCredentialsProvider() {
     const std::string dir = GetTestDataSubdir();
-    bssl::UniquePtr<X509> parsed_cert;
     InitStaticCredentialsFromFiles(
-        &creds_, &parsed_cert, nullptr, dir + "/device_key.pem",
+        &creds_, nullptr, nullptr, dir + "/device_key.pem",
         dir + "/device_chain.pem", dir + "/device_tls.pem");
   }
 

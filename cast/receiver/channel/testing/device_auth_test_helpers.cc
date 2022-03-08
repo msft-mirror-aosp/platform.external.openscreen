@@ -7,8 +7,9 @@
 #include <string>
 #include <utility>
 
-#include "cast/common/certificate/boringssl_trust_store.h"
 #include "cast/common/certificate/testing/test_helpers.h"
+#include "cast/common/public/parsed_certificate.h"
+#include "cast/common/public/trust_store.h"
 #include "gtest/gtest.h"
 #include "util/crypto/pem_helpers.h"
 
@@ -17,7 +18,7 @@ namespace cast {
 
 void InitStaticCredentialsFromFiles(
     StaticCredentialsProvider* creds,
-    bssl::UniquePtr<X509>* parsed_cert,
+    std::unique_ptr<ParsedCertificate>* parsed_cert,
     std::unique_ptr<TrustStore>* fake_trust_store,
     absl::string_view privkey_filename,
     absl::string_view chain_filename,
@@ -30,7 +31,7 @@ void InitStaticCredentialsFromFiles(
   // Use the root of the chain as the trust store for the test.
   if (fake_trust_store) {
     std::vector<uint8_t> root_der(certs.back().begin(), certs.back().end());
-    *fake_trust_store = std::make_unique<BoringSSLTrustStore>(root_der);
+    *fake_trust_store = TrustStore::CreateInstanceForTest(root_der);
   }
   certs.pop_back();
 
@@ -43,7 +44,9 @@ void InitStaticCredentialsFromFiles(
   auto* data = reinterpret_cast<const uint8_t*>(tls_cert[0].data());
   if (parsed_cert) {
     *parsed_cert =
-        bssl::UniquePtr<X509>(d2i_X509(nullptr, &data, tls_cert[0].size()));
+        std::move(ParsedCertificate::ParseFromDER(
+                      std::vector<uint8_t>(data, data + tls_cert[0].size()))
+                      .value());
     ASSERT_TRUE(*parsed_cert);
   }
   const auto* begin = reinterpret_cast<const uint8_t*>(tls_cert[0].data());

@@ -4,13 +4,13 @@
 
 #include <stdio.h>
 
-#include "cast/common/certificate/boringssl_parsed_certificate.h"
 #include "cast/common/certificate/testing/test_helpers.h"
 #include "cast/common/channel/proto/cast_channel.pb.h"
 #include "cast/common/channel/testing/fake_cast_socket.h"
 #include "cast/common/channel/testing/mock_socket_error_handler.h"
 #include "cast/common/channel/virtual_connection_router.h"
 #include "cast/common/public/cast_socket.h"
+#include "cast/common/public/parsed_certificate.h"
 #include "cast/common/public/trust_store.h"
 #include "cast/receiver/channel/device_auth_namespace_handler.h"
 #include "cast/receiver/channel/static_credentials.h"
@@ -50,14 +50,12 @@ class DeviceAuthTest : public ::testing::Test {
                    TrustStore* fake_crl_trust_store,
                    bool should_succeed = true,
                    bool record_this_test = false) {
-    bssl::UniquePtr<X509> parsed_cert;
+    std::unique_ptr<ParsedCertificate> cert;
     std::unique_ptr<TrustStore> fake_trust_store;
     InitStaticCredentialsFromFiles(
-        &creds_, &parsed_cert, &fake_trust_store, data_path_ + "device_key.pem",
+        &creds_, &cert, &fake_trust_store, data_path_ + "device_key.pem",
         data_path_ + "device_chain.pem", data_path_ + "device_tls.pem");
     creds_.device_creds.serialized_crl = std::move(serialized_crl);
-    auto cert =
-        std::make_unique<BoringSSLParsedCertificate>(std::move(parsed_cert));
 
     // Send an auth challenge.  |auth_handler_| will automatically respond
     // via |router_| and we will catch the result in |challenge_reply|.

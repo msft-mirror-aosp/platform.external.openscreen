@@ -179,7 +179,6 @@ source_set("unittests") {
 
   deps = [
     ":certificate",
-    ":certificate_boringssl",
     ":channel",
     ":public",
     ":test_helpers",

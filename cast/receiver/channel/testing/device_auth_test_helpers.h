@@ -5,8 +5,6 @@
 #ifndef CAST_RECEIVER_CHANNEL_TESTING_DEVICE_AUTH_TEST_HELPERS_H_
 #define CAST_RECEIVER_CHANNEL_TESTING_DEVICE_AUTH_TEST_HELPERS_H_
 
-#include <openssl/x509.h>
-
 #include <memory>
 #include <vector>
 
@@ -17,11 +15,12 @@
 namespace openscreen {
 namespace cast {
 
+class ParsedCertificate;
 class TrustStore;
 
 void InitStaticCredentialsFromFiles(
     StaticCredentialsProvider* creds,
-    bssl::UniquePtr<X509>* parsed_cert,
+    std::unique_ptr<ParsedCertificate>* parsed_cert,
     std::unique_ptr<TrustStore>* fake_trust_store,
     absl::string_view privkey_filename,
     absl::string_view chain_filename,

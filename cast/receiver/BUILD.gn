@@ -60,7 +60,6 @@ source_set("test_helpers") {
   ]
   deps = [
     "../../third_party/googletest:gtest",
-    "../common:certificate_boringssl",
     "../common/channel/proto:channel_proto",
   ]
 }
@@ -80,7 +79,6 @@ source_set("unittests") {
     "../../testing/util",
     "../../third_party/googletest:gmock",
     "../../third_party/googletest:gtest",
-    "../common:certificate_boringssl",
     "../common:channel",
     "../common/channel/proto:channel_proto",
   ]
