@@ -205,7 +205,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
 
 #if defined(CAST_ALLOW_DEVELOPER_CERTIFICATE)
   if (!developer_certificate_path.empty()) {
-    CastTrustStore::CreateInstanceFromPemFile(developer_certificate_path);
+    TrustStore::CreateInstanceFromPemFile(developer_certificate_path);
   }
 #endif
 
