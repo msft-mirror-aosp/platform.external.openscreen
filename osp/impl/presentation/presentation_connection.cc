@@ -131,6 +131,7 @@ Error Connection::SendBinary(std::vector<uint8_t>&& data) {
   new (&cbor_message.message.bytes) std::vector<uint8_t>(std::move(data));
 
   return WriteConnectionMessage(cbor_message, protocol_connection_.get());
+  return Error::None();
 }
 
 Error Connection::Close(CloseReason reason) {

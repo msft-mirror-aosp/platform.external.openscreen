@@ -62,6 +62,7 @@ class Connection {
   class Delegate {
    public:
     Delegate() = default;
+    virtual ~Delegate() = default;
 
     // State changes.
     virtual void OnConnected() = 0;
@@ -83,9 +84,6 @@ class Connection {
 
     // A binary message was received.
     virtual void OnBinaryMessage(const std::vector<uint8_t>& data) = 0;
-
-   protected:
-    virtual ~Delegate() = default;
 
    private:
     OSP_DISALLOW_COPY_AND_ASSIGN(Delegate);

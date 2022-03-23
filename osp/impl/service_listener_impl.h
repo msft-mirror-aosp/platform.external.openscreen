@@ -22,6 +22,7 @@ class ServiceListenerImpl final : public ServiceListener,
   class Delegate {
    public:
     Delegate();
+    virtual ~Delegate();
 
     void SetListenerImpl(ServiceListenerImpl* listener);
 
@@ -33,7 +34,6 @@ class ServiceListenerImpl final : public ServiceListener,
     virtual void SearchNow(State from) = 0;
 
    protected:
-    virtual ~Delegate();
     void SetState(State state) { listener_->SetState(state); }
 
     ServiceListenerImpl* listener_ = nullptr;
