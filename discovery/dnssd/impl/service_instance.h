@@ -26,9 +26,9 @@ class ServiceInstance final : public DnsSdService {
   ServiceInstance(TaskRunner* task_runner,
                   ReportingClient* reporting_client,
                   const Config& config,
-                  const InterfaceInfo& network_info);
+                  const Config::NetworkInfo& network_info);
   ServiceInstance(const ServiceInstance& other) = delete;
-  ServiceInstance(ServiceInstance&& other) noexcept = delete;
+  ServiceInstance(ServiceInstance&& other) = delete;
   ~ServiceInstance() override;
 
   ServiceInstance& operator=(const ServiceInstance& other) = delete;
