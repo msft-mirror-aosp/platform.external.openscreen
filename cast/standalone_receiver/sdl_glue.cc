@@ -4,8 +4,6 @@
 
 #include "cast/standalone_receiver/sdl_glue.h"
 
-#include <utility>
-
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
 #include "util/osp_logging.h"
@@ -23,11 +21,6 @@ SDLEventLoopProcessor::SDLEventLoopProcessor(
 
 SDLEventLoopProcessor::~SDLEventLoopProcessor() = default;
 
-void SDLEventLoopProcessor::RegisterForKeyboardEvent(
-    SDLEventLoopProcessor::KeyboardEventCallback cb) {
-  keyboard_callbacks_.push_back(std::move(cb));
-}
-
 void SDLEventLoopProcessor::ProcessPendingEvents() {
   // Process all pending events.
   SDL_Event event;
@@ -36,10 +29,6 @@ void SDLEventLoopProcessor::ProcessPendingEvents() {
       OSP_VLOG << "SDL_QUIT received, invoking quit callback...";
       if (quit_callback_) {
         quit_callback_();
-      }
-    } else if (event.type == SDL_KEYUP) {
-      for (auto& cb : keyboard_callbacks_) {
-        cb(event.key);
       }
     }
   }
