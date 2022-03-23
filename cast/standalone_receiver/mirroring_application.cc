@@ -4,10 +4,7 @@
 
 #include "cast/standalone_receiver/mirroring_application.h"
 
-#include <utility>
-
 #include "cast/common/public/message_port.h"
-#include "cast/streaming/constants.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/receiver_session.h"
@@ -16,6 +13,9 @@
 
 namespace openscreen {
 namespace cast {
+
+const char kMirroringAppId[] = "0F5096E8";
+const char kMirroringAudioOnlyAppId[] = "85CDB22F";
 
 const char kMirroringDisplayName[] = "Chrome Mirroring";
 const char kRemotingRpcNamespace[] = "urn:x-cast:com.google.cast.remoting";
@@ -55,15 +55,9 @@ bool MirroringApplication::Launch(const std::string& app_id,
       IPEndpoint{interface_address_, kDefaultCastStreamingPort});
   controller_ =
       std::make_unique<StreamingPlaybackController>(task_runner_, this);
-
-  ReceiverSession::Preferences preferences;
-  preferences.video_codecs.insert(preferences.video_codecs.end(),
-                                  {VideoCodec::kVp9, VideoCodec::kAv1});
-  preferences.remoting =
-      std::make_unique<ReceiverSession::RemotingPreferences>();
-  current_session_ =
-      std::make_unique<ReceiverSession>(controller_.get(), environment_.get(),
-                                        message_port, std::move(preferences));
+  current_session_ = std::make_unique<ReceiverSession>(
+      controller_.get(), environment_.get(), message_port,
+      ReceiverSession::Preferences{});
   return true;
 }
 

@@ -17,17 +17,16 @@
 namespace openscreen {
 namespace cast {
 
-enum class MediaCapability {
-  kAudio,
-  kAac,
-  kOpus,
-  kVideo,
-  k4k,
-  kH264,
-  kVp8,
-  kVp9,
-  kHevc,
-  kAv1
+struct ReceiverWifiStatus {
+  Json::Value ToJson() const;
+  static ErrorOr<ReceiverWifiStatus> Parse(const Json::Value& value);
+
+  // Current WiFi signal to noise ratio in decibels.
+  double wifi_snr = 0.0;
+
+  // Min, max, average, and current bandwidth in bps in order of the WiFi link.
+  // Example: [1200, 1300, 1250, 1230].
+  std::vector<int32_t> wifi_speed;
 };
 
 struct ReceiverCapability {
@@ -40,7 +39,7 @@ struct ReceiverCapability {
   int remoting_version = kRemotingVersionUnknown;
 
   // Set of capabilities (e.g., ac3, 4k, hevc, vp9, dolby_vision, etc.).
-  std::vector<MediaCapability> media_capabilities;
+  std::vector<std::string> media_capabilities;
 };
 
 struct ReceiverError {
@@ -48,8 +47,6 @@ struct ReceiverError {
   static ErrorOr<ReceiverError> Parse(const Json::Value& value);
 
   // Error code.
-  // TODO(issuetracker.google.com/184766188): Error codes should be well
-  // defined.
   int32_t code = -1;
 
   // Error description.
@@ -65,6 +62,9 @@ struct ReceiverMessage {
 
     // Response to OFFER message.
     kAnswer,
+
+    // Response to GET_STATUS message.
+    kStatusResponse,
 
     // Response to GET_CAPABILITIES message.
     kCapabilitiesResponse,
@@ -84,7 +84,8 @@ struct ReceiverMessage {
 
   absl::variant<absl::monostate,
                 Answer,
-                std::vector<uint8_t>,  // Binary-encoded RPC message.
+                std::string,
+                ReceiverWifiStatus,
                 ReceiverCapability,
                 ReceiverError>
       body;

@@ -4,8 +4,6 @@
 
 #include "osp/impl/service_publisher_impl.h"
 
-#include <utility>
-
 #include "util/osp_logging.h"
 
 namespace openscreen {
@@ -46,8 +44,8 @@ void ServicePublisherImpl::Delegate::SetPublisherImpl(
 }
 
 ServicePublisherImpl::ServicePublisherImpl(Observer* observer,
-                                           std::unique_ptr<Delegate> delegate)
-    : ServicePublisher(observer), delegate_(std::move(delegate)) {
+                                           Delegate* delegate)
+    : ServicePublisher(observer), delegate_(delegate) {
   delegate_->SetPublisherImpl(this);
 }
 
@@ -57,14 +55,14 @@ bool ServicePublisherImpl::Start() {
   if (state_ != State::kStopped)
     return false;
   state_ = State::kStarting;
-  delegate_->StartPublisher(config_);
+  delegate_->StartPublisher();
   return true;
 }
 bool ServicePublisherImpl::StartAndSuspend() {
   if (state_ != State::kStopped)
     return false;
   state_ = State::kStarting;
-  delegate_->StartAndSuspendPublisher(config_);
+  delegate_->StartAndSuspendPublisher();
   return true;
 }
 bool ServicePublisherImpl::Stop() {
@@ -86,7 +84,7 @@ bool ServicePublisherImpl::Resume() {
   if (state_ != State::kSuspended)
     return false;
 
-  delegate_->ResumePublisher(config_);
+  delegate_->ResumePublisher();
   return true;
 }
 
