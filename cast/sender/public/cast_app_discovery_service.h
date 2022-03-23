@@ -7,19 +7,19 @@
 
 #include <vector>
 
-#include "cast/common/public/receiver_info.h"
+#include "cast/common/public/service_info.h"
 
 namespace openscreen {
 namespace cast {
 
 class CastMediaSource;
 
-// Interface for app discovery for Cast receivers.
+// Interface for app discovery for Cast devices.
 class CastAppDiscoveryService {
  public:
   using AvailabilityCallback =
       std::function<void(const CastMediaSource& source,
-                         const std::vector<ReceiverInfo>& receivers)>;
+                         const std::vector<ServiceInfo>& devices)>;
 
   class Subscription {
    public:
@@ -47,7 +47,7 @@ class CastAppDiscoveryService {
   // returned via |callback| until the returned Subscription is destroyed by the
   // caller.  If there are cached results available, |callback| will be invoked
   // before this method returns.  |callback| may be invoked with an empty list
-  // if all receivers respond to the respective queries with "unavailable" or
+  // if all devices respond to the respective queries with "unavailable" or
   // don't respond before a timeout.  |callback| may be invoked successively
   // with the same list.
   virtual Subscription StartObservingAvailability(
