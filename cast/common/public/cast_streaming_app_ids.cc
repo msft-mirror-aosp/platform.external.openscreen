@@ -6,6 +6,7 @@
 
 #include <array>
 
+#include "absl/strings/match.h"
 #include "util/std_util.h"
 
 namespace openscreen {
@@ -13,7 +14,8 @@ namespace cast {
 namespace {
 
 // clang-format off
-std::array<std::string, 90> kRemoteDisplayAppStreamingAudioVideoAppIds {
+constexpr std::array<const char*, 90>
+    kRemoteDisplayAppStreamingAudioVideoAppIds {
   "35708D08",
   "3185A70D",
   "B7AD3A0A",
@@ -115,24 +117,27 @@ bool IsCastStreamingAppId(const std::string& app_id) {
 }
 
 bool IsCastStreamingAudioVideoAppId(const std::string& app_id) {
-  return app_id == GetCastStreamingAudioVideoAppId();
+  return absl::EqualsIgnoreCase(app_id, GetCastStreamingAudioVideoAppId());
 }
 
 bool IsCastStreamingAudioOnlyAppId(const std::string& app_id) {
-  return app_id == GetCastStreamingAudioOnlyAppId();
+  return absl::EqualsIgnoreCase(app_id, GetCastStreamingAudioOnlyAppId());
 }
 
 bool IsCastStreamingReceiverAppId(const std::string& app_id) {
-  if (app_id == GetCastStreamingAudioVideoAppId() ||
-      app_id == GetCastStreamingAudioOnlyAppId() ||
-      app_id == GetAndroidMirroringAudioVideoAppId() ||
-      app_id == GetAndroidMirroringAudioOnlyAppId() ||
-      app_id == GetAndroidAppStreamingAudioVideoAppId() ||
-      app_id == GetIosAppStreamingAudioVideoAppId()) {
+  if (absl::EqualsIgnoreCase(app_id, GetCastStreamingAudioVideoAppId()) ||
+      absl::EqualsIgnoreCase(app_id, GetCastStreamingAudioOnlyAppId()) ||
+      absl::EqualsIgnoreCase(app_id, GetAndroidMirroringAudioVideoAppId()) ||
+      absl::EqualsIgnoreCase(app_id, GetAndroidMirroringAudioOnlyAppId()) ||
+      absl::EqualsIgnoreCase(app_id, GetAndroidAppStreamingAudioVideoAppId()) ||
+      absl::EqualsIgnoreCase(app_id, GetIosAppStreamingAudioVideoAppId())) {
     return true;
   }
 
-  return Contains(kRemoteDisplayAppStreamingAudioVideoAppIds, app_id);
+  return ContainsIf(kRemoteDisplayAppStreamingAudioVideoAppIds,
+                    [app_id](const std::string& id) {
+                      return absl::EqualsIgnoreCase(id, app_id);
+                    });
 }
 
 std::vector<std::string> GetCastStreamingAppIds() {
