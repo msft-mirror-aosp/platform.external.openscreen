@@ -22,8 +22,6 @@ vars = {
   # in Chromium it will correctly be True.
   'build_with_chromium': False,
 
-  'checkout_chromium_quic_boringssl': False,
-
   # Needed to download additional clang binaries for processing coverage data
   # (from binaries with GN arg `use_coverage=true`).
   #
@@ -118,12 +116,6 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
-  'third_party/chromium_quic/src': {
-    'url': Var('chromium_git') + '/openscreen/quic.git' +
-      '@' + '79eec3fc28f5c4e1d06c6146825e31def6e3b793',
-    'condition': 'not build_with_chromium',
-  },
-
   # To roll forward, use quiche_revision from chromium/src/DEPS.
   'third_party/quiche/src': {
     'url': Var('quiche_git') + '/quiche.git' +
@@ -213,7 +205,6 @@ hooks = [
 ]
 
 recursedeps = [
-  'third_party/chromium_quic/src',
   'cast',
 ]
 
@@ -262,8 +253,4 @@ include_rules = [
   "-third_party/googletest",
   "+gtest",
   "+gmock",
-]
-
-skip_child_includes = [
-  'third_party/chromium_quic',
 ]
