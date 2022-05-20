@@ -390,6 +390,7 @@ message RpcMessage {
     // DemuxerStream callbacks
     RPC_DS_INITIALIZE_CALLBACK = 3100;
     RPC_DS_READUNTIL_CALLBACK = 3101;
+    RPC_DS_ENABLEBITSTREAMCONVERTER_CALLBACK = 3102;
   };
 
   // Component base of RPC message handle. This allows both sender and receiver
