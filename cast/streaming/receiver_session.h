@@ -364,7 +364,7 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   // Sends an error answer reply and notifies the client of the error.
   void SendErrorAnswerReply(const std::string& sender_id,
                             int sequence_number,
-                            const char* message);
+                            Error error);
 
   Client* const client_;
   Environment* const environment_;
