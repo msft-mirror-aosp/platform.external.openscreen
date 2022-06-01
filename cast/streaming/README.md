@@ -9,12 +9,7 @@ demonstrate how to send and receive media using a Cast Streaming session.
 ## Prerequisites
 
 To run the `cast_sender` and `cast_receiver`, you first need to [install
-external libraries](../../build/config/external_libraries.md).
-
-For AV1 support, it is advised that most Linux users compile `libaom` from
-source, using the instructions at https://aomedia.googlesource.com/aom/. Older
-versions found in many package management systems have blocking performance
-issues, causing AV1 encoding to be completely unusable.
+external libraries](external_libraries.md).
 
 ## Compilation
 

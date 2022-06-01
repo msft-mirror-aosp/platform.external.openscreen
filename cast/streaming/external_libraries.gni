@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 # NOTE: Only add *_dirs declarations if the libraries have been installed at
-# non-standard locations. See the related markdown for more information:
-# [external_libraries.md](external_libraries.md).
+# non-standard locations. See the [documentation](external_libraries.md) for
+# more details.
 declare_args() {
   have_ffmpeg = false
   ffmpeg_libs = [

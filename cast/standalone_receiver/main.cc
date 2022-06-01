@@ -134,7 +134,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
       << "Note: compiled without external libs. The dummy player will "
          "be linked and no video decoding will occur. If this is not desired, "
          "install the required external libraries. For more information, see: "
-         "[external_libraries.md](../../build/config/external_libraries.md).";
+         "[external_libraries.md](../streaming/external_libraries.md).";
 #endif
 
   // A note about modifying command line arguments: consider uniformity
