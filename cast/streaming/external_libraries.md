@@ -17,6 +17,11 @@ have_libopus=true
 have_libvpx=true
 ```
 
+Or on the command line as:
+```bash
+$ gn gen --args="is_debug=true have_ffmpeg=true have_libsdl2=true have_libopus=true have_libvpx=true" out/Default
+```
+
 On some versions of Debian, the following apt-get command will install all of
 the necessary external libraries for Open Screen:
 
@@ -58,6 +63,10 @@ To to enable AV1 support, also add the following to your GN args:
 ```python
 have_libaom=true
 ```
+
+Note that AV1 support is configured separately from the other standalone
+libraries and the `have_libaom` flag is not necessary to run the standalone
+demo.
 
 ## Standalone Sender
 
