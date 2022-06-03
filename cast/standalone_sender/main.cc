@@ -222,7 +222,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
 
   IPEndpoint remote_endpoint = ParseAsEndpoint(iface_or_endpoint);
   if (!remote_endpoint.port) {
-    for (const InterfaceInfo& interface : GetAllInterfaces()) {
+    for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
       if (interface.name == iface_or_endpoint) {
         ReceiverChooser chooser(interface, task_runner,
                                 [&](IPEndpoint endpoint) {
