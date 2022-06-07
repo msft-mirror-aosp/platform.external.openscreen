@@ -296,7 +296,7 @@ class ReceiverSession final : public Environment::SocketSubscriber {
   ReceiverSession(ReceiverSession&&) noexcept = delete;
   ReceiverSession& operator=(const ReceiverSession&) = delete;
   ReceiverSession& operator=(ReceiverSession&&) = delete;
-  ~ReceiverSession();
+  ~ReceiverSession() override;
 
   const std::string& session_id() const { return session_id_; }
 
