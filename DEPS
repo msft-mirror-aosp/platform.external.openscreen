@@ -167,12 +167,6 @@ hooks = [
     # NOTE: This file appears in .gitignore, as it is not a part of the
     # openscreen repo.
   },
- {
-    'name': 'yajsv_update_script',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'tools/download-yajsv.py' ],
-  },
   {
     'name': 'update_clang',
     'pattern': '.',
