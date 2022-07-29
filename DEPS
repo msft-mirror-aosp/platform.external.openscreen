@@ -133,7 +133,7 @@ deps = {
   'third_party/abseil/src': {
     'url': Var('chromium_git') +
       '/external/github.com/abseil/abseil-cpp.git' + '@' +
-      '215105818dfde3174fe799600bb0f3cae233d0bf',  # Tag 20211102.0
+      '273292d1cfc0a94a65082ee350509af1d113344d',  # lts_2022_06_23 
     'condition': 'not build_with_chromium',
   },
 
