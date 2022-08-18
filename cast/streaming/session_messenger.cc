@@ -86,6 +86,11 @@ void SenderSessionMessenger::SetHandler(ReceiverMessage::Type type,
   rpc_callback_ = std::move(cb);
 }
 
+void SenderSessionMessenger::ResetHandler(ReceiverMessage::Type type) {
+  OSP_DCHECK(type == ReceiverMessage::Type::kRpc);
+  rpc_callback_ = {};
+}
+
 Error SenderSessionMessenger::SendOutboundMessage(SenderMessage message) {
   const auto namespace_ = (message.type == SenderMessage::Type::kRpc)
                               ? kCastRemotingNamespace
@@ -95,6 +100,14 @@ Error SenderSessionMessenger::SendOutboundMessage(SenderMessage message) {
   OSP_CHECK(jsonified.is_value()) << "Tried to send an invalid message";
   return SessionMessenger::SendMessage(receiver_id_, namespace_,
                                        jsonified.value());
+}
+
+Error SenderSessionMessenger::SendRpcMessage(
+    const std::vector<uint8_t>& message) {
+  return SendOutboundMessage(
+      SenderMessage{openscreen::cast::SenderMessage::Type::kRpc,
+                    -1 /* sequence_number, unused by RPC messages */,
+                    true /* valid */, message});
 }
 
 Error SenderSessionMessenger::SendRequest(SenderMessage message,
@@ -203,6 +216,10 @@ void ReceiverSessionMessenger::SetHandler(SenderMessage::Type type,
                                           RequestCallback cb) {
   OSP_DCHECK(callbacks_.find(type) == callbacks_.end());
   callbacks_.emplace_back(type, std::move(cb));
+}
+
+void ReceiverSessionMessenger::ResetHandler(SenderMessage::Type type) {
+  callbacks_.erase_key(type);
 }
 
 Error ReceiverSessionMessenger::SendMessage(const std::string& sender_id,

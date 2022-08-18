@@ -123,6 +123,7 @@ class SessionMessengerTest : public ::testing::Test {
 
 TEST_F(SessionMessengerTest, RpcMessaging) {
   static const std::vector<uint8_t> kSenderMessage{1, 2, 3, 4, 5};
+  static const std::vector<uint8_t> kSenderMessageTwo{11, 12, 13};
   static const std::vector<uint8_t> kReceiverResponse{6, 7, 8, 9};
   ASSERT_TRUE(
       sender_messenger_
@@ -130,13 +131,21 @@ TEST_F(SessionMessengerTest, RpcMessaging) {
                                              true /* valid */, kSenderMessage})
           .ok());
 
-  ASSERT_EQ(1u, message_store_.sender_messages.size());
+  ASSERT_TRUE(sender_messenger_.SendRpcMessage(kSenderMessageTwo).ok());
+
+  ASSERT_EQ(2u, message_store_.sender_messages.size());
   ASSERT_TRUE(message_store_.receiver_messages.empty());
   EXPECT_EQ(SenderMessage::Type::kRpc,
             message_store_.sender_messages[0].second.type);
   ASSERT_TRUE(message_store_.sender_messages[0].second.valid);
   EXPECT_EQ(kSenderMessage, absl::get<std::vector<uint8_t>>(
                                 message_store_.sender_messages[0].second.body));
+  EXPECT_EQ(SenderMessage::Type::kRpc,
+            message_store_.sender_messages[1].second.type);
+  ASSERT_TRUE(message_store_.sender_messages[1].second.valid);
+  EXPECT_EQ(kSenderMessageTwo,
+            absl::get<std::vector<uint8_t>>(
+                message_store_.sender_messages[1].second.body));
 
   message_store_.sender_messages.clear();
   ASSERT_TRUE(
@@ -460,6 +469,15 @@ TEST_F(SessionMessengerTest, ReceiverRejectsMessagesWithoutHandler) {
   port.ReceiveMessage("sender-31337", kCastWebrtcNamespace, R"({
         "seqNum": 820263770,
         "type": "RPC"
+      })");
+  ASSERT_TRUE(message_store_.errors.empty());
+  ASSERT_TRUE(message_store_.sender_messages.empty());
+
+  // The third message should be rejected since the handler was removed.
+  messenger.ResetHandler(SenderMessage::Type::kGetCapabilities);
+  port.ReceiveMessage("sender-31337", kCastWebrtcNamespace, R"({
+        "seqNum": 820263771,
+        "type": "GET_CAPABILITIES"
       })");
   ASSERT_TRUE(message_store_.errors.empty());
   ASSERT_TRUE(message_store_.sender_messages.empty());

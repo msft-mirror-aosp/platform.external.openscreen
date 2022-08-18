@@ -64,9 +64,15 @@ class SenderSessionMessenger final : public SessionMessenger {
   // applied for messages that don't have sequence numbers, like RPC
   // and status messages.
   void SetHandler(ReceiverMessage::Type type, ReplyCallback cb);
+  void ResetHandler(ReceiverMessage::Type type);
+
+  // Send a message that doesn't require a reply.
+  [[nodiscard]] Error SendOutboundMessage(SenderMessage message);
+
+  // Convenience method for sending a valid RPC message.
+  [[nodiscard]] Error SendRpcMessage(const std::vector<uint8_t>& message);
 
   // Send a request (with optional reply callback).
-  [[nodiscard]] Error SendOutboundMessage(SenderMessage message);
   [[nodiscard]] Error SendRequest(SenderMessage message,
                                   ReceiverMessage::Type reply_type,
                                   ReplyCallback cb);
@@ -106,6 +112,7 @@ class ReceiverSessionMessenger final : public SessionMessenger {
 
   // Set sender message handler.
   void SetHandler(SenderMessage::Type type, RequestCallback cb);
+  void ResetHandler(SenderMessage::Type type);
 
   // Send a JSON message.
   [[nodiscard]] Error SendMessage(const std::string& sender_id,
