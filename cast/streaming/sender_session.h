@@ -158,7 +158,11 @@ class SenderSession final {
   // The RPC messenger for this session. NOTE: RPC messages may come at
   // any time from the receiver, so subscriptions to RPC remoting messages
   // should be done before calling |NegotiateRemoting|.
-  RpcMessenger* rpc_messenger() { return &rpc_messenger_; }
+  RpcMessenger& rpc_messenger() { return rpc_messenger_; }
+
+  // TODO(https://crbug.com/1357839): remove this as part of refactoring Chrome
+  // to rely on |rpc_messenger()| instead.
+  SenderSessionMessenger& session_messenger() { return messenger_; }
 
  private:
   // We store the current negotiation, so that when we get an answer from the

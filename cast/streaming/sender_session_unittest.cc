@@ -552,11 +552,10 @@ TEST_F(SenderSessionTest, SuccessfulRemotingNegotiationYieldsValidObject) {
   EXPECT_THAT(negotiation.capabilities.video,
               testing::ElementsAre(VideoCapability::kVp8));
 
-  // The messenger is tested elsewhere, but we can sanity check that we got a valid
-  // one here.
-  EXPECT_TRUE(session_->rpc_messenger());
+  // The messenger is tested elsewhere, but we can sanity check that we got a
+  // valid one here.
   const RpcMessenger::Handle handle =
-      session_->rpc_messenger()->GetUniqueHandle();
+      session_->rpc_messenger().GetUniqueHandle();
   EXPECT_NE(RpcMessenger::kInvalidHandle, handle);
 }
 
