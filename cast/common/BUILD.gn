@@ -64,6 +64,7 @@ source_set("certificate_boringssl") {
     "../standalone_receiver:cast_receiver",
     "../standalone_sender:cast_sender",
     "../test:*",
+    "//components/cast_channel:openscreen_cast_auth_util_fuzzer",
   ]
   public = []
   sources = [
