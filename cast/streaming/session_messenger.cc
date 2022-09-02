@@ -40,10 +40,12 @@ void ReplyIfTimedOut(
 SessionMessenger::SessionMessenger(MessagePort* message_port,
                                    std::string source_id,
                                    ErrorCallback cb)
-    : message_port_(message_port), error_callback_(std::move(cb)) {
+    : message_port_(message_port),
+      source_id_(source_id),
+      error_callback_(std::move(cb)) {
   OSP_DCHECK(message_port_);
-  OSP_DCHECK(!source_id.empty());
-  message_port_->SetClient(this, source_id);
+  OSP_DCHECK(!source_id_.empty());
+  message_port_->SetClient(*this);
 }
 
 SessionMessenger::~SessionMessenger() {
@@ -222,11 +224,11 @@ void ReceiverSessionMessenger::ResetHandler(SenderMessage::Type type) {
   callbacks_.erase_key(type);
 }
 
-Error ReceiverSessionMessenger::SendMessage(const std::string& sender_id,
+Error ReceiverSessionMessenger::SendMessage(const std::string& source_id,
                                             ReceiverMessage message) {
-  if (sender_id.empty()) {
+  if (source_id.empty()) {
     return Error(Error::Code::kInitializationFailure,
-                 "Cannot send a message without a current sender ID.");
+                 "Cannot send a message without a current source ID.");
   }
 
   const auto namespace_ = (message.type == ReceiverMessage::Type::kRpc)
@@ -235,7 +237,7 @@ Error ReceiverSessionMessenger::SendMessage(const std::string& sender_id,
 
   ErrorOr<Json::Value> message_json = message.ToJson();
   OSP_CHECK(message_json.is_value()) << "Tried to send an invalid message";
-  return SessionMessenger::SendMessage(sender_id, namespace_,
+  return SessionMessenger::SendMessage(source_id, namespace_,
                                        message_json.value());
 }
 

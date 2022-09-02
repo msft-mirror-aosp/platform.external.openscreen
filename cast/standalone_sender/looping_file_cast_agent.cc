@@ -115,9 +115,9 @@ void LoopingFileCastAgent::OnMessage(VirtualConnectionRouter* router,
                                      CastSocket* socket,
                                      ::cast::channel::CastMessage message) {
   if (message_port_.GetSocketId() == ToCastSocketId(socket) &&
-      !message_port_.client_sender_id().empty() &&
-      message_port_.client_sender_id() == message.destination_id()) {
-    OSP_DCHECK(message_port_.client_sender_id() != kPlatformSenderId);
+      !message_port_.source_id().empty() &&
+      message_port_.source_id() == message.destination_id()) {
+    OSP_DCHECK(message.destination_id() != kPlatformSenderId);
     message_port_.OnMessage(router, socket, std::move(message));
     return;
   }
@@ -260,7 +260,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
       remote_connection_->peer_id,
       connection_settings_->use_android_rtp_hack};
   current_session_ = std::make_unique<SenderSession>(std::move(config));
-  OSP_DCHECK(!message_port_.client_sender_id().empty());
+  OSP_DCHECK(!message_port_.source_id().empty());
 
   AudioCaptureConfig audio_config;
   // Opus does best at 192kbps, so we cap that here.
@@ -355,7 +355,7 @@ void LoopingFileCastAgent::Shutdown() {
     OSP_LOG_INFO << "Stopping mirroring session...";
     current_session_.reset();
   }
-  OSP_DCHECK(message_port_.client_sender_id().empty());
+  OSP_DCHECK(message_port_.source_id().empty());
   environment_.reset();
 
   if (remote_connection_) {

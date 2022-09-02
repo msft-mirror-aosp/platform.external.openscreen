@@ -45,8 +45,11 @@ class SessionMessenger : public MessagePort::Client {
   // Used to report errors in subclasses.
   void ReportError(Error error);
 
+  const std::string& source_id() override { return source_id_; }
+
  private:
   MessagePort* const message_port_;
+  const std::string source_id_;
   ErrorCallback error_callback_;
 };
 
@@ -115,7 +118,7 @@ class ReceiverSessionMessenger final : public SessionMessenger {
   void ResetHandler(SenderMessage::Type type);
 
   // Send a JSON message.
-  [[nodiscard]] Error SendMessage(const std::string& sender_id,
+  [[nodiscard]] Error SendMessage(const std::string& source_id,
                                   ReceiverMessage message);
 
   // MessagePort::Client overrides
