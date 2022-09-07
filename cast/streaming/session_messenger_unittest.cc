@@ -59,8 +59,8 @@ Offer kExampleOffer{
 struct SessionMessageStore {
  public:
   SenderSessionMessenger::ReplyCallback GetReplyCallback() {
-    return [this](ReceiverMessage message) {
-      receiver_messages.push_back(std::move(message));
+    return [this](ErrorOr<ReceiverMessage> reply_result) {
+      receiver_messages.push_back(std::move(reply_result));
     };
   }
 
@@ -75,7 +75,7 @@ struct SessionMessageStore {
   }
 
   std::vector<std::pair<std::string, SenderMessage>> sender_messages;
-  std::vector<ReceiverMessage> receiver_messages;
+  std::vector<ErrorOr<ReceiverMessage>> receiver_messages;
   std::vector<Error> errors;
 };
 }  // namespace
@@ -158,10 +158,11 @@ TEST_F(SessionMessengerTest, RpcMessaging) {
   ASSERT_TRUE(message_store_.sender_messages.empty());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
   EXPECT_EQ(ReceiverMessage::Type::kRpc,
-            message_store_.receiver_messages[0].type);
-  EXPECT_TRUE(message_store_.receiver_messages[0].valid);
-  EXPECT_EQ(kReceiverResponse, absl::get<std::vector<uint8_t>>(
-                                   message_store_.receiver_messages[0].body));
+            message_store_.receiver_messages[0].value().type);
+  EXPECT_TRUE(message_store_.receiver_messages[0].value().valid);
+  EXPECT_EQ(kReceiverResponse,
+            absl::get<std::vector<uint8_t>>(
+                message_store_.receiver_messages[0].value().body));
 }
 
 TEST_F(SessionMessengerTest, CapabilitiesMessaging) {
@@ -193,11 +194,11 @@ TEST_F(SessionMessengerTest, CapabilitiesMessaging) {
   ASSERT_TRUE(message_store_.sender_messages.empty());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
   EXPECT_EQ(ReceiverMessage::Type::kCapabilitiesResponse,
-            message_store_.receiver_messages[0].type);
-  EXPECT_TRUE(message_store_.receiver_messages[0].valid);
+            message_store_.receiver_messages[0].value().type);
+  EXPECT_TRUE(message_store_.receiver_messages[0].value().valid);
 
-  const auto& capability =
-      absl::get<ReceiverCapability>(message_store_.receiver_messages[0].body);
+  const auto& capability = absl::get<ReceiverCapability>(
+      message_store_.receiver_messages[0].value().body);
   EXPECT_EQ(47, capability.remoting_version);
   EXPECT_THAT(capability.media_capabilities,
               ElementsAre(MediaCapability::kAac, MediaCapability::k4k));
@@ -239,11 +240,11 @@ TEST_F(SessionMessengerTest, OfferAnswerMessaging) {
   EXPECT_TRUE(message_store_.sender_messages.empty());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
   EXPECT_EQ(ReceiverMessage::Type::kAnswer,
-            message_store_.receiver_messages[0].type);
-  EXPECT_TRUE(message_store_.receiver_messages[0].valid);
+            message_store_.receiver_messages[0].value().type);
+  EXPECT_TRUE(message_store_.receiver_messages[0].value().valid);
 
   const auto& answer =
-      absl::get<Answer>(message_store_.receiver_messages[0].body);
+      absl::get<Answer>(message_store_.receiver_messages[0].value().body);
   EXPECT_EQ(1234, answer.udp_port);
 
   EXPECT_THAT(answer.send_indexes, ElementsAre(0, 1));
@@ -277,11 +278,11 @@ TEST_F(SessionMessengerTest, OfferAndReceiverError) {
   EXPECT_TRUE(message_store_.sender_messages.empty());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
   EXPECT_EQ(ReceiverMessage::Type::kAnswer,
-            message_store_.receiver_messages[0].type);
-  EXPECT_FALSE(message_store_.receiver_messages[0].valid);
+            message_store_.receiver_messages[0].value().type);
+  EXPECT_FALSE(message_store_.receiver_messages[0].value().valid);
 
-  const auto& error =
-      absl::get<ReceiverError>(message_store_.receiver_messages[0].body);
+  const auto& error = absl::get<ReceiverError>(
+      message_store_.receiver_messages[0].value().body);
   EXPECT_EQ(123, error.code);
   EXPECT_EQ("Something real bad happened", error.description);
 }
@@ -337,8 +338,8 @@ TEST_F(SessionMessengerTest, SenderHandlesUnknownMessageType) {
   ASSERT_TRUE(message_store_.errors.empty());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
   ASSERT_EQ(ReceiverMessage::Type::kUnknown,
-            message_store_.receiver_messages[0].type);
-  ASSERT_EQ(false, message_store_.receiver_messages[0].valid);
+            message_store_.receiver_messages[0].value().type);
+  ASSERT_EQ(false, message_store_.receiver_messages[0].value().valid);
 }
 
 TEST_F(SessionMessengerTest, SenderHandlesMessageMissingSequenceNumber) {
@@ -386,10 +387,9 @@ TEST_F(SessionMessengerTest, ErrorMessageLoggedIfTimeout) {
   clock_.Advance(std::chrono::seconds(10));
   ASSERT_EQ(1u, message_store_.sender_messages.size());
   ASSERT_EQ(1u, message_store_.receiver_messages.size());
-  EXPECT_EQ(3123, message_store_.receiver_messages[0].sequence_number);
-  EXPECT_EQ(ReceiverMessage::Type::kCapabilitiesResponse,
-            message_store_.receiver_messages[0].type);
-  EXPECT_FALSE(message_store_.receiver_messages[0].valid);
+  ASSERT_TRUE(message_store_.receiver_messages[0].is_error());
+  EXPECT_EQ(Error::Code::kMessageTimeout,
+            message_store_.receiver_messages[0].error().code());
 }
 
 TEST_F(SessionMessengerTest, ReceiverHandlesMessagesFromMultipleSenders) {

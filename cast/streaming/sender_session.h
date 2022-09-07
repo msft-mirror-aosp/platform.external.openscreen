@@ -60,7 +60,7 @@ class SenderSession final {
     RemotingCapabilities capabilities;
   };
 
-  // The embedder should provide a client for handling negotiation events.
+  // The consumer should provide a client for handling negotiation events.
   // The client is required to implement a mirorring handler, and may choose
   // to provide a remoting negotiation if it supports remoting.
   // When the negotiation is complete, the appropriate |On*Negotiated| handler
@@ -77,14 +77,25 @@ class SenderSession final {
         ConfiguredSenders senders,
         capture_recommendations::Recommendations capture_recommendations) = 0;
 
-    // Called when a new set of remoting senders has been negotiated. Since
-    // remoting is an optional feature, the default behavior here is to leave
-    // this method unhandled.
-    virtual void OnRemotingNegotiated(const SenderSession* session,
-                                      RemotingNegotiation negotiation) {}
+    // Called when the receiver's remoting-related capabilities have been
+    // determined. The consumer may then determine if they want to switch to
+    // remoting.
+    virtual void OnCapabilitiesDetermined(const SenderSession* session,
+                                          RemotingCapabilities capabilities) {}
 
-    // Called whenever an error occurs. Ends the ongoing session, and the caller
-    // must call Negotiate() again if they wish to re-establish streaming.
+    // Called whenever an error occurs. Cancels any in progress negotiation
+    // and Negotiate()/NegotiateRemoting() must be called again to re-establish
+    // streaming.
+    //
+    // Consumers of this API may care about some of the potential values of
+    // `error.code()`, including:
+    // * kAnswerTimeout: no ANSWER was received before timeout occurred.
+    // * kInvalidAnswer: received an invalid ANSWER.
+    // * kNoStreamSelected: the receiver was unable to select a stream.
+    // * kMessageTimeout: a generic message timeout occurred, such as
+    //   trying to get capabilities.
+    // * kRemotingNotSupported: the receiver does not support remoting, or
+    //   uses a version that is too new for us.
     virtual void OnError(const SenderSession* session, Error error) = 0;
 
    protected:
@@ -150,9 +161,12 @@ class SenderSession final {
   Error NegotiateRemoting(AudioCaptureConfig audio_config,
                           VideoCaptureConfig video_config);
 
+  // Ask the session to get remoting capabilities from the receiver.
+  Error RequestCapabilities();
+
   // Get the current network usage (in bits per second). This includes all
   // senders managed by this session, and is a best guess based on receiver
-  // feedback. Embedders may use this information to throttle capture devices.
+  // feedback. Consumers may use this information to throttle capture devices.
   int GetEstimatedNetworkBandwidth() const;
 
   // The RPC messenger for this session. NOTE: RPC messages may come at
@@ -208,12 +222,16 @@ class SenderSession final {
                          Offer offer);
 
   // Specific message type handler methods.
-  void OnAnswer(ReceiverMessage message);
-  void OnCapabilitiesResponse(ReceiverMessage message);
-  void OnRpcMessage(ReceiverMessage message);
-  void HandleErrorMessage(ReceiverMessage message, const std::string& text);
+  void OnAnswer(ErrorOr<ReceiverMessage> message);
+  void OnCapabilitiesResponse(ErrorOr<ReceiverMessage> message);
+  void OnRpcMessage(ErrorOr<ReceiverMessage> message);
 
-  // Used by SpawnSenders to generate a sender for a specific stream.
+  // Handles an error `message` response from a receiver. If the receiver does
+  // not contain any error information, `default_error` will be reported
+  // instead.
+  void HandleErrorMessage(ReceiverMessage message, const Error& default_error);
+
+  // Used by SelectSenders to generate a sender for a specific stream.
   std::unique_ptr<Sender> CreateSender(Ssrc receiver_ssrc,
                                        const Stream& stream,
                                        RtpPayloadType type);
@@ -229,7 +247,7 @@ class SenderSession final {
                         int config_index);
 
   // Spawn a set of configured senders from the currently stored negotiation.
-  ConfiguredSenders SpawnSenders(const Answer& answer);
+  ConfiguredSenders SelectSenders(const Answer& answer);
 
   // Used by the RPC messenger to send outbound messages.
   void SendRpcMessage(std::vector<uint8_t> message_body);

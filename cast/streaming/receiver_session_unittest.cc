@@ -816,6 +816,8 @@ TEST_F(ReceiverSessionTest, HandlesInvalidTypeMessage) {
 }
 
 TEST_F(ReceiverSessionTest, DoesNotCrashOnMessagePortError) {
+  // We should report message port errors.
+  EXPECT_CALL(client_, OnError(session_.get(), _));
   message_port_->ReceiveError(Error(Error::Code::kUnknownError));
 }
 

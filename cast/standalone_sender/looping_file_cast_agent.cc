@@ -276,6 +276,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
   OSP_VLOG << "Starting session negotiation.";
   Error negotiation_error;
   if (connection_settings_->use_remoting) {
+    cast_mode_ = CastMode::kRemoting;
     remoting_sender_ = std::make_unique<RemotingSender>(
         current_session_->rpc_messenger(), AudioCodec::kOpus,
         connection_settings_->codec, this);
@@ -283,6 +284,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
     negotiation_error =
         current_session_->NegotiateRemoting(audio_config, video_config);
   } else {
+    cast_mode_ = CastMode::kMirroring;
     negotiation_error =
         current_session_->Negotiate({audio_config}, {video_config});
   }
@@ -300,24 +302,10 @@ void LoopingFileCastAgent::OnNegotiated(
     return;
   }
 
-  file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_.value(), session,
-      std::move(senders), [this]() { shutdown_callback_(); });
-}
-
-void LoopingFileCastAgent::OnRemotingNegotiated(
-    const SenderSession* session,
-    SenderSession::RemotingNegotiation negotiation) {
-  if (negotiation.senders.audio_sender == nullptr &&
-      negotiation.senders.video_sender == nullptr) {
-    OSP_LOG_ERROR << "Missing both audio and video, so exiting...";
-    return;
-  }
-
   current_negotiation_ =
-      std::make_unique<SenderSession::RemotingNegotiation>(negotiation);
-  if (is_ready_for_remoting_) {
-    StartRemotingSenders();
+      std::make_unique<SenderSession::ConfiguredSenders>(std::move(senders));
+  if (cast_mode_ == CastMode::kMirroring || is_ready_for_remoting_) {
+    StartFileSender();
   }
 }
 
@@ -327,9 +315,10 @@ void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {
 }
 
 void LoopingFileCastAgent::OnReady() {
+  OSP_DCHECK(cast_mode_ == CastMode::kRemoting);
   is_ready_for_remoting_ = true;
   if (current_negotiation_) {
-    StartRemotingSenders();
+    StartFileSender();
   }
 }
 
@@ -337,12 +326,11 @@ void LoopingFileCastAgent::OnPlaybackRateChange(double rate) {
   file_sender_->SetPlaybackRate(rate);
 }
 
-void LoopingFileCastAgent::StartRemotingSenders() {
+void LoopingFileCastAgent::StartFileSender() {
   OSP_DCHECK(current_negotiation_);
   file_sender_ = std::make_unique<LoopingFileSender>(
       environment_.get(), connection_settings_.value(), current_session_.get(),
-      std::move(current_negotiation_->senders),
-      [this]() { shutdown_callback_(); });
+      std::move(*current_negotiation_), [this]() { shutdown_callback_(); });
   current_negotiation_.reset();
   is_ready_for_remoting_ = false;
 }

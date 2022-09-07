@@ -53,9 +53,13 @@ class SessionMessenger : public MessagePort::Client {
   ErrorCallback error_callback_;
 };
 
+// Message port interface designed to handle sending messages to and
+// from a receiver. When possible, errors receiving messages are reported
+// to the ReplyCallback passed to SendRequest(), otherwise errors are
+// reported to the ErrorCallback passed in the constructor.
 class SenderSessionMessenger final : public SessionMessenger {
  public:
-  using ReplyCallback = std::function<void(ReceiverMessage)>;
+  using ReplyCallback = std::function<void(ErrorOr<ReceiverMessage>)>;
 
   SenderSessionMessenger(MessagePort* message_port,
                          std::string source_id,
@@ -105,6 +109,7 @@ class SenderSessionMessenger final : public SessionMessenger {
   WeakPtrFactory<SenderSessionMessenger> weak_factory_{this};
 };
 
+// Message port interface designed for messaging to and from a sender.
 class ReceiverSessionMessenger final : public SessionMessenger {
  public:
   using RequestCallback =
