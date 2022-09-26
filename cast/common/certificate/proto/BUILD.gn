@@ -13,8 +13,7 @@ fuzzable_proto_library("certificate_proto") {
   sources = [ "revocation.proto" ]
 }
 
-# Used by //components/cast_certificate, //components/cast_channel, and
-# //extensions/browser in Chromium.
+# Used by //components/media_router/common/providers/cast/{certificate,channel}
 proto_library("certificate_unittest_proto") {
   testonly = true
   sources = [ "test_suite.proto" ]

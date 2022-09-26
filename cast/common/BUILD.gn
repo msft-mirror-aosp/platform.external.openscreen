@@ -65,6 +65,7 @@ source_set("certificate_boringssl") {
     "../standalone_sender:cast_sender",
     "../test:*",
     "//components/cast_channel:openscreen_cast_auth_util_fuzzer",
+    "//components/media_router/common/providers/cast/channel:openscreen_cast_auth_util_fuzzer",
   ]
   public = []
   sources = [
@@ -89,7 +90,7 @@ source_set("certificate_boringssl") {
 }
 
 source_set("channel") {
-  # Used in Chromium by //components/cast_channel.
+  # Used in Chromium by //components/media_router/common/providers/cast/channel.
   #
   # TODO(https://issuetracker.google.com/issues/244211254): Move
   # message_framer.h to public/
@@ -176,7 +177,7 @@ if (!build_with_chromium) {
 source_set("test_helpers") {
   testonly = true
 
-  # Used in Chromium for //components/cast_channel unittests.
+  # Used in Chromium for //components/media_router/common/providers/cast/channel unittests.
   visibility += [ "*" ]
   public = [
     "certificate/testing/test_helpers.h",
