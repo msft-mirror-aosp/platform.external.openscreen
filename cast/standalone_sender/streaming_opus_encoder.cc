@@ -46,7 +46,7 @@ StreamingOpusEncoder::StreamingOpusEncoder(int num_channels,
   OSP_CHECK_EQ(sample_rate() % cast_frames_per_second, 0);
   OSP_CHECK(approximate_cast_frame_duration_ > Clock::duration::zero());
 
-  frame_.dependency = EncodedFrame::KEY_FRAME;
+  frame_.dependency = EncodedFrame::Dependency::kKeyFrame;
 
   const auto init_result = opus_encoder_init(
       encoder(), sample_rate(), num_channels_, OPUS_APPLICATION_AUDIO);

@@ -374,10 +374,10 @@ void StreamingAv1Encoder::SendEncodedFrame(WorkUnitWithResults results) {
   EncodedFrame frame;
   frame.frame_id = sender_->GetNextFrameId();
   if (results.is_key_frame) {
-    frame.dependency = EncodedFrame::KEY_FRAME;
+    frame.dependency = EncodedFrame::kKeyFrame;
     frame.referenced_frame_id = frame.frame_id;
   } else {
-    frame.dependency = EncodedFrame::DEPENDS_ON_ANOTHER;
+    frame.dependency = EncodedFrame::kDependent;
     frame.referenced_frame_id = frame.frame_id - 1;
   }
   frame.rtp_timestamp = results.rtp_timestamp;
