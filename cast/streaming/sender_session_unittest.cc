@@ -588,7 +588,9 @@ TEST_F(SenderSessionTest, SuccessfulRemotingNegotiationYieldsValidObject) {
 
   SenderSession::ConfiguredSenders senders;
   EXPECT_CALL(client_, OnNegotiated(session_.get(), _, _))
-      .WillOnce(testing::SaveArg<1>(&senders));
+      .WillOnce([&senders](const SenderSession* session, SenderSession::ConfiguredSenders arg0,
+      capture_recommendations::Recommendations recommendations) { senders = std::move(arg0); });
+
   message_port_->ReceiveMessage(answer);
 
   // The messenger is tested elsewhere, but we can sanity check that we got a

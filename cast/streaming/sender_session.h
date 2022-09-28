@@ -38,30 +38,18 @@ class SenderSession final {
     // In practice, we may have 0, 1, or 2 senders configured, depending
     // on if the device supports audio and video, and if we were able to
     // successfully negotiate a sender configuration.
-
+    //
     // If the sender is audio- or video-only, either of the senders
     // may be nullptr. However, in the majority of cases they will be populated.
-    Sender* audio_sender = nullptr;
+    std::unique_ptr<Sender> audio_sender;
     AudioCaptureConfig audio_config;
 
-    Sender* video_sender = nullptr;
+    std::unique_ptr<Sender> video_sender;
     VideoCaptureConfig video_config;
   };
 
-  // This struct contains all of the information necessary to begin remoting
-  // after we receive the capabilities from the receiver.
-  struct RemotingNegotiation {
-    ConfiguredSenders senders;
-
-    // The capabilities reported by the connected receiver. NOTE: SenderSession
-    // reports the capabilities as-is from the Receiver, so clients concerned
-    // about legacy devices, such as pre-1.27 Earth receivers should do
-    // a version check when using these capabilities to offer remoting.
-    RemotingCapabilities capabilities;
-  };
-
   // The consumer should provide a client for handling negotiation events.
-  // The client is required to implement a mirorring handler, and may choose
+  // The client is required to implement a mirroring handler, and may choose
   // to provide a remoting negotiation if it supports remoting.
   // When the negotiation is complete, the appropriate |On*Negotiated| handler
   // is called.
@@ -280,11 +268,6 @@ class SenderSession final {
   // limited. |kStreaming| or |kRemoting| means that we are either starting
   // a negotiation or actively sending to a receiver.
   State state_ = State::kIdle;
-
-  // If the negotiation has succeeded, we store the current audio and video
-  // senders used for this session. Either or both may be nullptr.
-  std::unique_ptr<Sender> current_audio_sender_;
-  std::unique_ptr<Sender> current_video_sender_;
 };  // namespace cast
 
 }  // namespace cast

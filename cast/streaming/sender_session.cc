@@ -310,8 +310,6 @@ int SenderSession::GetEstimatedNetworkBandwidth() const {
 void SenderSession::ResetState() {
   state_ = State::kIdle;
   current_negotiation_.reset();
-  current_audio_sender_.reset();
-  current_video_sender_.reset();
 }
 
 Error SenderSession::StartNegotiation(
@@ -461,9 +459,8 @@ void SenderSession::SpawnAudioSender(ConfiguredSenders* senders,
       GetPayloadType(config.codec, config_.use_android_rtp_hack);
   for (const AudioStream& stream : current_negotiation_->offer.audio_streams) {
     if (stream.stream.index == send_index) {
-      current_audio_sender_ =
+      senders->audio_sender =
           CreateSender(receiver_ssrc, stream.stream, payload_type);
-      senders->audio_sender = current_audio_sender_.get();
       senders->audio_config = config;
       break;
     }
@@ -480,9 +477,8 @@ void SenderSession::SpawnVideoSender(ConfiguredSenders* senders,
       GetPayloadType(config.codec, config_.use_android_rtp_hack);
   for (const VideoStream& stream : current_negotiation_->offer.video_streams) {
     if (stream.stream.index == send_index) {
-      current_video_sender_ =
+      senders->video_sender =
           CreateSender(receiver_ssrc, stream.stream, payload_type);
-      senders->video_sender = current_video_sender_.get();
       senders->video_config = config;
       break;
     }
