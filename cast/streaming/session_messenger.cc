@@ -26,20 +26,23 @@ constexpr char kAnyDestination[] = "*";
 
 void ReplyIfTimedOut(
     int sequence_number,
-    ReceiverMessage::Type reply_type,
     std::vector<std::pair<int, SenderSessionMessenger::ReplyCallback>>*
         replies) {
   for (auto it = replies->begin(); it != replies->end(); ++it) {
     if (it->first == sequence_number) {
       OSP_VLOG << "Reply was an error with due to timeout for sequence number: "
                << sequence_number;
-      it->second(
+
+      // We erase before handling the callback, since it may invalidate the
+      // replies vector.
+      SenderSessionMessenger::ReplyCallback callback = std::move(it->second);
+      replies->erase(it);
+      callback(
           Error(Error::Code::kMessageTimeout,
                 absl::StrCat("message timed out (max delay of",
                              std::chrono::milliseconds(kReplyTimeout).count(),
                              "ms).")));
-      replies->erase(it);
-      break;
+      return;
     }
   }
 }
@@ -140,10 +143,9 @@ Error SenderSessionMessenger::SendRequest(SenderMessage message,
              awaiting_replies_.end());
   awaiting_replies_.emplace_back(message.sequence_number, std::move(cb));
   task_runner_->PostTaskWithDelay(
-      [self = weak_factory_.GetWeakPtr(), reply_type,
-       seq_num = message.sequence_number] {
+      [self = weak_factory_.GetWeakPtr(), seq_num = message.sequence_number] {
         if (self) {
-          ReplyIfTimedOut(seq_num, reply_type, &self->awaiting_replies_);
+          ReplyIfTimedOut(seq_num, &self->awaiting_replies_);
         }
       },
       kReplyTimeout);
