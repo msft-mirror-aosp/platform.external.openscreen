@@ -47,8 +47,8 @@ constexpr int kLowestEncodingSpeed = 6;
 
 StreamingVpxEncoder::StreamingVpxEncoder(const Parameters& params,
                                          TaskRunner* task_runner,
-                                         Sender* sender)
-    : StreamingVideoEncoder(params, task_runner, sender) {
+                                         std::unique_ptr<Sender> sender)
+    : StreamingVideoEncoder(params, task_runner, std::move(sender)) {
   ideal_speed_setting_ = kHighestEncodingSpeed;
   encode_thread_ = std::thread([this] { ProcessWorkUnitsUntilTimeToQuit(); });
 

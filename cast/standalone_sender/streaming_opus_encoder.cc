@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <utility>
 
 #include "util/chrono_helpers.h"
 
@@ -31,9 +32,9 @@ constexpr int kMaxCastFramesBeforeSkip = 3;
 
 StreamingOpusEncoder::StreamingOpusEncoder(int num_channels,
                                            int cast_frames_per_second,
-                                           Sender* sender)
+                                           std::unique_ptr<Sender> sender)
     : num_channels_(num_channels),
-      sender_(sender),
+      sender_(std::move(sender)),
       samples_per_cast_frame_(sample_rate() / cast_frames_per_second),
       approximate_cast_frame_duration_(Clock::to_duration(seconds(1)) /
                                        cast_frames_per_second),
