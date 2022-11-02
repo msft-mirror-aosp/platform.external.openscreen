@@ -8,6 +8,8 @@
 #include <stdint.h>
 
 #include <limits>
+#include <sstream>
+#include <string>
 
 namespace openscreen {
 
@@ -36,6 +38,12 @@ struct TraceIdHierarchy {
   bool HasCurrent() { return current != kUnsetTraceId; }
   bool HasParent() { return parent != kUnsetTraceId; }
   bool HasRoot() { return root != kUnsetTraceId; }
+
+  std::string ToString() {
+    std::stringstream ss;
+    ss << "[" << std::hex << root << ":" << parent << ":" << current << "]";
+    return ss.str();
+  }
 };
 
 inline bool operator==(const TraceIdHierarchy& lhs,

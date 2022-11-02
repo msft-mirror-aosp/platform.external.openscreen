@@ -7,10 +7,9 @@ import("//build_overrides/build.gni")
 visibility = [ "../*" ]
 
 declare_args() {
-  # Enables trace logging in build. This is true by default, unless
-  # we are built against Chrome--we have no way to link their platform
-  # implementation into our binaries so trace logging is not possible.
-  enable_trace_logging = !build_with_chromium
+  # Enables trace logging in build. This is true by default, but may be disabled
+  # for a slight performance increase.
+  enable_trace_logging = true
 }
 
 config("trace_logging_config") {
