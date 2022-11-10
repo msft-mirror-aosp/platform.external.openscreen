@@ -6,15 +6,18 @@
 
 #include <algorithm>
 
+#include "platform/base/trivial_clock_traits.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
 namespace openscreen {
-
 namespace {
+
 constexpr Clock::time_point kInvalid = Clock::time_point::min();
 }
+
+using clock_operators::operator<<;
 
 FakeClock::FakeClock(Clock::time_point start_time)
     : control_thread_id_(std::this_thread::get_id()) {

@@ -10,6 +10,7 @@
 #include <chrono>
 
 #include "gmock/gmock.h"
+#include "platform/api/trace_event.h"
 #include "platform/base/trace_logging_activation.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
@@ -31,72 +32,37 @@ class MockLoggingPlatform : public TraceLoggingPlatform {
 
   ~MockLoggingPlatform() override { StopTracing(); }
 
-  MOCK_METHOD1(IsTraceLoggingEnabled, bool(TraceCategory::Value category));
-  MOCK_METHOD7(LogTrace,
-               void(const char*,
-                    const uint32_t,
-                    const char* file,
-                    Clock::time_point,
-                    Clock::time_point,
-                    TraceIdHierarchy ids,
-                    Error::Code));
-  MOCK_METHOD5(LogAsyncStart,
-               void(const char*,
-                    const uint32_t,
-                    const char* file,
-                    Clock::time_point,
-                    TraceIdHierarchy));
-  MOCK_METHOD5(LogAsyncEnd,
-               void(const uint32_t,
-                    const char* file,
-                    Clock::time_point,
-                    TraceId,
-                    Error::Code));
+  MOCK_METHOD1(IsTraceLoggingEnabled, bool(TraceCategory category));
+  MOCK_METHOD2(LogTrace, void(TraceEvent event, Clock::time_point));
+  MOCK_METHOD1(LogAsyncStart, void(TraceEvent event));
+  MOCK_METHOD1(LogAsyncEnd, void(TraceEvent event));
 };
 
 // Methods to validate the results of platform-layer calls.
 template <uint64_t milliseconds>
-void ValidateTraceTimestampDiff(const char* name,
-                                const uint32_t line,
-                                const char* file,
-                                Clock::time_point start_time,
-                                Clock::time_point end_time,
-                                TraceIdHierarchy ids,
-                                Error error) {
-  const auto elapsed = to_milliseconds(end_time - start_time);
+void ValidateTraceTimestampDiff(TraceEvent event, Clock::time_point end_time) {
+  const auto elapsed = to_milliseconds(end_time - event.start_time);
   ASSERT_GE(static_cast<uint64_t>(elapsed.count()), milliseconds);
 }
 
 template <Error::Code result>
-void ValidateTraceErrorCode(const char* name,
-                            const uint32_t line,
-                            const char* file,
-                            Clock::time_point start_time,
-                            Clock::time_point end_time,
-                            TraceIdHierarchy ids,
-                            Error error) {
-  ASSERT_EQ(error.code(), result);
+void ValidateTraceErrorCode(TraceEvent event, Clock::time_point end_time) {
+  ASSERT_EQ(result, event.result);
 }
 
 template <TraceId Current,
           TraceId Parent,
           TraceId Root,
           TraceHierarchyParts parts>
-void ValidateTraceIdHierarchyOnSyncTrace(const char* name,
-                                         const uint32_t line,
-                                         const char* file,
-                                         Clock::time_point start_time,
-                                         Clock::time_point end_time,
-                                         TraceIdHierarchy ids,
-                                         Error error) {
+void ValidateTraceIdHierarchyOnAsyncTrace(TraceEvent event) {
   if (parts & TraceHierarchyParts::kCurrent) {
-    ASSERT_EQ(ids.current, Current);
+    EXPECT_EQ(event.ids.current, Current);
   }
   if (parts & TraceHierarchyParts::kParent) {
-    ASSERT_EQ(ids.parent, Parent);
+    EXPECT_EQ(event.ids.parent, Parent);
   }
   if (parts & TraceHierarchyParts::kRoot) {
-    ASSERT_EQ(ids.root, Root);
+    EXPECT_EQ(event.ids.root, Root);
   }
 }
 
@@ -104,20 +70,9 @@ template <TraceId Current,
           TraceId Parent,
           TraceId Root,
           TraceHierarchyParts parts>
-void ValidateTraceIdHierarchyOnAsyncTrace(const char* name,
-                                          const uint32_t line,
-                                          const char* file,
-                                          Clock::time_point timestamp,
-                                          TraceIdHierarchy ids) {
-  if (parts & TraceHierarchyParts::kCurrent) {
-    EXPECT_EQ(ids.current, Current);
-  }
-  if (parts & TraceHierarchyParts::kParent) {
-    EXPECT_EQ(ids.parent, Parent);
-  }
-  if (parts & TraceHierarchyParts::kRoot) {
-    EXPECT_EQ(ids.root, Root);
-  }
+void ValidateTraceIdHierarchyOnSyncTrace(TraceEvent event,
+                                         Clock::time_point end_time) {
+  ValidateTraceIdHierarchyOnAsyncTrace<Current, Parent, Root, parts>(event);
 }
 
 }  // namespace openscreen

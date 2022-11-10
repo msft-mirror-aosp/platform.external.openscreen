@@ -31,6 +31,7 @@ source_set("base") {
     "base/location.cc",
     "base/tls_credentials.cc",
     "base/trace_logging_activation.cc",
+    "base/trace_logging_types.cc",
     "base/trivial_clock_traits.cc",
     "base/udp_packet.cc",
   ]
@@ -61,6 +62,7 @@ source_set("api") {
     "api/time.h",
     "api/tls_connection.h",
     "api/tls_connection_factory.h",
+    "api/trace_event.h",
     "api/trace_logging_platform.h",
     "api/udp_socket.h",
   ]
@@ -68,6 +70,7 @@ source_set("api") {
     "api/scoped_wake_lock.cc",
     "api/tls_connection.cc",
     "api/tls_connection_factory.cc",
+    "api/trace_event.cc",
     "api/trace_logging_platform.cc",
     "api/udp_socket.cc",
   ]
