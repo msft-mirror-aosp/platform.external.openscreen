@@ -8,12 +8,12 @@ source_set("channel") {
   # Used in //components/media_router/common/providers/cast/channel in Chromium.
   visibility += [ "*" ]
   public = [
+    "channel/cast_auth_util.h",
     "channel/message_util.h",
     "public/sender_socket_factory.h",
   ]
   sources = [
     "channel/cast_auth_util.cc",
-    "channel/cast_auth_util.h",
     "channel/message_util.cc",
     "channel/sender_socket_factory.cc",
   ]
