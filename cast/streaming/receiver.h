@@ -118,6 +118,13 @@ class Receiver : public ReceiverBase {
            SessionConfig config);
   ~Receiver() override;
 
+  // Templated implementation of ConsumeNextFrame() for use when absl cannot be
+  // used explicitly.
+  template<typename T>
+  EncodedFrame ConsumeNextFrame(T buffer) {
+    return ConsumeNextFrame(absl::Span<uint8_t>(buffer));
+  }
+
   // ReceiverBase overrides.
   const SessionConfig& config() const override;
   int rtp_timebase() const override;
