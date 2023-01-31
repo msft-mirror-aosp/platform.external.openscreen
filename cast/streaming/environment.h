@@ -11,9 +11,9 @@
 #include <memory>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
+#include "platform/base/byte_view.h"
 #include "platform/base/ip_address.h"
 
 namespace openscreen {
@@ -120,7 +120,7 @@ class Environment : public UdpSocket::Client {
   //
   // Note: This method is virtual to allow unit tests to intercept packets
   // before they actually head-out through the socket.
-  virtual void SendPacket(absl::Span<const uint8_t> packet);
+  virtual void SendPacket(ByteView packet);
 
  protected:
   Environment() : now_function_(nullptr), task_runner_(nullptr) {}

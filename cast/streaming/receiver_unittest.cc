@@ -31,9 +31,11 @@
 #include "gtest/gtest.h"
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
+#include "platform/base/byte_view.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 #include "platform/base/udp_packet.h"
+#include "platform/test/byte_view_test_util.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
@@ -108,7 +110,7 @@ struct SimulatedFrame : public EncodedFrame {
     for (size_t i = 0; i < buffer_.size(); ++i) {
       buffer_[i] = static_cast<uint8_t>(which + static_cast<int>(i));
     }
-    data = absl::Span<uint8_t>(buffer_);
+    data = ByteView(buffer_);
   }
 
   static RtpTimeTicks GetRtpStartTime() {
@@ -280,7 +282,7 @@ class ReceiverTest : public testing::Test {
         sender_(&task_runner_, &env_) {
     env_.SetSocketSubscriber(&socket_subscriber_);
     ON_CALL(env_, SendPacket(_))
-        .WillByDefault(Invoke([this](absl::Span<const uint8_t> packet) {
+        .WillByDefault(Invoke([this](ByteView packet) {
           task_runner_.PostTaskWithDelay(
               [sender = &sender_, copy_of_packet = std::vector<uint8_t>(
                                       packet.begin(), packet.end())]() mutable {
@@ -338,7 +340,7 @@ class ReceiverTest : public testing::Test {
                                                           FrameId::first()),
               received_frame.reference_time);
     EXPECT_EQ(sent_frame.new_playout_delay, received_frame.new_playout_delay);
-    EXPECT_EQ(sent_frame.data, received_frame.data);
+    ExpectByteViewsHaveSameBytes(sent_frame.data, received_frame.data);
   }
 
   // Consume zero or more frames from the Receiver, verifying that they are the

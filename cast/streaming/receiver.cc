@@ -154,10 +154,16 @@ EncodedFrame Receiver::ConsumeNextFrame(absl::Span<uint8_t> buffer) {
   // Decrypt the frame, populating the given output |frame|.
   PendingFrame& entry = GetQueueEntry(frame_id);
   OSP_DCHECK(entry.collector.is_complete());
-  EncodedFrame frame;
-  frame.data = buffer;
-  crypto_.Decrypt(entry.collector.PeekAtAssembledFrame(), &frame);
   OSP_DCHECK(entry.estimated_capture_time);
+
+  const EncryptedFrame& encrypted_frame =
+      entry.collector.PeekAtAssembledFrame();
+
+  // `buffer` will contain the decrypted frame contents.
+  crypto_.Decrypt(encrypted_frame, buffer);
+  EncodedFrame frame;
+  encrypted_frame.CopyMetadataTo(&frame);
+  frame.data = ByteView(buffer.data(), buffer.size());
   frame.reference_time =
       *entry.estimated_capture_time + ResolveTargetPlayoutDelay(frame_id);
 

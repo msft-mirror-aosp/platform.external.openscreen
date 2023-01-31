@@ -188,6 +188,7 @@ source_set("test") {
   testonly = true
   visibility += [ "../*" ]
   public = [
+    "test/byte_view_test_util.h",
     "test/fake_clock.h",
     "test/fake_task_runner.h",
     "test/fake_udp_socket.h",
@@ -197,6 +198,7 @@ source_set("test") {
     "test/trace_logging_helpers.h",
   ]
   sources = [
+    "test/byte_view_test_util.cc",
     "test/fake_clock.cc",
     "test/fake_task_runner.cc",
     "test/fake_udp_socket.cc",

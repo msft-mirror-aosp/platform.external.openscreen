@@ -35,6 +35,8 @@
 #include "cast/streaming/testing/simple_socket_subscriber.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "platform/base/byte_view.h"
+#include "platform/test/byte_view_test_util.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/alarm.h"
@@ -303,8 +305,9 @@ class MockReceiver : public Environment::PacketConsumer {
     // testing should exist elsewhere to confirm frame play-out times with real
     // Receivers.
     decrypted->buffer.resize(FrameCrypto::GetPlaintextSize(encrypted));
-    decrypted->data = absl::Span<uint8_t>(decrypted->buffer);
-    crypto_.Decrypt(encrypted, decrypted);
+    crypto_.Decrypt(encrypted, absl::MakeSpan(decrypted->buffer));
+    encrypted.CopyMetadataTo(decrypted);
+    decrypted->data = ByteView(decrypted->buffer);
     incomplete_frames_.erase(frame_id);
     OnFrameComplete(frame_id);
   }
@@ -405,7 +408,7 @@ class SenderTest : public testing::Test {
                           (frame_id - FrameId::first()));
     frame->reference_time = reference_time;
     PopulateFramePayloadBuffer(seed, num_payload_bytes, &frame->buffer);
-    frame->data = absl::Span<uint8_t>(frame->buffer);
+    frame->data = ByteView(frame->buffer);
   }
 
   // Confirms that all |sent_frames| exist in |received_frames|, with identical
@@ -428,7 +431,7 @@ class SenderTest : public testing::Test {
       EXPECT_EQ(sent_frame.referenced_frame_id,
                 received_frame.referenced_frame_id);
       EXPECT_EQ(sent_frame.rtp_timestamp, received_frame.rtp_timestamp);
-      EXPECT_TRUE(sent_frame.data == received_frame.data);
+      ExpectByteViewsHaveSameBytes(sent_frame.data, received_frame.data);
     }
   }
 

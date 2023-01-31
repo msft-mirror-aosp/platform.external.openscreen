@@ -10,15 +10,17 @@
 #include "openssl/crypto.h"
 #include "openssl/err.h"
 #include "openssl/rand.h"
+#include "platform/base/byte_view.h"
 #include "util/big_endian.h"
 #include "util/crypto/openssl_util.h"
 #include "util/crypto/random_bytes.h"
+#include "util/osp_logging.h"
 
 namespace openscreen {
 namespace cast {
 
 EncryptedFrame::EncryptedFrame() {
-  data = absl::Span<uint8_t>(owned_data_);
+  data = ByteView(owned_data_);
 }
 
 EncryptedFrame::~EncryptedFrame() = default;
@@ -26,15 +28,15 @@ EncryptedFrame::~EncryptedFrame() = default;
 EncryptedFrame::EncryptedFrame(EncryptedFrame&& other) noexcept
     : EncodedFrame(static_cast<EncodedFrame&&>(other)),
       owned_data_(std::move(other.owned_data_)) {
-  data = absl::Span<uint8_t>(owned_data_);
-  other.data = absl::Span<uint8_t>{};
+  data = ByteView(owned_data_);
+  other.data = ByteView();
 }
 
 EncryptedFrame& EncryptedFrame::operator=(EncryptedFrame&& other) {
   this->EncodedFrame::operator=(static_cast<EncodedFrame&&>(other));
   owned_data_ = std::move(other.owned_data_);
-  data = absl::Span<uint8_t>(owned_data_);
-  other.data = absl::Span<uint8_t>{};
+  data = ByteView(owned_data_);
+  other.data = ByteView();
   return *this;
 }
 
@@ -63,22 +65,18 @@ EncryptedFrame FrameCrypto::Encrypt(const EncodedFrame& encoded_frame) const {
   EncryptedFrame result;
   encoded_frame.CopyMetadataTo(&result);
   result.owned_data_.resize(encoded_frame.data.size());
-  result.data = absl::Span<uint8_t>(result.owned_data_);
-  EncryptCommon(encoded_frame.frame_id, encoded_frame.data, result.data);
+  result.data = ByteView(result.owned_data_);
+  EncryptCommon(encoded_frame.frame_id, encoded_frame.data,
+                absl::MakeSpan(result.owned_data_));
   return result;
 }
 
 void FrameCrypto::Decrypt(const EncryptedFrame& encrypted_frame,
-                          EncodedFrame* encoded_frame) const {
-  encrypted_frame.CopyMetadataTo(encoded_frame);
+                          absl::Span<uint8_t> out) const {
   // AES-CTC is symmetric. Thus, decryption back to the plaintext is the same as
   // encrypting the ciphertext; and both are the same size.
-  if (encrypted_frame.data.size() < encoded_frame->data.size()) {
-    encoded_frame->data = absl::Span<uint8_t>(encoded_frame->data.data(),
-                                              encrypted_frame.data.size());
-  }
-  EncryptCommon(encrypted_frame.frame_id, encrypted_frame.data,
-                encoded_frame->data);
+  OSP_DCHECK_EQ(encrypted_frame.data.size(), out.size());
+  EncryptCommon(encrypted_frame.frame_id, encrypted_frame.data, out);
 }
 
 void FrameCrypto::EncryptCommon(FrameId frame_id,

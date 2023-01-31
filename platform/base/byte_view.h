@@ -23,12 +23,19 @@ namespace openscreen {
 // intended to be forwards-compatible.  Support for iterators and front/back can
 // be added as needed; we don't intend to add support for static extents.
 //
-// NOTE: Although other span implementations allow passing zero to last(), we do
-// not, as the behavior is undefined.  Callers should explicitly create an empty
-// ByteView instead.
+// NOTES:
+// - Although other span implementations allow passing zero to last(), we do
+//   not, as the behavior is undefined.  Callers should explicitly create an
+//   empty ByteView instead.
 //
-// TODO(https://issuetracker.google.com/254502854): Replace assert() expressions
-// with OSP_CHECK* macros once those are available to files in platform/.
+// - operator== is not implemented to align with std::span.  For more
+//   discussion, this blog post has considerations when implementing operators
+//   on types that don't own the data they depend upon:
+//   https://abseil.io/blog/20180531-regular-types
+//
+// - Unit tests that want to compare the bytes behind two ByteViews can use
+//   ExpectByteViewsHaveSameBytes().
+//
 class ByteView {
  public:
   constexpr ByteView() noexcept = default;
