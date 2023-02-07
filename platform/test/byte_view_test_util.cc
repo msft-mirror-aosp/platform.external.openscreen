@@ -7,7 +7,6 @@
 #include <cstring>
 
 #include "gtest/gtest.h"
-#include "platform/base/byte_view.h"
 
 namespace openscreen {
 namespace {

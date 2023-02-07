@@ -5,9 +5,9 @@
 #ifndef PLATFORM_TEST_BYTE_VIEW_TEST_UTIL_H_
 #define PLATFORM_TEST_BYTE_VIEW_TEST_UTIL_H_
 
-namespace openscreen {
+#include "platform/base/span.h"
 
-class ByteView;
+namespace openscreen {
 
 // Asserts that `first` and `second` have the same non-zero length, and are
 // views over the same bytes.  (Not that they are the pointers to the same

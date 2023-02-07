@@ -10,7 +10,7 @@
 #include <chrono>
 #include <utility>
 
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 #include "util/chrono_helpers.h"
 
 namespace openscreen {

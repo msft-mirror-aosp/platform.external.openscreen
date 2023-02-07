@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 #include "platform/test/byte_view_test_util.h"
 #include "util/crypto/random_bytes.h"
 
@@ -26,7 +26,7 @@ TEST(FrameCryptoTest, EncryptsAndDecryptsFrames) {
   std::vector<uint8_t> buffer(
       reinterpret_cast<const uint8_t*>(kPayload),
       reinterpret_cast<const uint8_t*>(kPayload) + sizeof(kPayload));
-  frame0.data = ByteView(buffer);
+  frame0.data = buffer;
   EncodedFrame frame1;
   frame1.frame_id = frame0.frame_id + 1;
   frame1.data = frame0.data;
@@ -55,19 +55,19 @@ TEST(FrameCryptoTest, EncryptsAndDecryptsFrames) {
   // plaintext is retrieved.
   std::vector<uint8_t> decrypted_frame0_buffer(
       FrameCrypto::GetPlaintextSize(encrypted_frame0));
-  crypto.Decrypt(encrypted_frame0, absl::MakeSpan(decrypted_frame0_buffer));
+  crypto.Decrypt(encrypted_frame0, decrypted_frame0_buffer);
   EncodedFrame decrypted_frame0;
   encrypted_frame0.CopyMetadataTo(&decrypted_frame0);
-  decrypted_frame0.data = ByteView(decrypted_frame0_buffer);
+  decrypted_frame0.data = decrypted_frame0_buffer;
   EXPECT_EQ(frame0.frame_id, decrypted_frame0.frame_id);
   ExpectByteViewsHaveSameBytes(frame0.data, decrypted_frame0.data);
 
   std::vector<uint8_t> decrypted_frame1_buffer(
       FrameCrypto::GetPlaintextSize(encrypted_frame1));
-  crypto.Decrypt(encrypted_frame1, absl::MakeSpan(decrypted_frame1_buffer));
+  crypto.Decrypt(encrypted_frame1, decrypted_frame1_buffer);
   EncodedFrame decrypted_frame1;
   encrypted_frame1.CopyMetadataTo(&decrypted_frame1);
-  decrypted_frame1.data = ByteView(decrypted_frame1_buffer);
+  decrypted_frame1.data = decrypted_frame1_buffer;
   EXPECT_EQ(frame1.frame_id, decrypted_frame1.frame_id);
   ExpectByteViewsHaveSameBytes(frame1.data, decrypted_frame1.data);
 }

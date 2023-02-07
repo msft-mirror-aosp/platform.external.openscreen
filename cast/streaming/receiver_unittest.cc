@@ -31,9 +31,9 @@
 #include "gtest/gtest.h"
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
-#include "platform/base/byte_view.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 #include "platform/base/udp_packet.h"
 #include "platform/test/byte_view_test_util.h"
 #include "platform/test/fake_clock.h"
@@ -110,7 +110,7 @@ struct SimulatedFrame : public EncodedFrame {
     for (size_t i = 0; i < buffer_.size(); ++i) {
       buffer_[i] = static_cast<uint8_t>(which + static_cast<int>(i));
     }
-    data = ByteView(buffer_);
+    data = buffer_;
   }
 
   static RtpTimeTicks GetRtpStartTime() {
@@ -327,8 +327,7 @@ class ReceiverTest : public testing::Test {
     const int payload_size = receiver()->AdvanceToNextFrame();
     ASSERT_NE(Receiver::kNoFramesReady, payload_size);
     std::vector<uint8_t> buffer(payload_size);
-    EncodedFrame received_frame =
-        receiver()->ConsumeNextFrame(absl::Span<uint8_t>(buffer));
+    EncodedFrame received_frame = receiver()->ConsumeNextFrame(buffer);
 
     EXPECT_EQ(sent_frame.dependency, received_frame.dependency);
     EXPECT_EQ(sent_frame.frame_id, received_frame.frame_id);

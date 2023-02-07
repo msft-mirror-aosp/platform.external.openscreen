@@ -10,7 +10,7 @@
 #include <sstream>
 #include <thread>
 
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 #include "util/trace_logging.h"

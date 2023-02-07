@@ -10,7 +10,7 @@
 
 #include "cast/streaming/frame_id.h"
 #include "cast/streaming/rtp_defines.h"
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
@@ -139,7 +139,7 @@ const EncryptedFrame& FrameCollector::PeekAtAssembledFrame() {
       frame_.owned_data_.insert(frame_.owned_data_.end(), chunk.payload.begin(),
                                 chunk.payload.end());
     }
-    frame_.data = ByteView(frame_.owned_data_);
+    frame_.data = frame_.owned_data_;
   }
 
   return frame_;

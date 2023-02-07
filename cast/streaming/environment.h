@@ -13,8 +13,8 @@
 
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
-#include "platform/base/byte_view.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 namespace cast {

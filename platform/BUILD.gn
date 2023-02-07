@@ -16,6 +16,7 @@ source_set("base") {
     "base/interface_info.h",
     "base/ip_address.h",
     "base/location.h",
+    "base/span.h",
     "base/tls_connect_options.h",
     "base/tls_credentials.h",
     "base/tls_listen_options.h",
@@ -238,10 +239,10 @@ source_set("unittests") {
   sources = [
     "api/serial_delete_ptr_unittest.cc",
     "api/time_unittest.cc",
-    "base/byte_view_unittest.cc",
     "base/error_unittest.cc",
     "base/ip_address_unittest.cc",
     "base/location_unittest.cc",
+    "base/span_unittest.cc",
     "base/udp_packet_unittest.cc",
   ]
 

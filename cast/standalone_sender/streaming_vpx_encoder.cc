@@ -14,7 +14,7 @@
 #include "cast/streaming/encoded_frame.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/sender.h"
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
 #include "util/saturate_cast.h"
@@ -403,7 +403,7 @@ void StreamingVpxEncoder::SendEncodedFrame(WorkUnitWithResults results) {
   }
   frame.rtp_timestamp = results.rtp_timestamp;
   frame.reference_time = results.reference_time;
-  frame.data = ByteView(results.payload);
+  frame.data = results.payload;
 
   if (sender_->EnqueueFrame(frame) != Sender::OK) {
     // Since the frame will not be sent, the encoder's frame dependency chain

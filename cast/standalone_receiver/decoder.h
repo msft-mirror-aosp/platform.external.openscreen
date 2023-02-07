@@ -13,7 +13,7 @@
 #include "absl/types/span.h"
 #include "cast/standalone_receiver/avcodec_glue.h"
 #include "cast/streaming/frame_id.h"
-#include "platform/base/byte_view.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 namespace cast {
