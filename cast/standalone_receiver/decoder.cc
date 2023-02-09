@@ -48,14 +48,14 @@ void Decoder::Buffer::Resize(int new_size) {
 }
 
 ByteView Decoder::Buffer::AsByteView() const {
-  ByteView view(buffer_);
+  ByteView view(buffer_.data(), buffer_.size() - AV_INPUT_BUFFER_PADDING_SIZE);
   view.remove_suffix(AV_INPUT_BUFFER_PADDING_SIZE);
   return view;
 }
 
-absl::Span<uint8_t> Decoder::Buffer::AsSpan() {
-  return absl::Span<uint8_t>(buffer_.data(),
-                             buffer_.size() - AV_INPUT_BUFFER_PADDING_SIZE);
+ByteBuffer Decoder::Buffer::AsByteBuffer() {
+  return ByteBuffer(buffer_.data(),
+                    buffer_.size() - AV_INPUT_BUFFER_PADDING_SIZE);
 }
 
 Decoder::Client::Client() = default;

@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "cast/standalone_receiver/avcodec_glue.h"
 #include "cast/streaming/frame_id.h"
 #include "platform/base/span.h"
@@ -30,7 +29,7 @@ class Decoder {
 
     void Resize(int new_size);
     ByteView AsByteView() const;
-    absl::Span<uint8_t> AsSpan();
+    ByteBuffer AsByteBuffer();
 
    private:
     std::vector<uint8_t> buffer_;
