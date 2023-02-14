@@ -62,6 +62,7 @@ message AudioDecoderConfig {
     kCodecMpegHAudio = 17;
     kCodecDTS = 18;
     kCodecDTSXP2 = 19;
+    kCodecDTSE = 20;
   }
 
   // Proto version of Chrome's media::SampleFormat.
