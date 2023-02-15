@@ -49,7 +49,6 @@ void Decoder::Buffer::Resize(int new_size) {
 
 ByteView Decoder::Buffer::AsByteView() const {
   ByteView view(buffer_.data(), buffer_.size() - AV_INPUT_BUFFER_PADDING_SIZE);
-  view.remove_suffix(AV_INPUT_BUFFER_PADDING_SIZE);
   return view;
 }
 
