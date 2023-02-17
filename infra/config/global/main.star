@@ -115,7 +115,7 @@ def get_properties(
         is_asan = False,
         is_tsan = False,
         use_coverage = False,
-        use_sysroot = False,
+        sysroot_platform = False,
         target_cpu = "x64",
         cast_standalone = False,
         chromium = False,
@@ -142,8 +142,8 @@ def get_properties(
         properties["is_tsan"] = True
     if use_coverage:
         properties["use_coverage"] = True
-    if use_sysroot:
-        properties["sysroot_platform"] = "stretch"
+    if sysroot_platform:
+        properties["sysroot_platform"] = sysroot_platform
     if cast_standalone:
         properties["have_ffmpeg"] = True
         properties["have_libsdl2"] = True
@@ -291,7 +291,7 @@ try_and_ci_builders(
 )
 try_and_ci_builders(
     "linux_arm64_debug",
-    get_properties(target_cpu = "arm64", use_sysroot = True),
+    get_properties(target_cpu = "arm64", sysroot_platform = "stretch"),
 )
 try_and_ci_builders("mac_debug", get_properties(use_ats = False), os = MAC_VERSION)
 try_and_ci_builders("chromium_linux64_debug", get_properties(chromium = True))
