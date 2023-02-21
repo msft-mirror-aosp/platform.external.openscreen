@@ -18,7 +18,8 @@ Current builders include:
 | chromium_mac_debug     | x86-64 | Mac OS X 10.15         | clang     | debug   | built with chromium    |
 <br />
 
-[*] Tests run on Ubuntu 20.04, but are cross-compiled to arm64 with a debian stretch sysroot.
+[*] Tests run on Ubuntu 20.04, but are cross-compiled to arm64 with a debian
+sysroot.
 
 The chromium_ builders compile against Chromium top-of-tree to ensure that
 changes can be autorolled into Chromium.

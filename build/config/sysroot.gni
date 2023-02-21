@@ -24,7 +24,7 @@ declare_args() {
   }
 }
 
-if (sysroot_platform == "stretch" || sysroot_platform == "bullseye") {
+if (sysroot_platform == "bullseye") {
   # Only actually use the sysroot for targets that are cross-compiling. Some
   # targets, such as CDDL, are compiled for the host toolchain.
   assert(is_linux)

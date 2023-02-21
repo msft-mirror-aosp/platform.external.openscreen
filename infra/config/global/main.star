@@ -291,7 +291,7 @@ try_and_ci_builders(
 )
 try_and_ci_builders(
     "linux_arm64_debug",
-    get_properties(target_cpu = "arm64", sysroot_platform = "stretch"),
+    get_properties(target_cpu = "arm64", sysroot_platform = "bullseye"),
 )
 try_and_ci_builders("mac_debug", get_properties(use_ats = False), os = MAC_VERSION)
 try_and_ci_builders("chromium_linux64_debug", get_properties(chromium = True))
