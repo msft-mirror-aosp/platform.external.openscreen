@@ -12,8 +12,8 @@ declare_args() {
   target_sysroot_dir = "../"
 
   # Sysroots should only be used for cross compilation, which are currently only
-  # supported on Linux. Currently supported sysroots are "bullseye" and
-  # "stretch", based on the Debian releases of the same name.
+  # supported on Linux. Only current, valid sysroot is "bullseye", based on the
+  # Debian release of the same name.
   #
   # NOTE: to add new platforms, start with the documentation located
   # at //docs/cross_compilation.md. Also please update the VALID_PLATFORMS

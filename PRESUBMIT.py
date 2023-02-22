@@ -151,12 +151,27 @@ def _CheckChangeLintsClean(input_api, output_api):
     return []
 
 
-def _CheckLuciCfg(input_api, output_api):
-    """Check the main.star lucicfg generated files."""
-    return input_api.RunTests(
-        input_api.canned_checks.CheckLucicfgGenOutput(
-            input_api, output_api,
-            os.path.join('infra', 'config', 'global', 'main.star')))
+def _CheckLuciCfgLint(input_api, output_api):
+    """Check that the luci configs pass the linter."""
+    path = os.path.join('infra', 'config', 'global', 'main.star')
+    pred = lambda f : os.path.samefile(f.AbsoluteLocalPath(), path)
+    if not input_api.AffectedSourceFiles(pred):
+        return []
+
+    result = []
+    result.extend(input_api.RunTests([input_api.Command(
+        'lucicfg lint',
+        [
+            'lucicfg' if not input_api.is_windows else 'lucicfg.bat', 'lint',
+            path, '--log-level', 'debug' if input_api.verbose else 'warning'
+        ],
+        {
+            'stderr': input_api.subprocess.STDOUT,
+            'shell': input_api.is_windows,  # to resolve *.bat
+            'cwd': input_api.PresubmitLocalPath(),
+        },
+        output_api.PresubmitError)]))
+    return result
 
 
 def _CommonChecks(input_api, output_api):
@@ -202,6 +217,9 @@ def _CommonChecks(input_api, output_api):
 
     # Run buildtools/checkdeps on code change.
     results.extend(_CheckDeps(input_api, output_api))
+
+    # Ensure the LUCI configs pass the linter.
+    results.extend(_CheckLuciCfgLint(input_api, output_api))
 
     # Run tools/licenses on code change.
     # TODO(https://crbug.com/1215335): licenses check is confused by our

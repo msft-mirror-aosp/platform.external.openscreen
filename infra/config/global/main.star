@@ -115,14 +115,35 @@ def get_properties(
         is_asan = False,
         is_tsan = False,
         use_coverage = False,
-        sysroot_platform = False,
+        sysroot_platform = None,
         target_cpu = "x64",
         cast_standalone = False,
         chromium = False,
         use_goma = True,
         use_ats = True,
         is_presubmit = False):
-    """Returns a collection of GN properties for the build system."""
+    """Property generator method, used to configure the build system.
+
+    Args:
+      is_release: if True, the build mode is release instead of debug.
+      is_gcc: if True, the GCC compiler is used instead of clang.
+      is_asan: if True, this is an address sanitizer build.
+      is_tsan: if True, this is a thread sanitizer build.
+      use_coverage: if True, this is a code coverage build.
+      sysroot_platform: if not None, the platform (e.g. "bullseye") to be
+        used for cross compilation.
+      target_cpu: the target CPU. May differ from current_cpu or host_cpu
+        if cross compiling.
+      cast_standalone: if True, this build should include the cast standalone
+        sender and receiver libraries.
+      chromium: if True, the build is for use in an embedder, such as Chrome.
+      use_goma: if True, the build will run using Goma.
+      use_ats: if True, we should build using ATS.
+      is_presubmit: if True, this is a presubmit run.
+
+    Returns:
+        A collection of GN properties for the build system.
+    """
     properties = {
         "target_cpu": target_cpu,
         "$depot_tools/bot_update": {
@@ -169,12 +190,13 @@ def get_properties(
 
 def builder(builder_type, name, properties, os, cpu):
     """Defines a builder.
-       Args:
-        builder_type: "ci" or "try".
-        name: name of the builder to define.
-        properties: configuration to be passed to GN.
-        os: the target operating system.
-        cpu: the target central processing unit.
+
+    Args:
+      builder_type: "ci" or "try".
+      name: name of the builder to define.
+      properties: configuration to be passed to GN.
+      os: the target operating system.
+      cpu: the target architecture, such as "arm64."
     """
     recipe_id = "openscreen"
     use_python3 = True
@@ -240,6 +262,7 @@ def builder(builder_type, name, properties, os, cpu):
 
 def ci_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
     """Defines a post submit builder.
+
        Args:
         name: name of the builder to define.
         properties: configuration to be passed to GN.
@@ -250,21 +273,23 @@ def ci_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
 
 def try_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
     """Defines a pre submit builder.
-       Args:
-        name: name of the builder to define.
-        properties: configuration to be passed to GN.
-        os: the target operating system.
-        cpu: the target central processing unit.
+
+    Args:
+      name: name of the builder to define.
+      properties: configuration to be passed to GN.
+      os: the target operating system.
+      cpu: the target central processing unit.
     """
     builder("try", name, properties, os, cpu)
 
 def try_and_ci_builders(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
-    """Defines a similarly configured try and ci bulider pair.
-       Args:
-        name: name of the builder to define.
-        properties: configuration to be passed to GN.
-        os: the target operating system.
-        cpu: the target central processing unit.
+    """Defines a similarly configured try and ci builder pair.
+
+    Args:
+      name: name of the builder to define.
+      properties: configuration to be passed to GN.
+      os: the target operating system.
+      cpu: the target central processing unit.
     """
     try_builder(name, properties, os, cpu)
 
