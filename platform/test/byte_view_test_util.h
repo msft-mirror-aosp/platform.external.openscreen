@@ -21,6 +21,9 @@ void ExpectByteViewsHaveSameBytes(const ByteView& first,
 void ExpectByteViewsHaveDifferentBytes(const ByteView& first,
                                        const ByteView& second);
 
+// Returns a ByteView from the null-terminated character literal `literal`.
+ByteView ByteViewFromLiteral(const char* literal);
+
 }  // namespace openscreen
 
 #endif  // PLATFORM_TEST_BYTE_VIEW_TEST_UTIL_H_
