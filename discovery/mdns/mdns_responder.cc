@@ -80,8 +80,8 @@ AddResult AddRecords(std::function<void(MdnsRecord record)> add_func,
   auto records = record_handler->GetRecords(domain, type, clazz);
   if (records.empty()) {
     if (add_negative_on_unknown) {
-      // TODO(rwkeane): Aggregate all NSEC records together into a single NSEC
-      // record to reduce traffic.
+      // TODO(issuetracker.google.com/281739775): Aggregate all NSEC records
+      // together into a single NSEC record to reduce traffic.
       add_func(CreateNsecRecord(domain, type, clazz));
     }
     return AddResult::kNonePresent;

@@ -35,8 +35,9 @@ MdnsReader::MdnsReader(const Config& config,
     : BigEndianReader(buffer, length),
       kMaximumAllowedRdataSize(
           static_cast<size_t>(config.maximum_valid_rdata_size)) {
-  // TODO(rwkeane): Validate |maximum_valid_rdata_size| > MaxWireSize() for
-  // rdata types A, AAAA, SRV, PTR.
+  // TODO(issuetracker.google.com/281739775): Validate
+  // |maximum_valid_rdata_size| > MaxWireSize() for rdata types A, AAAA, SRV,
+  // PTR.
   OSP_DCHECK_GT(config.maximum_valid_rdata_size, 0);
 }
 
