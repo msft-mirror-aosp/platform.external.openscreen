@@ -29,7 +29,7 @@
 
 namespace openscreen {
 
-// TODO(jophba, rwkeane): implement write blocking/unblocking
+// TODO(jophba): implement write blocking/unblocking
 TlsConnectionPosix::TlsConnectionPosix(IPEndpoint local_address,
                                        TaskRunner* task_runner)
     : task_runner_(task_runner),

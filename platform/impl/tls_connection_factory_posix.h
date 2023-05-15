@@ -31,7 +31,7 @@ class TlsConnectionFactoryPosix : public TlsConnectionFactory,
 
   // TlsConnectionFactory overrides.
   //
-  // TODO(jophba, rwkeane): Determine how to handle multiple connection attempts
+  // TODO(jophba): Determine how to handle multiple connection attempts
   // to the same remote_address, and how to distinguish errors.
   void Connect(const IPEndpoint& remote_address,
                const TlsConnectOptions& options) override;
