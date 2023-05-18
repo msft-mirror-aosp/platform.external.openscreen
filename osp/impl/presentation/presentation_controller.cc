@@ -604,7 +604,7 @@ ProtocolConnection* Controller::GetConnectionRequestGroupStream(
   return nullptr;
 }
 
-void Controller::OnError(ServiceListenerError) {}
+void Controller::OnError(Error) {}
 void Controller::OnMetrics(ServiceListener::Metrics) {}
 
 class Controller::TerminationListener final

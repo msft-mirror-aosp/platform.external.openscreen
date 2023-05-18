@@ -50,7 +50,7 @@ class ServiceListenerImpl final : public ServiceListener,
   void OnAllReceiversRemoved();
 
   // Called by |delegate_| when an internal error occurs.
-  void OnError(ServiceListenerError error);
+  void OnError(Error error);
 
   // ServiceListener overrides.
   bool Start() override;

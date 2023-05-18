@@ -11,29 +11,11 @@
 
 #include "osp/public/service_info.h"
 #include "osp/public/timestamp.h"
+#include "platform/base/error.h"
 #include "platform/base/macros.h"
 
 namespace openscreen {
 namespace osp {
-
-// Used to report an error from a ServiceListener implementation.
-struct ServiceListenerError {
- public:
-  // TODO(mfoltz): Add additional error types, as implementations progress.
-  enum class Code {
-    kNone = 0,
-  };
-
-  ServiceListenerError();
-  ServiceListenerError(Code error, const std::string& message);
-  ServiceListenerError(const ServiceListenerError& other);
-  ~ServiceListenerError();
-
-  ServiceListenerError& operator=(const ServiceListenerError& other);
-
-  Code error;
-  std::string message;
-};
 
 class ServiceListener {
  public:
@@ -95,7 +77,7 @@ class ServiceListener {
     virtual void OnAllReceiversRemoved() = 0;
 
     // Reports an error.
-    virtual void OnError(ServiceListenerError) = 0;
+    virtual void OnError(Error) = 0;
 
     // Reports metrics.
     virtual void OnMetrics(Metrics) = 0;
@@ -141,7 +123,7 @@ class ServiceListener {
   State state() const { return state_; }
 
   // Returns the last error reported by this listener.
-  const ServiceListenerError& last_error() const { return last_error_; }
+  const Error& last_error() const { return last_error_; }
 
   // Returns the current list of receivers known to the ServiceListener.
   virtual const std::vector<ServiceInfo>& GetReceivers() const = 0;
@@ -150,7 +132,7 @@ class ServiceListener {
   ServiceListener();
 
   State state_;
-  ServiceListenerError last_error_;
+  Error last_error_;
   std::vector<Observer*> observers_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ServiceListener);

@@ -7,17 +7,6 @@
 namespace openscreen {
 namespace osp {
 
-ServiceListenerError::ServiceListenerError() = default;
-ServiceListenerError::ServiceListenerError(Code error,
-                                           const std::string& message)
-    : error(error), message(message) {}
-ServiceListenerError::ServiceListenerError(const ServiceListenerError& other) =
-    default;
-ServiceListenerError::~ServiceListenerError() = default;
-
-ServiceListenerError& ServiceListenerError::operator=(
-    const ServiceListenerError& other) = default;
-
 ServiceListener::Metrics::Metrics() = default;
 ServiceListener::Metrics::~Metrics() = default;
 

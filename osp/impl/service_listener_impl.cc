@@ -96,7 +96,7 @@ void ServiceListenerImpl::OnAllReceiversRemoved() {
   }
 }
 
-void ServiceListenerImpl::OnError(ServiceListenerError error) {
+void ServiceListenerImpl::OnError(Error error) {
   last_error_ = error;
   for (auto* observer : observers_) {
     observer->OnError(error);

@@ -96,7 +96,7 @@ class DemoListenerObserver final : public ServiceListener::Observer {
     OSP_LOG_INFO << "removed! " << info.friendly_name;
   }
   void OnAllReceiversRemoved() override { OSP_LOG_INFO << "all removed!"; }
-  void OnError(ServiceListenerError) override {}
+  void OnError(Error) override {}
   void OnMetrics(ServiceListener::Metrics) override {}
 };
 
