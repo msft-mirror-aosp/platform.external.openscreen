@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "discovery/mdns/mdns_records.h"
+#include "platform/base/span.h"
 #include "util/big_endian.h"
 
 namespace openscreen {
@@ -24,8 +25,7 @@ class MdnsWriter : public BigEndianWriter {
   // write the value to the underlying buffer and advances current() to point
   // right past the written data. Returns false if the method failed to write
   // the value to the underlying buffer, current() remains unchanged.
-  bool Write(absl::string_view value);
-  bool Write(const std::string& value);
+  bool Write(ByteView value);
   bool Write(const DomainName& name);
   bool Write(const RawRecordRdata& rdata);
   bool Write(const SrvRecordRdata& rdata);

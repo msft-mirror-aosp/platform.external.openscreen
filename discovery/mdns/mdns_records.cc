@@ -341,23 +341,19 @@ size_t PtrRecordRdata::MaxWireSize() const {
 
 // static
 ErrorOr<TxtRecordRdata> TxtRecordRdata::TryCreate(std::vector<Entry> texts) {
-  std::vector<std::string> str_texts;
   size_t max_wire_size = 3;
   if (texts.size() > 0) {
-    str_texts.reserve(texts.size());
     // max_wire_size includes uint16_t record length field.
     max_wire_size = sizeof(uint16_t);
     for (const auto& text : texts) {
       if (text.empty()) {
         return Error::Code::kParameterInvalid;
       }
-      str_texts.push_back(
-          std::string(reinterpret_cast<const char*>(text.data()), text.size()));
       // Include the length byte in the size calculation.
       max_wire_size += text.size() + 1;
     }
   }
-  return TxtRecordRdata(std::move(str_texts), max_wire_size);
+  return TxtRecordRdata(std::move(texts), max_wire_size);
 }
 
 TxtRecordRdata::TxtRecordRdata() = default;
@@ -367,8 +363,7 @@ TxtRecordRdata::TxtRecordRdata(std::vector<Entry> texts) {
   *this = std::move(rdata.value());
 }
 
-TxtRecordRdata::TxtRecordRdata(std::vector<std::string> texts,
-                               size_t max_wire_size)
+TxtRecordRdata::TxtRecordRdata(std::vector<Entry> texts, size_t max_wire_size)
     : max_wire_size_(max_wire_size), texts_(std::move(texts)) {}
 
 TxtRecordRdata::TxtRecordRdata(const TxtRecordRdata& other) = default;

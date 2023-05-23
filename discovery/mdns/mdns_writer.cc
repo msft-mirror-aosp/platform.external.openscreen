@@ -47,21 +47,17 @@ bool UpdateRecordLength(const uint8_t* end, uint8_t* begin) {
 
 }  // namespace
 
-bool MdnsWriter::Write(absl::string_view value) {
-  if (value.length() > std::numeric_limits<uint8_t>::max()) {
+bool MdnsWriter::Write(ByteView value) {
+  if (value.size() > std::numeric_limits<uint8_t>::max()) {
     return false;
   }
   Cursor cursor(this);
-  if (Write(static_cast<uint8_t>(value.length())) &&
-      Write(value.data(), value.length())) {
+  if (Write(static_cast<uint8_t>(value.size())) &&
+      Write(value.data(), value.size())) {
     cursor.Commit();
     return true;
   }
   return false;
-}
-
-bool MdnsWriter::Write(const std::string& value) {
-  return Write(absl::string_view(value));
 }
 
 // RFC 1035: https://www.ietf.org/rfc/rfc1035.txt
@@ -179,8 +175,12 @@ bool MdnsWriter::Write(const TxtRecordRdata& rdata) {
     return false;
   }
   if (rdata.texts().size() > 0) {
-    if (!Write(rdata.texts())) {
-      return false;
+    // We need to write a length-prefixed copy of each entry, and
+    // Write(ByteView) takes care of that for us.
+    for (const TxtRecordRdata::Entry& text : rdata.texts()) {
+      if (!Write(ByteView(text))) {
+        return false;
+      }
     }
   } else {
     if (!Write(kTXTEmptyRdata)) {

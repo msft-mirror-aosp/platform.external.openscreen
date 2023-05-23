@@ -44,13 +44,13 @@ void TestCopyAndMove(const T& value) {
 TEST(MdnsDomainNameTest, Construct) {
   DomainName name1;
   EXPECT_TRUE(name1.empty());
-  EXPECT_EQ(name1.MaxWireSize(), UINT64_C(1));
-  EXPECT_EQ(name1.labels().size(), UINT64_C(0));
+  EXPECT_EQ(name1.MaxWireSize(), size_t{1});
+  EXPECT_EQ(name1.labels().size(), size_t{0});
 
   DomainName name2{"MyDevice", "_mYSERvice", "local"};
   EXPECT_FALSE(name2.empty());
-  EXPECT_EQ(name2.MaxWireSize(), UINT64_C(27));
-  ASSERT_EQ(name2.labels().size(), UINT64_C(3));
+  EXPECT_EQ(name2.MaxWireSize(), size_t{27});
+  ASSERT_EQ(name2.labels().size(), size_t{3});
   EXPECT_EQ(name2.labels()[0], "MyDevice");
   EXPECT_EQ(name2.labels()[1], "_mYSERvice");
   EXPECT_EQ(name2.labels()[2], "local");
@@ -61,8 +61,8 @@ TEST(MdnsDomainNameTest, Construct) {
   std::vector<absl::string_view> labels{"OtherDevice", "_MYservice", "LOcal"};
   DomainName name3(labels);
   EXPECT_FALSE(name3.empty());
-  EXPECT_EQ(name3.MaxWireSize(), UINT64_C(30));
-  ASSERT_EQ(name3.labels().size(), UINT64_C(3));
+  EXPECT_EQ(name3.MaxWireSize(), size_t{30});
+  ASSERT_EQ(name3.labels().size(), size_t{3});
   EXPECT_EQ(name3.labels()[0], "OtherDevice");
   EXPECT_EQ(name3.labels()[1], "_MYservice");
   EXPECT_EQ(name3.labels()[2], "LOcal");
@@ -128,11 +128,11 @@ TEST(MdnsRawRecordRdataTest, Construct) {
   };
 
   RawRecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(2));
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{2});
   EXPECT_EQ(rdata1.size(), UINT16_C(0));
 
   RawRecordRdata rdata2(kRawRdata, sizeof(kRawRdata));
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(10));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{10});
   EXPECT_EQ(rdata2.size(), UINT16_C(8));
   EXPECT_THAT(
       std::vector<uint8_t>(rdata2.data(), rdata2.data() + rdata2.size()),
@@ -140,7 +140,7 @@ TEST(MdnsRawRecordRdataTest, Construct) {
 
   RawRecordRdata rdata3(
       std::vector<uint8_t>(kRawRdata, kRawRdata + sizeof(kRawRdata)));
-  EXPECT_EQ(rdata3.MaxWireSize(), UINT64_C(10));
+  EXPECT_EQ(rdata3.MaxWireSize(), size_t{10});
   EXPECT_EQ(rdata3.size(), UINT16_C(8));
   EXPECT_THAT(
       std::vector<uint8_t>(rdata3.data(), rdata3.data() + rdata3.size()),
@@ -174,14 +174,14 @@ TEST(MdnsRawRecordRdataTest, CopyAndMove) {
 
 TEST(MdnsSrvRecordRdataTest, Construct) {
   SrvRecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(9));
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{9});
   EXPECT_EQ(rdata1.priority(), UINT16_C(0));
   EXPECT_EQ(rdata1.weight(), UINT16_C(0));
   EXPECT_EQ(rdata1.port(), UINT16_C(0));
   EXPECT_EQ(rdata1.target(), DomainName());
 
   SrvRecordRdata rdata2(1, 2, 3, DomainName{"testing", "local"});
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(23));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{23});
   EXPECT_EQ(rdata2.priority(), UINT16_C(1));
   EXPECT_EQ(rdata2.weight(), UINT16_C(2));
   EXPECT_EQ(rdata2.port(), UINT16_C(3));
@@ -212,11 +212,11 @@ TEST(MdnsSrvRecordRdataTest, CopyAndMove) {
 
 TEST(MdnsARecordRdataTest, Construct) {
   ARecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(6));
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{6});
   EXPECT_EQ(rdata1.ipv4_address(), (IPAddress{0, 0, 0, 0}));
 
   ARecordRdata rdata2(IPAddress{8, 8, 8, 8});
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(6));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{6});
   EXPECT_EQ(rdata2.ipv4_address(), (IPAddress{8, 8, 8, 8}));
 }
 
@@ -245,12 +245,12 @@ TEST(MdnsAAAARecordRdataTest, Construct) {
 
   IPAddress address1(kIPv6AddressHextets1);
   AAAARecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(18));
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{18});
   EXPECT_EQ(rdata1.ipv6_address(), address1);
 
   IPAddress address2(kIPv6AddressHextets2);
   AAAARecordRdata rdata2(address2);
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(18));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{18});
   EXPECT_EQ(rdata2.ipv6_address(), address2);
 }
 
@@ -283,11 +283,11 @@ TEST(MdnsAAAARecordRdataTest, CopyAndMove) {
 
 TEST(MdnsPtrRecordRdataTest, Construct) {
   PtrRecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(3));
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{3});
   EXPECT_EQ(rdata1.ptr_domain(), DomainName());
 
   PtrRecordRdata rdata2(DomainName{"testing", "local"});
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(17));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{17});
   EXPECT_EQ(rdata2.ptr_domain(), (DomainName{"testing", "local"}));
 }
 
@@ -308,12 +308,12 @@ TEST(MdnsPtrRecordRdataTest, CopyAndMove) {
 
 TEST(MdnsTxtRecordRdataTest, Construct) {
   TxtRecordRdata rdata1;
-  EXPECT_EQ(rdata1.MaxWireSize(), UINT64_C(3));
-  EXPECT_EQ(rdata1.texts(), std::vector<std::string>());
+  EXPECT_EQ(rdata1.MaxWireSize(), size_t{3});
+  EXPECT_TRUE(rdata1.texts().empty());
 
   TxtRecordRdata rdata2 = MakeTxtRecord({"foo=1", "bar=2"});
-  EXPECT_EQ(rdata2.MaxWireSize(), UINT64_C(14));
-  EXPECT_EQ(rdata2.texts(), (std::vector<std::string>{"foo=1", "bar=2"}));
+  EXPECT_EQ(rdata2.MaxWireSize(), size_t{14});
+  EXPECT_EQ(rdata2.texts(), MakeTxtEntries({"foo=1", "bar=2"}));
 }
 
 TEST(MdnsTxtRecordRdataTest, Compare) {
@@ -519,7 +519,7 @@ TEST(MdnsOptRecordRdataTest, CopyAndMove) {
 
 TEST(MdnsRecordTest, Construct) {
   MdnsRecord record1;
-  EXPECT_EQ(record1.MaxWireSize(), UINT64_C(11));
+  EXPECT_EQ(record1.MaxWireSize(), size_t{11});
   EXPECT_EQ(record1.name(), DomainName());
   EXPECT_EQ(record1.dns_type(), static_cast<DnsType>(0));
   EXPECT_EQ(record1.dns_class(), static_cast<DnsClass>(0));
@@ -531,7 +531,7 @@ TEST(MdnsRecordTest, Construct) {
   MdnsRecord record2(DomainName{"hostname", "local"}, DnsType::kPTR,
                      DnsClass::kIN, RecordType::kUnique, kTtl,
                      PtrRecordRdata(DomainName{"testing", "local"}));
-  EXPECT_EQ(record2.MaxWireSize(), UINT64_C(41));
+  EXPECT_EQ(record2.MaxWireSize(), size_t{41});
   EXPECT_EQ(record2.name(), (DomainName{"hostname", "local"}));
   EXPECT_EQ(record2.dns_type(), DnsType::kPTR);
   EXPECT_EQ(record2.dns_class(), DnsClass::kIN);
@@ -608,7 +608,7 @@ TEST(MdnsRecordTest, CopyAndMove) {
 
 TEST(MdnsQuestionTest, Construct) {
   MdnsQuestion question1;
-  EXPECT_EQ(question1.MaxWireSize(), UINT64_C(5));
+  EXPECT_EQ(question1.MaxWireSize(), size_t{5});
   EXPECT_EQ(question1.name(), DomainName());
   EXPECT_EQ(question1.dns_type(), static_cast<DnsType>(0));
   EXPECT_EQ(question1.dns_class(), static_cast<DnsClass>(0));
@@ -616,7 +616,7 @@ TEST(MdnsQuestionTest, Construct) {
 
   MdnsQuestion question2(DomainName{"testing", "local"}, DnsType::kPTR,
                          DnsClass::kIN, ResponseType::kUnicast);
-  EXPECT_EQ(question2.MaxWireSize(), UINT64_C(19));
+  EXPECT_EQ(question2.MaxWireSize(), size_t{19});
   EXPECT_EQ(question2.name(), (DomainName{"testing", "local"}));
   EXPECT_EQ(question2.dns_type(), DnsType::kPTR);
   EXPECT_EQ(question2.dns_class(), DnsClass::kIN);
@@ -652,13 +652,13 @@ TEST(MdnsQuestionTest, CopyAndMove) {
 
 TEST(MdnsMessageTest, Construct) {
   MdnsMessage message1;
-  EXPECT_EQ(message1.MaxWireSize(), UINT64_C(12));
+  EXPECT_EQ(message1.MaxWireSize(), size_t{12});
   EXPECT_EQ(message1.id(), UINT16_C(0));
   EXPECT_EQ(message1.type(), MessageType::Query);
-  EXPECT_EQ(message1.questions().size(), UINT64_C(0));
-  EXPECT_EQ(message1.answers().size(), UINT64_C(0));
-  EXPECT_EQ(message1.authority_records().size(), UINT64_C(0));
-  EXPECT_EQ(message1.additional_records().size(), UINT64_C(0));
+  EXPECT_EQ(message1.questions().size(), size_t{0});
+  EXPECT_EQ(message1.answers().size(), size_t{0});
+  EXPECT_EQ(message1.authority_records().size(), size_t{0});
+  EXPECT_EQ(message1.additional_records().size(), size_t{0});
 
   MdnsQuestion question(DomainName{"testing", "local"}, DnsType::kPTR,
                         DnsClass::kIN, ResponseType::kUnicast);
@@ -673,24 +673,24 @@ TEST(MdnsMessageTest, Construct) {
                      PtrRecordRdata(DomainName{"device", "local"}));
 
   MdnsMessage message2(123, MessageType::Response);
-  EXPECT_EQ(message2.MaxWireSize(), UINT64_C(12));
+  EXPECT_EQ(message2.MaxWireSize(), size_t{12});
   EXPECT_EQ(message2.id(), UINT16_C(123));
   EXPECT_EQ(message2.type(), MessageType::Response);
-  EXPECT_EQ(message2.questions().size(), UINT64_C(0));
-  EXPECT_EQ(message2.answers().size(), UINT64_C(0));
-  EXPECT_EQ(message2.authority_records().size(), UINT64_C(0));
-  EXPECT_EQ(message2.additional_records().size(), UINT64_C(0));
+  EXPECT_EQ(message2.questions().size(), size_t{0});
+  EXPECT_EQ(message2.answers().size(), size_t{0});
+  EXPECT_EQ(message2.authority_records().size(), size_t{0});
+  EXPECT_EQ(message2.additional_records().size(), size_t{0});
 
   message2.AddQuestion(question);
   message2.AddAnswer(record1);
   message2.AddAuthorityRecord(record2);
   message2.AddAdditionalRecord(record3);
 
-  EXPECT_EQ(message2.MaxWireSize(), UINT64_C(118));
-  ASSERT_EQ(message2.questions().size(), UINT64_C(1));
-  ASSERT_EQ(message2.answers().size(), UINT64_C(1));
-  ASSERT_EQ(message2.authority_records().size(), UINT64_C(1));
-  ASSERT_EQ(message2.additional_records().size(), UINT64_C(1));
+  EXPECT_EQ(message2.MaxWireSize(), size_t{118});
+  ASSERT_EQ(message2.questions().size(), size_t{1});
+  ASSERT_EQ(message2.answers().size(), size_t{1});
+  ASSERT_EQ(message2.authority_records().size(), size_t{1});
+  ASSERT_EQ(message2.additional_records().size(), size_t{1});
 
   EXPECT_EQ(message2.questions()[0], question);
   EXPECT_EQ(message2.answers()[0], record1);
@@ -702,11 +702,11 @@ TEST(MdnsMessageTest, Construct) {
       std::vector<MdnsRecord>{record1}, std::vector<MdnsRecord>{record2},
       std::vector<MdnsRecord>{record3});
 
-  EXPECT_EQ(message3.MaxWireSize(), UINT64_C(118));
-  ASSERT_EQ(message3.questions().size(), UINT64_C(1));
-  ASSERT_EQ(message3.answers().size(), UINT64_C(1));
-  ASSERT_EQ(message3.authority_records().size(), UINT64_C(1));
-  ASSERT_EQ(message3.additional_records().size(), UINT64_C(1));
+  EXPECT_EQ(message3.MaxWireSize(), size_t{118});
+  ASSERT_EQ(message3.questions().size(), size_t{1});
+  ASSERT_EQ(message3.answers().size(), size_t{1});
+  ASSERT_EQ(message3.authority_records().size(), size_t{1});
+  ASSERT_EQ(message3.additional_records().size(), size_t{1});
 
   EXPECT_EQ(message3.questions()[0], question);
   EXPECT_EQ(message3.answers()[0], record1);

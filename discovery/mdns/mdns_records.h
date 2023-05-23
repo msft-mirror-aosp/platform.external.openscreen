@@ -284,8 +284,7 @@ class TxtRecordRdata {
   bool operator!=(const TxtRecordRdata& rhs) const;
 
   size_t MaxWireSize() const;
-  // NOTE: TXT entries are not guaranteed to be character data.
-  const std::vector<std::string>& texts() const { return texts_; }
+  const std::vector<Entry>& texts() const { return texts_; }
 
   template <typename H>
   friend H AbslHashValue(H h, const TxtRecordRdata& rdata) {
@@ -293,14 +292,12 @@ class TxtRecordRdata {
   }
 
  private:
-  TxtRecordRdata(std::vector<std::string> texts, size_t max_wire_size);
+  TxtRecordRdata(std::vector<Entry> texts, size_t max_wire_size);
 
   // max_wire_size_ is at least 3, uint16_t record length and at the
   // minimum a NULL byte character string is present.
   size_t max_wire_size_ = 3;
-  // NOTE: For compatibility with DNS-SD usage, std::string is used for internal
-  // storage.
-  std::vector<std::string> texts_;
+  std::vector<Entry> texts_;
 };
 
 // NSEC record format (https://tools.ietf.org/html/rfc4034#section-4).
