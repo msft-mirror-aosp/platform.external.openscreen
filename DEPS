@@ -32,10 +32,6 @@ vars = {
   # GN CIPD package version.
   'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
   'clang_format_revision':    'e435ad79c17b1888b34df88d6a30a094936e3836',
-
-  # 'magic' text to tell depot_tools that git submodules should be accepted but
-  # but parity with DEPS file is expected.
-  'SUBMODULE_MIGRATION': 'True'
 }
 
 deps = {
@@ -49,7 +45,7 @@ deps = {
       '@' + '3c7e3f1b8b1e4c0b6ec693430379cea682de78d6',
     'condition': 'not build_with_chromium',
   },
-  'third_party/clang-format/script': {
+  'third_party/clang_format/script': {
     'url': Var('chromium_git') +
       '/external/github.com/llvm/llvm-project/clang/tools/clang-format.git' +
       '@' + Var('clang_format_revision'),
