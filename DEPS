@@ -225,10 +225,6 @@ hooks = [
   },
 ]
 
-recursedeps = [
-  'cast',
-]
-
 include_rules = [
   '+util',
   '+platform/api',
