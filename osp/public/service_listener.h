@@ -12,6 +12,7 @@
 #include "osp/public/service_info.h"
 #include "osp/public/timestamp.h"
 #include "platform/base/error.h"
+#include "platform/base/interface_info.h"
 #include "platform/base/macros.h"
 
 namespace openscreen {
@@ -83,7 +84,22 @@ class ServiceListener {
     virtual void OnMetrics(Metrics) = 0;
   };
 
+  struct Config {
+    Config();
+    ~Config();
+
+    // A list of network interfaces that the listener should use.
+    // By default, all enabled Ethernet and WiFi interfaces are used.
+    std::vector<InterfaceInfo> network_interfaces;
+
+    // Returns true if the config object is valid.
+    bool IsValid() const;
+  };
+
   virtual ~ServiceListener();
+
+  // Sets the service configuration for this listener.
+  virtual void SetConfig(const Config& config);
 
   // Starts listening for receivers using the config object.
   // Returns true if state() == kStopped and the service will be started, false
@@ -134,6 +150,7 @@ class ServiceListener {
   State state_;
   Error last_error_;
   std::vector<Observer*> observers_;
+  Config config_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ServiceListener);
 };

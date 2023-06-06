@@ -35,8 +35,9 @@ class MockServiceListenerDelegate final : public ServiceListenerImpl::Delegate {
 
   ServiceListenerImpl* listener() { return listener_; }
 
-  MOCK_METHOD0(StartListener, void());
-  MOCK_METHOD0(StartAndSuspendListener, void());
+  MOCK_METHOD1(StartListener, void(const ServiceListener::Config& config));
+  MOCK_METHOD1(StartAndSuspendListener,
+               void(const ServiceListener::Config& config));
   MOCK_METHOD0(StopListener, void());
   MOCK_METHOD0(SuspendListener, void());
   MOCK_METHOD0(ResumeListener, void());
@@ -87,8 +88,11 @@ class ControllerTest : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    auto service_listener =
-        std::make_unique<ServiceListenerImpl>(&mock_listener_delegate_);
+    auto mock_listener_delegate =
+        std::make_unique<MockServiceListenerDelegate>();
+    mock_listener_delegate_ = mock_listener_delegate.get();
+    auto service_listener = std::make_unique<ServiceListenerImpl>(
+        std::move(mock_listener_delegate));
     NetworkServiceManager::Create(std::move(service_listener), nullptr,
                                   std::move(quic_bridge_->quic_client),
                                   std::move(quic_bridge_->quic_server));
@@ -253,7 +257,7 @@ class ControllerTest : public ::testing::Test {
     MessageDemuxer::MessageWatch start_presentation_watch =
         quic_bridge_->receiver_demuxer->SetDefaultMessageTypeWatch(
             msgs::Type::kPresentationStartRequest, mock_callback);
-    mock_listener_delegate_.listener()->OnReceiverAdded(receiver_info1);
+    mock_listener_delegate_->listener()->OnReceiverUpdated({receiver_info1});
     quic_bridge_->RunTasksUntilIdle();
 
     MockRequestDelegate mock_request_delegate;
@@ -297,7 +301,7 @@ class ControllerTest : public ::testing::Test {
   MessageDemuxer::MessageWatch availability_watch_;
   MockMessageCallback mock_callback_;
   std::unique_ptr<FakeQuicBridge> quic_bridge_;
-  MockServiceListenerDelegate mock_listener_delegate_;
+  MockServiceListenerDelegate* mock_listener_delegate_;
   std::unique_ptr<Controller> controller_;
   ServiceInfo receiver_info1;
   MockReceiverObserver mock_receiver_observer_;
@@ -338,7 +342,7 @@ TEST_F(ControllerTest, ConnectRequestMoves) {
 }
 
 TEST_F(ControllerTest, ReceiverAvailable) {
-  mock_listener_delegate_.listener()->OnReceiverAdded(receiver_info1);
+  mock_listener_delegate_->listener()->OnReceiverUpdated({receiver_info1});
   Controller::ReceiverWatch watch =
       controller_->RegisterReceiverWatch({kTestUrl}, &mock_receiver_observer_);
 
@@ -359,7 +363,7 @@ TEST_F(ControllerTest, ReceiverAvailable) {
 }
 
 TEST_F(ControllerTest, ReceiverWatchCancel) {
-  mock_listener_delegate_.listener()->OnReceiverAdded(receiver_info1);
+  mock_listener_delegate_->listener()->OnReceiverUpdated({receiver_info1});
   Controller::ReceiverWatch watch =
       controller_->RegisterReceiverWatch({kTestUrl}, &mock_receiver_observer_);
 

@@ -5,9 +5,11 @@
 #include "osp/impl/service_listener_impl.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "platform/base/error.h"
 #include "util/osp_logging.h"
+#include "util/std_util.h"
 
 namespace openscreen {
 namespace osp {
@@ -55,12 +57,43 @@ void ServiceListenerImpl::Delegate::SetListenerImpl(
   listener_ = listener;
 }
 
-ServiceListenerImpl::ServiceListenerImpl(Delegate* delegate)
-    : delegate_(delegate) {
+ServiceListenerImpl::ServiceListenerImpl(std::unique_ptr<Delegate> delegate)
+    : delegate_(std::move(delegate)) {
   delegate_->SetListenerImpl(this);
 }
 
 ServiceListenerImpl::~ServiceListenerImpl() = default;
+
+void ServiceListenerImpl::OnReceiverUpdated(
+    const std::vector<ServiceInfo>& new_receivers) {
+  // All receivers are removed.
+  if (new_receivers.empty()) {
+    OnAllReceiversRemoved();
+  }
+
+  const auto& old_receivers = GetReceivers();
+
+  if (new_receivers.size() < old_receivers.size()) {
+    // A receiver is removed.
+    for (const auto& receiver : old_receivers) {
+      if (Contains(new_receivers, receiver)) {
+        continue;
+      }
+      OnReceiverRemoved(receiver);
+      return;
+    }
+  } else {
+    // A receiver is added or updated.
+    for (const auto& receiver : new_receivers) {
+      if (Contains(old_receivers, receiver)) {
+        continue;
+      }
+      new_receivers.size() > old_receivers.size() ? OnReceiverAdded(receiver)
+                                                  : OnReceiverChanged(receiver);
+      return;
+    }
+  }
+}
 
 void ServiceListenerImpl::OnReceiverAdded(const ServiceInfo& info) {
   receiver_list_.OnReceiverAdded(info);
@@ -107,7 +140,7 @@ bool ServiceListenerImpl::Start() {
   if (state_ != State::kStopped)
     return false;
   state_ = State::kStarting;
-  delegate_->StartListener();
+  delegate_->StartListener(config_);
   return true;
 }
 
@@ -115,7 +148,7 @@ bool ServiceListenerImpl::StartAndSuspend() {
   if (state_ != State::kStopped)
     return false;
   state_ = State::kStarting;
-  delegate_->StartAndSuspendListener();
+  delegate_->StartAndSuspendListener(config_);
   return true;
 }
 
@@ -167,6 +200,14 @@ void ServiceListenerImpl::RemoveObserver(Observer* observer) {
 
 const std::vector<ServiceInfo>& ServiceListenerImpl::GetReceivers() const {
   return receiver_list_.receivers();
+}
+
+void ServiceListenerImpl::OnFatalError(Error error) {
+  OnError(error);
+}
+
+void ServiceListenerImpl::OnRecoverableError(Error error) {
+  OnError(error);
 }
 
 void ServiceListenerImpl::SetState(State state) {

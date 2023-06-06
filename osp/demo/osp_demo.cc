@@ -15,7 +15,6 @@
 
 #include "absl/strings/string_view.h"
 #include "osp/msgs/osp_messages.h"
-#include "osp/public/mdns_service_listener_factory.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/presentation/presentation_controller.h"
@@ -25,6 +24,7 @@
 #include "osp/public/protocol_connection_server.h"
 #include "osp/public/protocol_connection_server_factory.h"
 #include "osp/public/service_listener.h"
+#include "osp/public/service_listener_factory.h"
 #include "osp/public/service_publisher.h"
 #include "osp/public/service_publisher_factory.h"
 #include "platform/api/network_interface.h"
@@ -425,11 +425,20 @@ void RunControllerPollLoop(Controller* controller) {
 void ListenerDemo() {
   SignalThings();
 
+  ServiceListener::Config listener_config;
+  for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
+    OSP_VLOG << "Found interface: " << interface;
+    if (!interface.addresses.empty()) {
+      listener_config.network_interfaces.push_back(interface);
+    }
+  }
+  OSP_LOG_IF(WARN, listener_config.network_interfaces.empty())
+      << "No network interfaces had usable addresses for mDNS Listening.";
+
   DemoListenerObserver listener_observer;
-  MdnsServiceListenerConfig listener_config;
-  auto mdns_listener = MdnsServiceListenerFactory::Create(
-      listener_config, &listener_observer,
-      PlatformClientPosix::GetInstance()->GetTaskRunner());
+  auto service_listener = ServiceListenerFactory::Create(
+      listener_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
+  service_listener->AddObserver(&listener_observer);
 
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
@@ -437,16 +446,17 @@ void ListenerDemo() {
       &demuxer, &client_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
-  auto* network_service = NetworkServiceManager::Create(
-      std::move(mdns_listener), nullptr, std::move(connection_client), nullptr);
+  auto* network_service =
+      NetworkServiceManager::Create(std::move(service_listener), nullptr,
+                                    std::move(connection_client), nullptr);
   auto controller = std::make_unique<Controller>(Clock::now);
 
-  network_service->GetMdnsServiceListener()->Start();
+  network_service->GetServiceListener()->Start();
   network_service->GetProtocolConnectionClient()->Start();
 
   RunControllerPollLoop(controller.get());
 
-  network_service->GetMdnsServiceListener()->Stop();
+  network_service->GetServiceListener()->Stop();
   network_service->GetProtocolConnectionClient()->Stop();
 
   controller.reset();

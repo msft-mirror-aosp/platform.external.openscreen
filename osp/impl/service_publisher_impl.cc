@@ -91,10 +91,12 @@ bool ServicePublisherImpl::Resume() {
 }
 
 void ServicePublisherImpl::OnFatalError(Error error) {
+  last_error_ = error;
   observer_->OnError(error);
 }
 
 void ServicePublisherImpl::OnRecoverableError(Error error) {
+  last_error_ = error;
   observer_->OnError(error);
 }
 
