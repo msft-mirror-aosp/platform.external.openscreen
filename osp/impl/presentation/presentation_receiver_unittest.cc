@@ -89,16 +89,17 @@ class PresentationReceiverTest : public ::testing::Test {
     NetworkServiceManager::Create(nullptr, nullptr,
                                   std::move(quic_bridge_->quic_client),
                                   std::move(quic_bridge_->quic_server));
-    Receiver::Get()->Init();
-    Receiver::Get()->SetReceiverDelegate(&mock_receiver_delegate_);
+    receiver_.Init();
+    receiver_.SetReceiverDelegate(&mock_receiver_delegate_);
   }
 
   void TearDown() override {
-    Receiver::Get()->SetReceiverDelegate(nullptr);
-    Receiver::Get()->Deinit();
+    receiver_.SetReceiverDelegate(nullptr);
+    receiver_.Deinit();
     NetworkServiceManager::Dispose();
   }
 
+  Receiver receiver_;
   std::unique_ptr<FakeClock> fake_clock_;
   std::unique_ptr<FakeTaskRunner> task_runner_;
   const std::string url1_{"https://www.example.com/receiver.html"};
@@ -180,9 +181,9 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
 
   NiceMock<MockConnectionDelegate> null_connection_delegate;
   Connection connection(Connection::PresentationInfo{presentation_id, url1_},
-                        &null_connection_delegate, Receiver::Get());
-  Receiver::Get()->OnPresentationStarted(presentation_id, &connection,
-                                         ResponseResult::kSuccess);
+                        &null_connection_delegate, &receiver_);
+  receiver_.OnPresentationStarted(presentation_id, &connection,
+                                  ResponseResult::kSuccess);
   msgs::PresentationStartResponse response;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
       .WillOnce(Invoke([&response](uint64_t endpoint_id, uint64_t cid,
