@@ -43,7 +43,7 @@ SenderPacketRouter::SenderPacketRouter(Environment* environment,
       max_burst_bitrate_(ComputeMaxBurstBitrate(packet_buffer_size_,
                                                 max_packets_per_burst_,
                                                 burst_interval_)),
-      alarm_(environment_->now_function(), environment_->task_runner()) {
+      alarm_(environment_->now_function(), &environment_->task_runner()) {
   OSP_DCHECK(environment_);
   OSP_DCHECK_GT(packet_buffer_size_, kRequiredNetworkPacketSize);
 }

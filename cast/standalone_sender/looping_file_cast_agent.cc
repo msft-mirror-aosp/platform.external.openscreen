@@ -29,7 +29,7 @@ using DeviceMediaPolicy = SenderSocketFactory::DeviceMediaPolicy;
 }  // namespace
 
 LoopingFileCastAgent::LoopingFileCastAgent(
-    TaskRunner* task_runner,
+    TaskRunner& task_runner,
     std::unique_ptr<TrustStore> cast_trust_store,
     ShutdownCallback shutdown_callback)
     : task_runner_(task_runner),
@@ -40,7 +40,7 @@ LoopingFileCastAgent::LoopingFileCastAgent(
                       std::move(cast_trust_store),
                       CastCRLTrustStore::Create()),
       connection_factory_(
-          TlsConnectionFactory::CreateFactory(&socket_factory_, task_runner_)),
+          TlsConnectionFactory::CreateFactory(&socket_factory_, &task_runner_)),
       message_port_(&router_) {
   router_.AddHandlerForLocalId(kPlatformSenderId, this);
   socket_factory_.set_factory(connection_factory_.get());
@@ -59,8 +59,8 @@ void LoopingFileCastAgent::Connect(ConnectionSettings settings) {
                           ? DeviceMediaPolicy::kIncludesVideo
                           : DeviceMediaPolicy::kAudioOnly;
 
-  task_runner_->PostTask([this, policy] {
-    wake_lock_ = ScopedWakeLock::Create(task_runner_);
+  task_runner_.PostTask([this, policy] {
+    wake_lock_ = ScopedWakeLock::Create(&task_runner_);
     socket_factory_.Connect(connection_settings_->receiver_endpoint, policy,
                             &router_);
   });

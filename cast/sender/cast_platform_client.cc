@@ -23,14 +23,13 @@ static constexpr std::chrono::seconds kRequestTimeout = std::chrono::seconds(5);
 
 CastPlatformClient::CastPlatformClient(VirtualConnectionRouter* router,
                                        ClockNowFunctionPtr clock,
-                                       TaskRunner* task_runner)
+                                       TaskRunner& task_runner)
     : sender_id_(MakeUniqueSessionId("sender")),
       virtual_conn_router_(router),
       clock_(clock),
       task_runner_(task_runner) {
   OSP_DCHECK(virtual_conn_router_);
   OSP_DCHECK(clock_);
-  OSP_DCHECK(task_runner_);
   virtual_conn_router_->AddHandlerForLocalId(sender_id_, this);
 }
 
@@ -64,7 +63,7 @@ absl::optional<int> CastPlatformClient::RequestAppAvailability(
 
   PendingRequests& pending_requests =
       pending_requests_by_receiver_id_[receiver_id];
-  auto timeout = std::make_unique<Alarm>(clock_, task_runner_);
+  auto timeout = std::make_unique<Alarm>(clock_, &task_runner_);
   timeout->ScheduleFromNow(
       [this, request_id]() { CancelAppAvailabilityRequest(request_id); },
       kRequestTimeout);

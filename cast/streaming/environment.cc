@@ -19,13 +19,12 @@ Environment::PacketConsumer::~PacketConsumer() = default;
 Environment::SocketSubscriber::~SocketSubscriber() = default;
 
 Environment::Environment(ClockNowFunctionPtr now_function,
-                         TaskRunner* task_runner,
+                         TaskRunner& task_runner,
                          const IPEndpoint& local_endpoint)
     : now_function_(now_function), task_runner_(task_runner) {
   OSP_DCHECK(now_function_);
-  OSP_DCHECK(task_runner_);
   ErrorOr<std::unique_ptr<UdpSocket>> result =
-      UdpSocket::Create(task_runner_, this, local_endpoint);
+      UdpSocket::Create(&task_runner_, this, local_endpoint);
   if (result.is_error()) {
     OSP_LOG_ERROR << "Unable to create a UDP socket bound to " << local_endpoint
                   << ": " << result.error();

@@ -45,10 +45,10 @@ Receiver::Receiver(Environment* environment,
       is_pli_enabled_(config.is_pli_enabled),
       rtcp_buffer_capacity_(environment->GetMaxPacketSize()),
       rtcp_buffer_(new uint8_t[rtcp_buffer_capacity_]),
-      rtcp_alarm_(environment->now_function(), environment->task_runner()),
+      rtcp_alarm_(environment->now_function(), &environment->task_runner()),
       smoothed_clock_offset_(ClockDriftSmoother::kDefaultTimeConstant),
       consumption_alarm_(environment->now_function(),
-                         environment->task_runner()) {
+                         &environment->task_runner()) {
   OSP_DCHECK(packet_router_);
   OSP_DCHECK_EQ(checkpoint_frame(), FrameId::leader());
   OSP_CHECK_GT(rtcp_buffer_capacity_, 0);

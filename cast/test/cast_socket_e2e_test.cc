@@ -146,7 +146,7 @@ class CastSocketE2ETest : public ::testing::Test {
     sender_client_ =
         std::make_unique<StrictMock<SenderSocketsClient>>(sender_router_.get());
     sender_factory_ = MakeSerialDelete<SenderSocketFactory>(
-        task_runner_, sender_client_.get(), task_runner_,
+        task_runner_, sender_client_.get(), *task_runner_,
         TrustStore::CreateInstanceForTest(credentials_.root_cert_der),
         CastCRLTrustStore::Create());
     sender_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(

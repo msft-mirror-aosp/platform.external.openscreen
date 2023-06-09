@@ -23,15 +23,15 @@ constexpr decltype(ReceiverChooser::kWaitForStragglersDelay)
     ReceiverChooser::kWaitForStragglersDelay;
 
 ReceiverChooser::ReceiverChooser(const InterfaceInfo& interface,
-                                 TaskRunner* task_runner,
+                                 TaskRunner& task_runner,
                                  ResultCallback result_callback)
     : result_callback_(std::move(result_callback)),
-      menu_alarm_(&Clock::now, task_runner) {
+      menu_alarm_(&Clock::now, &task_runner) {
   discovery::Config config{.network_info = {interface},
                            .enable_publication = false,
                            .enable_querying = true};
   service_ =
-      discovery::CreateDnsSdService(task_runner, this, std::move(config));
+      discovery::CreateDnsSdService(&task_runner, this, std::move(config));
 
   watcher_ = std::make_unique<discovery::DnsSdServiceWatcher<ReceiverInfo>>(
       service_.get(), kCastV2ServiceId, DnsSdInstanceEndpointToReceiverInfo,
@@ -41,7 +41,7 @@ ReceiverChooser::ReceiverChooser(const InterfaceInfo& interface,
 
   OSP_LOG_INFO << "Starting discovery. Note that it can take dozens of seconds "
                   "to detect anything on some networks!";
-  task_runner->PostTask([this] { watcher_->StartDiscovery(); });
+  task_runner.PostTask([this] { watcher_->StartDiscovery(); });
 }
 
 ReceiverChooser::~ReceiverChooser() = default;
