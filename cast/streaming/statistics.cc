@@ -36,7 +36,7 @@ void SimpleHistogram::Reset() {
   buckets.assign(buckets.size(), 0);
 }
 
-SenderStatsClient::~SenderStatsClient() = default;
+SenderStatsClient::~SenderStatsClient() {}
 
 }  // namespace cast
 }  // namespace openscreen

@@ -161,7 +161,7 @@ struct SenderStats {
 class SenderStatsClient {
   // Gets called regularly with updated statistics while they are being
   // generated.
-  void OnStatisticsUpdated(const SenderStats& updated_stats);
+  virtual void OnStatisticsUpdated(const SenderStats& updated_stats) = 0;
 
  protected:
   virtual ~SenderStatsClient();
