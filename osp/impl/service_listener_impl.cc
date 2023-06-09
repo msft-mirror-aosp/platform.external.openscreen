@@ -96,6 +96,7 @@ void ServiceListenerImpl::OnReceiverUpdated(
 }
 
 void ServiceListenerImpl::OnReceiverAdded(const ServiceInfo& info) {
+  OSP_VLOG << __func__ << ": new receiver added=" << info.ToString();
   receiver_list_.OnReceiverAdded(info);
   for (auto* observer : observers_) {
     observer->OnReceiverAdded(info);
@@ -103,6 +104,7 @@ void ServiceListenerImpl::OnReceiverAdded(const ServiceInfo& info) {
 }
 
 void ServiceListenerImpl::OnReceiverChanged(const ServiceInfo& info) {
+  OSP_VLOG << __func__ << ": receiver changed=" << info.ToString();
   const Error changed_error = receiver_list_.OnReceiverChanged(info);
   if (changed_error.ok()) {
     for (auto* observer : observers_) {
@@ -112,15 +114,18 @@ void ServiceListenerImpl::OnReceiverChanged(const ServiceInfo& info) {
 }
 
 void ServiceListenerImpl::OnReceiverRemoved(const ServiceInfo& info) {
-  const Error removed_error = receiver_list_.OnReceiverRemoved(info);
-  if (removed_error.ok()) {
+  OSP_VLOG << __func__ << ": receiver removed=" << info.ToString();
+  const ErrorOr<ServiceInfo> removed_or_error =
+      receiver_list_.OnReceiverRemoved(info);
+  if (removed_or_error.is_value()) {
     for (auto* observer : observers_) {
-      observer->OnReceiverRemoved(info);
+      observer->OnReceiverRemoved(removed_or_error.value());
     }
   }
 }
 
 void ServiceListenerImpl::OnAllReceiversRemoved() {
+  OSP_VLOG << __func__ << ": all receivers removed.";
   const Error removed_all_error = receiver_list_.OnAllReceiversRemoved();
   if (removed_all_error.ok()) {
     for (auto* observer : observers_) {
