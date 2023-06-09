@@ -120,6 +120,8 @@ struct SimpleHistogram {
   // Overflow bucket: >= max
   // |min| must be less than |max|.
   // |width| must divide |max - min| evenly.
+
+  SimpleHistogram();
   SimpleHistogram(int64_t min, int64_t max, int64_t width);
   SimpleHistogram(const SimpleHistogram&) = delete;
   SimpleHistogram(SimpleHistogram&&) noexcept;
@@ -130,9 +132,9 @@ struct SimpleHistogram {
   void Add(int64_t sample);
   void Reset();
 
-  int64_t min;
-  int64_t max;
-  int64_t width;
+  int64_t min = 1;
+  int64_t max = 1;
+  int64_t width = 1;
   std::vector<int> buckets;
 };
 
