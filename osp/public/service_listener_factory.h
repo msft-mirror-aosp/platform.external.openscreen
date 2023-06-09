@@ -19,7 +19,7 @@ class ServiceListenerFactory {
  public:
   static std::unique_ptr<ServiceListener> Create(
       const ServiceListener::Config& config,
-      TaskRunner* task_runner);
+      TaskRunner& task_runner);
 };
 
 }  // namespace osp

@@ -5,6 +5,7 @@
 #include "osp/impl/quic/testing/quic_test_support.h"
 
 #include <memory>
+#include <utility>
 
 #include "osp/impl/quic/quic_client.h"
 #include "osp/impl/quic/quic_server.h"
@@ -14,7 +15,7 @@
 namespace openscreen {
 namespace osp {
 
-FakeQuicBridge::FakeQuicBridge(FakeTaskRunner* task_runner,
+FakeQuicBridge::FakeQuicBridge(FakeTaskRunner& task_runner,
                                ClockNowFunctionPtr now_function)
     : task_runner_(task_runner) {
   fake_bridge =
@@ -28,7 +29,7 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner* task_runner,
   auto fake_client_factory =
       std::make_unique<FakeClientQuicConnectionFactory>(fake_bridge.get());
   client_socket_ =
-      std::make_unique<FakeUdpSocket>(task_runner_, fake_client_factory.get());
+      std::make_unique<FakeUdpSocket>(&task_runner_, fake_client_factory.get());
 
   quic_client = std::make_unique<QuicClient>(
       controller_demuxer.get(), std::move(fake_client_factory),
@@ -37,7 +38,7 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner* task_runner,
   auto fake_server_factory =
       std::make_unique<FakeServerQuicConnectionFactory>(fake_bridge.get());
   server_socket_ =
-      std::make_unique<FakeUdpSocket>(task_runner_, fake_server_factory.get());
+      std::make_unique<FakeUdpSocket>(&task_runner_, fake_server_factory.get());
   ServerConfig config;
   config.connection_endpoints.push_back(kReceiverEndpoint);
   quic_server = std::make_unique<QuicServer>(
@@ -68,16 +69,15 @@ void FakeQuicBridge::PostPacketsUntilIdle() {
   if (!client_idle || !server_idle) {
     PostClientPacket();
     PostServerPacket();
-    task_runner_->PostTask([this]() { this->PostPacketsUntilIdle(); });
+    task_runner_.PostTask([this]() { this->PostPacketsUntilIdle(); });
   }
 }
 
 void FakeQuicBridge::RunTasksUntilIdle() {
   PostClientPacket();
   PostServerPacket();
-  task_runner_->PostTask(
-      std::bind(&FakeQuicBridge::PostPacketsUntilIdle, this));
-  task_runner_->RunTasksUntilIdle();
+  task_runner_.PostTask(std::bind(&FakeQuicBridge::PostPacketsUntilIdle, this));
+  task_runner_.RunTasksUntilIdle();
 }
 
 }  // namespace osp

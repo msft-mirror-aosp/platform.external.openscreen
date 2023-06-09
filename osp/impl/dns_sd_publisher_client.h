@@ -20,7 +20,7 @@ namespace osp {
 
 class DnsSdPublisherClient final : public ServicePublisherImpl::Delegate {
  public:
-  explicit DnsSdPublisherClient(openscreen::TaskRunner* task_runner);
+  explicit DnsSdPublisherClient(TaskRunner& task_runner);
   ~DnsSdPublisherClient() override;
 
   // ServicePublisherImpl::Delegate overrides.
@@ -39,7 +39,7 @@ class DnsSdPublisherClient final : public ServicePublisherImpl::Delegate {
   SerialDeletePtr<discovery::DnsSdService> CreateDnsSdServiceInternal(
       const ServicePublisher::Config& config);
 
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   SerialDeletePtr<discovery::DnsSdService> dns_sd_service_;
 
   using OspDnsSdPublisher =

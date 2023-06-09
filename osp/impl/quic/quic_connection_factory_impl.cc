@@ -26,7 +26,7 @@ namespace osp {
 
 class QuicTaskRunner final : public ::base::TaskRunner {
  public:
-  explicit QuicTaskRunner(openscreen::TaskRunner* task_runner);
+  explicit QuicTaskRunner(TaskRunner& task_runner);
   ~QuicTaskRunner() override;
 
   void RunTasks();
@@ -39,10 +39,10 @@ class QuicTaskRunner final : public ::base::TaskRunner {
   bool RunsTasksInCurrentSequence() const override;
 
  private:
-  openscreen::TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
 };
 
-QuicTaskRunner::QuicTaskRunner(openscreen::TaskRunner* task_runner)
+QuicTaskRunner::QuicTaskRunner(TaskRunner& task_runner)
     : task_runner_(task_runner) {}
 
 QuicTaskRunner::~QuicTaskRunner() = default;
@@ -53,7 +53,7 @@ bool QuicTaskRunner::PostDelayedTask(const ::base::Location& whence,
                                      ::base::OnceClosure task,
                                      ::base::TimeDelta delay) {
   Clock::duration wait = Clock::duration(delay.InMilliseconds());
-  task_runner_->PostTaskWithDelay(
+  task_runner_.PostTaskWithDelay(
       [closure = std::move(task)]() mutable { std::move(closure).Run(); },
       wait);
   return true;
@@ -63,7 +63,7 @@ bool QuicTaskRunner::RunsTasksInCurrentSequence() const {
   return true;
 }
 
-QuicConnectionFactoryImpl::QuicConnectionFactoryImpl(TaskRunner* task_runner)
+QuicConnectionFactoryImpl::QuicConnectionFactoryImpl(TaskRunner& task_runner)
     : task_runner_(task_runner) {
   quic_task_runner_ = ::base::MakeRefCounted<QuicTaskRunner>(task_runner);
   alarm_factory_ = std::make_unique<::net::QuicChromiumAlarmFactory>(
@@ -91,7 +91,7 @@ void QuicConnectionFactoryImpl::SetServerDelegate(
     // create/bind errors occur. Maybe return an Error immediately, and undo
     // partial progress (i.e. "unwatch" all the sockets and call
     // sockets_.clear() to close the sockets)?
-    auto create_result = UdpSocket::Create(task_runner_, this, endpoint);
+    auto create_result = UdpSocket::Create(&task_runner_, this, endpoint);
     if (!create_result) {
       OSP_LOG_ERROR << "failed to create socket (for " << endpoint
                     << "): " << create_result.error().message();
@@ -150,7 +150,7 @@ void QuicConnectionFactoryImpl::OnRead(UdpSocket* socket,
 std::unique_ptr<QuicConnection> QuicConnectionFactoryImpl::Connect(
     const IPEndpoint& endpoint,
     QuicConnection::Delegate* connection_delegate) {
-  auto create_result = UdpSocket::Create(task_runner_, this, endpoint);
+  auto create_result = UdpSocket::Create(&task_runner_, this, endpoint);
   if (!create_result) {
     OSP_LOG_ERROR << "failed to create socket: "
                   << create_result.error().message();

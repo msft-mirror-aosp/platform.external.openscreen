@@ -22,7 +22,7 @@ namespace osp {
 
 class DnsSdWatcherClient final : public ServiceListenerImpl::Delegate {
  public:
-  explicit DnsSdWatcherClient(openscreen::TaskRunner* task_runner);
+  explicit DnsSdWatcherClient(TaskRunner& task_runner);
   ~DnsSdWatcherClient() override;
 
   // ServiceListenerImpl::Delegate overrides.
@@ -44,7 +44,7 @@ class DnsSdWatcherClient final : public ServiceListenerImpl::Delegate {
   using OspDnsSdWatcher = discovery::DnsSdServiceWatcher<ServiceInfo>;
   void OnDnsWatcherUpdated(std::vector<OspDnsSdWatcher::ConstRefT> all);
 
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   SerialDeletePtr<discovery::DnsSdService> dns_sd_service_;
 
   std::unique_ptr<OspDnsSdWatcher> dns_sd_watcher_;

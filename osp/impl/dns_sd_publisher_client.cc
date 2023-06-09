@@ -40,10 +40,8 @@ discovery::DnsSdInstance ServiceConfigToDnsSdInstance(
 
 }  // namespace
 
-DnsSdPublisherClient::DnsSdPublisherClient(openscreen::TaskRunner* task_runner)
-    : task_runner_(task_runner) {
-  OSP_DCHECK(task_runner_);
-}
+DnsSdPublisherClient::DnsSdPublisherClient(TaskRunner& task_runner)
+    : task_runner_(task_runner) {}
 
 DnsSdPublisherClient::~DnsSdPublisherClient() = default;
 
@@ -113,7 +111,7 @@ DnsSdPublisherClient::CreateDnsSdServiceInternal(
   // discovery::DnsSdService, e.g. through a ref-counting handle, so that the
   // OSP publisher and the OSP listener don't have to coordinate through an
   // additional object.
-  return CreateDnsSdService(task_runner_, publisher_, dns_sd_config);
+  return CreateDnsSdService(&task_runner_, publisher_, dns_sd_config);
 }
 
 }  // namespace osp

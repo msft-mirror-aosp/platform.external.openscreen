@@ -20,11 +20,11 @@ QuicServer::QuicServer(
     std::unique_ptr<QuicConnectionFactory> connection_factory,
     ProtocolConnectionServer::Observer* observer,
     ClockNowFunctionPtr now_function,
-    TaskRunner* task_runner)
+    TaskRunner& task_runner)
     : ProtocolConnectionServer(demuxer, observer),
       connection_endpoints_(config.connection_endpoints),
       connection_factory_(std::move(connection_factory)),
-      cleanup_alarm_(now_function, task_runner) {}
+      cleanup_alarm_(now_function, &task_runner) {}
 
 QuicServer::~QuicServer() {
   CloseAllConnections();

@@ -19,7 +19,7 @@ namespace osp {
 // static
 std::unique_ptr<ServiceListener> ServiceListenerFactory::Create(
     const ServiceListener::Config& config,
-    TaskRunner* task_runner) {
+    TaskRunner& task_runner) {
   auto dns_sd_client = std::make_unique<DnsSdWatcherClient>(task_runner);
   auto listener_impl =
       std::make_unique<ServiceListenerImpl>(std::move(dns_sd_client));
