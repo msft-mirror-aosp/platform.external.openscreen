@@ -66,6 +66,7 @@ void MdnsReceiver::OnRead(UdpSocket* socket,
   MdnsReader reader(config_, packet.data(), packet.size());
   const ErrorOr<MdnsMessage> message = reader.Read();
   if (message.is_error()) {
+    TRACE_SET_RESULT(message.error());
     if (message.error().code() == Error::Code::kMdnsNonConformingFailure) {
       OSP_DVLOG << "mDNS message dropped due to invalid rcode or opcode...";
     } else {

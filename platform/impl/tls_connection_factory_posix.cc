@@ -74,7 +74,8 @@ TlsConnectionFactoryPosix::~TlsConnectionFactoryPosix() {
 void TlsConnectionFactoryPosix::Connect(const IPEndpoint& remote_address,
                                         const TlsConnectOptions& options) {
   OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
-  TRACE_SCOPED(TraceCategory::kSsl, "TlsConnectionFactoryPosix::Connect");
+  TRACE_SCOPED1(TraceCategory::kSsl, "TlsConnectionFactoryPosix::Connect",
+                "remote_address", remote_address.ToString());
   IPAddress::Version version = remote_address.address.version();
   std::unique_ptr<TlsConnectionPosix> connection(
       new TlsConnectionPosix(version, task_runner_));

@@ -107,6 +107,7 @@ void QuicConnectionFactoryImpl::OnRead(UdpSocket* socket,
                                        ErrorOr<UdpPacket> packet_or_error) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionFactoryImpl::OnRead");
   if (packet_or_error.is_error()) {
+    TRACE_SET_RESULT(packet_or_error.error());
     return;
   }
 
