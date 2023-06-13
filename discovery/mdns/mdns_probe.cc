@@ -36,7 +36,7 @@ MdnsProbeImpl::MdnsProbeImpl(MdnsSender* sender,
       random_delay_(random_delay),
       task_runner_(task_runner),
       now_function_(now_function),
-      alarm_(now_function_, &task_runner_),
+      alarm_(now_function_, task_runner_),
       sender_(sender),
       receiver_(receiver),
       observer_(observer) {

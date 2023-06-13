@@ -30,9 +30,9 @@ SDLPlayerBase::SDLPlayerBase(ClockNowFunctionPtr now_function,
       error_callback_(std::move(error_callback)),
       media_type_(media_type),
       decoder_(codec_name),
-      decode_alarm_(now_, &task_runner),
-      render_alarm_(now_, &task_runner),
-      presentation_alarm_(now_, &task_runner) {
+      decode_alarm_(now_, task_runner),
+      render_alarm_(now_, task_runner),
+      presentation_alarm_(now_, task_runner) {
   OSP_DCHECK(receiver_);
   OSP_DCHECK(media_type_);
 

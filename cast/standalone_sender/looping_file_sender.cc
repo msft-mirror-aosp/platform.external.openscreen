@@ -33,8 +33,8 @@ LoopingFileSender::LoopingFileSender(Environment* environment,
           StreamingVideoEncoder::Parameters{.codec = settings.codec},
           env_->task_runner(),
           std::move(senders.video_sender))),
-      next_task_(env_->now_function(), &env_->task_runner()),
-      console_update_task_(env_->now_function(), &env_->task_runner()) {
+      next_task_(env_->now_function(), env_->task_runner()),
+      console_update_task_(env_->now_function(), env_->task_runner()) {
   // Opus and Vp8 are the default values for the config, and if these are set
   // to a different value that means we offered a codec that we do not
   // support, which is a developer error.

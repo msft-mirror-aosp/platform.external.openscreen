@@ -68,7 +68,7 @@ MdnsTracker::MdnsTracker(MdnsSender* sender,
     : sender_(sender),
       task_runner_(task_runner),
       now_function_(now_function),
-      send_alarm_(now_function, &task_runner),
+      send_alarm_(now_function, task_runner),
       random_delay_(random_delay),
       tracker_type_(tracker_type) {
   OSP_DCHECK(now_function_);

@@ -63,7 +63,7 @@ absl::optional<int> CastPlatformClient::RequestAppAvailability(
 
   PendingRequests& pending_requests =
       pending_requests_by_receiver_id_[receiver_id];
-  auto timeout = std::make_unique<Alarm>(clock_, &task_runner_);
+  auto timeout = std::make_unique<Alarm>(clock_, task_runner_);
   timeout->ScheduleFromNow(
       [this, request_id]() { CancelAppAvailabilityRequest(request_id); },
       kRequestTimeout);

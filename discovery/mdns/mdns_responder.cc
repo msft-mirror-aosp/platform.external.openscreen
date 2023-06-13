@@ -298,7 +298,7 @@ MdnsResponder::TruncatedQuery::TruncatedQuery(MdnsResponder* responder,
       responder_(responder),
       questions_(message.questions()),
       known_answers_(message.answers()),
-      alarm_(now_function, &task_runner) {
+      alarm_(now_function, task_runner) {
   OSP_DCHECK(responder_);
   OSP_DCHECK_GT(max_allowed_messages_, 0);
   OSP_DCHECK_GT(max_allowed_records_, 0);

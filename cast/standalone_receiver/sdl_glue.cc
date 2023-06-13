@@ -16,7 +16,7 @@ namespace cast {
 SDLEventLoopProcessor::SDLEventLoopProcessor(
     TaskRunner& task_runner,
     std::function<void()> quit_callback)
-    : alarm_(&Clock::now, &task_runner),
+    : alarm_(&Clock::now, task_runner),
       quit_callback_(std::move(quit_callback)) {
   alarm_.Schedule([this] { ProcessPendingEvents(); }, Alarm::kImmediately);
 }

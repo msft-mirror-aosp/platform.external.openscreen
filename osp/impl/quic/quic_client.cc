@@ -23,7 +23,7 @@ QuicClient::QuicClient(
     TaskRunner& task_runner)
     : ProtocolConnectionClient(demuxer, observer),
       connection_factory_(std::move(connection_factory)),
-      cleanup_alarm_(now_function, &task_runner) {}
+      cleanup_alarm_(now_function, task_runner) {}
 
 QuicClient::~QuicClient() {
   CloseAllConnections();

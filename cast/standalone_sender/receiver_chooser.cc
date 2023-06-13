@@ -26,7 +26,7 @@ ReceiverChooser::ReceiverChooser(const InterfaceInfo& interface,
                                  TaskRunner& task_runner,
                                  ResultCallback result_callback)
     : result_callback_(std::move(result_callback)),
-      menu_alarm_(&Clock::now, &task_runner) {
+      menu_alarm_(&Clock::now, task_runner) {
   discovery::Config config{.network_info = {interface},
                            .enable_publication = false,
                            .enable_querying = true};

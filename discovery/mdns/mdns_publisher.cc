@@ -254,7 +254,7 @@ MdnsPublisher::RecordAnnouncer::RecordAnnouncer(
       task_runner_(task_runner),
       now_function_(now_function),
       record_(std::move(record)),
-      alarm_(now_function_, &task_runner_),
+      alarm_(now_function_, task_runner_),
       target_announcement_attempts_(target_announcement_attempts) {
   OSP_DCHECK(publisher_);
   OSP_DCHECK(record_.ttl() != Clock::duration::zero());
@@ -292,7 +292,7 @@ void MdnsPublisher::RecordAnnouncer::QueueAnnouncement() {
 void MdnsPublisher::QueueRecord(MdnsRecord record) {
   if (!batch_records_alarm_.has_value()) {
     OSP_DCHECK(records_to_send_.empty());
-    batch_records_alarm_.emplace(now_function_, &task_runner_);
+    batch_records_alarm_.emplace(now_function_, task_runner_);
     batch_records_alarm_.value().ScheduleFromNow(
         [this]() { ProcessRecordQueue(); }, kDelayBetweenBatchedRecords);
   }
