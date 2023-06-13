@@ -36,7 +36,7 @@ class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
  public:
   // |task_runner|, |reporting_client|, and |config| must exist for the duration
   // of this instance's life.
-  MdnsServiceImpl(TaskRunner* task_runner,
+  MdnsServiceImpl(TaskRunner& task_runner,
                   ClockNowFunctionPtr now_function,
                   ReportingClient* reporting_client,
                   const Config& config,
@@ -69,7 +69,7 @@ class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
   void OnBound(UdpSocket* socket) override;
 
  private:
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   ClockNowFunctionPtr now_function_;
   ReportingClient* const reporting_client_;
 

@@ -56,7 +56,7 @@ class MdnsProbeTests : public testing::Test {
  protected:
   std::unique_ptr<MdnsProbeImpl> CreateProbe() {
     return std::make_unique<MdnsProbeImpl>(&sender_, &receiver_, &random_,
-                                           &task_runner_, FakeClock::now,
+                                           task_runner_, FakeClock::now,
                                            &observer_, name_, address_v4_);
   }
 

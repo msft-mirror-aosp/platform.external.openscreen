@@ -80,17 +80,17 @@ class MdnsProbeImpl : public MdnsProbe {
   MdnsProbeImpl(MdnsSender* sender,
                 MdnsReceiver* receiver,
                 MdnsRandom* random_delay,
-                TaskRunner* task_runner,
+                TaskRunner& task_runner,
                 ClockNowFunctionPtr now_function,
                 Observer* observer,
                 DomainName target_name,
                 IPAddress address);
   MdnsProbeImpl(const MdnsProbeImpl& other) = delete;
-  MdnsProbeImpl(MdnsProbeImpl&& other) = delete;
+  MdnsProbeImpl(MdnsProbeImpl&& other) noexcept = delete;
   ~MdnsProbeImpl() override;
 
   MdnsProbeImpl& operator=(const MdnsProbeImpl& other) = delete;
-  MdnsProbeImpl& operator=(MdnsProbeImpl&& other) = delete;
+  MdnsProbeImpl& operator=(MdnsProbeImpl&& other) noexcept = delete;
 
   // MdnsProbe overrides.
   void Postpone(std::chrono::seconds delay) override;
@@ -108,7 +108,7 @@ class MdnsProbeImpl : public MdnsProbe {
   void OnMessageReceived(const MdnsMessage& message) override;
 
   MdnsRandom* const random_delay_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   ClockNowFunctionPtr now_function_;
 
   Alarm alarm_;

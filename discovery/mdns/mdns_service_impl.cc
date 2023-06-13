@@ -17,7 +17,7 @@ namespace discovery {
 
 // static
 std::unique_ptr<MdnsService> MdnsService::Create(
-    TaskRunner* task_runner,
+    TaskRunner& task_runner,
     ReportingClient* reporting_client,
     const Config& config,
     const InterfaceInfo& network_info) {
@@ -25,7 +25,7 @@ std::unique_ptr<MdnsService> MdnsService::Create(
       task_runner, Clock::now, reporting_client, config, network_info);
 }
 
-MdnsServiceImpl::MdnsServiceImpl(TaskRunner* task_runner,
+MdnsServiceImpl::MdnsServiceImpl(TaskRunner& task_runner,
                                  ClockNowFunctionPtr now_function,
                                  ReportingClient* reporting_client,
                                  const Config& config,
@@ -35,7 +35,6 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner* task_runner,
       reporting_client_(reporting_client),
       receiver_(config),
       interface_(network_info.index) {
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(reporting_client_);
 
   // Create all UDP sockets needed for this object. They should not yet be bound
@@ -45,7 +44,7 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner* task_runner,
   // the multicast join calls.
   if (network_info.GetIpAddressV4()) {
     ErrorOr<std::unique_ptr<UdpSocket>> socket = UdpSocket::Create(
-        task_runner, this,
+        &task_runner, this,
         IPEndpoint{IPAddress::kAnyV4(), kDefaultMulticastPort});
     OSP_DCHECK(!socket.is_error());
     OSP_DCHECK(socket.value().get());
@@ -56,7 +55,7 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner* task_runner,
 
   if (network_info.GetIpAddressV6()) {
     ErrorOr<std::unique_ptr<UdpSocket>> socket = UdpSocket::Create(
-        task_runner, this,
+        &task_runner, this,
         IPEndpoint{IPAddress::kAnyV6(), kDefaultMulticastPort});
     OSP_DCHECK(!socket.is_error());
     OSP_DCHECK(socket.value().get());

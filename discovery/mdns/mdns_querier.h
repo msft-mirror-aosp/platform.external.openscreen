@@ -30,7 +30,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
  public:
   MdnsQuerier(MdnsSender* sender,
               MdnsReceiver* receiver,
-              TaskRunner* task_runner,
+              TaskRunner& task_runner,
               ClockNowFunctionPtr now_function,
               MdnsRandom* random_delay,
               ReportingClient* reporting_client,
@@ -88,7 +88,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
     RecordTrackerLruCache(MdnsQuerier* querier,
                           MdnsSender* sender,
                           MdnsRandom* random_delay,
-                          TaskRunner* task_runner,
+                          TaskRunner& task_runner,
                           ClockNowFunctionPtr now_function,
                           ReportingClient* reporting_client,
                           const Config& config);
@@ -134,7 +134,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
     MdnsQuerier* const querier_;
     MdnsSender* const sender_;
     MdnsRandom* const random_delay_;
-    TaskRunner* const task_runner_;
+    TaskRunner& task_runner_;
     ClockNowFunctionPtr now_function_;
     ReportingClient* reporting_client_;
     const Config& config_;
@@ -208,7 +208,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
 
   MdnsSender* const sender_;
   MdnsReceiver* const receiver_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   const ClockNowFunctionPtr now_function_;
   MdnsRandom* const random_delay_;
   ReportingClient* reporting_client_;

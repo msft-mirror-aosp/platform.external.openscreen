@@ -61,17 +61,16 @@ constexpr std::chrono::seconds kGoodbyeRecordTtl{1};
 }  // namespace
 
 MdnsTracker::MdnsTracker(MdnsSender* sender,
-                         TaskRunner* task_runner,
+                         TaskRunner& task_runner,
                          ClockNowFunctionPtr now_function,
                          MdnsRandom* random_delay,
                          TrackerType tracker_type)
     : sender_(sender),
       task_runner_(task_runner),
       now_function_(now_function),
-      send_alarm_(now_function, task_runner),
+      send_alarm_(now_function, &task_runner),
       random_delay_(random_delay),
       tracker_type_(tracker_type) {
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(now_function_);
   OSP_DCHECK(random_delay_);
   OSP_DCHECK(sender_);
@@ -87,7 +86,7 @@ MdnsTracker::~MdnsTracker() {
 
 bool MdnsTracker::AddAdjacentNode(const MdnsTracker* node) const {
   OSP_DCHECK(node);
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   if (Contains(adjacent_nodes_, node)) {
     return false;
@@ -100,7 +99,7 @@ bool MdnsTracker::AddAdjacentNode(const MdnsTracker* node) const {
 
 bool MdnsTracker::RemoveAdjacentNode(const MdnsTracker* node) const {
   OSP_DCHECK(node);
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   auto it = std::find(adjacent_nodes_.begin(), adjacent_nodes_.end(), node);
   if (it == adjacent_nodes_.end()) {
@@ -128,7 +127,7 @@ MdnsRecordTracker::MdnsRecordTracker(
     MdnsRecord record,
     DnsType dns_type,
     MdnsSender* sender,
-    TaskRunner* task_runner,
+    TaskRunner& task_runner,
     ClockNowFunctionPtr now_function,
     MdnsRandom* random_delay,
     RecordExpiredCallback record_expired_callback)
@@ -159,7 +158,7 @@ MdnsRecordTracker::~MdnsRecordTracker() = default;
 
 ErrorOr<MdnsRecordTracker::UpdateType> MdnsRecordTracker::Update(
     const MdnsRecord& new_record) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   const bool has_same_rdata = record_.dns_type() == new_record.dns_type() &&
                               record_.rdata() == new_record.rdata();
   const bool new_is_negative_response = new_record.dns_type() == DnsType::kNSEC;
@@ -221,7 +220,7 @@ bool MdnsRecordTracker::RemoveAssociatedQuery(
 }
 
 void MdnsRecordTracker::ExpireSoon() {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   record_ =
       MdnsRecord(record_.name(), record_.dns_type(), record_.dns_class(),
@@ -287,7 +286,7 @@ Clock::time_point MdnsRecordTracker::GetNextSendTime() {
 
 MdnsQuestionTracker::MdnsQuestionTracker(MdnsQuestion question,
                                          MdnsSender* sender,
-                                         TaskRunner* task_runner,
+                                         TaskRunner& task_runner,
                                          ClockNowFunctionPtr now_function,
                                          MdnsRandom* random_delay,
                                          const Config& config,
@@ -313,7 +312,7 @@ MdnsQuestionTracker::MdnsQuestionTracker(MdnsQuestion question,
     announcements_so_far_++;
 
     if (query_type_ == QueryType::kOneShot) {
-      task_runner_->PostTask([this] { MdnsQuestionTracker::SendQuery(); });
+      task_runner_.PostTask([this] { MdnsQuestionTracker::SendQuery(); });
     } else {
       OSP_DCHECK(query_type_ == QueryType::kContinuous);
       send_alarm_.ScheduleFromNow(

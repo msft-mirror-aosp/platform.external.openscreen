@@ -55,7 +55,7 @@ CastService::CastService(CastService::Configuration config)
                                               &config.task_runner)),
       discovery_service_(config.enable_discovery
                              ? discovery::CreateDnsSdService(
-                                   &config.task_runner,
+                                   config.task_runner,
                                    this,
                                    MakeDiscoveryConfig(config.interface))
                              : LazyDeletedDiscoveryService()),

@@ -31,7 +31,7 @@ ReceiverChooser::ReceiverChooser(const InterfaceInfo& interface,
                            .enable_publication = false,
                            .enable_querying = true};
   service_ =
-      discovery::CreateDnsSdService(&task_runner, this, std::move(config));
+      discovery::CreateDnsSdService(task_runner, this, std::move(config));
 
   watcher_ = std::make_unique<discovery::DnsSdServiceWatcher<ReceiverInfo>>(
       service_.get(), kCastV2ServiceId, DnsSdInstanceEndpointToReceiverInfo,

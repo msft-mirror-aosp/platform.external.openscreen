@@ -47,7 +47,7 @@ class MdnsTracker {
   // and expects that the lifetime of these objects exceeds the lifetime of
   // MdnsTracker.
   MdnsTracker(MdnsSender* sender,
-              TaskRunner* task_runner,
+              TaskRunner& task_runner,
               ClockNowFunctionPtr now_function,
               MdnsRandom* random_delay,
               TrackerType tracker_type);
@@ -81,7 +81,7 @@ class MdnsTracker {
   }
 
   MdnsSender* const sender_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   const ClockNowFunctionPtr now_function_;
   Alarm send_alarm_;
   MdnsRandom* const random_delay_;
@@ -110,7 +110,7 @@ class MdnsRecordTracker : public MdnsTracker {
   MdnsRecordTracker(MdnsRecord record,
                     DnsType dns_type,
                     MdnsSender* sender,
-                    TaskRunner* task_runner,
+                    TaskRunner& task_runner,
                     ClockNowFunctionPtr now_function,
                     MdnsRandom* random_delay,
                     RecordExpiredCallback record_expired_callback);
@@ -206,7 +206,7 @@ class MdnsQuestionTracker : public MdnsTracker {
 
   MdnsQuestionTracker(MdnsQuestion question,
                       MdnsSender* sender,
-                      TaskRunner* task_runner,
+                      TaskRunner& task_runner,
                       ClockNowFunctionPtr now_function,
                       MdnsRandom* random_delay,
                       const Config& config,

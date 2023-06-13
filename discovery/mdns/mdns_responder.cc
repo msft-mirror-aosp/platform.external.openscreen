@@ -287,7 +287,7 @@ bool IsMultiPacketTruncatedQueryMessage(const MdnsMessage& message) {
 MdnsResponder::RecordHandler::~RecordHandler() = default;
 
 MdnsResponder::TruncatedQuery::TruncatedQuery(MdnsResponder* responder,
-                                              TaskRunner* task_runner,
+                                              TaskRunner& task_runner,
                                               ClockNowFunctionPtr now_function,
                                               IPEndpoint src,
                                               const MdnsMessage& message,
@@ -298,7 +298,7 @@ MdnsResponder::TruncatedQuery::TruncatedQuery(MdnsResponder* responder,
       responder_(responder),
       questions_(message.questions()),
       known_answers_(message.answers()),
-      alarm_(now_function, task_runner) {
+      alarm_(now_function, &task_runner) {
   OSP_DCHECK(responder_);
   OSP_DCHECK_GT(max_allowed_messages_, 0);
   OSP_DCHECK_GT(max_allowed_records_, 0);
@@ -367,7 +367,7 @@ MdnsResponder::MdnsResponder(RecordHandler* record_handler,
                              MdnsProbeManager* ownership_handler,
                              MdnsSender* sender,
                              MdnsReceiver* receiver,
-                             TaskRunner* task_runner,
+                             TaskRunner& task_runner,
                              ClockNowFunctionPtr now_function,
                              MdnsRandom* random_delay,
                              const Config& config)
@@ -383,7 +383,6 @@ MdnsResponder::MdnsResponder(RecordHandler* record_handler,
   OSP_DCHECK(ownership_handler_);
   OSP_DCHECK(sender_);
   OSP_DCHECK(receiver_);
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(random_delay_);
   OSP_DCHECK_GT(config_.maximum_truncated_messages_per_query, 0);
   OSP_DCHECK_GT(config_.maximum_concurrent_truncated_queries_per_interface, 0);
@@ -400,7 +399,7 @@ MdnsResponder::~MdnsResponder() {
 
 void MdnsResponder::OnMessageReceived(const MdnsMessage& message,
                                       const IPEndpoint& src) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(message.type() == MessageType::Query);
 
   // Handle multi-packet known answer suppression.
@@ -571,7 +570,7 @@ void MdnsResponder::ProcessQueries(
         SendResponse(question, known_answers, send_response,
                      is_exclusive_owner);
       };
-      task_runner_->PostTaskWithDelay(response, delay);
+      task_runner_.PostTaskWithDelay(response, delay);
     }
   }
 }
@@ -581,7 +580,7 @@ void MdnsResponder::SendResponse(
     const std::vector<MdnsRecord>& known_answers,
     std::function<void(const MdnsMessage&)> send_response,
     bool is_exclusive_owner) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   MdnsMessage message(CreateMessageId(), MessageType::Response);
 

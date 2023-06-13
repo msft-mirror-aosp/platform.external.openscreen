@@ -67,7 +67,7 @@ class MdnsResponder {
                 MdnsProbeManager* ownership_handler,
                 MdnsSender* sender,
                 MdnsReceiver* receiver,
-                TaskRunner* task_runner,
+                TaskRunner& task_runner,
                 ClockNowFunctionPtr now_function,
                 MdnsRandom* random_delay,
                 const Config& config);
@@ -83,16 +83,16 @@ class MdnsResponder {
     // |responder| and |task_runner| are expected to persist for the duration of
     // this instance's lifetime.
     TruncatedQuery(MdnsResponder* responder,
-                   TaskRunner* task_runner,
+                   TaskRunner& task_runner,
                    ClockNowFunctionPtr now_function,
                    IPEndpoint src,
                    const MdnsMessage& message,
                    const Config& config);
     TruncatedQuery(const TruncatedQuery& other) = delete;
-    TruncatedQuery(TruncatedQuery&& other) = delete;
+    TruncatedQuery(TruncatedQuery&& other) noexcept = delete;
 
     TruncatedQuery& operator=(const TruncatedQuery& other) = delete;
-    TruncatedQuery& operator=(TruncatedQuery&& other) = delete;
+    TruncatedQuery& operator=(TruncatedQuery&& other) noexcept = delete;
 
     // Sets the query associated with this instance. Must only be called if no
     // query has already been set, here or through the ctor.
@@ -158,7 +158,7 @@ class MdnsResponder {
   MdnsProbeManager* const ownership_handler_;
   MdnsSender* const sender_;
   MdnsReceiver* const receiver_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   const ClockNowFunctionPtr now_function_;
   MdnsRandom* const random_delay_;
   const Config& config_;

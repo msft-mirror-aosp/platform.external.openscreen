@@ -35,7 +35,7 @@ class QuerierImpl : public DnsSdQuerier, public MdnsRecordChangedCallback {
   // |querier|, |task_runner|, and |network_config| must outlive the QuerierImpl
   // instance constructed.
   QuerierImpl(MdnsService* querier,
-              TaskRunner* task_runner,
+              TaskRunner& task_runner,
               ReportingClient* reporting_client,
               const NetworkInterfaceConfig* network_config);
   ~QuerierImpl() override;
@@ -73,7 +73,7 @@ class QuerierImpl : public DnsSdQuerier, public MdnsRecordChangedCallback {
   std::map<ServiceKey, std::vector<Callback*>> callback_map_;
 
   MdnsService* const mdns_querier_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
 
   ReportingClient* reporting_client_;
 };

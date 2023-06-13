@@ -76,7 +76,7 @@ class MdnsPublisherTest : public testing::Test {
         sender_(&socket_),
         publisher_(&sender_,
                    &probe_manager_,
-                   &task_runner_,
+                   task_runner_,
                    FakeClock::now,
                    config_) {}
 

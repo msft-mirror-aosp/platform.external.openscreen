@@ -129,7 +129,7 @@ class MdnsResponderTest : public testing::Test {
                    &probe_manager_,
                    &sender_,
                    &receiver_,
-                   &task_runner_,
+                   task_runner_,
                    FakeClock::now,
                    &random_,
                    config_) {}

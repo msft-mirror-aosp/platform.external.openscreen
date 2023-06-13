@@ -48,7 +48,7 @@ class MdnsPublisher : public MdnsResponder::RecordHandler {
   // duration of this object's lifetime
   MdnsPublisher(MdnsSender* sender,
                 MdnsProbeManager* ownership_manager,
-                TaskRunner* task_runner,
+                TaskRunner& task_runner,
                 ClockNowFunctionPtr now_function,
                 const Config& config);
   ~MdnsPublisher() override;
@@ -92,7 +92,7 @@ class MdnsPublisher : public MdnsResponder::RecordHandler {
    public:
     RecordAnnouncer(MdnsRecord record,
                     MdnsPublisher* publisher,
-                    TaskRunner* task_runner,
+                    TaskRunner& task_runner,
                     ClockNowFunctionPtr now_function,
                     int max_announcement_attempts);
     RecordAnnouncer(const RecordAnnouncer& other) = delete;
@@ -122,7 +122,7 @@ class MdnsPublisher : public MdnsResponder::RecordHandler {
     void QueueAnnouncement();
 
     MdnsPublisher* const publisher_;
-    TaskRunner* const task_runner_;
+    TaskRunner& task_runner_;
     const ClockNowFunctionPtr now_function_;
 
     // Whether or not goodbye messages should be sent.
@@ -179,7 +179,7 @@ class MdnsPublisher : public MdnsResponder::RecordHandler {
 
   MdnsSender* const sender_;
   MdnsProbeManager* const ownership_manager_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   ClockNowFunctionPtr now_function_;
 
   // Alarm to cancel batching of records when this class is destroyed, and

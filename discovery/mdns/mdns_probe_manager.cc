@@ -41,7 +41,7 @@ MdnsProbeManager::~MdnsProbeManager() = default;
 MdnsProbeManagerImpl::MdnsProbeManagerImpl(MdnsSender* sender,
                                            MdnsReceiver* receiver,
                                            MdnsRandom* random_delay,
-                                           TaskRunner* task_runner,
+                                           TaskRunner& task_runner,
                                            ClockNowFunctionPtr now_function)
     : sender_(sender),
       receiver_(receiver),
@@ -50,7 +50,6 @@ MdnsProbeManagerImpl::MdnsProbeManagerImpl(MdnsSender* sender,
       now_function_(now_function) {
   OSP_DCHECK(sender_);
   OSP_DCHECK(receiver_);
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(random_delay_);
 }
 

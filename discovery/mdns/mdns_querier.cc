@@ -218,7 +218,7 @@ MdnsQuerier::RecordTrackerLruCache::RecordTrackerLruCache(
     MdnsQuerier* querier,
     MdnsSender* sender,
     MdnsRandom* random_delay,
-    TaskRunner* task_runner,
+    TaskRunner& task_runner,
     ClockNowFunctionPtr now_function,
     ReportingClient* reporting_client,
     const Config& config)
@@ -231,7 +231,6 @@ MdnsQuerier::RecordTrackerLruCache::RecordTrackerLruCache(
       config_(config) {
   OSP_DCHECK(sender_);
   OSP_DCHECK(random_delay_);
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(reporting_client_);
   OSP_DCHECK_GT(config_.querier_max_records_cached, 0);
 }
@@ -368,7 +367,7 @@ void MdnsQuerier::RecordTrackerLruCache::MoveToEnd(
 
 MdnsQuerier::MdnsQuerier(MdnsSender* sender,
                          MdnsReceiver* receiver,
-                         TaskRunner* task_runner,
+                         TaskRunner& task_runner,
                          ClockNowFunctionPtr now_function,
                          MdnsRandom* random_delay,
                          ReportingClient* reporting_client,
@@ -389,7 +388,6 @@ MdnsQuerier::MdnsQuerier(MdnsSender* sender,
                config_) {
   OSP_DCHECK(sender_);
   OSP_DCHECK(receiver_);
-  OSP_DCHECK(task_runner_);
   OSP_DCHECK(now_function_);
   OSP_DCHECK(random_delay_);
   OSP_DCHECK(reporting_client_);
@@ -409,7 +407,7 @@ void MdnsQuerier::StartQuery(const DomainName& name,
                              DnsType dns_type,
                              DnsClass dns_class,
                              MdnsRecordChangedCallback* callback) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(callback);
   OSP_DCHECK(CanBeQueried(dns_type));
 
@@ -467,7 +465,7 @@ void MdnsQuerier::StopQuery(const DomainName& name,
                             DnsType dns_type,
                             DnsClass dns_class,
                             MdnsRecordChangedCallback* callback) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(callback);
 
   if (!CanBeQueried(dns_type)) {
@@ -509,7 +507,7 @@ void MdnsQuerier::StopQuery(const DomainName& name,
 }
 
 void MdnsQuerier::ReinitializeQueries(const DomainName& name) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   // Get the ongoing queries and their callbacks.
   std::vector<CallbackInfo> callbacks;
@@ -530,7 +528,7 @@ void MdnsQuerier::ReinitializeQueries(const DomainName& name) {
 }
 
 void MdnsQuerier::OnMessageReceived(const MdnsMessage& message) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(message.type() == MessageType::Response);
 
   OSP_DVLOG << "Received mDNS Response message with "
@@ -613,7 +611,7 @@ bool MdnsQuerier::ShouldAnswerRecordBeProcessed(const MdnsRecord& answer) {
 
 void MdnsQuerier::OnRecordExpired(const MdnsRecordTracker* tracker,
                                   const MdnsRecord& record) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   if (!tracker->is_negative_response()) {
     ProcessCallbacks(record, RecordChangedEvent::kExpired);
@@ -625,7 +623,7 @@ void MdnsQuerier::OnRecordExpired(const MdnsRecordTracker* tracker,
 }
 
 void MdnsQuerier::ProcessRecord(const MdnsRecord& record) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   // Skip all records that can't be processed.
   if (!CanBeProcessed(record.dns_type())) {
@@ -677,7 +675,7 @@ void MdnsQuerier::ProcessRecord(const MdnsRecord& record) {
 
 void MdnsQuerier::ProcessSharedRecord(const MdnsRecord& record,
                                       DnsType dns_type) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(record.record_type() == RecordType::kShared);
 
   // By design, NSEC records are never shared records.
@@ -703,7 +701,7 @@ void MdnsQuerier::ProcessSharedRecord(const MdnsRecord& record,
 
 void MdnsQuerier::ProcessUniqueRecord(const MdnsRecord& record,
                                       DnsType dns_type) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_DCHECK(record.record_type() == RecordType::kUnique);
 
   std::vector<RecordTrackerLruCache::RecordTrackerConstRef> trackers =
@@ -796,7 +794,7 @@ void MdnsQuerier::ProcessMultiTrackedUniqueRecord(const MdnsRecord& record,
 
 void MdnsQuerier::ProcessCallbacks(const MdnsRecord& record,
                                    RecordChangedEvent event) {
-  OSP_DCHECK(task_runner_->IsRunningOnTaskRunner());
+  OSP_DCHECK(task_runner_.IsRunningOnTaskRunner());
 
   std::vector<PendingQueryChange> pending_changes;
   auto callbacks_it = callbacks_.equal_range(record.name());

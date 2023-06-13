@@ -61,7 +61,7 @@ class MdnsProbeManagerImpl : public MdnsProbe::Observer,
   MdnsProbeManagerImpl(MdnsSender* sender,
                        MdnsReceiver* receiver,
                        MdnsRandom* random_delay,
-                       TaskRunner* task_runner,
+                       TaskRunner& task_runner,
                        ClockNowFunctionPtr now_function);
   MdnsProbeManagerImpl(const MdnsProbeManager& other) = delete;  // NOLINT
   MdnsProbeManagerImpl(MdnsProbeManager&& other) = delete;       // NOLINT
@@ -132,7 +132,7 @@ class MdnsProbeManagerImpl : public MdnsProbe::Observer,
   MdnsSender* const sender_;
   MdnsReceiver* const receiver_;
   MdnsRandom* const random_delay_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   ClockNowFunctionPtr now_function_;
 
   // The set of all probes which have completed successfully. This set is

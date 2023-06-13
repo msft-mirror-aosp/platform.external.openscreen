@@ -105,7 +105,7 @@ class MdnsQuerierTest : public testing::Test {
   }
 
   std::unique_ptr<MdnsQuerier> CreateQuerier() {
-    return std::make_unique<MdnsQuerier>(&sender_, &receiver_, &task_runner_,
+    return std::make_unique<MdnsQuerier>(&sender_, &receiver_, task_runner_,
                                          &FakeClock::now, &random_,
                                          &reporting_client_, config_);
   }

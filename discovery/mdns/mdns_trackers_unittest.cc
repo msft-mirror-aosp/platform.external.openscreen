@@ -104,7 +104,7 @@ class MdnsTrackerTest : public testing::Test {
       const MdnsRecord& record,
       DnsType type) {
     return std::make_unique<MdnsRecordTracker>(
-        record, type, &sender_, &task_runner_, &FakeClock::now, &random_,
+        record, type, &sender_, task_runner_, &FakeClock::now, &random_,
         [this](const MdnsRecordTracker*, const MdnsRecord&) {
           expiration_called_ = true;
         });
@@ -120,7 +120,7 @@ class MdnsTrackerTest : public testing::Test {
       MdnsQuestionTracker::QueryType query_type =
           MdnsQuestionTracker::QueryType::kContinuous) {
     return std::make_unique<MdnsQuestionTracker>(question, &sender_,
-                                                 &task_runner_, &FakeClock::now,
+                                                 task_runner_, &FakeClock::now,
                                                  &random_, config_, query_type);
   }
 

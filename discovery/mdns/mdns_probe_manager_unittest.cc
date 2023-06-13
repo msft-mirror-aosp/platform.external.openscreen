@@ -104,11 +104,7 @@ class MdnsProbeManagerTests : public testing::Test {
         socket_(&task_runner_),
         sender_(&socket_),
         receiver_(config_),
-        manager_(&sender_,
-                 &receiver_,
-                 &random_,
-                 &task_runner_,
-                 FakeClock::now) {
+        manager_(&sender_, &receiver_, &random_, task_runner_, FakeClock::now) {
     ExpectProbeStopped(name_);
     ExpectProbeStopped(name2_);
     ExpectProbeStopped(name_retry_);
