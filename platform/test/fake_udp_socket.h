@@ -12,7 +12,6 @@
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
 #include "platform/test/fake_clock.h"
-#include "platform/test/fake_task_runner.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
@@ -31,8 +30,7 @@ class FakeUdpSocket : public UdpSocket {
     }
   };
 
-  explicit FakeUdpSocket(TaskRunner* task_runner = nullptr,
-                         Client* client = nullptr,
+  explicit FakeUdpSocket(Client* client = nullptr,
                          Version version = Version::kV4);
   ~FakeUdpSocket() override;
 

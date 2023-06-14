@@ -154,7 +154,7 @@ TEST_F(MdnsSenderTest, MessageTooBig) {
 
 TEST_F(MdnsSenderTest, ReturnsErrorOnSocketFailure) {
   FakeUdpSocket::MockClient socket_client;
-  FakeUdpSocket socket(nullptr, &socket_client);
+  FakeUdpSocket socket(&socket_client);
   MdnsSender sender(&socket);
   Error error = Error(Error::Code::kConnectionFailed, "error message");
   socket.EnqueueSendResult(error);

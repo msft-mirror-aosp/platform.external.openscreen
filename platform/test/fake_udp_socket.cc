@@ -8,9 +8,7 @@
 
 namespace openscreen {
 
-FakeUdpSocket::FakeUdpSocket(TaskRunner* task_runner,
-                             Client* client,
-                             Version version)
+FakeUdpSocket::FakeUdpSocket(Client* client, Version version)
     : client_(client), version_(version) {}
 
 FakeUdpSocket::~FakeUdpSocket() = default;
