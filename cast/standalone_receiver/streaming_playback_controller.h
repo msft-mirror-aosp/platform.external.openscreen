@@ -59,6 +59,8 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
   void HandleKeyboardEvent(const SDL_KeyboardEvent& event);
 
+  TaskRunner& task_runner_;
+
   // NOTE: member ordering is important, since the sub systems must be
   // first-constructed, last-destroyed. Make sure any new SDL related
   // members are added below the sub systems.
@@ -66,7 +68,6 @@ class StreamingPlaybackController final : public ReceiverSession::Client {
   const ScopedSDLSubSystem<SDL_INIT_VIDEO> sdl_video_sub_system_;
   SDLEventLoopProcessor sdl_event_loop_;
 
-  TaskRunner& task_runner_;
   SDLWindowUniquePtr window_;
   SDLRendererUniquePtr renderer_;
   std::unique_ptr<SDLAudioPlayer> audio_player_;

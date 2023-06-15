@@ -25,8 +25,8 @@ StreamingPlaybackController::Client::~Client() = default;
 StreamingPlaybackController::StreamingPlaybackController(
     TaskRunner& task_runner,
     StreamingPlaybackController::Client* client)
-    : task_runner_(task_runner),
-      client_(client),
+    : client_(client),
+      task_runner_(task_runner),
       sdl_event_loop_(task_runner_, [this] {
         client_->OnPlaybackError(this,
                                  Error{Error::Code::kOperationCancelled,
