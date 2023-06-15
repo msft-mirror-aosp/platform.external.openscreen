@@ -20,8 +20,8 @@
 #include "discovery/dnssd/impl/service_key.h"
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 #include "discovery/dnssd/public/dns_sd_querier.h"
-#include "discovery/mdns/mdns_record_changed_callback.h"
-#include "discovery/mdns/mdns_records.h"
+#include "discovery/mdns/public/mdns_record_changed_callback.h"
+#include "discovery/mdns/public/mdns_records.h"
 #include "discovery/mdns/public/mdns_service.h"
 
 namespace openscreen {

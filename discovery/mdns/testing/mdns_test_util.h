@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "discovery/mdns/mdns_records.h"
+#include "discovery/mdns/public/mdns_records.h"
 
 namespace openscreen {
 namespace discovery {

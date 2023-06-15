@@ -14,7 +14,7 @@
 #include "discovery/common/testing/mock_reporting_client.h"
 #include "discovery/dnssd/impl/conversion_layer.h"
 #include "discovery/dnssd/testing/fake_network_interface_config.h"
-#include "discovery/mdns/mdns_records.h"
+#include "discovery/mdns/public/mdns_records.h"
 #include "discovery/mdns/testing/mdns_test_util.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
