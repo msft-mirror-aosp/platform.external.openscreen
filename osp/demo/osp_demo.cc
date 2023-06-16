@@ -439,14 +439,14 @@ void ListenerDemo() {
 
   DemoListenerObserver listener_observer;
   auto service_listener = ServiceListenerFactory::Create(
-      listener_config, *PlatformClientPosix::GetInstance()->GetTaskRunner());
+      listener_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
   service_listener->AddObserver(&listener_observer);
 
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
       &demuxer, &client_observer,
-      *PlatformClientPosix::GetInstance()->GetTaskRunner());
+      PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =
       NetworkServiceManager::Create(std::move(service_listener), nullptr,
@@ -545,13 +545,13 @@ void PublisherDemo(absl::string_view friendly_name) {
   DemoPublisherObserver publisher_observer;
   auto service_publisher = ServicePublisherFactory::Create(
       publisher_config, &publisher_observer,
-      *PlatformClientPosix::GetInstance()->GetTaskRunner());
+      PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionServerObserver server_observer;
   auto connection_server = ProtocolConnectionServerFactory::Create(
       server_config, &demuxer, &server_observer,
-      *PlatformClientPosix::GetInstance()->GetTaskRunner());
+      PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =
       NetworkServiceManager::Create(nullptr, std::move(service_publisher),

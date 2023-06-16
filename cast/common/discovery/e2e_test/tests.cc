@@ -133,7 +133,7 @@ class DiscoveryE2ETest : public testing::Test {
     std::this_thread::sleep_for(milliseconds(500));
 
     PlatformClientPosix::Create(milliseconds(50));
-    task_runner_ = PlatformClientPosix::GetInstance()->GetTaskRunner();
+    task_runner_ = &PlatformClientPosix::GetInstance()->GetTaskRunner();
   }
 
   ~DiscoveryE2ETest() {

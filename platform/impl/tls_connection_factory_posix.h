@@ -24,7 +24,7 @@ class TlsConnectionFactoryPosix : public TlsConnectionFactory,
                                   public TlsDataRouterPosix::SocketObserver {
  public:
   TlsConnectionFactoryPosix(Client* client,
-                            TaskRunner* task_runner,
+                            TaskRunner& task_runner,
                             PlatformClientPosix* platform_client =
                                 PlatformClientPosix::GetInstance());
   ~TlsConnectionFactoryPosix() override;
@@ -79,7 +79,7 @@ class TlsConnectionFactoryPosix : public TlsConnectionFactory,
   bool listen_credentials_set_ = false;
 
   Client* const client_;
-  TaskRunner* const task_runner_;
+  TaskRunner& task_runner_;
   PlatformClientPosix* const platform_client_;
 
   // SSL context, for creating SSL Connections via BoringSSL.

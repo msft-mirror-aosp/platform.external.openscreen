@@ -137,7 +137,7 @@ class CastSocketE2ETest : public ::testing::Test {
  public:
   void SetUp() override {
     PlatformClientPosix::Create(std::chrono::milliseconds(10));
-    task_runner_ = PlatformClientPosix::GetInstance()->GetTaskRunner();
+    task_runner_ = &PlatformClientPosix::GetInstance()->GetTaskRunner();
 
     credentials_ =
         std::move(GenerateCredentialsForTesting("Device ID").value());
@@ -150,9 +150,9 @@ class CastSocketE2ETest : public ::testing::Test {
         TrustStore::CreateInstanceForTest(credentials_.root_cert_der),
         CastCRLTrustStore::Create());
     sender_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
-        task_runner_,
-        TlsConnectionFactory::CreateFactory(sender_factory_.get(), task_runner_)
-            .release());
+        task_runner_, TlsConnectionFactory::CreateFactory(sender_factory_.get(),
+                                                          *task_runner_)
+                          .release());
     sender_factory_->set_factory(sender_tls_factory_.get());
 
     auth_handler_ = MakeSerialDelete<DeviceAuthNamespaceHandler>(
@@ -167,7 +167,7 @@ class CastSocketE2ETest : public ::testing::Test {
 
     receiver_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
         task_runner_, TlsConnectionFactory::CreateFactory(
-                          receiver_factory_.get(), task_runner_)
+                          receiver_factory_.get(), *task_runner_)
                           .release());
   }
 

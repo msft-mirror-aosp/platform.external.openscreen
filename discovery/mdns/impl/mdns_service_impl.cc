@@ -44,7 +44,7 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner& task_runner,
   // the multicast join calls.
   if (network_info.GetIpAddressV4()) {
     ErrorOr<std::unique_ptr<UdpSocket>> socket = UdpSocket::Create(
-        &task_runner, this,
+        task_runner, this,
         IPEndpoint{IPAddress::kAnyV4(), kDefaultMulticastPort});
     OSP_DCHECK(!socket.is_error());
     OSP_DCHECK(socket.value().get());
@@ -55,7 +55,7 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner& task_runner,
 
   if (network_info.GetIpAddressV6()) {
     ErrorOr<std::unique_ptr<UdpSocket>> socket = UdpSocket::Create(
-        &task_runner, this,
+        task_runner, this,
         IPEndpoint{IPAddress::kAnyV6(), kDefaultMulticastPort});
     OSP_DCHECK(!socket.is_error());
     OSP_DCHECK(socket.value().get());

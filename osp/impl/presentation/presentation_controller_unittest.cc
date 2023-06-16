@@ -77,7 +77,7 @@ class MockRequestDelegate final : public RequestDelegate {
 class ControllerTest : public ::testing::Test {
  public:
   ControllerTest()
-      : fake_clock_(Clock::time_point(std::chrono::seconds(11111))),
+      : fake_clock_(Clock::time_point(std::chrono::milliseconds(11111))),
         task_runner_(&fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
     receiver_info1 = {

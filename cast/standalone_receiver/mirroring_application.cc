@@ -49,7 +49,7 @@ bool MirroringApplication::Launch(const std::string& app_id,
     return false;
   }
 
-  wake_lock_ = ScopedWakeLock::Create(&task_runner_);
+  wake_lock_ = ScopedWakeLock::Create(task_runner_);
   environment_ = std::make_unique<Environment>(
       &Clock::now, task_runner_,
       IPEndpoint{interface_address_, kDefaultCastStreamingPort});

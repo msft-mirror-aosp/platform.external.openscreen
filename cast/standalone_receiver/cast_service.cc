@@ -52,7 +52,7 @@ CastService::CastService(CastService::Configuration config)
       socket_factory_(&agent_, agent_.cast_socket_client()),
       connection_factory_(
           TlsConnectionFactory::CreateFactory(&socket_factory_,
-                                              &config.task_runner)),
+                                              config.task_runner)),
       discovery_service_(config.enable_discovery
                              ? discovery::CreateDnsSdService(
                                    config.task_runner,
