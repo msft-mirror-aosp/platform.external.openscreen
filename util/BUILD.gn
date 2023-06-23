@@ -85,6 +85,7 @@ source_set("util") {
     "crypto/rsa_private_key.h",
     "crypto/secure_hash.h",
     "crypto/sha2.h",
+    "scoped_wake_lock.h",
     "trace_logging.h",
   ]
 
@@ -98,6 +99,7 @@ source_set("util") {
     "crypto/rsa_private_key.cc",
     "crypto/secure_hash.cc",
     "crypto/sha2.cc",
+    "scoped_wake_lock.cc",
     "trace_logging/macro_support.h",
     "trace_logging/scoped_trace_operations.cc",
     "trace_logging/scoped_trace_operations.h",
@@ -118,6 +120,14 @@ source_set("util") {
     "../build:openscreen_include_dirs",
     ":trace_logging_config",
   ]
+
+  if (is_mac) {
+    frameworks = [
+      "CoreFoundation.framework",
+      "IOKit.framework",
+    ]
+    sources += [ "scoped_wake_lock_mac.cc" ]
+  }
 }
 
 source_set("unittests") {

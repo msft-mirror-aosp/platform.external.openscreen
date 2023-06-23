@@ -23,11 +23,11 @@
 #include "cast/standalone_sender/remoting_sender.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/sender_session.h"
-#include "platform/api/scoped_wake_lock.h"
 #include "platform/api/serial_delete_ptr.h"
 #include "platform/base/error.h"
 #include "platform/base/interface_info.h"
 #include "platform/impl/task_runner.h"
+#include "util/scoped_wake_lock.h"
 
 namespace Json {
 class Value;

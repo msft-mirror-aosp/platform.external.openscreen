@@ -11,10 +11,10 @@
 
 #include "cast/receiver/application_agent.h"
 #include "cast/standalone_receiver/streaming_playback_controller.h"
-#include "platform/api/scoped_wake_lock.h"
 #include "platform/api/serial_delete_ptr.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
+#include "util/scoped_wake_lock.h"
 
 namespace openscreen {
 

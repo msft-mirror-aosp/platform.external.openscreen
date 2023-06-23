@@ -2,36 +2,43 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "platform/impl/scoped_wake_lock_mac.h"
-
 #include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 
 #include "platform/api/task_runner.h"
-#include "platform/impl/platform_client_posix.h"
 #include "util/osp_logging.h"
+#include "util/scoped_wake_lock.h"
 
 namespace openscreen {
 
-ScopedWakeLockMac::LockState ScopedWakeLockMac::lock_state_{};
+class ScopedWakeLockMac : public ScopedWakeLock {
+ public:
+  explicit ScopedWakeLockMac(TaskRunner& task_runner);
+  ~ScopedWakeLockMac() override;
+
+ private:
+  TaskRunner& task_runner_;
+
+  struct LockState {
+    int reference_count = 0;
+    IOPMAssertionID assertion_id = kIOPMNullAssertionID;
+  };
+
+  static void AcquireWakeLock();
+  static void ReleaseWakeLock();
+
+  static LockState lock_state_;
+};
 
 SerialDeletePtr<ScopedWakeLock> ScopedWakeLock::Create(
     TaskRunner& task_runner) {
-  return SerialDeletePtr<ScopedWakeLock>(&task_runner, new ScopedWakeLockMac());
+  return SerialDeletePtr<ScopedWakeLock>(&task_runner,
+                                         new ScopedWakeLockMac(task_runner));
 }
 
-namespace {
-
-TaskRunner& GetTaskRunner() {
-  auto* const platform_client = PlatformClientPosix::GetInstance();
-  OSP_DCHECK(platform_client);
-  auto& task_runner = platform_client->GetTaskRunner();
-  return task_runner;
-}
-
-}  // namespace
-
-ScopedWakeLockMac::ScopedWakeLockMac() : ScopedWakeLock() {
-  GetTaskRunner().PostTask([] {
+ScopedWakeLockMac::ScopedWakeLockMac(TaskRunner& task_runner)
+    : ScopedWakeLock(), task_runner_(task_runner) {
+  task_runner_.PostTask([] {
     if (lock_state_.reference_count++ == 0) {
       AcquireWakeLock();
     }
@@ -39,7 +46,7 @@ ScopedWakeLockMac::ScopedWakeLockMac() : ScopedWakeLock() {
 }
 
 ScopedWakeLockMac::~ScopedWakeLockMac() {
-  GetTaskRunner().PostTask([] {
+  task_runner_.PostTask([] {
     if (--lock_state_.reference_count == 0) {
       ReleaseWakeLock();
     }
@@ -69,5 +76,7 @@ void ScopedWakeLockMac::ReleaseWakeLock() {
   const IOReturn result = IOPMAssertionRelease(lock_state_.assertion_id);
   OSP_DCHECK_EQ(result, kIOReturnSuccess);
 }
+
+ScopedWakeLockMac::LockState ScopedWakeLockMac::lock_state_{};
 
 }  // namespace openscreen

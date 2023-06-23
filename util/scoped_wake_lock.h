@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PLATFORM_API_SCOPED_WAKE_LOCK_H_
-#define PLATFORM_API_SCOPED_WAKE_LOCK_H_
+#ifndef UTIL_SCOPED_WAKE_LOCK_H_
+#define UTIL_SCOPED_WAKE_LOCK_H_
 
 #include <memory>
 
@@ -21,6 +21,8 @@ namespace openscreen {
 // may sometimes create multiple instances. In that case, the wake lock should
 // be engaged upon creating the first instance, and then held until all
 // instances have been destroyed.
+//
+// TODO(https://issuetracker.google.com/288311411): Implement for Linux.
 class ScopedWakeLock {
  public:
   static SerialDeletePtr<ScopedWakeLock> Create(TaskRunner& task_runner);
@@ -37,4 +39,4 @@ class ScopedWakeLock {
 
 }  // namespace openscreen
 
-#endif  // PLATFORM_API_SCOPED_WAKE_LOCK_H_
+#endif  // UTIL_SCOPED_WAKE_LOCK_H_
