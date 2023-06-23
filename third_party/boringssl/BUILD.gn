@@ -1,4 +1,4 @@
-# Copyright 2019 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -9,9 +9,7 @@ import("BUILD.generated_tests.gni")
 if (build_with_chromium) {
   group("boringssl") {
     public_configs = [ "//build/config/compiler:default_include_dirs" ]
-    public_deps = [
-      "//third_party/boringssl",
-    ]
+    public_deps = [ "//third_party/boringssl" ]
   }
 } else {
   # Config for us and everybody else depending on BoringSSL.
