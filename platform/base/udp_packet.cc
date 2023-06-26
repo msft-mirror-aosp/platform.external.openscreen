@@ -9,9 +9,6 @@
 
 namespace openscreen {
 
-// static
-const UdpPacket::size_type UdpPacket::kUdpMaxPacketSize = 1 << 16;
-
 UdpPacket::UdpPacket() : std::vector<uint8_t>() {}
 
 UdpPacket::UdpPacket(size_type size, uint8_t fill_value)
@@ -30,17 +27,7 @@ UdpPacket::~UdpPacket() = default;
 
 UdpPacket& UdpPacket::operator=(UdpPacket&& other) = default;
 
-std::string UdpPacket::ToString() const {
-  // TODO(issuetracker.google.com/158660166): Change to use shared hex-to-string
-  // method.
-  static constexpr char hex[] = "0123456789ABCDEF";
-  std::stringstream ss;
-  ss << "[";
-  for (auto it = begin(); it != end(); it++) {
-    ss << hex[*it / 16] << hex[*it % 16] << " ";
-  }
-  ss << "]";
-  return ss.str();
-}
+// static
+const UdpPacket::size_type UdpPacket::kUdpMaxPacketSize = 1 << 16;
 
 }  // namespace openscreen

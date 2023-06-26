@@ -32,11 +32,15 @@ std::string StringPrintf(const char* format, ...) {
   return result;
 }
 
-std::string HexEncode(const uint8_t* bytes, std::size_t len) {
+std::string HexEncode(const uint8_t* bytes, size_t len) {
+  return HexEncode(ByteView(bytes, len));
+}
+
+std::string HexEncode(ByteView bytes) {
   std::ostringstream hex_dump;
   hex_dump << std::setfill('0') << std::hex;
-  for (std::size_t i = 0; i < len; i++) {
-    hex_dump << std::setw(2) << static_cast<int>(bytes[i]);
+  for (uint8_t byte : bytes) {
+    hex_dump << std::setw(2) << static_cast<int>(byte);
   }
   return hex_dump.str();
 }

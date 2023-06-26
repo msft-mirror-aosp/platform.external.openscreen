@@ -51,13 +51,11 @@ FakeQuicBridge::~FakeQuicBridge() = default;
 
 void FakeQuicBridge::PostClientPacket() {
   UdpPacket packet;
-  packet.set_socket(client_socket_.get());
   client_socket_->MockReceivePacket(std::move(packet));
 }
 
 void FakeQuicBridge::PostServerPacket() {
   UdpPacket packet;
-  packet.set_socket(server_socket_.get());
   server_socket_->MockReceivePacket(std::move(packet));
 }
 

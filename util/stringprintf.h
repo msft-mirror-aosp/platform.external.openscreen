@@ -10,6 +10,8 @@
 #include <ostream>
 #include <string>
 
+#include "platform/base/span.h"
+
 namespace openscreen {
 
 // Enable compile-time checking of the printf format argument, if available.
@@ -26,7 +28,8 @@ namespace openscreen {
     OSP_CHECK_PRINTF_ARGS(1, 2);
 
 // Returns a hex string representation of the given |bytes|.
-std::string HexEncode(const uint8_t* bytes, std::size_t len);
+std::string HexEncode(const uint8_t* bytes, size_t len);
+std::string HexEncode(ByteView bytes);
 
 }  // namespace openscreen
 
