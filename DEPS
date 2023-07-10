@@ -124,10 +124,10 @@ deps = {
   # Note about updating BoringSSL: after changing this hash, run the update
   # script in BoringSSL's util folder for generating build files from the
   # <openscreen src-dir>/third_party/boringssl directory:
-  # python ./src/util/generate_build_files.py gn
+  # python3 ./src/util/generate_build_files.py --embed_test_data=false gn
   'third_party/boringssl/src': {
     'url' : Var('boringssl_git') + '/boringssl.git' +
-      '@' + 'f6bd54efbcafcf4625ce99b5f702dc4850b0ca50',
+      '@' + '51ed32f1971956a904ce7b3a7ff10716e76eecd4',
     'condition': 'not build_with_chromium',
   },
 
