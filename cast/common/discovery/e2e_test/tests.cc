@@ -18,6 +18,7 @@
 #include "discovery/public/dns_sd_service_publisher.h"
 #include "discovery/public/dns_sd_service_watcher.h"
 #include "gtest/gtest.h"
+#include "platform/api/task_runner_deleter.h"
 #include "platform/api/udp_socket.h"
 #include "platform/base/interface_info.h"
 #include "platform/impl/network_interface.h"
@@ -259,7 +260,7 @@ class DiscoveryE2ETest : public testing::Test {
   }
   TaskRunner* task_runner_;
   FailOnErrorReporting reporting_client_;
-  SerialDeletePtr<discovery::DnsSdService> dnssd_service_;
+  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter> dnssd_service_;
   std::unique_ptr<ServiceReceiver> receiver_;
   std::unique_ptr<Publisher> publisher_;
 

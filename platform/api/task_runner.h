@@ -51,6 +51,12 @@ class TaskRunner {
   // Return true if the calling thread is the thread that task runner is using
   // to run tasks, false otherwise.
   virtual bool IsRunningOnTaskRunner() = 0;
+
+  // Posts a task to delete `object`.
+  template <class T>
+  void DeleteSoon(const T* object) {
+    PostTask([object] { delete static_cast<const T*>(object); });
+  }
 };
 
 }  // namespace openscreen

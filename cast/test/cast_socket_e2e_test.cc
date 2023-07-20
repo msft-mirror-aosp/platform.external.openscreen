@@ -20,7 +20,6 @@
 #include "cast/sender/public/sender_socket_factory.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "platform/api/serial_delete_ptr.h"
 #include "platform/api/tls_connection_factory.h"
 #include "platform/base/tls_connect_options.h"
 #include "platform/base/tls_credentials.h"
@@ -31,6 +30,7 @@
 #include "testing/util/task_util.h"
 #include "util/crypto/certificate_utils.h"
 #include "util/osp_logging.h"
+#include "util/serial_delete_ptr.h"
 
 namespace openscreen {
 namespace cast {
@@ -150,9 +150,9 @@ class CastSocketE2ETest : public ::testing::Test {
         TrustStore::CreateInstanceForTest(credentials_.root_cert_der),
         CastCRLTrustStore::Create());
     sender_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
-        task_runner_, TlsConnectionFactory::CreateFactory(sender_factory_.get(),
-                                                          *task_runner_)
-                          .release());
+        *task_runner_, TlsConnectionFactory::CreateFactory(
+                           sender_factory_.get(), *task_runner_)
+                           .release());
     sender_factory_->set_factory(sender_tls_factory_.get());
 
     auth_handler_ = MakeSerialDelete<DeviceAuthNamespaceHandler>(
@@ -166,9 +166,9 @@ class CastSocketE2ETest : public ::testing::Test {
         task_runner_, receiver_client_.get(), receiver_router_.get());
 
     receiver_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
-        task_runner_, TlsConnectionFactory::CreateFactory(
-                          receiver_factory_.get(), *task_runner_)
-                          .release());
+        *task_runner_, TlsConnectionFactory::CreateFactory(
+                           receiver_factory_.get(), *task_runner_)
+                           .release());
   }
 
   void TearDown() override {

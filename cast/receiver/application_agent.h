@@ -16,7 +16,6 @@
 #include "cast/common/public/cast_socket.h"
 #include "cast/receiver/channel/device_auth_namespace_handler.h"
 #include "cast/receiver/public/receiver_socket_factory.h"
-#include "platform/api/serial_delete_ptr.h"
 #include "platform/api/task_runner.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"

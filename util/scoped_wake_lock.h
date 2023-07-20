@@ -7,8 +7,8 @@
 
 #include <memory>
 
-#include "platform/api/serial_delete_ptr.h"
 #include "platform/api/task_runner.h"
+#include "util/serial_delete_ptr.h"
 
 namespace openscreen {
 

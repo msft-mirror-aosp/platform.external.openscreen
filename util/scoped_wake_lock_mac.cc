@@ -32,7 +32,7 @@ class ScopedWakeLockMac : public ScopedWakeLock {
 
 SerialDeletePtr<ScopedWakeLock> ScopedWakeLock::Create(
     TaskRunner& task_runner) {
-  return SerialDeletePtr<ScopedWakeLock>(&task_runner,
+  return SerialDeletePtr<ScopedWakeLock>(task_runner,
                                          new ScopedWakeLockMac(task_runner));
 }
 
