@@ -54,7 +54,8 @@ void ReceiverPacketRouter::SendRtcpPacket(absl::Span<const uint8_t> packet) {
     return;
   }
 
-  environment_->SendPacket(ByteView(packet.data(), packet.size()));
+  environment_->SendPacket(ByteView(packet.data(), packet.size()),
+                           PacketMetadata{});
 }
 
 void ReceiverPacketRouter::OnReceivedPacket(const IPEndpoint& source,

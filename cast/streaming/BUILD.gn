@@ -92,6 +92,10 @@ source_set("common") {
     "session_config.h",
     "session_messenger.cc",
     "ssrc.cc",
+    "statistics_collector.cc",
+    "statistics_collector.h",
+    "statistics_defines.cc",
+    "statistics_defines.h",
   ]
 
   public_configs = [ "../../build:openscreen_include_dirs" ]
@@ -255,6 +259,7 @@ source_set("unittests") {
     "sender_unittest.cc",
     "session_messenger_unittest.cc",
     "ssrc_unittest.cc",
+    "statistics_collector_unittest.cc",
   ]
 
   deps = [

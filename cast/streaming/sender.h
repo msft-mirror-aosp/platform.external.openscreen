@@ -228,6 +228,8 @@ class Sender final : public SenderPacketRouter::Sender,
       Clock::time_point send_time,
       absl::Span<uint8_t> buffer) final;
   Clock::time_point GetRtpResumeTime() final;
+  RtpTimeTicks GetLastRtpTimestamp() const final;
+  StreamType GetStreamType() const final;
 
   // CompoundRtcpParser::Client implementation.
   void OnReceiverReferenceTimeAdvanced(Clock::time_point reference_time) final;
@@ -266,6 +268,7 @@ class Sender final : public SenderPacketRouter::Sender,
                             pending_frames_.size()];
   }
 
+  Environment* const environment_;
   const SessionConfig config_;
   SenderPacketRouter* const packet_router_;
   RtcpSession rtcp_session_;

@@ -190,7 +190,10 @@ int SenderPacketRouter::SendJustTheRtcpPackets(Clock::time_point send_time) {
             send_time,
             absl::Span<uint8_t>(packet_buffer_.get(), packet_buffer_size_));
     if (!packet.empty()) {
-      environment_->SendPacket(ByteView(packet.data(), packet.size()));
+      environment_->SendPacket(
+          ByteView(packet.data(), packet.size()),
+          PacketMetadata{.stream_type = entry.sender->GetStreamType(),
+                         .rtp_timestamp = entry.sender->GetLastRtpTimestamp()});
       entry.next_rtcp_send_time = send_time + kRtcpReportInterval;
       ++num_sent;
     }
@@ -218,7 +221,10 @@ int SenderPacketRouter::SendJustTheRtpPackets(Clock::time_point send_time,
       if (packet.empty()) {
         break;
       }
-      environment_->SendPacket(ByteView(packet.data(), packet.size()));
+      environment_->SendPacket(
+          ByteView(packet.data(), packet.size()),
+          PacketMetadata{.stream_type = entry.sender->GetStreamType(),
+                         .rtp_timestamp = entry.sender->GetLastRtpTimestamp()});
     }
     entry.next_rtp_send_time = entry.sender->GetRtpResumeTime();
   }

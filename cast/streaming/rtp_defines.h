@@ -87,6 +87,7 @@ enum class RtpPayloadType : uint8_t {
   kAudioAac = 97,
   kAudioPcm16 = 98,
   kAudioVarious = 99,  // Codec being used is not fixed.
+  kAudioLast = kAudioVarious,
 
   kVideoFirst = 100,
   kVideoVp8 = 100,
@@ -103,6 +104,9 @@ enum class RtpPayloadType : uint8_t {
   kAudioHackForAndroidTV = 127,
   kVideoHackForAndroidTV = 96,
 };
+
+// Returns the stream type associated with the RTP payload type.
+StreamType ToStreamType(RtpPayloadType type);
 
 // Setting |use_android_rtp_hack| to true means that we match the legacy Chrome
 // sender's behavior of always sending the audio and video hacks for AndroidTV,

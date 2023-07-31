@@ -147,6 +147,8 @@ class MockSender : public SenderPacketRouter::Sender {
               (Clock::time_point send_time, absl::Span<uint8_t> buffer),
               (override));
   MOCK_METHOD(Clock::time_point, GetRtpResumeTime, (), (override));
+  MOCK_METHOD(RtpTimeTicks, GetLastRtpTimestamp, (), (const override));
+  MOCK_METHOD(StreamType, GetStreamType, (), (const override));
 };
 
 class SenderPacketRouterTest : public testing::Test {
@@ -254,7 +256,7 @@ TEST_F(SenderPacketRouterTest, IgnoresInboundRtcpPacketsFromUnknownReceivers) {
 // Tests that the SenderPacketRouter forwards packets from Receivers to the
 // appropriate Sender.
 TEST_F(SenderPacketRouterTest, RoutesRTCPPacketsFromReceivers) {
-  EXPECT_CALL(*env(), SendPacket(_)).Times(0);
+  EXPECT_CALL(*env(), SendPacket(_, _)).Times(0);
 
   const absl::Span<const uint8_t> audio_rtcp_packet(kValidAudioRtcpPacket);
   std::vector<uint8_t> video_rtcp_packet =
@@ -349,10 +351,11 @@ TEST_F(SenderPacketRouterTest, SchedulesPeriodicTransmissionOfRTCPPackets) {
 
   // Capture every packet sent for analysis at the end of this test.
   std::vector<std::vector<uint8_t>> packets_sent;
-  EXPECT_CALL(*env(), SendPacket(_))
-      .WillRepeatedly(Invoke([&](absl::Span<const uint8_t> packet) {
-        packets_sent.emplace_back(packet.begin(), packet.end());
-      }));
+  EXPECT_CALL(*env(), SendPacket(_, _))
+      .WillRepeatedly(Invoke(
+          [&](absl::Span<const uint8_t> packet, PacketMetadata metadata) {
+            packets_sent.emplace_back(packet.begin(), packet.end());
+          }));
 
   const Clock::time_point first_send_time = env()->now();
   router()->RequestRtcpSend(kAudioReceiverSsrc);
@@ -381,10 +384,11 @@ TEST_F(SenderPacketRouterTest, SchedulesAndTransmitsRTPBursts) {
 
   // Capture every packet sent for analysis at the end of this test.
   std::vector<std::vector<uint8_t>> packets_sent;
-  EXPECT_CALL(*env(), SendPacket(_))
-      .WillRepeatedly(Invoke([&](absl::Span<const uint8_t> packet) {
-        packets_sent.emplace_back(packet.begin(), packet.end());
-      }));
+  EXPECT_CALL(*env(), SendPacket(_, _))
+      .WillRepeatedly(Invoke(
+          [&](absl::Span<const uint8_t> packet, PacketMetadata metadata) {
+            packets_sent.emplace_back(packet.begin(), packet.end());
+          }));
 
   // Simulate a typical video Sender RTP at-startup sending sequence: First, at
   // t=0ms, the Sender wants to send its large 10-packet key frame. This will
@@ -507,10 +511,11 @@ TEST_F(SenderPacketRouterTest, SchedulesAndTransmitsAccountingForPriority) {
 
   // Capture every packet sent for analysis at the end of this test.
   std::vector<std::vector<uint8_t>> packets_sent;
-  EXPECT_CALL(*env(), SendPacket(_))
-      .WillRepeatedly(Invoke([&](absl::Span<const uint8_t> packet) {
-        packets_sent.emplace_back(packet.begin(), packet.end());
-      }));
+  EXPECT_CALL(*env(), SendPacket(_, _))
+      .WillRepeatedly(Invoke(
+          [&](absl::Span<const uint8_t> packet, PacketMetadata metadata) {
+            packets_sent.emplace_back(packet.begin(), packet.end());
+          }));
 
   // These indicate how often one packet will be sent from each Sender.
   constexpr Clock::duration kAudioRtpInterval = milliseconds(10);

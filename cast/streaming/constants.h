@@ -105,6 +105,9 @@ constexpr int kSupportedRemotingVersion = 2;
 enum class AudioCodec { kAac, kOpus, kNotSpecified };
 enum class VideoCodec { kH264, kVp8, kHevc, kNotSpecified, kVp9, kAv1 };
 
+// The type (audio, video, or unknown) of the stream.
+enum class StreamType { kUnknown, kAudio, kVideo };
+
 enum class CastMode : uint8_t { kMirroring, kRemoting };
 
 }  // namespace cast

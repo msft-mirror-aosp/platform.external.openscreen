@@ -355,8 +355,9 @@ class SenderTest : public testing::Test {
     sender_environment_.SetSocketSubscriber(&socket_subscriber_);
     sender_environment_.set_remote_endpoint(
         receiver_to_sender_pipe_.local_endpoint());
-    ON_CALL(sender_environment_, SendPacket(_))
-        .WillByDefault(Invoke([this](absl::Span<const uint8_t> packet) {
+    ON_CALL(sender_environment_, SendPacket(_, _))
+        .WillByDefault(Invoke([this](absl::Span<const uint8_t> packet,
+                                     PacketMetadata metadata) {
           sender_to_receiver_pipe_.StartPacketTransmission(
               std::vector<uint8_t>(packet.begin(), packet.end()));
         }));

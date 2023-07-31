@@ -52,6 +52,18 @@ RtpPayloadType GetPayloadType(VideoCodec codec, bool use_android_rtp_hack) {
   }
 }
 
+StreamType ToStreamType(RtpPayloadType type) {
+  if (RtpPayloadType::kAudioFirst <= type &&
+      type <= RtpPayloadType::kAudioLast) {
+    return StreamType::kAudio;
+  }
+  if (RtpPayloadType::kVideoFirst <= type &&
+      type <= RtpPayloadType::kVideoLast) {
+    return StreamType::kVideo;
+  }
+  return StreamType::kUnknown;
+}
+
 bool IsRtpPayloadType(uint8_t raw_byte) {
   switch (static_cast<RtpPayloadType>(raw_byte)) {
     case RtpPayloadType::kAudioOpus:

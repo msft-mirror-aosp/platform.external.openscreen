@@ -15,6 +15,7 @@
 #include "cast/streaming/compound_rtcp_parser.h"
 #include "cast/streaming/constants.h"
 #include "cast/streaming/encoded_frame.h"
+#include "cast/streaming/environment.h"
 #include "cast/streaming/frame_crypto.h"
 #include "cast/streaming/mock_environment.h"
 #include "cast/streaming/receiver_packet_router.h"
@@ -281,8 +282,8 @@ class ReceiverTest : public testing::Test {
                    /* .is_pli_enabled = */ true}),
         sender_(task_runner_, &env_) {
     env_.SetSocketSubscriber(&socket_subscriber_);
-    ON_CALL(env_, SendPacket(_))
-        .WillByDefault(Invoke([this](ByteView packet) {
+    ON_CALL(env_, SendPacket(_, _))
+        .WillByDefault(Invoke([this](ByteView packet, PacketMetadata metadata) {
           task_runner_.PostTaskWithDelay(
               [sender = &sender_, copy_of_packet = std::vector<uint8_t>(
                                       packet.begin(), packet.end())]() mutable {

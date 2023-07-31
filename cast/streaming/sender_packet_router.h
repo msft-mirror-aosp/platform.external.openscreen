@@ -13,6 +13,7 @@
 
 #include "absl/types/span.h"
 #include "cast/streaming/bandwidth_estimator.h"
+#include "cast/streaming/constants.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/ssrc.h"
 #include "platform/api/time.h"
@@ -65,6 +66,13 @@ class SenderPacketRouter : public BandwidthEstimator,
     // implementation may return a value on or before "now" to indicate an
     // immediate resume is desired.
     virtual Clock::time_point GetRtpResumeTime() = 0;
+
+    // Returns the last logged RTP timestamp, for use in expanding truncated
+    // packet RTP timestamps for metrics purposes.
+    virtual RtpTimeTicks GetLastRtpTimestamp() const = 0;
+
+    // Returns the type of stream that this sender is providing.
+    virtual StreamType GetStreamType() const = 0;
 
    protected:
     virtual ~Sender();

@@ -7,8 +7,11 @@
 #include <algorithm>
 #include <chrono>
 #include <ratio>
+#include <utility>
 
+#include "cast/streaming/rtp_defines.h"
 #include "cast/streaming/session_config.h"
+#include "cast/streaming/statistics_defines.h"
 #include "platform/base/trivial_clock_traits.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
@@ -20,11 +23,55 @@ namespace cast {
 
 using clock_operators::operator<<;
 
+namespace {
+
+void DispatchEncodeEvent(StreamType stream_type,
+                         const EncodedFrame& frame,
+                         Environment& environment) {
+  if (!environment.statistics_collector()) {
+    return;
+  }
+
+  FrameEvent encode_event;
+  encode_event.timestamp = environment.now();
+  encode_event.type = StatisticsEventType::kFrameEncoded;
+  encode_event.media_type = ToMediaType(stream_type);
+  encode_event.rtp_timestamp = frame.rtp_timestamp;
+  encode_event.frame_id = frame.frame_id;
+  encode_event.size = static_cast<uint32_t>(frame.data.size());
+  encode_event.key_frame =
+      frame.dependency == openscreen::cast::EncodedFrame::Dependency::kKeyFrame;
+
+  environment.statistics_collector()->CollectFrameEvent(
+      std::move(encode_event));
+}
+
+void DispatchAckEvent(StreamType stream_type,
+                      RtpTimeTicks rtp_timestamp,
+                      FrameId frame_id,
+                      Environment& environment) {
+  if (!environment.statistics_collector()) {
+    return;
+  }
+
+  FrameEvent ack_event;
+  ack_event.timestamp = environment.now();
+  ack_event.type = StatisticsEventType::kFrameAckReceived;
+  ack_event.media_type = ToMediaType(stream_type);
+  ack_event.rtp_timestamp = rtp_timestamp;
+  ack_event.frame_id = frame_id;
+
+  environment.statistics_collector()->CollectFrameEvent(std::move(ack_event));
+}
+
+}  // namespace
+
 Sender::Sender(Environment* environment,
                SenderPacketRouter* packet_router,
                SessionConfig config,
                RtpPayloadType rtp_payload_type)
-    : config_(config),
+    : environment_(environment),
+      config_(config),
       packet_router_(packet_router),
       rtcp_session_(config.sender_ssrc,
                     config.receiver_ssrc,
@@ -172,6 +219,7 @@ Sender::EnqueueFrameResult Sender::EnqueueFrame(const EncodedFrame& frame) {
 
   // Re-activate RTP sending if it was suspended.
   packet_router_->RequestRtpSend(rtcp_session_.receiver_ssrc());
+  DispatchEncodeEvent(config_.stream_type, frame, *environment_);
 
   return OK;
 }
@@ -266,6 +314,14 @@ Clock::time_point Sender::GetRtpResumeTime() {
     return Alarm::kImmediately;
   }
   return ChooseKickstartPacket().when;
+}
+
+RtpTimeTicks Sender::GetLastRtpTimestamp() const {
+  return {};
+}
+
+StreamType Sender::GetStreamType() const {
+  return config_.stream_type;
 }
 
 void Sender::OnReceiverReferenceTimeAdvanced(Clock::time_point reference_time) {
@@ -398,6 +454,11 @@ void Sender::OnReceiverHasFrames(std::vector<FrameId> acks) {
 
   for (FrameId id : acks) {
     CancelPendingFrame(id);
+    PendingFrameSlot* const slot = get_slot_for(id);
+    if (slot && slot->is_active_for_frame(id)) {
+      const RtpTimeTicks rtp_timestamp = slot->frame->rtp_timestamp;
+      DispatchAckEvent(config_.stream_type, rtp_timestamp, id, *environment_);
+    }
   }
   latest_expected_frame_id_ = std::max(latest_expected_frame_id_, acks.back());
 }
