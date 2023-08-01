@@ -14,7 +14,7 @@ if (build_with_chromium) {
 
     # TODO(issuetracker.google.com/202964797): Support all build flags on Mac
     # once it migrates to a newer clang.
-    if (!is_mac) {
+    if (!is_mac && is_clang) {
       cflags = [
         # TODO(crbug.com/1343975) Evaluate and possibly enable.
         "-Wno-deprecated-builtins",
