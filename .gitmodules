@@ -6,10 +6,6 @@
 	path = third_party/clang-format/script
 	url = https://chromium.googlesource.com/external/github.com/llvm/llvm-project/clang/tools/clang-format.git
 	gclient-condition = not build_with_chromium
-[submodule "third_party/protobuf/src"]
-	path = third_party/protobuf/src
-	url = https://chromium.googlesource.com/external/github.com/protocolbuffers/protobuf.git
-	gclient-condition = not build_with_chromium
 [submodule "third_party/libprotobuf-mutator/src"]
 	path = third_party/libprotobuf-mutator/src
 	url = https://chromium.googlesource.com/external/github.com/google/libprotobuf-mutator.git
