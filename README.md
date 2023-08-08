@@ -115,11 +115,11 @@ instead.
   gn gen out/debug-gcc --args="is_gcc=true"
 ```
 
-Note that g++ version 7 or newer must be installed.  On Debian flavors you can
+Note that g++ version 8 or newer must be installed.  On Debian flavors you can
 run:
 
 ```bash
-  sudo apt-get install gcc-7
+  sudo apt-get install gcc-8
 ```
 
 ## Debug build
