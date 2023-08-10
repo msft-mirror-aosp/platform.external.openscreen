@@ -47,7 +47,7 @@ deps = {
   # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/main
   'buildtools': {
     'url': Var('chromium_git') + '/chromium/src/buildtools' +
-      '@' + '3c7e3f1b8b1e4c0b6ec693430379cea682de78d6',
+      '@' + 'a9a6f0c49d0e8fa0cda37337430b4736ab3dc944',
     'condition': 'not build_with_chromium',
   },
   'third_party/clang-format/script': {
@@ -125,7 +125,7 @@ deps = {
   # python3 ./src/util/generate_build_files.py --embed_test_data=false gn
   'third_party/boringssl/src': {
     'url' : Var('boringssl_git') + '/boringssl.git' +
-      '@' + '51ed32f1971956a904ce7b3a7ff10716e76eecd4',
+      '@' + '8d19c850d4dbde4bd7ece463c3b3f3685571a779',
     'condition': 'not build_with_chromium',
   },
 
