@@ -34,7 +34,7 @@ vars = {
   'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
   'clang_format_revision':    'e435ad79c17b1888b34df88d6a30a094936e3836',
 
-  # 'magic' text to tell depot_tools that git submodules should be accepted but
+  # 'magic' text to tell depot_tools that git submodules should be accepted
   # but parity with DEPS file is expected.
   'SUBMODULE_MIGRATION': 'True'
 }
