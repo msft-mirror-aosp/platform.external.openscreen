@@ -106,7 +106,7 @@ enum class RtpPayloadType : uint8_t {
 };
 
 // Returns the stream type associated with the RTP payload type.
-StreamType ToStreamType(RtpPayloadType type);
+StreamType ToStreamType(RtpPayloadType type, bool use_android_rtp_hack);
 
 // Setting |use_android_rtp_hack| to true means that we match the legacy Chrome
 // sender's behavior of always sending the audio and video hacks for AndroidTV,

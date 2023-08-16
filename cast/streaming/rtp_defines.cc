@@ -52,7 +52,16 @@ RtpPayloadType GetPayloadType(VideoCodec codec, bool use_android_rtp_hack) {
   }
 }
 
-StreamType ToStreamType(RtpPayloadType type) {
+StreamType ToStreamType(RtpPayloadType type, bool use_android_rtp_hack) {
+  if (use_android_rtp_hack) {
+    if (type == RtpPayloadType::kAudioHackForAndroidTV) {
+      return StreamType::kAudio;
+    }
+    if (type == RtpPayloadType::kVideoHackForAndroidTV) {
+      return StreamType::kVideo;
+    }
+  }
+
   if (RtpPayloadType::kAudioFirst <= type &&
       type <= RtpPayloadType::kAudioLast) {
     return StreamType::kAudio;
