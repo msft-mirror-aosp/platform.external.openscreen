@@ -272,3 +272,5 @@ repository.
 * [Building and running fuzz tests](docs/fuzzing.md)
 * [Running on a Raspberry PI](docs/raspberry_pi.md)
 * [Unit test code coverage](docs/code_coverage.md)
+* [Rolling dependencies](docs/roll_deps.md)
+
