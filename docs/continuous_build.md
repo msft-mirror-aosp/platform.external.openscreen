@@ -9,7 +9,7 @@ Current builders include:
 |------------------------|--------|------------------------|-----------|---------|------------------------|
 | linux64_debug          | x86-64 | Ubuntu Linux 18.04     | clang     | debug   | ASAN enabled           |
 | linux_arm64_debug      | arm64  | Ubuntu Linux 20.04 [*] | clang     | debug   |                        |
-| linux64_gcc_debug      | x86-64 | Ubuntu Linux 18.04     | gcc-7     | debug   |                        |
+| linux64_gcc_debug      | x86-64 | Ubuntu Linux 20.04     | gcc-9     | debug   |                        |
 | linux64_tsan           | x86-64 | Ubuntu Linux 18.04     | clang     | release | TSAN enabled           |
 | linux64_coverage_debug | x86-64 | Ubuntu Linux 18.04     | clang     | debug   | used for code coverage |
 | linux_arm64_cast_debug | arm64  | Ubuntu Linux 18.04     | clang     | debug   | Builds cast standalone |

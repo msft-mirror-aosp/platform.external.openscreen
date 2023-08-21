@@ -320,6 +320,7 @@ try_and_ci_builders("linux64_debug", get_properties(is_asan = True))
 try_and_ci_builders(
     "linux64_gcc_debug",
     get_properties(is_gcc = True),
+    "Ubuntu-20.04",
 )
 try_and_ci_builders(
     "linux64_tsan",
