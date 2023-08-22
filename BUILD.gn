@@ -22,6 +22,7 @@ group("gn_all") {
     "platform",
     "third_party/abseil",
     "third_party/boringssl",
+    "third_party/googleurl",
     "third_party/jsoncpp",
     "third_party/mozilla",
     "third_party/tinycbor",

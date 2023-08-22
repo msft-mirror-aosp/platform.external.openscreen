@@ -166,7 +166,15 @@ deps = {
   'third_party/valijson/src': {
     'url': Var('github') + '/tristanpenman/valijson.git' +
       '@' + '78ac8a737df56b5334354efe104ea8f99e2a2f00', # Version 1.0
-    'condition': 'not build_with_chromium'
+    'condition': 'not build_with_chromium',
+  },
+
+  # Googleurl recommends living at head. This is a copy of Chrome's URL parsing
+  # library. It is meant to be used by QUICHE.
+  'third_party/googleurl/src': {
+    'url': Var('quiche_git') + '/googleurl.git' +
+      '@' + 'dfe8ef6164f8b4e3e9a9cbe8521bb81359918393',    #2023-08-01
+    'condition': 'not build_with_chromium',
   }
 }
 

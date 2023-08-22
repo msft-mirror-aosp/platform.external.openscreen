@@ -35,6 +35,7 @@ The process is roughly as follows:
 * `third_party/quiche/src`
 * `third_party/abseil/src` (not kept in sync with Chromium, see comment in `DEPS`)
 * `third_party/libfuzzer/src`
+* `third_party/googleurl/src` (not kept in sync with Chromium, see comment in `DEPS`)
 
 ## Special cases that are updated manually
 

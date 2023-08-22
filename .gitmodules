@@ -49,3 +49,7 @@
 	path = third_party/valijson/src
 	url = https://github.com/tristanpenman/valijson.git
 	gclient-condition = not build_with_chromium
+[submodule "third_party/googleurl/src"]
+	path = third_party/googleurl/src
+	url = https://quiche.googlesource.com/googleurl.git
+	gclient-condition = not build_with_chromium
