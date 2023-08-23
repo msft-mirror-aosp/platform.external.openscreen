@@ -268,7 +268,7 @@ def builder(builder_type, name, properties, os, cpu):
         short_name = name,
     )
 
-def ci_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
+def ci_builder(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
     """Defines a post submit builder.
 
        Args:
@@ -279,7 +279,7 @@ def ci_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
     """
     builder("ci", name, properties, os, cpu)
 
-def try_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
+def try_builder(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
     """Defines a pre submit builder.
 
     Args:
@@ -290,7 +290,7 @@ def try_builder(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
     """
     builder("try", name, properties, os, cpu)
 
-def try_and_ci_builders(name, properties, os = "Ubuntu-18.04", cpu = "x86-64"):
+def try_and_ci_builders(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
     """Defines a similarly configured try and ci builder pair.
 
     Args:
@@ -320,7 +320,6 @@ try_and_ci_builders("linux64_debug", get_properties(is_asan = True))
 try_and_ci_builders(
     "linux64_gcc_debug",
     get_properties(is_gcc = True),
-    "Ubuntu-20.04",
 )
 try_and_ci_builders(
     "linux64_tsan",
