@@ -25,6 +25,7 @@ group("gn_all") {
     "third_party/googleurl",
     "third_party/jsoncpp",
     "third_party/mozilla",
+    "third_party/quiche",
     "third_party/tinycbor",
     "tools/cddl($host_toolchain)",
     "util",
