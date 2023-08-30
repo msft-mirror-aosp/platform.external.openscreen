@@ -310,6 +310,20 @@ int SenderSession::GetEstimatedNetworkBandwidth() const {
 void SenderSession::SetStatsClient(SenderStatsClient* client) {
   OSP_CHECK(!stats_client_) << "Client should only be set once.";
   stats_client_ = client;
+
+  // Create a StatisticsAnalyzer which can call the given stats_client_.
+  stats_analyzer_ = std::make_unique<StatisticsAnalyzer>(
+      stats_client_, config_.environment->now_function(),
+      config_.environment->task_runner());
+
+  // Instantiating StatisticsAnalyzer will create a StatisticsCollector, which
+  // should be set as the StatsCollector for the environment.
+  config_.environment->SetStatisticsCollector(
+      stats_analyzer_->statistics_collector());
+
+  // Repeatedly takes and analyzes frame / packet events, and sends stats to
+  // `stats_client_`.
+  stats_analyzer_->ScheduleAnalysis();
 }
 
 void SenderSession::ResetState() {

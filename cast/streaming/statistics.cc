@@ -17,6 +17,12 @@ SimpleHistogram::SimpleHistogram(int64_t min, int64_t max, int64_t width)
   OSP_CHECK_EQ(0, (max - min) % width);
 }
 
+SimpleHistogram::SimpleHistogram(int64_t min,
+                                 int64_t max,
+                                 int64_t width,
+                                 std::vector<int> buckets)
+    : min(min), max(max), width(width), buckets(buckets) {}
+
 SimpleHistogram::SimpleHistogram(SimpleHistogram&&) noexcept = default;
 SimpleHistogram& SimpleHistogram::operator=(SimpleHistogram&&) = default;
 SimpleHistogram::~SimpleHistogram() = default;
@@ -35,6 +41,10 @@ void SimpleHistogram::Add(int64_t sample) {
 
 void SimpleHistogram::Reset() {
   buckets.assign(buckets.size(), 0);
+}
+
+SimpleHistogram SimpleHistogram::Copy() {
+  return SimpleHistogram(min, max, width, buckets);
 }
 
 SenderStatsClient::~SenderStatsClient() {}

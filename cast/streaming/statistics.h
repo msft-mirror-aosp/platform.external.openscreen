@@ -132,10 +132,19 @@ struct SimpleHistogram {
   void Add(int64_t sample);
   void Reset();
 
+  // Creates a copy of this histogram with same min, max, width, and samples.
+  SimpleHistogram Copy();
+
   int64_t min = 1;
   int64_t max = 1;
   int64_t width = 1;
   std::vector<int> buckets;
+
+ private:
+  SimpleHistogram(int64_t min,
+                  int64_t max,
+                  int64_t width,
+                  std::vector<int> buckets);
 };
 
 struct SenderStats {
@@ -161,6 +170,7 @@ struct SenderStats {
 // The consumer may provide a statistics client if they are interested in
 // getting statistics about the ongoing session.
 class SenderStatsClient {
+ public:
   // Gets called regularly with updated statistics while they are being
   // generated.
   virtual void OnStatisticsUpdated(const SenderStats& updated_stats) = 0;

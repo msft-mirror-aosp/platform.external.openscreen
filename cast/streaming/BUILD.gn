@@ -190,6 +190,8 @@ source_set("sender") {
     "sender_report_builder.h",
     "sender_session.cc",
     "statistics.cc",
+    "statistics_analyzer.cc",
+    "statistics_analyzer.h",
   ]
 
   public_deps = [ ":common" ]
@@ -259,6 +261,7 @@ source_set("unittests") {
     "sender_unittest.cc",
     "session_messenger_unittest.cc",
     "ssrc_unittest.cc",
+    "statistics_analyzer_unittest.cc",
     "statistics_collector_unittest.cc",
   ]
 
