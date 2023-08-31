@@ -7,7 +7,6 @@
 
 #include <chrono>
 
-#include "absl/types/span.h"
 #include "cast/streaming/encoded_frame.h"
 #include "cast/streaming/session_config.h"
 #include "cast/streaming/ssrc.h"

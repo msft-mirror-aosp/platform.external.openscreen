@@ -17,7 +17,7 @@
 namespace openscreen {
 namespace base64 {
 
-std::string Encode(absl::Span<const uint8_t> input) {
+std::string Encode(ByteView input) {
   return Encode(absl::string_view(reinterpret_cast<const char*>(input.data()),
                                   input.size()));
 }

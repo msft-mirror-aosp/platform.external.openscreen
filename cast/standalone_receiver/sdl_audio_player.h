@@ -49,7 +49,7 @@ class SDLAudioPlayer final : public SDLPlayerBase {
   std::vector<uint8_t> interleaved_audio_buffer_;
 
   // Points to the memory containing the next chunk of interleaved audio.
-  absl::Span<const uint8_t> pending_audio_;
+  ByteView pending_audio_;
 
   // The currently-open SDL audio device (or zero, if not open).
   SDL_AudioDeviceID device_ = 0;

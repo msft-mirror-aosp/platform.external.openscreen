@@ -8,7 +8,7 @@ namespace openscreen {
 
 ErrorOr<std::string> SignData(const EVP_MD* digest,
                               EVP_PKEY* private_key,
-                              absl::Span<const uint8_t> data) {
+                              ByteView data) {
   bssl::ScopedEVP_MD_CTX ctx;
   if (!EVP_DigestSignInit(ctx.get(), nullptr, digest, nullptr, private_key)) {
     return Error::Code::kEVPInitializationError;

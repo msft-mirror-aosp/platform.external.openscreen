@@ -128,8 +128,7 @@ CompoundRtcpParser::CompoundRtcpParser(RtcpSession* session,
 
 CompoundRtcpParser::~CompoundRtcpParser() = default;
 
-bool CompoundRtcpParser::Parse(absl::Span<const uint8_t> buffer,
-                               FrameId max_feedback_frame_id) {
+bool CompoundRtcpParser::Parse(ByteView buffer, FrameId max_feedback_frame_id) {
   // These will contain the results from the various ParseXYZ() methods. None of
   // the results will be dispatched to the Client until the entire parse
   // succeeds.
@@ -154,8 +153,7 @@ bool CompoundRtcpParser::Parse(absl::Span<const uint8_t> buffer,
     if (static_cast<int>(buffer.size()) < header->payload_size) {
       return false;
     }
-    const absl::Span<const uint8_t> payload =
-        buffer.subspan(0, header->payload_size);
+    ByteView payload = buffer.subspan(0, header->payload_size);
     buffer.remove_prefix(header->payload_size);
 
     switch (header->packet_type) {
@@ -251,13 +249,13 @@ bool CompoundRtcpParser::Parse(absl::Span<const uint8_t> buffer,
 }
 
 bool CompoundRtcpParser::ParseReceiverReport(
-    absl::Span<const uint8_t> in,
+    ByteView in,
     int num_report_blocks,
     absl::optional<RtcpReportBlock>& receiver_report) {
   if (in.size() < kRtcpReceiverReportSize) {
     return false;
   }
-  if (ConsumeField<uint32_t>(&in) == session_->receiver_ssrc()) {
+  if (ConsumeField<uint32_t>(in) == session_->receiver_ssrc()) {
     receiver_report = RtcpReportBlock::ParseOne(in, num_report_blocks,
                                                 session_->sender_ssrc());
   }
@@ -266,10 +264,10 @@ bool CompoundRtcpParser::ParseReceiverReport(
 
 bool CompoundRtcpParser::ParseApplicationDefined(
     RtcpSubtype subtype,
-    absl::Span<const uint8_t> in,
+    ByteView in,
     std::vector<RtcpReceiverFrameLogMessage>& messages) {
-  const uint32_t sender_ssrc = ConsumeField<uint32_t>(&in);
-  const uint32_t name = ConsumeField<uint32_t>(&in);
+  const uint32_t sender_ssrc = ConsumeField<uint32_t>(in);
+  const uint32_t name = ConsumeField<uint32_t>(in);
 
   // Just ignore events that aren't intended for us.
   if (sender_ssrc != session_->receiver_ssrc()) {
@@ -286,15 +284,15 @@ bool CompoundRtcpParser::ParseApplicationDefined(
 }
 
 bool CompoundRtcpParser::ParseFrameLogMessages(
-    absl::Span<const uint8_t> in,
+    ByteView in,
     std::vector<RtcpReceiverFrameLogMessage>& messages) {
   while (!in.empty()) {
     if (in.size() < kRtcpReceiverFrameLogMessageHeaderSize) {
       messages.clear();
       return false;
     }
-    const uint32_t truncated_rtp_timestamp = ConsumeField<uint32_t>(&in);
-    const uint32_t data = ConsumeField<uint32_t>(&in);
+    const uint32_t truncated_rtp_timestamp = ConsumeField<uint32_t>(in);
+    const uint32_t data = ConsumeField<uint32_t>(in);
 
     // The 24 least significant bits contain the event timestamp.
     const uint32_t raw_timestamp = data & 0xFFFFFF;
@@ -317,9 +315,9 @@ bool CompoundRtcpParser::ParseFrameLogMessages(
         return false;
       }
 
-      const uint16_t delay_delta_or_packet_id = ConsumeField<uint16_t>(&in);
+      const uint16_t delay_delta_or_packet_id = ConsumeField<uint16_t>(in);
       const uint16_t event_type_and_timestamp_delta =
-          ConsumeField<uint16_t>(&in);
+          ConsumeField<uint16_t>(in);
 
       // Skip unknown event types, they are not useful.
       const StatisticsEventType event_type = ToEventTypeFromWire(
@@ -347,7 +345,7 @@ bool CompoundRtcpParser::ParseFrameLogMessages(
   return true;
 }
 
-bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
+bool CompoundRtcpParser::ParseFeedback(ByteView in,
                                        FrameId max_feedback_frame_id,
                                        FrameId* checkpoint_frame_id,
                                        milliseconds* target_playout_delay,
@@ -358,18 +356,18 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
   if (static_cast<int>(in.size()) < kRtcpFeedbackHeaderSize) {
     return false;
   }
-  if (ConsumeField<uint32_t>(&in) != session_->receiver_ssrc() ||
-      ConsumeField<uint32_t>(&in) != session_->sender_ssrc()) {
+  if (ConsumeField<uint32_t>(in) != session_->receiver_ssrc() ||
+      ConsumeField<uint32_t>(in) != session_->sender_ssrc()) {
     return true;  // Ignore report from mismatched SSRC(s).
   }
-  if (ConsumeField<uint32_t>(&in) != kRtcpCastIdentifierWord) {
+  if (ConsumeField<uint32_t>(in) != kRtcpCastIdentifierWord) {
     return false;
   }
 
   const FrameId feedback_frame_id =
-      max_feedback_frame_id.ExpandLessThanOrEqual(ConsumeField<uint8_t>(&in));
-  const int loss_field_count = ConsumeField<uint8_t>(&in);
-  const auto playout_delay = milliseconds(ConsumeField<uint16_t>(&in));
+      max_feedback_frame_id.ExpandLessThanOrEqual(ConsumeField<uint8_t>(in));
+  const int loss_field_count = ConsumeField<uint8_t>(in);
+  const auto playout_delay = milliseconds(ConsumeField<uint16_t>(in));
   // Don't process feedback that would move the checkpoint backwards. The Client
   // makes assumptions about what frame data and other tracking state can be
   // discarded based on a monotonically non-decreasing checkpoint FrameId.
@@ -389,9 +387,9 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
   // Parse the NACKs.
   for (int i = 0; i < loss_field_count; ++i) {
     const FrameId frame_id =
-        feedback_frame_id.ExpandGreaterThan(ConsumeField<uint8_t>(&in));
-    FramePacketId packet_id = ConsumeField<uint16_t>(&in);
-    uint8_t bits = ConsumeField<uint8_t>(&in);
+        feedback_frame_id.ExpandGreaterThan(ConsumeField<uint8_t>(in));
+    FramePacketId packet_id = ConsumeField<uint16_t>(in);
+    uint8_t bits = ConsumeField<uint8_t>(in);
     packet_nacks.push_back(PacketNack{frame_id, packet_id});
 
     if (packet_id != kAllPacketsLost) {
@@ -409,7 +407,7 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
 
   // Parse the optional CST2 feedback (frame-level ACKs).
   if (static_cast<int>(in.size()) < kRtcpFeedbackAckHeaderSize ||
-      ConsumeField<uint32_t>(&in) != kRtcpCst2IdentifierWord) {
+      ConsumeField<uint32_t>(in) != kRtcpCst2IdentifierWord) {
     // Optional CST2 extended feedback is not present. For backwards-
     // compatibility reasons, do not consider any extra "garbage" in the packet
     // that doesn't match 'CST2' as corrupted input.
@@ -418,7 +416,7 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
   // Skip over the "Feedback Count" field. It's currently unused, though it
   // might be useful for event tracing later...
   in.remove_prefix(sizeof(uint8_t));
-  const int ack_bitvector_octet_count = ConsumeField<uint8_t>(&in);
+  const int ack_bitvector_octet_count = ConsumeField<uint8_t>(in);
   if (static_cast<int>(in.size()) < ack_bitvector_octet_count) {
     return false;
   }
@@ -427,7 +425,7 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
   // comes from.
   FrameId starting_frame_id = feedback_frame_id + 2;
   for (int i = 0; i < ack_bitvector_octet_count; ++i) {
-    uint8_t bits = ConsumeField<uint8_t>(&in);
+    uint8_t bits = ConsumeField<uint8_t>(in);
     FrameId frame_id = starting_frame_id;
     while (bits) {
       if (bits & 1) {
@@ -444,12 +442,12 @@ bool CompoundRtcpParser::ParseFeedback(absl::Span<const uint8_t> in,
 }
 
 bool CompoundRtcpParser::ParseExtendedReports(
-    absl::Span<const uint8_t> in,
+    ByteView in,
     Clock::time_point& receiver_reference_time) {
   if (static_cast<int>(in.size()) < kRtcpExtendedReportHeaderSize) {
     return false;
   }
-  if (ConsumeField<uint32_t>(&in) != session_->receiver_ssrc()) {
+  if (ConsumeField<uint32_t>(in) != session_->receiver_ssrc()) {
     return true;  // Ignore report from unknown receiver.
   }
 
@@ -458,10 +456,10 @@ bool CompoundRtcpParser::ParseExtendedReports(
     if (static_cast<int>(in.size()) < kRtcpExtendedReportBlockHeaderSize) {
       return false;
     }
-    const uint8_t block_type = ConsumeField<uint8_t>(&in);
+    const uint8_t block_type = ConsumeField<uint8_t>(in);
     in.remove_prefix(sizeof(uint8_t));  // Skip the "reserved" byte.
     const int block_data_size =
-        static_cast<int>(ConsumeField<uint16_t>(&in)) * 4;
+        static_cast<int>(ConsumeField<uint16_t>(in)) * 4;
     if (static_cast<int>(in.size()) < block_data_size) {
       return false;
     }
@@ -481,14 +479,14 @@ bool CompoundRtcpParser::ParseExtendedReports(
 }
 
 bool CompoundRtcpParser::ParsePictureLossIndicator(
-    absl::Span<const uint8_t> in,
+    ByteView in,
     bool& picture_loss_indicator) {
   if (static_cast<int>(in.size()) < kRtcpPictureLossIndicatorHeaderSize) {
     return false;
   }
   // Only set the flag if the PLI is from the Receiver and to this Sender.
-  if (ConsumeField<uint32_t>(&in) == session_->receiver_ssrc() &&
-      ConsumeField<uint32_t>(&in) == session_->sender_ssrc()) {
+  if (ConsumeField<uint32_t>(in) == session_->receiver_ssrc() &&
+      ConsumeField<uint32_t>(in) == session_->sender_ssrc()) {
     picture_loss_indicator = true;
   }
   return true;

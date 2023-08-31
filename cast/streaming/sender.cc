@@ -286,7 +286,7 @@ void Sender::CancelInFlightData() {
 }
 
 void Sender::OnReceivedRtcpPacket(Clock::time_point arrival_time,
-                                  absl::Span<const uint8_t> packet) {
+                                  ByteView packet) {
   rtcp_packet_arrival_time_ = arrival_time;
   // This call to Parse() invoke zero or more of the OnReceiverXYZ() methods in
   // the current call stack:
@@ -295,9 +295,8 @@ void Sender::OnReceivedRtcpPacket(Clock::time_point arrival_time,
   }
 }
 
-absl::Span<uint8_t> Sender::GetRtcpPacketForImmediateSend(
-    Clock::time_point send_time,
-    absl::Span<uint8_t> buffer) {
+ByteBuffer Sender::GetRtcpPacketForImmediateSend(Clock::time_point send_time,
+                                                 ByteBuffer buffer) {
   if (pending_sender_report_.reference_time == SenderPacketRouter::kNever) {
     // Cannot send a report if one is not available (i.e., a frame has never
     // been enqueued).
@@ -317,9 +316,8 @@ absl::Span<uint8_t> Sender::GetRtcpPacketForImmediateSend(
   return sender_report_builder_.BuildPacket(sender_report, buffer).first;
 }
 
-absl::Span<uint8_t> Sender::GetRtpPacketForImmediateSend(
-    Clock::time_point send_time,
-    absl::Span<uint8_t> buffer) {
+ByteBuffer Sender::GetRtpPacketForImmediateSend(Clock::time_point send_time,
+                                                ByteBuffer buffer) {
   ChosenPacket chosen = ChooseNextRtpPacketNeedingSend();
 
   // If no packets need sending (i.e., all packets have been sent at least once
@@ -340,7 +338,7 @@ absl::Span<uint8_t> Sender::GetRtpPacketForImmediateSend(
     OSP_DCHECK(chosen);
   }
 
-  const absl::Span<uint8_t> result = rtp_packetizer_.GeneratePacket(
+  const ByteBuffer result = rtp_packetizer_.GeneratePacket(
       *chosen.slot->frame, chosen.packet_id, buffer);
   chosen.slot->send_flags.Clear(chosen.packet_id);
   chosen.slot->packet_sent_times[chosen.packet_id] = send_time;

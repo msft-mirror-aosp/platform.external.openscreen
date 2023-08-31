@@ -11,12 +11,12 @@
 #include <memory>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "cast/streaming/bandwidth_estimator.h"
 #include "cast/streaming/constants.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/ssrc.h"
 #include "platform/api/time.h"
+#include "platform/base/span.h"
 #include "util/alarm.h"
 
 namespace openscreen {
@@ -49,17 +49,16 @@ class SenderPacketRouter : public BandwidthEstimator,
     // indicates when the packet arrived (i.e., when it was received from the
     // platform).
     virtual void OnReceivedRtcpPacket(Clock::time_point arrival_time,
-                                      absl::Span<const uint8_t> packet) = 0;
+                                      ByteView packet) = 0;
 
     // Populates the given |buffer| with a RTCP/RTP packet that will be sent
     // immediately. Returns the portion of |buffer| contaning the packet, or an
     // empty Span if nothing is ready to send.
-    virtual absl::Span<uint8_t> GetRtcpPacketForImmediateSend(
+    virtual ByteBuffer GetRtcpPacketForImmediateSend(
         Clock::time_point send_time,
-        absl::Span<uint8_t> buffer) = 0;
-    virtual absl::Span<uint8_t> GetRtpPacketForImmediateSend(
-        Clock::time_point send_time,
-        absl::Span<uint8_t> buffer) = 0;
+        ByteBuffer buffer) = 0;
+    virtual ByteBuffer GetRtpPacketForImmediateSend(Clock::time_point send_time,
+                                                    ByteBuffer buffer) = 0;
 
     // Returns the point-in-time at which RTP sending should resume, or kNever
     // if it should be suspended until an explicit call to RequestRtpSend(). The

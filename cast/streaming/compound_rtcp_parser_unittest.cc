@@ -43,10 +43,8 @@ class CompoundRtcpParserTest : public testing::Test {
 };
 
 TEST_F(CompoundRtcpParserTest, ProcessesEmptyPacket) {
-  const uint8_t kEmpty[0] = {};
   // Expect NO calls to mock client.
-  EXPECT_TRUE(
-      parser()->Parse(absl::Span<const uint8_t>(kEmpty, 0), FrameId::first()));
+  EXPECT_TRUE(parser()->Parse(ByteView(), FrameId::first()));
 }
 
 TEST_F(CompoundRtcpParserTest, ReturnsErrorForGarbage) {

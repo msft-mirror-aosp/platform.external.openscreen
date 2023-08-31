@@ -8,8 +8,8 @@
 #include <atomic>
 #include <memory>
 
-#include "absl/types/span.h"
 #include "platform/base/macros.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 
@@ -29,7 +29,7 @@ class TlsWriteBuffer {
 
   // Returns a subset of the readable region of data. At time of reading, more
   // data may be available for reading than what is represented in this Span.
-  absl::Span<const uint8_t> GetReadableRegion();
+  ByteView GetReadableRegion();
 
   // Marks the provided number of bytes as consumed by the consumer thread.
   void Consume(size_t byte_count);

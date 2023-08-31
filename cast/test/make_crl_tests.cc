@@ -75,11 +75,10 @@ void PackCrlIntoFile(const std::string& filename,
   std::string* tbs_crl_serial = crl->mutable_tbs_crl();
   tbs_crl.SerializeToString(tbs_crl_serial);
   crl->set_signer_cert(crl_inter_der);
-  ErrorOr<std::string> signature =
-      SignData(EVP_sha256(), crl_inter_key,
-               absl::Span<const uint8_t>{
-                   reinterpret_cast<const uint8_t*>(tbs_crl_serial->data()),
-                   tbs_crl_serial->size()});
+  ErrorOr<std::string> signature = SignData(
+      EVP_sha256(), crl_inter_key,
+      ByteView{reinterpret_cast<const uint8_t*>(tbs_crl_serial->data()),
+               tbs_crl_serial->size()});
   OSP_DCHECK(signature);
   crl->set_signature(std::move(signature.value()));
 

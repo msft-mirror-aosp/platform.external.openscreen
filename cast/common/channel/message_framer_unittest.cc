@@ -50,10 +50,8 @@ class CastFramerTest : public testing::Test {
     memcpy(&buffer_[0], data.data(), data.size());
   }
 
-  absl::Span<uint8_t> GetSpan(size_t size) {
-    return absl::Span<uint8_t>(&buffer_[0], size);
-  }
-  absl::Span<uint8_t> GetSpan() { return GetSpan(cast_message_serial_.size()); }
+  ByteBuffer GetSpan(size_t size) { return ByteBuffer(&buffer_[0], size); }
+  ByteBuffer GetSpan() { return GetSpan(cast_message_serial_.size()); }
 
  protected:
   CastMessage cast_message_;

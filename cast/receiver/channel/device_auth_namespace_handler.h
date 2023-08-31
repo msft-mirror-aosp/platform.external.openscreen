@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "cast/common/channel/cast_message_handler.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 namespace cast {
@@ -34,7 +34,7 @@ class DeviceAuthNamespaceHandler final : public CastMessageHandler {
  public:
   class CredentialsProvider {
    public:
-    virtual absl::Span<const uint8_t> GetCurrentTlsCertAsDer() = 0;
+    virtual ByteView GetCurrentTlsCertAsDer() = 0;
     virtual const DeviceCredentials& GetCurrentDeviceCredentials() = 0;
 
    protected:

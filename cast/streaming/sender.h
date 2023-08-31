@@ -11,7 +11,6 @@
 #include <chrono>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "cast/streaming/compound_rtcp_parser.h"
 #include "cast/streaming/constants.h"
 #include "cast/streaming/frame_crypto.h"
@@ -24,6 +23,7 @@
 #include "cast/streaming/sender_report_builder.h"
 #include "cast/streaming/session_config.h"
 #include "platform/api/time.h"
+#include "platform/base/span.h"
 #include "util/yet_another_bit_vector.h"
 
 namespace openscreen {
@@ -221,13 +221,11 @@ class Sender final : public SenderPacketRouter::Sender,
 
   // SenderPacketRouter::Sender implementation.
   void OnReceivedRtcpPacket(Clock::time_point arrival_time,
-                            absl::Span<const uint8_t> packet) final;
-  absl::Span<uint8_t> GetRtcpPacketForImmediateSend(
-      Clock::time_point send_time,
-      absl::Span<uint8_t> buffer) final;
-  absl::Span<uint8_t> GetRtpPacketForImmediateSend(
-      Clock::time_point send_time,
-      absl::Span<uint8_t> buffer) final;
+                            ByteView packet) final;
+  ByteBuffer GetRtcpPacketForImmediateSend(Clock::time_point send_time,
+                                           ByteBuffer buffer) final;
+  ByteBuffer GetRtpPacketForImmediateSend(Clock::time_point send_time,
+                                          ByteBuffer buffer) final;
   Clock::time_point GetRtpResumeTime() final;
   RtpTimeTicks GetLastRtpTimestamp() const final;
   StreamType GetStreamType() const final;

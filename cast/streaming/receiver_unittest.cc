@@ -11,7 +11,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "cast/streaming/compound_rtcp_parser.h"
 #include "cast/streaming/constants.h"
 #include "cast/streaming/encoded_frame.h"
@@ -215,8 +214,8 @@ class MockSender : public CompoundRtcpParser::Client {
   void SendRtpPackets(const std::vector<FramePacketId>& packets_to_send) {
     uint8_t buffer[kMaxRtpPacketSize];
     for (FramePacketId packet_id : packets_to_send) {
-      const auto span =
-          rtp_packetizer_.GeneratePacket(frame_being_sent_, packet_id, buffer);
+      const auto span = rtp_packetizer_.GeneratePacket(
+          frame_being_sent_, packet_id, ByteBuffer(buffer, kMaxRtpPacketSize));
       UdpPacket packet_to_send(span.begin(), span.end());
       packet_to_send.set_source(sender_endpoint_);
       task_runner_.PostTaskWithDelay(
@@ -228,7 +227,7 @@ class MockSender : public CompoundRtcpParser::Client {
   }
 
   // Called to process a packet from the Receiver.
-  void OnPacketFromReceiver(absl::Span<const uint8_t> packet) {
+  void OnPacketFromReceiver(ByteView packet) {
     EXPECT_TRUE(rtcp_parser_.Parse(packet, max_feedback_frame_id_));
   }
 

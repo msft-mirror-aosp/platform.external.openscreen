@@ -101,8 +101,7 @@ void DeviceAuthNamespaceHandler::OnMessage(VirtualConnectionRouter* router,
   const EVP_MD* digest =
       hash_alg == ::cast::channel::SHA256 ? EVP_sha256() : EVP_sha1();
 
-  const absl::Span<const uint8_t> tls_cert_der =
-      creds_provider_->GetCurrentTlsCertAsDer();
+  const ByteView tls_cert_der = creds_provider_->GetCurrentTlsCertAsDer();
   const DeviceCredentials& device_creds =
       creds_provider_->GetCurrentDeviceCredentials();
   if (tls_cert_der.empty() || device_creds.certs.empty() ||

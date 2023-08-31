@@ -9,10 +9,10 @@
 #include <vector>
 
 #include "absl/types/optional.h"
-#include "absl/types/span.h"
 #include "cast/streaming/frame_id.h"
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtp_defines.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 namespace cast {
@@ -91,33 +91,32 @@ class CompoundRtcpParser {
   // |max_feedback_frame_id| is the maximum-valued FrameId that could possibly
   // be ACKnowledged by the Receiver, if there is Cast Feedback in the |packet|.
   // This is needed for expanding truncated frame IDs correctly.
-  bool Parse(absl::Span<const uint8_t> packet, FrameId max_feedback_frame_id);
+  bool Parse(ByteView packet, FrameId max_feedback_frame_id);
 
  private:
   // These return true if the input was well-formed, and false if it was
   // invalid/corrupt. The true/false value does NOT indicate whether the data
   // contained within was ignored. Output arguments are only modified if the
   // input contained the relevant field(s).
-  bool ParseReceiverReport(absl::Span<const uint8_t> in,
+  bool ParseReceiverReport(ByteView in,
                            int num_report_blocks,
                            absl::optional<RtcpReportBlock>& receiver_report);
   bool ParseApplicationDefined(
       RtcpSubtype subtype,
-      absl::Span<const uint8_t> in,
+      ByteView in,
       std::vector<RtcpReceiverFrameLogMessage>& messages);
   bool ParseFrameLogMessages(
-      absl::Span<const uint8_t> in,
+      ByteView in,
       std::vector<RtcpReceiverFrameLogMessage>& messages);
-  bool ParseFeedback(absl::Span<const uint8_t> in,
+  bool ParseFeedback(ByteView in,
                      FrameId max_feedback_frame_id,
                      FrameId* checkpoint_frame_id,
                      std::chrono::milliseconds* target_playout_delay,
                      std::vector<FrameId>* received_frames,
                      std::vector<PacketNack>& packet_nacks);
-  bool ParseExtendedReports(absl::Span<const uint8_t> in,
+  bool ParseExtendedReports(ByteView in,
                             Clock::time_point& receiver_reference_time);
-  bool ParsePictureLossIndicator(absl::Span<const uint8_t> in,
-                                 bool& picture_loss_indicator);
+  bool ParsePictureLossIndicator(ByteView in, bool& picture_loss_indicator);
 
   RtcpSession* const session_;
   Client* const client_;

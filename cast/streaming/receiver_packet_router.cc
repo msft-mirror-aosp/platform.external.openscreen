@@ -46,7 +46,7 @@ void ReceiverPacketRouter::OnReceiverDestroyed(Ssrc sender_ssrc) {
   }
 }
 
-void ReceiverPacketRouter::SendRtcpPacket(absl::Span<const uint8_t> packet) {
+void ReceiverPacketRouter::SendRtcpPacket(ByteView packet) {
   OSP_DCHECK(InspectPacketForRouting(packet).first == ApparentPacketType::RTCP);
 
   // Do not proceed until the remote endpoint is known. See OnReceivedPacket().

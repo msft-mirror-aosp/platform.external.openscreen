@@ -10,8 +10,7 @@
 namespace openscreen {
 namespace cast {
 
-std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(
-    absl::Span<const uint8_t> packet) {
+std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(ByteView packet) {
   // Check for RTP packets first, since they are more frequent.
   if (packet.size() >= kRtpPacketMinValidSize &&
       packet[0] == kRtpRequiredFirstByte &&

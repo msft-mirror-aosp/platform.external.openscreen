@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "cast/streaming/rtp_packet_parser.h"
+#include "platform/base/span.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   using openscreen::cast::RtpPacketParser;
@@ -12,7 +13,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   constexpr Ssrc kSenderSsrcInSeedCorpus = 0x01020304;
   RtpPacketParser parser(kSenderSsrcInSeedCorpus);
-  parser.Parse(absl::Span<const uint8_t>(data, size));
+  parser.Parse(openscreen::ByteView(data, size));
 
   return 0;
 }

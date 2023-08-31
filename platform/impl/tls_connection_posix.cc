@@ -20,9 +20,9 @@
 #include <vector>
 
 #include "absl/types/optional.h"
-#include "absl/types/span.h"
 #include "platform/api/task_runner.h"
 #include "platform/base/error.h"
+#include "platform/base/span.h"
 #include "platform/impl/stream_socket.h"
 #include "util/crypto/openssl_util.h"
 #include "util/osp_logging.h"
@@ -112,7 +112,7 @@ void TlsConnectionPosix::RegisterConnectionWithDataRouter(
 }
 
 void TlsConnectionPosix::SendAvailableBytes() {
-  absl::Span<const uint8_t> sendable_bytes = buffer_.GetReadableRegion();
+  ByteView sendable_bytes = buffer_.GetReadableRegion();
   if (sendable_bytes.empty()) {
     return;
   }
