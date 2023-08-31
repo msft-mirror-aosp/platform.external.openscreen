@@ -160,6 +160,18 @@ inline bool TryParseStringArray(const Json::Value& value,
   return TryParseArray<std::string>(value, TryParseString, out);
 }
 
+template <typename T>
+Json::Value PrimitiveVectorToJson(const std::vector<T>& vec) {
+  Json::Value array(Json::ValueType::arrayValue);
+  array.resize(vec.size());
+
+  for (Json::Value::ArrayIndex i = 0; i < vec.size(); ++i) {
+    array[i] = Json::Value(vec[i]);
+  }
+
+  return array;
+}
+
 }  // namespace json
 }  // namespace openscreen
 

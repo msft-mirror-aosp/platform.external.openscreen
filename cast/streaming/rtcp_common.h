@@ -17,6 +17,7 @@
 #include "cast/streaming/rtp_defines.h"
 #include "cast/streaming/rtp_time.h"
 #include "cast/streaming/ssrc.h"
+#include "cast/streaming/statistics_defines.h"
 
 namespace openscreen {
 namespace cast {
@@ -171,6 +172,31 @@ struct PacketNack {
     return (frame_id < other.frame_id) ||
            (frame_id == other.frame_id && packet_id < other.packet_id);
   }
+};
+
+// Statistics events sent from the receiver over RTCP.
+struct RtcpReceiverEventLogMessage {
+  // The statistics event type, may be either a receiver side frame event or
+  // packet event.
+  StatisticsEventType type;
+
+  // The time at which this event occurred.
+  Clock::time_point timestamp;
+
+  // Only set for frame played out events.
+  // If this value is zero the frame is rendered on time.
+  // If this value is positive it means the frame is rendered late.
+  // If this value is negative it means the frame is rendered early.
+  Clock::duration delay;
+
+  // Only set for packet events.
+  // The ID of the packet associated with this event.
+  FramePacketId packet_id;
+};
+
+struct RtcpReceiverFrameLogMessage {
+  RtpTimeTicks rtp_timestamp;
+  std::vector<RtcpReceiverEventLogMessage> messages;
 };
 
 }  // namespace cast

@@ -356,6 +356,28 @@ constexpr int kRtcpReceiverReferenceTimeReportBlockSize = 8;
 // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 constexpr int kRtcpPictureLossIndicatorHeaderSize = 8;
 
+// The Cast Receiver RTCP frame log message is an application specific
+// extension that contains receiver side statistics about the Receiver Session.
+// The message format is:
+//
+//  0                   1                   2                   3
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                         RTP Timestamp                         |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// | Event Count   |                 Event Timestamp               |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+constexpr int kRtcpReceiverFrameLogMessageHeaderSize = 8;
+//
+// Followed by a list of zero or more event blocks:
+//
+//  0                   1                   2                   3
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// | Delay Delta or Packet ID      | Type  | Event Timestamp       |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+constexpr int kRtcpReceiverFrameLogMessageBlockSize = 4;
+
 }  // namespace cast
 }  // namespace openscreen
 

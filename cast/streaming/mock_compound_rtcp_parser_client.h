@@ -15,14 +15,31 @@ namespace cast {
 
 class MockCompoundRtcpParserClient : public CompoundRtcpParser::Client {
  public:
-  MOCK_METHOD1(OnReceiverReferenceTimeAdvanced,
-               void(Clock::time_point reference_time));
-  MOCK_METHOD1(OnReceiverReport, void(const RtcpReportBlock& receiver_report));
-  MOCK_METHOD0(OnReceiverIndicatesPictureLoss, void());
-  MOCK_METHOD2(OnReceiverCheckpoint,
-               void(FrameId frame_id, std::chrono::milliseconds playout_delay));
-  MOCK_METHOD1(OnReceiverHasFrames, void(std::vector<FrameId> acks));
-  MOCK_METHOD1(OnReceiverIsMissingPackets, void(std::vector<PacketNack> nacks));
+  MOCK_METHOD(void,
+              OnReceiverReferenceTimeAdvanced,
+              (Clock::time_point reference_time),
+              (override));
+  MOCK_METHOD(void,
+              OnReceiverReport,
+              (const RtcpReportBlock& receiver_report),
+              (override));
+  MOCK_METHOD(void,
+              OnCastReceiverFrameLogMessages,
+              (std::vector<RtcpReceiverFrameLogMessage> messages),
+              (override));
+  MOCK_METHOD(void, OnReceiverIndicatesPictureLoss, (), (override));
+  MOCK_METHOD(void,
+              OnReceiverCheckpoint,
+              (FrameId frame_id, std::chrono::milliseconds playout_delay),
+              (override));
+  MOCK_METHOD(void,
+              OnReceiverHasFrames,
+              (std::vector<FrameId> acks),
+              (override));
+  MOCK_METHOD(void,
+              OnReceiverIsMissingPackets,
+              (std::vector<PacketNack> nacks),
+              (override));
 };
 
 }  // namespace cast

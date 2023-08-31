@@ -45,6 +45,10 @@ class CompoundRtcpParser {
     // Called when a Receiver Report with a Report Block has been parsed.
     virtual void OnReceiverReport(const RtcpReportBlock& receiver_report);
 
+    // Called when a group of Cast Receiver frame log messages has been parsed.
+    virtual void OnCastReceiverFrameLogMessages(
+        std::vector<RtcpReceiverFrameLogMessage> messages);
+
     // Called when the Receiver has encountered an unrecoverable error in
     // decoding the data. The Sender should provide a key frame as soon as
     // possible.
@@ -96,17 +100,24 @@ class CompoundRtcpParser {
   // input contained the relevant field(s).
   bool ParseReceiverReport(absl::Span<const uint8_t> in,
                            int num_report_blocks,
-                           absl::optional<RtcpReportBlock>* receiver_report);
+                           absl::optional<RtcpReportBlock>& receiver_report);
+  bool ParseApplicationDefined(
+      RtcpSubtype subtype,
+      absl::Span<const uint8_t> in,
+      std::vector<RtcpReceiverFrameLogMessage>& messages);
+  bool ParseFrameLogMessages(
+      absl::Span<const uint8_t> in,
+      std::vector<RtcpReceiverFrameLogMessage>& messages);
   bool ParseFeedback(absl::Span<const uint8_t> in,
                      FrameId max_feedback_frame_id,
                      FrameId* checkpoint_frame_id,
                      std::chrono::milliseconds* target_playout_delay,
                      std::vector<FrameId>* received_frames,
-                     std::vector<PacketNack>* packet_nacks);
+                     std::vector<PacketNack>& packet_nacks);
   bool ParseExtendedReports(absl::Span<const uint8_t> in,
-                            Clock::time_point* receiver_reference_time);
+                            Clock::time_point& receiver_reference_time);
   bool ParsePictureLossIndicator(absl::Span<const uint8_t> in,
-                                 bool* picture_loss_indicator);
+                                 bool& picture_loss_indicator);
 
   RtcpSession* const session_;
   Client* const client_;
@@ -115,6 +126,9 @@ class CompoundRtcpParser {
   // and uses this to ignore stale RTCP packets that arrived out-of-order and/or
   // late from the network.
   Clock::time_point latest_receiver_timestamp_;
+
+  // Tracks the last parsed RTP timestamp seen from any Cast receiver frame log.
+  RtpTimeTicks latest_frame_log_rtp_timestamp_;
 };
 
 }  // namespace cast

@@ -64,6 +64,56 @@ void DispatchAckEvent(StreamType stream_type,
   environment.statistics_collector()->CollectFrameEvent(std::move(ack_event));
 }
 
+// TODO(issuetracker.google.com/298277160): move into a helper file, add tests.
+void DispatchFrameLogMessages(
+    StreamType stream_type,
+    const std::vector<RtcpReceiverFrameLogMessage>& messages,
+    Environment& environment) {
+  if (!environment.statistics_collector()) {
+    return;
+  }
+
+  const StatisticsEventMediaType media_type = ToMediaType(stream_type);
+  for (const RtcpReceiverFrameLogMessage& log_message : messages) {
+    for (const RtcpReceiverEventLogMessage& event_message :
+         log_message.messages) {
+      switch (event_message.type) {
+        case StatisticsEventType::kPacketReceived: {
+          PacketEvent event;
+          event.timestamp = event_message.timestamp;
+          event.type = event_message.type;
+          event.media_type = media_type;
+          event.rtp_timestamp = log_message.rtp_timestamp;
+          event.packet_id = event_message.packet_id;
+          environment.statistics_collector()->CollectPacketEvent(
+              std::move(event));
+        } break;
+
+        case StatisticsEventType::kFrameAckSent:
+        case StatisticsEventType::kFrameDecoded:
+        case StatisticsEventType::kFramePlayedOut: {
+          FrameEvent event;
+          event.timestamp = event_message.timestamp;
+          event.type = event_message.type;
+          event.media_type = media_type;
+          event.rtp_timestamp = log_message.rtp_timestamp;
+          if (event.type == StatisticsEventType::kFramePlayedOut) {
+            event.delay_delta = event_message.delay;
+          }
+          environment.statistics_collector()->CollectFrameEvent(
+              std::move(event));
+        } break;
+
+        default:
+          OSP_VLOG << "Received log message via RTCP that we did not expect, "
+                      "StatisticsEventType="
+                   << static_cast<int>(event_message.type);
+          break;
+      }
+    }
+  }
+}
+
 }  // namespace
 
 Sender::Sender(Environment* environment,
@@ -381,6 +431,11 @@ void Sender::OnReceiverReport(const RtcpReportBlock& receiver_report) {
                 "round_trip_time", ToString(round_trip_time_));
 }
 
+void Sender::OnCastReceiverFrameLogMessages(
+    std::vector<RtcpReceiverFrameLogMessage> messages) {
+  DispatchFrameLogMessages(config_.stream_type, messages, *environment_);
+}
+
 void Sender::OnReceiverIndicatesPictureLoss() {
   TRACE_SCOPED1(TraceCategory::kSender, "OnReceiverIndicatesPictureLoss",
                 "last_received_frame_id", picture_lost_at_frame_id_.ToString());
@@ -426,6 +481,12 @@ void Sender::OnReceiverCheckpoint(FrameId frame_id,
 
   while (checkpoint_frame_id_ < frame_id) {
     ++checkpoint_frame_id_;
+    PendingFrameSlot* const slot = get_slot_for(checkpoint_frame_id_);
+    if (slot && slot->is_active_for_frame(checkpoint_frame_id_)) {
+      const RtpTimeTicks rtp_timestamp = slot->frame->rtp_timestamp;
+      DispatchAckEvent(config_.stream_type, rtp_timestamp, checkpoint_frame_id_,
+                       *environment_);
+    }
     CancelPendingFrame(checkpoint_frame_id_);
   }
   latest_expected_frame_id_ = std::max(latest_expected_frame_id_, frame_id);
@@ -453,12 +514,12 @@ void Sender::OnReceiverHasFrames(std::vector<FrameId> acks) {
   }
 
   for (FrameId id : acks) {
-    CancelPendingFrame(id);
     PendingFrameSlot* const slot = get_slot_for(id);
     if (slot && slot->is_active_for_frame(id)) {
       const RtpTimeTicks rtp_timestamp = slot->frame->rtp_timestamp;
       DispatchAckEvent(config_.stream_type, rtp_timestamp, id, *environment_);
     }
+    CancelPendingFrame(id);
   }
   latest_expected_frame_id_ = std::max(latest_expected_frame_id_, acks.back());
 }

@@ -133,18 +133,6 @@ bool TryParseAspectRatioConstraint(const Json::Value& value,
 }
 
 template <typename T>
-Json::Value PrimitiveVectorToJson(const std::vector<T>& vec) {
-  Json::Value array(Json::ValueType::arrayValue);
-  array.resize(vec.size());
-
-  for (Json::Value::ArrayIndex i = 0; i < vec.size(); ++i) {
-    array[i] = Json::Value(vec[i]);
-  }
-
-  return array;
-}
-
-template <typename T>
 bool ParseOptional(const Json::Value& value, absl::optional<T>* out) {
   // It's fine if the value is empty.
   if (!value) {
@@ -406,19 +394,19 @@ Json::Value Answer::ToJson() const {
     root[kDisplay] = display->ToJson();
   }
   root[kUdpPort] = udp_port;
-  root[kSendIndexes] = PrimitiveVectorToJson(send_indexes);
-  root[kSsrcs] = PrimitiveVectorToJson(ssrcs);
+  root[kSendIndexes] = json::PrimitiveVectorToJson(send_indexes);
+  root[kSsrcs] = json::PrimitiveVectorToJson(ssrcs);
   // Some sender do not handle empty array properly, so we omit these fields
   // if they are empty.
   if (!receiver_rtcp_event_log.empty()) {
     root[kReceiverRtcpEventLog] =
-        PrimitiveVectorToJson(receiver_rtcp_event_log);
+        json::PrimitiveVectorToJson(receiver_rtcp_event_log);
   }
   if (!receiver_rtcp_dscp.empty()) {
-    root[kReceiverRtcpDscp] = PrimitiveVectorToJson(receiver_rtcp_dscp);
+    root[kReceiverRtcpDscp] = json::PrimitiveVectorToJson(receiver_rtcp_dscp);
   }
   if (!rtp_extensions.empty()) {
-    root[kRtpExtensions] = PrimitiveVectorToJson(rtp_extensions);
+    root[kRtpExtensions] = json::PrimitiveVectorToJson(rtp_extensions);
   }
   return root;
 }

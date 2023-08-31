@@ -11,6 +11,7 @@ const EnumNameTable<StatisticsEventType,
                     static_cast<size_t>(StatisticsEventType::kNumOfEvents)>
     kStatisticEventTypeNames = {
         {{"Unknown", StatisticsEventType::kUnknown},
+         {"FrameEncoded", StatisticsEventType::kFrameEncoded},
          {"FrameAckReceived", StatisticsEventType::kFrameAckReceived},
          {"FrameAckSent", StatisticsEventType::kFrameAckSent},
          {"FrameDecoded", StatisticsEventType::kFrameDecoded},

@@ -38,6 +38,9 @@ void RtcpCommonHeader::AppendFields(absl::Span<uint8_t>* buffer) const {
         case RtcpSubtype::kFeedback:
           byte0 |= static_cast<uint8_t>(with.subtype);
           break;
+
+        // TODO(issuetracker.google.com/298085631): implement support for
+        // sending receiver logs over RTCP.
         case RtcpSubtype::kReceiverLog:
           OSP_UNIMPLEMENTED();
           break;
