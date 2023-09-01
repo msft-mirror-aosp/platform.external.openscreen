@@ -294,10 +294,11 @@ bool CompoundRtcpParser::ParseFrameLogMessages(
     const uint32_t truncated_rtp_timestamp = ConsumeField<uint32_t>(in);
     const uint32_t data = ConsumeField<uint32_t>(in);
 
-    // The 24 least significant bits contain the event timestamp.
+    // The 24 least significant bits contain the event timestamp, which is
+    // offset from when the first packet was sent.
     const uint32_t raw_timestamp = data & 0xFFFFFF;
     const Clock::time_point event_timestamp_base =
-        Clock::time_point{} + milliseconds(raw_timestamp);
+        session_->start_time() + milliseconds(raw_timestamp);
 
     // The 8 most significant bits contain the number of events.
     // NOTE: at least one event is required, so a value of "0" over the wire

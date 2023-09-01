@@ -6,11 +6,13 @@
 
 #include <algorithm>
 
+#include "platform/base/trivial_clock_traits.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
 namespace cast {
+
 namespace {
 
 constexpr Clock::duration kStatisticsAnalysisInverval =
@@ -35,10 +37,13 @@ bool IsReceiverEvent(const StatisticsEventType event) {
 
 }  // namespace
 
-StatisticsAnalyzer::StatisticsAnalyzer(SenderStatsClient* stats_client,
-                                       ClockNowFunctionPtr now,
-                                       TaskRunner& task_runner)
+StatisticsAnalyzer::StatisticsAnalyzer(
+    SenderStatsClient* stats_client,
+    ClockNowFunctionPtr now,
+    TaskRunner& task_runner,
+    std::unique_ptr<ClockOffsetEstimator> offset_estimator)
     : stats_client_(stats_client),
+      offset_estimator_(std::move(offset_estimator)),
       now_(now),
       alarm_(now, task_runner),
       start_time_(now()) {
@@ -98,6 +103,8 @@ void StatisticsAnalyzer::SendStatistics() {
 void StatisticsAnalyzer::ProcessFrameEvents(
     const std::vector<FrameEvent> frame_events) {
   for (FrameEvent frame_event : frame_events) {
+    offset_estimator_->OnFrameEvent(frame_event);
+
     FrameStatsMap* frame_stats_map =
         GetFrameStatsMapForMediaType(frame_event.media_type);
     if (frame_stats_map) {
@@ -125,6 +132,8 @@ void StatisticsAnalyzer::ProcessFrameEvents(
 void StatisticsAnalyzer::ProcessPacketEvents(
     const std::vector<PacketEvent> packet_events) {
   for (PacketEvent packet_event : packet_events) {
+    offset_estimator_->OnPacketEvent(packet_event);
+
     PacketStatsMap* packet_stats_map =
         GetPacketStatsMapForMediaType(packet_event.media_type);
     if (packet_stats_map) {
@@ -174,9 +183,19 @@ void StatisticsAnalyzer::RecordFrameLatencies(const FrameEvent frame_event) {
     // Frame latency is the time from when the frame is encoded until the
     // receiver ack for the frame is sent.
     if (frame_event.type == StatisticsEventType::kFrameAckSent) {
-      // TODO(bzielinski): account for receiver offset
+      const absl::optional<Clock::duration> receiver_offset =
+          offset_estimator_->GetEstimatedOffset();
+
+      // Drop events until we have a clock offset estimate.
+      if (!receiver_offset) {
+        return;
+      }
+
+      const Clock::time_point playout_time =
+          frame_event.timestamp - *receiver_offset;
       const Clock::duration frame_latency =
-          frame_event.timestamp - it->second.encode_end_time;
+          playout_time - it->second.encode_end_time;
+
       AddToLatencyAggregrate(StatisticType::kAvgFrameLatencyMs, frame_latency,
                              frame_event.media_type);
     } else if (frame_event.type == StatisticsEventType::kFramePlayedOut) {
@@ -250,8 +269,12 @@ void StatisticsAnalyzer::RecordPacketLatencies(const PacketEvent packet_event) {
 
     packet_infos->erase(it);
 
-    // TODO(bzielinski):Subtract by offset.
-    // packet_received_time -= receiver_offset;
+    const absl::optional<Clock::duration> receiver_offset =
+        offset_estimator_->GetEstimatedOffset();
+    if (!receiver_offset) {
+      return;
+    }
+    packet_received_time -= *receiver_offset;
 
     // Network latency is the time between when a packet is sent and when it
     // is received.
@@ -285,16 +308,23 @@ void StatisticsAnalyzer::RecordEventTimes(
     return;
   }
 
+  const absl::optional<Clock::duration> receiver_offset =
+      offset_estimator_->GetEstimatedOffset();
+  if (!receiver_offset) {
+    return;
+  }
+
+  Clock::time_point sender_timestamp = timestamp;
   if (is_receiver_event) {
-    // TODO(bzielinski): consider offset.
+    sender_timestamp -= *receiver_offset;
     session_stats->last_response_received_time =
-        std::max(session_stats->last_response_received_time, timestamp);
+        std::max(session_stats->last_response_received_time, sender_timestamp);
   }
 
   session_stats->first_event_time =
-      std::min(session_stats->first_event_time, timestamp);
+      std::min(session_stats->first_event_time, sender_timestamp);
   session_stats->last_event_time =
-      std::max(session_stats->last_event_time, timestamp);
+      std::max(session_stats->last_event_time, sender_timestamp);
 }
 
 void StatisticsAnalyzer::ErasePacketInfo(const PacketEvent packet_event) {

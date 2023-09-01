@@ -15,6 +15,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "cast/streaming/capture_recommendations.h"
+#include "cast/streaming/clock_offset_estimator.h"
 #include "cast/streaming/environment.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/offer_messages.h"
@@ -314,7 +315,7 @@ void SenderSession::SetStatsClient(SenderStatsClient* client) {
   // Create a StatisticsAnalyzer which can call the given stats_client_.
   stats_analyzer_ = std::make_unique<StatisticsAnalyzer>(
       stats_client_, config_.environment->now_function(),
-      config_.environment->task_runner());
+      config_.environment->task_runner(), ClockOffsetEstimator::Create());
 
   // Instantiating StatisticsAnalyzer will create a StatisticsCollector, which
   // should be set as the StatsCollector for the environment.

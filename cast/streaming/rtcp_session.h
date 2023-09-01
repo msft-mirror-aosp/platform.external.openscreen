@@ -27,10 +27,13 @@ class RtcpSession {
   Ssrc sender_ssrc() const { return sender_ssrc_; }
   Ssrc receiver_ssrc() const { return receiver_ssrc_; }
   const NtpTimeConverter& ntp_converter() const { return ntp_converter_; }
+  Clock::time_point start_time() const { return start_time_; }
 
  private:
   const Ssrc sender_ssrc_;
   const Ssrc receiver_ssrc_;
+
+  Clock::time_point start_time_;
 
   // Translates between system time (internal format) and NTP (wire format).
   NtpTimeConverter ntp_converter_;

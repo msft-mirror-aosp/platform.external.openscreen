@@ -18,6 +18,7 @@ using testing::AtLeast;
 using testing::Invoke;
 using testing::InvokeWithoutArgs;
 using testing::Mock;
+using testing::NiceMock;
 using testing::Return;
 using testing::Sequence;
 using testing::StrictMock;
@@ -30,7 +31,7 @@ namespace {
 constexpr int kDefaultStatsAnalysisIntervalMs = 500;
 constexpr int kDefaultNumEvents = 20;
 constexpr int kDefaultSizeBytes = 10;
-constexpr int kDefaultStatInvervalMs = 5;
+constexpr int kDefaultStatIntervalMs = 5;
 
 const FrameEvent kDefaultFrameEvent =
     FrameEvent(FrameId::first(),
@@ -58,7 +59,8 @@ const PacketEvent kDefaultPacketEvent =
 void ExpectStatEq(SenderStats::StatisticsList stats_list,
                   StatisticType stat,
                   double expected_value) {
-  EXPECT_DOUBLE_EQ(stats_list[static_cast<int>(stat)], expected_value);
+  EXPECT_DOUBLE_EQ(stats_list[static_cast<int>(stat)], expected_value)
+      << GetEnumName(kStatisticTypeNames, stat).value();
 }
 
 // Checks that the first `expected_buckets.size()` entries of `recorded_buckets`
@@ -67,7 +69,7 @@ void ExpectStatEq(SenderStats::StatisticsList stats_list,
 void ExpectHistoBuckets(std::vector<int> recorded_buckets,
                         std::vector<int> expected_buckets) {
   for (size_t i = 0; i < expected_buckets.size(); i++) {
-    EXPECT_EQ(recorded_buckets[i], expected_buckets[i]);
+    EXPECT_EQ(recorded_buckets[i], expected_buckets[i]) << "i=" << i;
   }
   int total_recorded_events =
       std::accumulate(recorded_buckets.begin(), recorded_buckets.end(), 0);
@@ -81,6 +83,16 @@ class FakeSenderStatsClient : public SenderStatsClient {
   MOCK_METHOD(void, OnStatisticsUpdated, (const SenderStats&), (override));
 };
 
+class FakeClockOffsetEstimator : public ClockOffsetEstimator {
+ public:
+  MOCK_METHOD(void, OnFrameEvent, (const FrameEvent&), (override));
+  MOCK_METHOD(void, OnPacketEvent, (const PacketEvent&), (override));
+  MOCK_METHOD(absl::optional<Clock::duration>,
+              GetEstimatedOffset,
+              (),
+              (const, override));
+};
+
 }  // namespace
 
 class StatisticsAnalyzerTest : public ::testing::Test {
@@ -89,12 +101,21 @@ class StatisticsAnalyzerTest : public ::testing::Test {
       : fake_clock_(Clock::now()), fake_task_runner_(&fake_clock_) {}
 
   void SetUp() {
+    // In general, use an estimator that doesn't have an offset.
+    // TODO(issuetracker.google.com/298085631): add test coverage for the
+    // estimator usage in this class.
+    auto fake_estimator =
+        std::make_unique<NiceMock<FakeClockOffsetEstimator>>();
+    ON_CALL(*fake_estimator, GetEstimatedOffset())
+        .WillByDefault(Return(Clock::duration{}));
     analyzer_ = std::make_unique<StatisticsAnalyzer>(
-        &stats_client_, fake_clock_.now, fake_task_runner_);
+        &stats_client_, fake_clock_.now, fake_task_runner_,
+        std::move(fake_estimator));
     collector_ = analyzer_->statistics_collector();
   }
 
  protected:
+  NiceMock<FakeClockOffsetEstimator>* fake_estimator_;
   StrictMock<FakeSenderStatsClient> stats_client_;
   FakeClock fake_clock_;
   FakeTaskRunner fake_task_runner_;
@@ -117,7 +138,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncoded) {
 
     collector_->CollectFrameEvent(event);
     last_event_time = fake_clock_.now();
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -146,7 +167,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncoded) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
@@ -174,7 +195,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectFrameEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -189,7 +210,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
@@ -224,7 +245,7 @@ TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectFrameEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -249,7 +270,7 @@ TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
@@ -277,7 +298,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectPacketEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -314,7 +335,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
@@ -344,7 +365,7 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
 
     collector_->CollectPacketEvent(event1);
     collector_->CollectPacketEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -375,7 +396,7 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
@@ -415,7 +436,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
     collector_->CollectFrameEvent(event1);
     collector_->CollectPacketEvent(event2);
     collector_->CollectPacketEvent(event3);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatInvervalMs));
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -456,7 +477,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatInvervalMs * kDefaultNumEvents)));
+                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {

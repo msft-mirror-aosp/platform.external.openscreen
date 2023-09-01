@@ -180,6 +180,9 @@ source_set("sender") {
   sources = [
     "bandwidth_estimator.cc",
     "bandwidth_estimator.h",
+    "clock_offset_estimator.h",
+    "clock_offset_estimator_impl.cc",
+    "clock_offset_estimator_impl.h",
     "compound_rtcp_parser.cc",
     "compound_rtcp_parser.h",
     "rtp_packetizer.cc",
@@ -233,6 +236,7 @@ source_set("unittests") {
     "answer_messages_unittest.cc",
     "bandwidth_estimator_unittest.cc",
     "capture_recommendations_unittest.cc",
+    "clock_offset_estimator_impl_unittest.cc",
     "compound_rtcp_builder_unittest.cc",
     "compound_rtcp_parser_unittest.cc",
     "expanded_value_base_unittest.cc",

@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "cast/streaming/clock_offset_estimator.h"
 #include "cast/streaming/statistics.h"
 #include "cast/streaming/statistics_collector.h"
 #include "platform/api/time.h"
@@ -22,7 +23,8 @@ class StatisticsAnalyzer {
  public:
   StatisticsAnalyzer(SenderStatsClient* stats_client,
                      ClockNowFunctionPtr now,
-                     TaskRunner& task_runner);
+                     TaskRunner& task_runner,
+                     std::unique_ptr<ClockOffsetEstimator> offset_estimator);
   ~StatisticsAnalyzer();
 
   void ScheduleAnalysis();
@@ -164,6 +166,9 @@ class StatisticsAnalyzer {
 
   // The statistics collector from which we take the un-analyzed stats packets.
   std::unique_ptr<StatisticsCollector> statistics_collector_;
+
+  // Keeps track of the best-guess clock offset between the sender and receiver.
+  std::unique_ptr<ClockOffsetEstimator> offset_estimator_;
 
   // Keep track of time and events for this analyzer.
   ClockNowFunctionPtr now_;
