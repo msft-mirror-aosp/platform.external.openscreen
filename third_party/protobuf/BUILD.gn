@@ -32,6 +32,7 @@ config("protobuf_warnings") {
       "-Wno-shadow",
       "-Wno-implicit-int-float-conversion",
       "-Wno-unreachable-code-break",
+      "-Wno-deprecated-declarations",
     ]
   }
 }
