@@ -86,12 +86,18 @@ void StreamingOpusEncoder::UseHighQuality() {
 
 void StreamingOpusEncoder::EncodeAndSend(const float* interleaved_samples,
                                          int num_samples,
+                                         Clock::time_point capture_begin_time,
+                                         Clock::time_point capture_end_time,
                                          Clock::time_point reference_time) {
   OSP_DCHECK(interleaved_samples);
   OSP_DCHECK_GT(num_samples, 0);
 
   ResolveTimestampsAndMaybeSkip(reference_time);
 
+  if (frame_.capture_begin_time == Clock::time_point::min()) {
+    frame_.capture_begin_time = capture_begin_time;
+  }
+  frame_.capture_end_time = capture_end_time;
   while (num_samples > 0) {
     const int samples_copied =
         FillInputBuffer(interleaved_samples, num_samples);

@@ -25,17 +25,44 @@ using clock_operators::operator<<;
 
 namespace {
 
-void DispatchEncodeEvent(StreamType stream_type,
-                         const EncodedFrame& frame,
-                         Environment& environment) {
+void DispatchEnqueueEvents(StreamType stream_type,
+                           const EncodedFrame& frame,
+                           Environment& environment) {
   if (!environment.statistics_collector()) {
     return;
   }
 
+  const StatisticsEventMediaType media_type = ToMediaType(stream_type);
+
+  // Submit a capture begin event.
+  FrameEvent capture_begin_event;
+  capture_begin_event.type = StatisticsEventType::kFrameCaptureBegin;
+  capture_begin_event.media_type = media_type;
+  capture_begin_event.rtp_timestamp = frame.rtp_timestamp;
+  capture_begin_event.timestamp =
+      (frame.capture_begin_time > Clock::time_point::min())
+          ? frame.capture_begin_time
+          : environment.now();
+  environment.statistics_collector()->CollectFrameEvent(
+      std::move(capture_begin_event));
+
+  // Submit a capture end event.
+  FrameEvent capture_end_event;
+  capture_end_event.type = StatisticsEventType::kFrameCaptureEnd;
+  capture_end_event.media_type = media_type;
+  capture_end_event.rtp_timestamp = frame.rtp_timestamp;
+  capture_end_event.timestamp =
+      (frame.capture_end_time > Clock::time_point::min())
+          ? frame.capture_end_time
+          : environment.now();
+  environment.statistics_collector()->CollectFrameEvent(
+      std::move(capture_end_event));
+
+  // Submit an encoded event.
   FrameEvent encode_event;
   encode_event.timestamp = environment.now();
   encode_event.type = StatisticsEventType::kFrameEncoded;
-  encode_event.media_type = ToMediaType(stream_type);
+  encode_event.media_type = media_type;
   encode_event.rtp_timestamp = frame.rtp_timestamp;
   encode_event.frame_id = frame.frame_id;
   encode_event.size = static_cast<uint32_t>(frame.data.size());
@@ -269,7 +296,7 @@ Sender::EnqueueFrameResult Sender::EnqueueFrame(const EncodedFrame& frame) {
 
   // Re-activate RTP sending if it was suspended.
   packet_router_->RequestRtpSend(rtcp_session_.receiver_ssrc());
-  DispatchEncodeEvent(config_.stream_type, frame, *environment_);
+  DispatchEnqueueEvents(config_.stream_type, frame, *environment_);
 
   return OK;
 }

@@ -21,21 +21,23 @@ enum class StatisticsEventType : int {
   kUnknown = 0,
 
   // Sender side frame events.
-  kFrameEncoded = 1,
-  kFrameAckReceived = 2,
+  kFrameCaptureBegin = 1,
+  kFrameCaptureEnd = 2,
+  kFrameEncoded = 3,
+  kFrameAckReceived = 4,
 
   // Receiver side frame events.
-  kFrameAckSent = 3,
-  kFrameDecoded = 4,
-  kFramePlayedOut = 5,
+  kFrameAckSent = 5,
+  kFrameDecoded = 6,
+  kFramePlayedOut = 7,
 
   // Sender side packet events.
-  kPacketSentToNetwork = 6,
-  kPacketRetransmitted = 7,
-  kPacketRtxRejected = 8,
+  kPacketSentToNetwork = 8,
+  kPacketRetransmitted = 9,
+  kPacketRtxRejected = 10,
 
   // Receiver side packet events.
-  kPacketReceived = 9,
+  kPacketReceived = 11,
 
   kNumOfEvents = kPacketReceived + 1
 };

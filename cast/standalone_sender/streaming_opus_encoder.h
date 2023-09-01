@@ -61,6 +61,8 @@ class StreamingOpusEncoder {
   // sample.
   void EncodeAndSend(const float* interleaved_samples,
                      int num_samples,
+                     Clock::time_point capture_begin_time,
+                     Clock::time_point capture_end_time,
                      Clock::time_point reference_time);
 
   static constexpr int kDefaultCastAudioFramesPerSecond =

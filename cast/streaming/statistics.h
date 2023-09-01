@@ -25,8 +25,6 @@ enum class StatisticType {
   // Frame enqueuing rate.
   kEnqueueFps = 0,
 
-  // TODO(https://issuetracker.google.com/285417419): providable through this
-  // API? support TBD.
   // Average capture latency in milliseconds.
   kAvgCaptureLatencyMs,
 

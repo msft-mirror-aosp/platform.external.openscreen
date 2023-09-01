@@ -8,7 +8,6 @@
 
 #include "platform/base/trivial_clock_traits.h"
 #include "util/chrono_helpers.h"
-#include "util/osp_logging.h"
 
 namespace openscreen {
 namespace cast {
@@ -60,22 +59,14 @@ void StatisticsAnalyzer::ScheduleAnalysis() {
 }
 
 void StatisticsAnalyzer::InitHistograms() {
-  audio_histograms_[static_cast<int>(HistogramType::kQueueingLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  audio_histograms_[static_cast<int>(HistogramType::kNetworkLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  audio_histograms_[static_cast<int>(HistogramType::kPacketLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  audio_histograms_[static_cast<int>(HistogramType::kFrameLatenessMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  video_histograms_[static_cast<int>(HistogramType::kQueueingLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  video_histograms_[static_cast<int>(HistogramType::kNetworkLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  video_histograms_[static_cast<int>(HistogramType::kPacketLatencyMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
-  video_histograms_[static_cast<int>(HistogramType::kFrameLatenessMs)] =
-      SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
+  for (auto& histogram : audio_histograms_) {
+    histogram =
+        SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
+  }
+  for (auto& histogram : video_histograms_) {
+    histogram =
+        SimpleHistogram(0, kDefaultMaxLatencyBucketMs, kDefaultBucketWidthMs);
+  }
 }
 
 void StatisticsAnalyzer::AnalyzeStatistics() {
@@ -171,34 +162,78 @@ void StatisticsAnalyzer::RecordFrameLatencies(const FrameEvent frame_event) {
 
   auto it = frame_infos->find(frame_event.rtp_timestamp);
   if (it == frame_infos->end()) {
-    FrameInfo info;
-    if (frame_event.type == StatisticsEventType::kFrameEncoded) {
-      info.encode_end_time = frame_event.timestamp;
-    }
-    frame_infos->insert(std::make_pair(frame_event.rtp_timestamp, info));
+    auto emplace_result =
+        frame_infos->emplace(frame_event.rtp_timestamp, FrameInfo{});
+    OSP_CHECK(emplace_result.second);
+    it = emplace_result.first;
+
     if (frame_infos->size() >= kMaxRecentFrameInfoMapSize) {
       frame_infos->erase(frame_infos->begin());
     }
-  } else {
+  }
+
+  switch (frame_event.type) {
+    case StatisticsEventType::kFrameCaptureBegin:
+      it->second.capture_begin_time = frame_event.timestamp;
+      break;
+
+    case StatisticsEventType::kFrameCaptureEnd: {
+      it->second.capture_end_time = frame_event.timestamp;
+      if (it->second.capture_begin_time != Clock::time_point::min()) {
+        const Clock::duration capture_latency =
+            frame_event.timestamp - it->second.capture_begin_time;
+        AddToLatencyAggregrate(StatisticType::kAvgCaptureLatencyMs,
+                               capture_latency, frame_event.media_type);
+        AddToHistogram(HistogramType::kCaptureLatencyMs, frame_event.media_type,
+                       InMilliseconds(capture_latency));
+      }
+    } break;
+
+    case StatisticsEventType::kFrameEncoded: {
+      it->second.encode_end_time = frame_event.timestamp;
+      if (it->second.capture_end_time != Clock::time_point::min()) {
+        const Clock::duration encode_latency =
+            frame_event.timestamp - it->second.capture_end_time;
+        AddToLatencyAggregrate(StatisticType::kAvgEncodeTimeMs, encode_latency,
+                               frame_event.media_type);
+        AddToHistogram(HistogramType::kEncodeTimeMs, frame_event.media_type,
+                       InMilliseconds(encode_latency));
+      }
+    } break;
+
     // Frame latency is the time from when the frame is encoded until the
     // receiver ack for the frame is sent.
-    if (frame_event.type == StatisticsEventType::kFrameAckSent) {
-      const absl::optional<Clock::duration> receiver_offset =
-          offset_estimator_->GetEstimatedOffset();
-
-      // Drop events until we have a clock offset estimate.
-      if (!receiver_offset) {
+    case StatisticsEventType::kFrameAckSent: {
+      const auto adjusted_timestamp =
+          ToSenderTimestamp(frame_event.timestamp, frame_event.media_type);
+      if (!adjusted_timestamp) {
         return;
       }
 
-      const Clock::time_point playout_time =
-          frame_event.timestamp - *receiver_offset;
-      const Clock::duration frame_latency =
-          playout_time - it->second.encode_end_time;
+      if (it->second.encode_end_time != Clock::time_point::min()) {
+        const Clock::duration frame_latency =
+            *adjusted_timestamp - it->second.encode_end_time;
+        AddToLatencyAggregrate(StatisticType::kAvgFrameLatencyMs, frame_latency,
+                               frame_event.media_type);
+      }
+    } break;
 
-      AddToLatencyAggregrate(StatisticType::kAvgFrameLatencyMs, frame_latency,
-                             frame_event.media_type);
-    } else if (frame_event.type == StatisticsEventType::kFramePlayedOut) {
+    case StatisticsEventType::kFramePlayedOut: {
+      const auto adjusted_timestamp =
+          ToSenderTimestamp(frame_event.timestamp, frame_event.media_type);
+      if (!adjusted_timestamp) {
+        return;
+      }
+
+      if (it->second.capture_begin_time != Clock::time_point::min()) {
+        const Clock::duration e2e_latency =
+            *adjusted_timestamp - it->second.capture_begin_time;
+        AddToLatencyAggregrate(StatisticType::kAvgEndToEndLatencyMs,
+                               e2e_latency, frame_event.media_type);
+        AddToHistogram(HistogramType::kEndToEndLatencyMs,
+                       frame_event.media_type, InMilliseconds(e2e_latency));
+      }
+
       // Positive delay means the frame is late.
       if (frame_event.delay_delta > Clock::duration::zero()) {
         SessionStats* session_stats =
@@ -209,7 +244,10 @@ void StatisticsAnalyzer::RecordFrameLatencies(const FrameEvent frame_event) {
         AddToHistogram(HistogramType::kFrameLatenessMs, frame_event.media_type,
                        InMilliseconds(frame_event.delay_delta));
       }
-    }
+    } break;
+
+    default:
+      break;
   }
 }
 
@@ -269,6 +307,8 @@ void StatisticsAnalyzer::RecordPacketLatencies(const PacketEvent packet_event) {
 
     packet_infos->erase(it);
 
+    // Use the offset estimator directly since we are trying to calculate the
+    // average network latency.
     const absl::optional<Clock::duration> receiver_offset =
         offset_estimator_->GetEstimatedOffset();
     if (!receiver_offset) {
@@ -308,15 +348,14 @@ void StatisticsAnalyzer::RecordEventTimes(
     return;
   }
 
-  const absl::optional<Clock::duration> receiver_offset =
-      offset_estimator_->GetEstimatedOffset();
-  if (!receiver_offset) {
-    return;
-  }
-
   Clock::time_point sender_timestamp = timestamp;
   if (is_receiver_event) {
-    sender_timestamp -= *receiver_offset;
+    auto timestamp_result = ToSenderTimestamp(timestamp, media_type);
+    if (!timestamp_result) {
+      return;
+    }
+    sender_timestamp = *timestamp_result;
+
     session_stats->last_response_received_time =
         std::max(session_stats->last_response_received_time, sender_timestamp);
   }
@@ -467,25 +506,25 @@ SenderStats::StatisticsList StatisticsAnalyzer::ConstructStatisticsList(
     const StatisticsEventMediaType media_type) {
   SenderStats::StatisticsList stats_list;
 
-  // TODO(b/298205111): Support additional stats.
+  // TODO(b/298205111): Support kNumFramesDroppedByEncoder stat.
+  stats_list = PopulateFrameCountStat(StatisticsEventType::kFrameCaptureEnd,
+                                      StatisticType::kNumFramesCaptured,
+                                      stats_list, media_type);
 
   // kEnqueueFps
   stats_list = PopulateFpsStat(StatisticsEventType::kFrameEncoded,
                                StatisticType::kEnqueueFps, stats_list,
                                media_type, end_time);
 
-  // kAvgQueueingLatencyMs
-  stats_list = PopulateAvgLatencyStat(StatisticType::kAvgQueueingLatencyMs,
-                                      stats_list, media_type);
-  // kAvgNetworkLatencyMs
-  stats_list = PopulateAvgLatencyStat(StatisticType::kAvgNetworkLatencyMs,
-                                      stats_list, media_type);
-  // kAvgPacketLatencyMs
-  stats_list = PopulateAvgLatencyStat(StatisticType::kAvgPacketLatencyMs,
-                                      stats_list, media_type);
-  // kAvgFrameLatencyMs
-  stats_list = PopulateAvgLatencyStat(StatisticType::kAvgFrameLatencyMs,
-                                      stats_list, media_type);
+  constexpr StatisticType kSupportedLatencyStats[] = {
+      StatisticType::kAvgEncodeTimeMs,      StatisticType::kAvgCaptureLatencyMs,
+      StatisticType::kAvgQueueingLatencyMs, StatisticType::kAvgNetworkLatencyMs,
+      StatisticType::kAvgPacketLatencyMs,   StatisticType::kAvgFrameLatencyMs,
+      StatisticType::kAvgEndToEndLatencyMs,
+  };
+  for (StatisticType type : kSupportedLatencyStats) {
+    stats_list = PopulateAvgLatencyStat(type, stats_list, media_type);
+  }
 
   // kEncodeRateKbps
   stats_list = PopulateFrameBitrateStat(StatisticsEventType::kFrameEncoded,
@@ -527,6 +566,23 @@ SenderStats::StatisticsList StatisticsAnalyzer::PopulatePacketCountStat(
     return stats_list;
   }
 
+  auto it = stats_map->find(event);
+  if (it != stats_map->end()) {
+    stats_list[static_cast<int>(stat)] = it->second.event_counter;
+  }
+
+  return stats_list;
+}
+
+SenderStats::StatisticsList StatisticsAnalyzer::PopulateFrameCountStat(
+    const StatisticsEventType event,
+    const StatisticType stat,
+    SenderStats::StatisticsList stats_list,
+    const StatisticsEventMediaType media_type) {
+  FrameStatsMap* stats_map = GetFrameStatsMapForMediaType(media_type);
+  if (!stats_map) {
+    return stats_list;
+  }
   auto it = stats_map->find(event);
   if (it != stats_map->end()) {
     stats_list[static_cast<int>(stat)] = it->second.event_counter;
@@ -655,5 +711,28 @@ SenderStats::StatisticsList StatisticsAnalyzer::PopulateSessionStats(
   return stats_list;
 }
 
+absl::optional<Clock::time_point> StatisticsAnalyzer::ToSenderTimestamp(
+    Clock::time_point receiver_timestamp,
+    StatisticsEventMediaType media_type) {
+  const absl::optional<Clock::duration> receiver_offset =
+      offset_estimator_->GetEstimatedOffset();
+  if (!receiver_offset) {
+    return {};
+  }
+  receiver_timestamp -= *receiver_offset;
+
+  // Offset by the avg network latency, if available.
+  LatencyStatsMap* latency_map = GetLatencyStatsMapForMediaType(media_type);
+  if (latency_map) {
+    auto it = latency_map->find(StatisticType::kAvgNetworkLatencyMs);
+    if (it != latency_map->end() && it->second.data_point_counter > 0) {
+      const Clock::duration avg_network_latency =
+          it->second.sum_latency / it->second.data_point_counter;
+      receiver_timestamp += avg_network_latency;
+    }
+  }
+
+  return receiver_timestamp;
+}
 }  // namespace cast
 }  // namespace openscreen

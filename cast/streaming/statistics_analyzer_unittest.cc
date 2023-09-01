@@ -9,6 +9,7 @@
 #include "cast/streaming/statistics.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "platform/base/span.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
@@ -66,16 +67,23 @@ void ExpectStatEq(SenderStats::StatisticsList stats_list,
 // Checks that the first `expected_buckets.size()` entries of `recorded_buckets`
 // matches the entries of `expected_buckets`. Also, checks that the total number
 // of events matches for both vectors.
-void ExpectHistoBuckets(std::vector<int> recorded_buckets,
-                        std::vector<int> expected_buckets) {
+void ExpectHistoBuckets(const SenderStats::HistogramsList& actual_buckets_list,
+                        HistogramType key,
+                        const Span<const int> expected_buckets) {
+  const std::vector<int>& actual_buckets =
+      actual_buckets_list[static_cast<int>(key)].buckets;
+
   for (size_t i = 0; i < expected_buckets.size(); i++) {
-    EXPECT_EQ(recorded_buckets[i], expected_buckets[i]) << "i=" << i;
+    EXPECT_EQ(actual_buckets[i], expected_buckets[i])
+        << GetEnumName(kHistogramTypeNames, key).value() << ", bucket=" << i;
   }
-  int total_recorded_events =
-      std::accumulate(recorded_buckets.begin(), recorded_buckets.end(), 0);
-  int total_expected_events =
+
+  const int total_recorded_events =
+      std::accumulate(actual_buckets.begin(), actual_buckets.end(), 0);
+  const int total_expected_events =
       std::accumulate(expected_buckets.begin(), expected_buckets.end(), 0);
-  EXPECT_EQ(total_recorded_events, total_expected_events);
+  EXPECT_EQ(total_recorded_events, total_expected_events)
+      << GetEnumName(kHistogramTypeNames, key).value();
 }
 
 class FakeSenderStatsClient : public SenderStatsClient {
@@ -254,23 +262,95 @@ TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
         ExpectStatEq(stats.video_statistics, StatisticType::kNumLateFrames,
                      total_late_frames);
 
-        std::vector<int> expected_buckets = {/* <0 */ 0,
-                                             /* 0-19 */ 0,
-                                             /* 20-39 */ 4,
-                                             /* 40-59 */ 4,
-                                             /* 60-79 */ 4,
-                                             /* 80-99 */ 0};
-        std::vector<int> recorded_buckets =
-            stats
-                .video_histograms[static_cast<int>(
-                    HistogramType::kFrameLatenessMs)]
-                .buckets;
-        ExpectHistoBuckets(recorded_buckets, expected_buckets);
+        constexpr std::array<int, 6> kExpectedBuckets = {/* <0 */ 0,
+                                                         /* 0-19 */ 0,
+                                                         /* 20-39 */ 4,
+                                                         /* 40-59 */ 4,
+                                                         /* 60-79 */ 4,
+                                                         /* 80-99 */ 0};
+        ExpectHistoBuckets(stats.video_histograms,
+                           HistogramType::kFrameLatenessMs, kExpectedBuckets);
       }));
 
   fake_clock_.Advance(
       std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
                                 (kDefaultStatIntervalMs * kDefaultNumEvents)));
+}
+
+TEST_F(StatisticsAnalyzerTest, AllFrameEvents) {
+  constexpr std::array<StatisticsEventType, 5> kEventsToReport{
+      StatisticsEventType::kFrameCaptureBegin,
+      StatisticsEventType::kFrameCaptureEnd, StatisticsEventType::kFrameEncoded,
+      StatisticsEventType::kFrameAckSent, StatisticsEventType::kFramePlayedOut};
+  constexpr int kNumFrames = 5;
+  constexpr int kNumEvents = kNumFrames * kEventsToReport.size();
+
+  constexpr int kFramePlayoutDelayDeltasMs[]{10, 14, 3, 40, 1};
+  constexpr int kTimestampOffsetsMs[]{
+      // clang-format off
+      0, 13, 39, 278, 552,  // Frame One.
+      0, 14, 34, 239,373,   // Frame Two.
+      0, 19, 29, 245, 389,  // Frame Three.
+      0, 17, 37, 261, 390,  // Frame Four.
+      0, 14, 44, 290, 440,  // Frame Five.
+      // clang-format on
+  };
+
+  analyzer_->ScheduleAnalysis();
+  RtpTimeTicks rtp_timestamp;
+  int current_event = 0;
+  for (int frame_id = 0; frame_id < kNumFrames; frame_id++) {
+    for (StatisticsEventType event_type : kEventsToReport) {
+      FrameEvent event(kDefaultFrameEvent);
+      event.type = event_type;
+      event.frame_id = FrameId(frame_id);
+      event.rtp_timestamp = rtp_timestamp;
+      event.timestamp =
+          fake_clock_.now() + milliseconds(kTimestampOffsetsMs[current_event]);
+      event.delay_delta = milliseconds(kFramePlayoutDelayDeltasMs[frame_id]);
+      collector_->CollectFrameEvent(std::move(event));
+
+      current_event++;
+    }
+    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs *
+                                                  kEventsToReport.size()));
+    rtp_timestamp += RtpTimeDelta::FromTicks(90);
+  }
+
+  constexpr std::array<std::pair<StatisticType, double>, 7> kExpectedStats{{
+      {StatisticType::kNumLateFrames, 5},
+      {StatisticType::kNumFramesCaptured, 5},
+      {StatisticType::kAvgEndToEndLatencyMs, 428.8},
+      {StatisticType::kAvgCaptureLatencyMs, 15.4},
+      {StatisticType::kAvgFrameLatencyMs, 226},
+      {StatisticType::kAvgEncodeTimeMs, 21.2},
+      {StatisticType::kEnqueueFps, 10},
+  }};
+
+  constexpr std::array<std::pair<HistogramType, std::array<int, 30>>, 4>
+      kExpectedHistograms{{{HistogramType::kCaptureLatencyMs, {0, 5}},
+                           {HistogramType::kEncodeTimeMs, {0, 1, 4}},
+                           {HistogramType::kEndToEndLatencyMs,
+                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 0, 0, 1
+
+                            }},
+                           {HistogramType::kFrameLatenessMs, {0, 4, 0, 1}}}};
+
+  EXPECT_CALL(stats_client_, OnStatisticsUpdated(_))
+      .WillOnce(Invoke([&](const SenderStats& stats) {
+        for (const auto& stat_pair : kExpectedStats) {
+          ExpectStatEq(stats.video_statistics, stat_pair.first,
+                       stat_pair.second);
+        }
+        for (const auto& histogram_pair : kExpectedHistograms) {
+          ExpectHistoBuckets(stats.video_histograms, histogram_pair.first,
+                             histogram_pair.second);
+        }
+      }));
+
+  fake_clock_.Advance(std::chrono::milliseconds(
+      kDefaultStatsAnalysisIntervalMs - (kDefaultStatIntervalMs * kNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
@@ -304,13 +384,13 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
 
   EXPECT_CALL(stats_client_, OnStatisticsUpdated(_))
       .WillOnce(Invoke([&](const SenderStats& stats) {
-        double expected_kbps =
+        constexpr double kExpectedKbps =
             kDefaultSizeBytes * 8 * kDefaultNumEvents /
             static_cast<double>(kDefaultStatsAnalysisIntervalMs);
         ExpectStatEq(stats.video_statistics,
-                     StatisticType::kPacketTransmissionRateKbps, expected_kbps);
+                     StatisticType::kPacketTransmissionRateKbps, kExpectedKbps);
 
-        double expected_avg_queueing_latency =
+        const double expected_avg_queueing_latency =
             static_cast<double>(
                 to_milliseconds(total_queueing_latency).count()) /
             kDefaultNumEvents;
@@ -318,19 +398,15 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
                      StatisticType::kAvgQueueingLatencyMs,
                      expected_avg_queueing_latency);
 
-        std::vector<int> expected_buckets = {/* <0 */ 0,
-                                             /* 0-19 */ 4,
-                                             /* 20-39 */ 4,
-                                             /* 40-59 */ 4,
-                                             /* 60-79 */ 4,
-                                             /* 80-99 */ 4,
-                                             /* 100-119 */ 0};
-        std::vector<int> recorded_buckets =
-            stats
-                .video_histograms[static_cast<int>(
-                    HistogramType::kQueueingLatencyMs)]
-                .buckets;
-        ExpectHistoBuckets(recorded_buckets, expected_buckets);
+        constexpr std::array<int, 7> kExpectedBuckets = {/* <0 */ 0,
+                                                         /* 0-19 */ 4,
+                                                         /* 20-39 */ 4,
+                                                         /* 40-59 */ 4,
+                                                         /* 60-79 */ 4,
+                                                         /* 80-99 */ 4,
+                                                         /* 100-119 */ 0};
+        ExpectHistoBuckets(stats.video_histograms,
+                           HistogramType::kQueueingLatencyMs, kExpectedBuckets);
       }));
 
   fake_clock_.Advance(
@@ -371,7 +447,7 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
 
   EXPECT_CALL(stats_client_, OnStatisticsUpdated(_))
       .WillOnce(Invoke([&](const SenderStats& stats) {
-        double expected_avg_network_latency =
+        const double expected_avg_network_latency =
             static_cast<double>(
                 to_milliseconds(total_network_latency).count()) /
             kDefaultNumEvents;
@@ -379,19 +455,15 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
                      StatisticType::kAvgNetworkLatencyMs,
                      expected_avg_network_latency);
 
-        std::vector<int> expected_buckets = {/* <0 */ 0,
-                                             /* 0-19 */ 4,
-                                             /* 20-39 */ 4,
-                                             /* 40-59 */ 4,
-                                             /* 60-79 */ 4,
-                                             /* 80-99 */ 4,
-                                             /* 100-119 */ 0};
-        std::vector<int> recorded_buckets =
-            stats
-                .video_histograms[static_cast<int>(
-                    HistogramType::kNetworkLatencyMs)]
-                .buckets;
-        ExpectHistoBuckets(recorded_buckets, expected_buckets);
+        constexpr std::array<int, 7> kExpectedBuckets = {/* <0 */ 0,
+                                                         /* 0-19 */ 4,
+                                                         /* 20-39 */ 4,
+                                                         /* 40-59 */ 4,
+                                                         /* 60-79 */ 4,
+                                                         /* 80-99 */ 4,
+                                                         /* 100-119 */ 0};
+        ExpectHistoBuckets(stats.video_histograms,
+                           HistogramType::kNetworkLatencyMs, kExpectedBuckets);
       }));
 
   fake_clock_.Advance(
@@ -447,32 +519,33 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
         ExpectStatEq(stats.video_statistics, StatisticType::kNumPacketsReceived,
                      kDefaultNumEvents);
 
-        double expected_time_since_last_receiver_response = static_cast<double>(
-            to_milliseconds(fake_clock_.now() - last_event_time).count());
+        const double avg_network_delay =
+            stats.video_statistics[static_cast<int>(
+                StatisticType::kAvgNetworkLatencyMs)];
+        const double expected_time_since_last_receiver_response =
+            static_cast<double>(
+                to_milliseconds(fake_clock_.now() - last_event_time).count()) -
+            avg_network_delay;
         ExpectStatEq(stats.video_statistics,
                      StatisticType::kTimeSinceLastReceiverResponseMs,
                      expected_time_since_last_receiver_response);
 
-        double expected_avg_packet_latency =
+        const double expected_avg_packet_latency =
             static_cast<double>(to_milliseconds(total_packet_latency).count()) /
             kDefaultNumEvents;
         ExpectStatEq(stats.video_statistics, StatisticType::kAvgPacketLatencyMs,
                      expected_avg_packet_latency);
 
-        std::vector<int> expected_buckets = {/* <0 */ 0,
-                                             /* 0-19 */ 0,
-                                             /* 20-39 */ 4,
-                                             /* 40-59 */ 4,
-                                             /* 60-79 */ 4,
-                                             /* 80-99 */ 4,
-                                             /* 100-119 */ 4,
-                                             /* 120-139 */ 0};
-        std::vector<int> recorded_buckets =
-            stats
-                .video_histograms[static_cast<int>(
-                    HistogramType::kPacketLatencyMs)]
-                .buckets;
-        ExpectHistoBuckets(recorded_buckets, expected_buckets);
+        constexpr std::array<int, 8> kExpectedBuckets = {/* <0 */ 0,
+                                                         /* 0-19 */ 0,
+                                                         /* 20-39 */ 4,
+                                                         /* 40-59 */ 4,
+                                                         /* 60-79 */ 4,
+                                                         /* 80-99 */ 4,
+                                                         /* 100-119 */ 4,
+                                                         /* 120-139 */ 0};
+        ExpectHistoBuckets(stats.video_histograms,
+                           HistogramType::kPacketLatencyMs, kExpectedBuckets);
       }));
 
   fake_clock_.Advance(

@@ -80,6 +80,10 @@ class StreamingVideoEncoder {
     // bandwidth, CPU time spent encoding, temporal quality trade-offs, and
     // key/golden/alt-ref frame generation intervals.
     Clock::duration duration;
+
+    // Capture related metadata.
+    Clock::time_point capture_begin_time;
+    Clock::time_point capture_end_time;
   };
 
   // Performance statistics for a single frame's encode.

@@ -117,6 +117,8 @@ void StreamingAv1Encoder::EncodeAndSend(
     Clock::time_point reference_time,
     std::function<void(Stats)> stats_callback) {
   WorkUnit work_unit;
+  work_unit.capture_begin_time = frame.capture_begin_time;
+  work_unit.capture_end_time = frame.capture_end_time;
 
   // TODO(jophba): The |VideoFrame| struct should provide the media timestamp,
   // instead of this code inferring it from the reference timestamps, since: 1)
@@ -380,6 +382,8 @@ void StreamingAv1Encoder::SendEncodedFrame(WorkUnitWithResults results) {
     frame.referenced_frame_id = frame.frame_id - 1;
   }
   frame.rtp_timestamp = results.rtp_timestamp;
+  frame.capture_begin_time = results.capture_begin_time;
+  frame.capture_end_time = results.capture_end_time;
   frame.reference_time = results.reference_time;
   frame.data = ByteBuffer(results.payload);
 

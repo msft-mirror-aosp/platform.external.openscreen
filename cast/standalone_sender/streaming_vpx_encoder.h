@@ -81,6 +81,8 @@ class StreamingVpxEncoder : public StreamingVideoEncoder {
   struct WorkUnit {
     VpxImageUniquePtr image;
     Clock::duration duration;
+    Clock::time_point capture_begin_time;
+    Clock::time_point capture_end_time;
     Clock::time_point reference_time;
     RtpTimeTicks rtp_timestamp;
     std::function<void(Stats)> stats_callback;

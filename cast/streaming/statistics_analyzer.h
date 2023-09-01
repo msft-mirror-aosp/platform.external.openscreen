@@ -51,10 +51,10 @@ class StatisticsAnalyzer {
     Clock::duration sum_latency;
   };
 
-  // In the Chromium implementation, this contained more info. This can be
-  // extended with encode_start_time if such a frame event is added.
   struct FrameInfo {
-    Clock::time_point encode_end_time;
+    Clock::time_point capture_begin_time = Clock::time_point::min();
+    Clock::time_point capture_end_time = Clock::time_point::min();
+    Clock::time_point encode_end_time = Clock::time_point::min();
   };
 
   struct PacketInfo {
@@ -134,6 +134,11 @@ class StatisticsAnalyzer {
       const StatisticType stat,
       SenderStats::StatisticsList stats_list,
       const StatisticsEventMediaType media_type);
+  SenderStats::StatisticsList PopulateFrameCountStat(
+      const StatisticsEventType event,
+      const StatisticType stat,
+      SenderStats::StatisticsList stats_list,
+      const StatisticsEventMediaType media_type);
   SenderStats::StatisticsList PopulateFpsStat(
       const StatisticsEventType event,
       const StatisticType stat,
@@ -160,6 +165,12 @@ class StatisticsAnalyzer {
       SenderStats::StatisticsList stats_list,
       const StatisticsEventMediaType media_type,
       const Clock::time_point end_time);
+
+  // Calculates the offset between the sender and receiver clocks and returns
+  // the sender-side version of this receiver timestamp, if possible.
+  absl::optional<Clock::time_point> ToSenderTimestamp(
+      Clock::time_point receiver_timestamp,
+      StatisticsEventMediaType media_type);
 
   // The statistics client to which we report analyzed statistics.
   SenderStatsClient* const stats_client_;
