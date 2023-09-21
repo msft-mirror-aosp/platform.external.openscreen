@@ -383,14 +383,14 @@ void LoopingFileCastAgent::Shutdown() {
   if (current_session_) {
     OSP_LOG_INFO << "Stopping mirroring session...";
     current_session_.reset();
+
+    if (last_reported_statistics_) {
+      OSP_LOG_INFO << "Last reported statistics="
+                   << last_reported_statistics_->ToString();
+    }
   }
   OSP_DCHECK(message_port_.source_id().empty());
   environment_.reset();
-
-  if (last_reported_statistics_) {
-    OSP_LOG_INFO << "Last reported statistics="
-                 << last_reported_statistics_->ToString();
-  }
 
   if (platform_remote_connection_) {
     const VirtualConnection connection = *platform_remote_connection_;

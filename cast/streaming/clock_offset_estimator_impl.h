@@ -39,9 +39,10 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
   void OnFrameEvent(const FrameEvent& frame_event) final;
   void OnPacketEvent(const PacketEvent& packet_event) final;
 
-  bool GetReceiverOffsetBounds(Clock::duration& lower_bound,
-                               Clock::duration& upper_bound) const;
+  bool GetReceiverOffsetBounds(Clock::duration& frame_bound,
+                               Clock::duration& packet_bound) const;
 
+  // Returns the average of the offset bounds for frame and packet events.
   // Returns nullopt if not enough data is in yet to produce an estimate.
   absl::optional<Clock::duration> GetEstimatedOffset() const final;
 
@@ -90,9 +91,9 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
     Clock::duration bound_{};
   };
 
-  // Fixed size storage to store event times for recent frames.
-  BoundCalculator upper_bound_;
-  BoundCalculator lower_bound_;
+  // Fixed size storage to store event times for recent frames and packets.
+  BoundCalculator packet_bound_;
+  BoundCalculator frame_bound_;
 };
 
 }  // namespace cast

@@ -34,28 +34,29 @@ constexpr int kDefaultNumEvents = 20;
 constexpr int kDefaultSizeBytes = 10;
 constexpr int kDefaultStatIntervalMs = 5;
 
-const FrameEvent kDefaultFrameEvent =
-    FrameEvent(FrameId::first(),
-               StatisticsEventType::kFrameEncoded,
-               StatisticsEventMediaType::kVideo,
-               RtpTimeTicks(),
-               640,
-               480,
-               kDefaultSizeBytes,
-               Clock::time_point::min(),
-               std::chrono::milliseconds(20),
-               false,
-               0);
+constexpr FrameEvent kDefaultFrameEvent(FrameId::first(),
+                                        StatisticsEventType::kFrameEncoded,
+                                        StatisticsEventMediaType::kVideo,
+                                        RtpTimeTicks(),
+                                        kDefaultSizeBytes,
+                                        Clock::time_point::min(),
+                                        Clock::time_point::min(),
+                                        640,
+                                        480,
+                                        milliseconds(20),
+                                        false,
+                                        0);
 
-const PacketEvent kDefaultPacketEvent =
-    PacketEvent(0u,
-                100u,
-                RtpTimeTicks(),
-                FrameId::first(),
-                kDefaultSizeBytes,
-                Clock::time_point::min(),
-                StatisticsEventType::kPacketSentToNetwork,
-                StatisticsEventMediaType::kVideo);
+constexpr PacketEvent kDefaultPacketEvent(
+    FrameId::first(),
+    StatisticsEventType::kPacketSentToNetwork,
+    StatisticsEventMediaType::kVideo,
+    RtpTimeTicks(),
+    kDefaultSizeBytes,
+    Clock::time_point::min(),
+    Clock::time_point::min(),
+    0u,
+    100u);
 
 void ExpectStatEq(SenderStats::StatisticsList stats_list,
                   StatisticType stat,
@@ -146,7 +147,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncoded) {
 
     collector_->CollectFrameEvent(event);
     last_event_time = fake_clock_.now();
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -174,14 +175,14 @@ TEST_F(StatisticsAnalyzerTest, FrameEncoded) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
   analyzer_->ScheduleAnalysis();
 
-  Clock::duration total_frame_latency = std::chrono::milliseconds(0);
+  Clock::duration total_frame_latency = milliseconds(0);
   RtpTimeTicks rtp_timestamp;
 
   for (int i = 0; i < kDefaultNumEvents; i++) {
@@ -191,8 +192,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
     event1.timestamp = fake_clock_.now();
 
     // Let random frame delay be anywhere from 20 - 39 ms
-    Clock::duration random_latency =
-        std::chrono::milliseconds(20 + (rand() % 20));
+    Clock::duration random_latency = milliseconds(20 + (rand() % 20));
     total_frame_latency += random_latency;
 
     FrameEvent event2(kDefaultFrameEvent);
@@ -200,10 +200,11 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
     event2.type = StatisticsEventType::kFrameAckSent;
     event2.rtp_timestamp = rtp_timestamp;
     event2.timestamp = fake_clock_.now() + random_latency;
+    event2.received_timestamp = fake_clock_.now() + random_latency * 2;
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectFrameEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -217,8 +218,8 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndAckSent) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
@@ -234,26 +235,26 @@ TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
     event1.timestamp = fake_clock_.now();
 
     // Let random frame delay be anywhere from 20 - 39 ms.
-    Clock::duration random_latency =
-        std::chrono::milliseconds(20 + (rand() % 20));
+    Clock::duration random_latency = milliseconds(20 + (rand() % 20));
 
     // Frames will have delay_deltas of -20, 0, 20, 40, or 60 ms.
-    auto delay_delta = std::chrono::milliseconds(60 - (20 * (i % 5)));
+    auto delay_delta = milliseconds(60 - (20 * (i % 5)));
 
     FrameEvent event2(kDefaultFrameEvent);
     event2.frame_id = FrameId(i);
     event2.type = StatisticsEventType::kFramePlayedOut;
     event2.rtp_timestamp = rtp_timestamp;
     event2.timestamp = fake_clock_.now() + random_latency;
+    event2.received_timestamp = fake_clock_.now() + random_latency * 2;
     event2.delay_delta = delay_delta;
 
-    if (delay_delta > std::chrono::milliseconds(0)) {
+    if (delay_delta > milliseconds(0)) {
       total_late_frames++;
     }
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectFrameEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -273,8 +274,8 @@ TEST_F(StatisticsAnalyzerTest, FramePlayedOut) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, AllFrameEvents) {
@@ -312,8 +313,8 @@ TEST_F(StatisticsAnalyzerTest, AllFrameEvents) {
 
       current_event++;
     }
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs *
-                                                  kEventsToReport.size()));
+    fake_clock_.Advance(
+        milliseconds(kDefaultStatIntervalMs * kEventsToReport.size()));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -349,14 +350,14 @@ TEST_F(StatisticsAnalyzerTest, AllFrameEvents) {
         }
       }));
 
-  fake_clock_.Advance(std::chrono::milliseconds(
-      kDefaultStatsAnalysisIntervalMs - (kDefaultStatIntervalMs * kNumEvents)));
+  fake_clock_.Advance(milliseconds(kDefaultStatsAnalysisIntervalMs -
+                                   (kDefaultStatIntervalMs * kNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
   analyzer_->ScheduleAnalysis();
 
-  Clock::duration total_queueing_latency = std::chrono::milliseconds(0);
+  Clock::duration total_queueing_latency = milliseconds(0);
   RtpTimeTicks rtp_timestamp;
 
   for (int i = 0; i < kDefaultNumEvents; i++) {
@@ -366,8 +367,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
     event1.timestamp = fake_clock_.now();
 
     // Let queueing latency be either 0, 20, 40, 60, or 80 ms.
-    const Clock::duration queueing_latency =
-        std::chrono::milliseconds(80 - (20 * (i % 5)));
+    const Clock::duration queueing_latency = milliseconds(80 - (20 * (i % 5)));
     total_queueing_latency += queueing_latency;
 
     PacketEvent event2(kDefaultPacketEvent);
@@ -378,7 +378,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectPacketEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -410,14 +410,14 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedAndPacketSent) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
   analyzer_->ScheduleAnalysis();
 
-  Clock::duration total_network_latency = std::chrono::milliseconds(0);
+  Clock::duration total_network_latency = milliseconds(0);
   RtpTimeTicks rtp_timestamp;
 
   for (int i = 0; i < kDefaultNumEvents; i++) {
@@ -428,8 +428,7 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
     event1.timestamp = fake_clock_.now();
 
     // Let network latency be either 0, 20, 40, 60, or 80 ms.
-    Clock::duration network_latency =
-        std::chrono::milliseconds(80 - (20 * (i % 5)));
+    Clock::duration network_latency = milliseconds(80 - (20 * (i % 5)));
     total_network_latency += network_latency;
 
     PacketEvent event2(kDefaultPacketEvent);
@@ -437,11 +436,12 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
     event2.rtp_timestamp = rtp_timestamp;
     event2.frame_id = FrameId(i);
     event2.timestamp = fake_clock_.now() + network_latency;
+    event2.received_timestamp = fake_clock_.now() + network_latency * 2;
     event2.type = StatisticsEventType::kPacketReceived;
 
     collector_->CollectPacketEvent(event1);
     collector_->CollectPacketEvent(event2);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -467,14 +467,14 @@ TEST_F(StatisticsAnalyzerTest, PacketSentAndReceived) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
   analyzer_->ScheduleAnalysis();
 
-  Clock::duration total_packet_latency = std::chrono::milliseconds(0);
+  Clock::duration total_packet_latency = milliseconds(0);
   RtpTimeTicks rtp_timestamp;
   Clock::time_point last_event_time;
 
@@ -491,8 +491,7 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
     event2.timestamp = fake_clock_.now();
 
     // Let packet latency be either 20, 40, 60, 80, or 100 ms.
-    Clock::duration packet_latency =
-        std::chrono::milliseconds(100 - (20 * (i % 5)));
+    Clock::duration packet_latency = milliseconds(100 - (20 * (i % 5)));
     total_packet_latency += packet_latency;
     if (fake_clock_.now() + packet_latency > last_event_time) {
       last_event_time = fake_clock_.now() + packet_latency;
@@ -503,12 +502,13 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
     event3.rtp_timestamp = rtp_timestamp;
     event3.frame_id = FrameId(i);
     event3.timestamp = fake_clock_.now() + packet_latency;
+    event3.received_timestamp = fake_clock_.now() + packet_latency * 2;
     event3.type = StatisticsEventType::kPacketReceived;
 
     collector_->CollectFrameEvent(event1);
     collector_->CollectPacketEvent(event2);
     collector_->CollectPacketEvent(event3);
-    fake_clock_.Advance(std::chrono::milliseconds(kDefaultStatIntervalMs));
+    fake_clock_.Advance(milliseconds(kDefaultStatIntervalMs));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -519,13 +519,11 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
         ExpectStatEq(stats.video_statistics, StatisticType::kNumPacketsReceived,
                      kDefaultNumEvents);
 
-        const double avg_network_delay =
-            stats.video_statistics[static_cast<int>(
-                StatisticType::kAvgNetworkLatencyMs)];
         const double expected_time_since_last_receiver_response =
             static_cast<double>(
-                to_milliseconds(fake_clock_.now() - last_event_time).count()) -
-            avg_network_delay;
+                (to_milliseconds(fake_clock_.now() - last_event_time) -
+                 milliseconds(25))
+                    .count());
         ExpectStatEq(stats.video_statistics,
                      StatisticType::kTimeSinceLastReceiverResponseMs,
                      expected_time_since_last_receiver_response);
@@ -549,8 +547,8 @@ TEST_F(StatisticsAnalyzerTest, FrameEncodedPacketSentAndReceived) {
       }));
 
   fake_clock_.Advance(
-      std::chrono::milliseconds(kDefaultStatsAnalysisIntervalMs -
-                                (kDefaultStatIntervalMs * kDefaultNumEvents)));
+      milliseconds(kDefaultStatsAnalysisIntervalMs -
+                   (kDefaultStatIntervalMs * kDefaultNumEvents)));
 }
 
 TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
@@ -560,8 +558,8 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
   const int frame_interval_ms = 2;
 
   RtpTimeTicks rtp_timestamp;
-  Clock::duration total_audio_packet_latency = std::chrono::milliseconds(0);
-  Clock::duration total_video_packet_latency = std::chrono::milliseconds(0);
+  Clock::duration total_audio_packet_latency = milliseconds(0);
+  Clock::duration total_video_packet_latency = milliseconds(0);
   int total_audio_events = 0;
   int total_video_events = 0;
 
@@ -581,12 +579,11 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
     event2.packet_id = static_cast<uint16_t>(i);
     event2.rtp_timestamp = rtp_timestamp;
     event2.frame_id = FrameId(i);
-    event2.timestamp = fake_clock_.now() + std::chrono::milliseconds(5);
+    event2.timestamp = fake_clock_.now() + milliseconds(5);
     event2.media_type = media_type;
 
     // Let packet latency be either 20, 40, 60, 80, or 100 ms.
-    Clock::duration packet_latency =
-        std::chrono::milliseconds(100 - (20 * (i % 5)));
+    Clock::duration packet_latency = milliseconds(100 - (20 * (i % 5)));
     if (media_type == StatisticsEventMediaType::kAudio) {
       total_audio_events++;
       total_audio_packet_latency += packet_latency;
@@ -606,7 +603,7 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
     collector_->CollectFrameEvent(event1);
     collector_->CollectPacketEvent(event2);
     collector_->CollectPacketEvent(event3);
-    fake_clock_.Advance(std::chrono::milliseconds(frame_interval_ms));
+    fake_clock_.Advance(milliseconds(frame_interval_ms));
     rtp_timestamp += RtpTimeDelta::FromTicks(90);
   }
 
@@ -635,8 +632,8 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
                      expected_video_avg_packet_latency);
       }));
 
-  fake_clock_.Advance(std::chrono::milliseconds(
-      kDefaultStatsAnalysisIntervalMs - (frame_interval_ms * num_events)));
+  fake_clock_.Advance(milliseconds(kDefaultStatsAnalysisIntervalMs -
+                                   (frame_interval_ms * num_events)));
 }
 
 }  // namespace cast

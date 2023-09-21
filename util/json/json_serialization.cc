@@ -37,10 +37,6 @@ ErrorOr<Json::Value> Parse(absl::string_view document) {
 }
 
 ErrorOr<std::string> Stringify(const Json::Value& value) {
-  if (value.empty()) {
-    return ErrorOr<std::string>(Error::Code::kJsonWriteError, "Empty value");
-  }
-
   Json::StreamWriterBuilder factory;
 #ifndef _DEBUG
   // Default is to "pretty print" the output JSON in a human readable
