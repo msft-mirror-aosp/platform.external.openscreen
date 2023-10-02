@@ -29,8 +29,7 @@
 #include "util/std_util.h"
 #include "util/stringprintf.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -155,5 +154,4 @@ TEST_P(ReceiverValidationTest, ExampleReceiverMessages) {
   EXPECT_TRUE(message_root.is_value());
   EXPECT_TRUE(ValidateReceiverMessage(message_root.value()).empty());
 }
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

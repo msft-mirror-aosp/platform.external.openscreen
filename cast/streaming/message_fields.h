@@ -11,8 +11,7 @@
 #include "cast/streaming/constants.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 /// NOTE: Constants here are all taken from the Cast V2: Mirroring Control
 /// Protocol specification.
@@ -52,7 +51,6 @@ ErrorOr<AudioCodec> StringToAudioCodec(absl::string_view name);
 const char* CodecToString(VideoCodec codec);
 ErrorOr<VideoCodec> StringToVideoCodec(absl::string_view name);
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_MESSAGE_FIELDS_H_

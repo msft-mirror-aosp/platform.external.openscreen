@@ -14,8 +14,7 @@
 #include "platform/api/task_runner.h"
 #include "platform/base/trivial_clock_traits.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 // Minimum delay between announcements of a given record in seconds.
@@ -369,5 +368,4 @@ Clock::duration MdnsPublisher::RecordAnnouncer::GetNextAnnounceDelay() {
                             pow(kIntervalIncreaseFactor, attempts_));
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

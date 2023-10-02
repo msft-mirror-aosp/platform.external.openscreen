@@ -16,8 +16,7 @@
 #include "platform/api/time.h"
 #include "util/alarm.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class StatisticsAnalyzer {
  public:
@@ -212,7 +211,6 @@ class StatisticsAnalyzer {
   AVPair<SenderStats::HistogramsList> histograms_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_STATISTICS_ANALYZER_H_

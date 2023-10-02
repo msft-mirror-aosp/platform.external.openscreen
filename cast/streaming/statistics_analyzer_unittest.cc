@@ -24,8 +24,7 @@ using testing::Return;
 using testing::Sequence;
 using testing::StrictMock;
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -636,5 +635,4 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
                                    (frame_interval_ms * num_events)));
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

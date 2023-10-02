@@ -17,8 +17,7 @@
 #include "util/std_util.h"
 #include "util/trace_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 using clock_operators::operator<<;
 
@@ -479,5 +478,4 @@ constexpr milliseconds Receiver::kDefaultPlayerProcessingTime;
 constexpr int Receiver::kNoFramesReady;
 constexpr milliseconds Receiver::kNackFeedbackInterval;
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -15,8 +15,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 CompoundRtcpBuilder::CompoundRtcpBuilder(RtcpSession* session)
     : session_(session) {
@@ -319,5 +318,4 @@ void CompoundRtcpBuilder::AppendCastFeedbackAckFields(ByteBuffer& buffer) {
   acks_for_next_packet_.clear();
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

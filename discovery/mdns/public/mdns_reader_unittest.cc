@@ -12,8 +12,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 namespace {
 
@@ -733,5 +732,4 @@ TEST(MdnsReaderTest, ReadMdnsMessage_MissingAdditionalRecord) {
   TestReadEntryFails<MdnsMessage>(kInvalidMessage, sizeof(kInvalidMessage));
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

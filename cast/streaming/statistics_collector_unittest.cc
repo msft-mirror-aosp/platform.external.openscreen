@@ -14,8 +14,7 @@
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class StatisticsCollectorTest : public ::testing::Test {
  public:
@@ -141,5 +140,4 @@ TEST_F(StatisticsCollectorTest, CanCollectFrameEvents) {
   EXPECT_EQ(kEventTwo, events[1]);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

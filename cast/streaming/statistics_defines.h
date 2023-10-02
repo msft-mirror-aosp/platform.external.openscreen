@@ -14,8 +14,7 @@
 #include "platform/api/time.h"
 #include "util/enum_name_table.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 enum class StatisticsEventType : int {
   kUnknown = 0,
@@ -194,7 +193,6 @@ struct PacketEvent : public StatisticsEvent {
   uint16_t max_packet_id = 0;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_STATISTICS_DEFINES_H_

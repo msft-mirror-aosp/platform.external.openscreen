@@ -15,8 +15,7 @@
 #include "cast/common/channel/virtual_connection.h"
 #include "cast/common/public/cast_socket.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class CastMessageHandler;
 class ConnectionNamespaceHandler;
@@ -139,7 +138,6 @@ class VirtualConnectionRouter final : public CastSocket::Client {
   std::map<std::string /* local_id */, CastMessageHandler*> endpoints_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_COMMON_CHANNEL_VIRTUAL_CONNECTION_ROUTER_H_

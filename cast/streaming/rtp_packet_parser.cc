@@ -10,8 +10,7 @@
 #include "cast/streaming/packet_util.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 RtpPacketParser::RtpPacketParser(Ssrc sender_ssrc)
     : sender_ssrc_(sender_ssrc), highest_rtp_frame_id_(FrameId::first()) {}
@@ -111,5 +110,4 @@ absl::optional<RtpPacketParser::ParseResult> RtpPacketParser::Parse(
 RtpPacketParser::ParseResult::ParseResult() = default;
 RtpPacketParser::ParseResult::~ParseResult() = default;
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

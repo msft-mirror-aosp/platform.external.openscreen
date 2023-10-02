@@ -7,8 +7,7 @@
 #include "cast/streaming/packet_util.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 SenderReportParser::SenderReportWithId::SenderReportWithId() = default;
 SenderReportParser::SenderReportWithId::~SenderReportWithId() = default;
@@ -71,5 +70,4 @@ SenderReportParser::Parse(ByteView buffer) {
   return sender_report;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

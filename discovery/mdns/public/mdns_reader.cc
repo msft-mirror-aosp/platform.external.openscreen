@@ -12,8 +12,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 bool TryParseDnsType(uint16_t to_parse, DnsType* type) {
@@ -467,5 +466,4 @@ bool MdnsReader::Read(NsecBitMapField* out) {
   return false;
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

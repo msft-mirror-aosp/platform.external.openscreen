@@ -12,8 +12,7 @@
 #include "absl/strings/match.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace testing {
 
 SignatureTestData::SignatureTestData() = default;
@@ -56,5 +55,4 @@ SignatureTestData ReadSignatureTestData(absl::string_view filename) {
 }
 
 }  // namespace testing
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -19,8 +19,7 @@
 #include "cast/streaming/statistics_defines.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 struct RtcpCommonHeader {
   RtcpCommonHeader();
@@ -199,7 +198,6 @@ struct RtcpReceiverFrameLogMessage {
   std::vector<RtcpReceiverEventLogMessage> messages;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_RTCP_COMMON_H_

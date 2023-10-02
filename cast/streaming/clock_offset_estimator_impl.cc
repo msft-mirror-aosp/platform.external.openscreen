@@ -10,8 +10,7 @@
 
 #include "platform/base/trivial_clock_traits.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 // The lower this is, the faster we adjust to clock drift (but with more
@@ -173,5 +172,4 @@ void ClockOffsetEstimatorImpl::BoundCalculator::CheckUpdate(uint64_t key) {
   }
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

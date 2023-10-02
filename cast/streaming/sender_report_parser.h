@@ -12,8 +12,7 @@
 #include "cast/streaming/rtp_time.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // Parses RTCP packets from a Sender to extract Sender Reports. Ignores anything
 // else, since that is all a Receiver would be interested in.
@@ -45,7 +44,6 @@ class SenderReportParser {
   RtpTimeTicks last_parsed_rtp_timestamp_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_SENDER_REPORT_PARSER_H_

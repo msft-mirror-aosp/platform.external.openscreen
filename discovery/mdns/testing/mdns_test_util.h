@@ -11,8 +11,7 @@
 #include "absl/strings/string_view.h"
 #include "discovery/mdns/public/mdns_records.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 const IPAddress kFakeARecordAddress = IPAddress(192, 168, 0, 0);
 const IPAddress kFakeAAAARecordAddress = IPAddress(1, 2, 3, 4, 5, 6, 7, 8);
@@ -38,7 +37,6 @@ MdnsRecord GetFakeAAAARecord(
     const DomainName& name,
     std::chrono::seconds ttl = std::chrono::seconds(1));
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_MDNS_TESTING_MDNS_TEST_UTIL_H_

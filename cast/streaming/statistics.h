@@ -18,8 +18,7 @@
 #include "platform/api/time.h"
 #include "util/enum_name_table.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 enum class StatisticType {
   // Frame enqueuing rate.
@@ -195,7 +194,6 @@ class SenderStatsClient {
   virtual ~SenderStatsClient();
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_STATISTICS_H_

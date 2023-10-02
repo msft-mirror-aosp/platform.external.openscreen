@@ -15,8 +15,7 @@
 #include "platform/api/task_runner.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 static constexpr char kLocalDomain[] = "local";
@@ -468,5 +467,4 @@ ErrorOr<std::vector<PendingQueryChange>> QuerierImpl::ApplyRecordChanges(
   return pending_changes;
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

@@ -20,8 +20,7 @@
 
 // TODO(crbug.com/openscreen/27): Address TODOs in this file
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 namespace {
 
@@ -290,5 +289,4 @@ Connection* ConnectionManager::GetConnection(uint64_t connection_id) {
   return nullptr;
 }
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp

@@ -34,8 +34,7 @@ namespace Json {
 class Value;
 }
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // A single-use sender-side Cast Agent that manages the workflow for a mirroring
 // session, casting the content from a local file indefinitely. After being
@@ -211,7 +210,6 @@ class LoopingFileCastAgent final
   absl::optional<SenderStats> last_reported_statistics_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STANDALONE_SENDER_LOOPING_FILE_CAST_AGENT_H_

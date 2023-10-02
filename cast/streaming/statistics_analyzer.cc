@@ -9,8 +9,7 @@
 #include "platform/base/trivial_clock_traits.h"
 #include "util/chrono_helpers.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -573,5 +572,4 @@ void StatisticsAnalyzer::RecordEstimatedNetworkLatency(
       latency * kWeight + estimated_network_latency_ * (1.0 - kWeight));
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

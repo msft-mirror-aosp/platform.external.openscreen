@@ -20,8 +20,7 @@
 #include "platform/base/macros.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 class ProtocolConnection;
 
@@ -215,7 +214,6 @@ class ConnectionManager final : public MessageDemuxer::MessageCallback {
   OSP_DISALLOW_COPY_AND_ASSIGN(ConnectionManager);
 };
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp
 
 #endif  // OSP_PUBLIC_PRESENTATION_PRESENTATION_CONNECTION_H_

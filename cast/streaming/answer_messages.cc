@@ -13,8 +13,7 @@
 #include "util/enum_name_table.h"
 #include "util/json/json_helpers.h"
 #include "util/osp_logging.h"
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -411,5 +410,4 @@ Json::Value Answer::ToJson() const {
   return root;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -4,8 +4,7 @@
 
 #include "cast/streaming/statistics_defines.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 const EnumNameTable<StatisticsEventType,
                     static_cast<size_t>(StatisticsEventType::kNumOfEvents)>
@@ -71,5 +70,4 @@ bool PacketEvent::operator==(const PacketEvent& other) const {
          max_packet_id == other.max_packet_id;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

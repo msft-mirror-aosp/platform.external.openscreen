@@ -13,8 +13,7 @@
 #include "util/json/json_serialization.h"
 #include "util/stringprintf.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -171,5 +170,4 @@ std::string SenderStats::ToString() const {
 
 SenderStatsClient::~SenderStatsClient() {}
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

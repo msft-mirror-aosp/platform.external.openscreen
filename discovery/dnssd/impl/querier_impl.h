@@ -24,8 +24,7 @@
 #include "discovery/mdns/public/mdns_records.h"
 #include "discovery/mdns/public/mdns_service.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 class NetworkInterfaceConfig;
 class ReportingClient;
@@ -78,7 +77,6 @@ class QuerierImpl : public DnsSdQuerier, public MdnsRecordChangedCallback {
   ReportingClient* reporting_client_;
 };
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_DNSSD_IMPL_QUERIER_IMPL_H_

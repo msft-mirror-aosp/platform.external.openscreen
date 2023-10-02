@@ -11,8 +11,7 @@
 #include "absl/strings/string_view.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 class DomainName;
 class MdnsRecord;
@@ -93,7 +92,6 @@ inline bool operator!=(const ServiceKey& lhs, const ServiceKey& rhs) {
   return !(lhs == rhs);
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_DNSSD_IMPL_SERVICE_KEY_H_

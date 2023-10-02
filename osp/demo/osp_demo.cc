@@ -75,8 +75,7 @@ void SignalThings() {
 
 }  // namespace
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 class DemoListenerObserver final : public ServiceListener::Observer {
  public:
@@ -574,8 +573,7 @@ void PublisherDemo(absl::string_view friendly_name) {
   CleanupPublisherDemo(network_service);
 }
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp
 
 struct InputArgs {
   absl::string_view friendly_server_name;

@@ -10,8 +10,7 @@
 #include "discovery/dnssd/impl/instance_key.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 ErrorOr<DnsSdInstanceEndpoint> CreateEndpoint(
@@ -587,5 +586,4 @@ DnsDataGraphImpl::DomainGroup DnsDataGraph::GetDomainGroup(
   return GetDomainGroup(record.dns_type());
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

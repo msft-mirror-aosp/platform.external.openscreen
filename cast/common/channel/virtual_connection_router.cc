@@ -12,8 +12,7 @@
 #include "cast/common/channel/proto/cast_channel.pb.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 using ::cast::channel::CastMessage;
 
@@ -233,5 +232,4 @@ void VirtualConnectionRouter::OnMessage(CastSocket* socket,
   }
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

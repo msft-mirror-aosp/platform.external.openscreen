@@ -16,8 +16,7 @@
 #include "util/crypto/sha2.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 std::string* AddRevokedPublicKeyHash(TbsCrl* tbs_crl, X509* cert) {
@@ -225,8 +224,7 @@ int CastMain() {
 }
 
 }  // namespace
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 int main() {
   return openscreen::cast::CastMain();

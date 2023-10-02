@@ -17,8 +17,7 @@
 #include "util/osp_logging.h"
 #include "util/span_util.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 enum CrlVersion {
@@ -200,5 +199,4 @@ std::unique_ptr<CastCRL> ParseAndVerifyCRL(const std::string& crl_proto,
   return nullptr;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

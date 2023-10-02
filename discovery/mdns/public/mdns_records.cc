@@ -16,8 +16,7 @@
 #include "absl/strings/str_join.h"
 #include "discovery/mdns/public/mdns_writer.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 namespace {
 
@@ -934,5 +933,4 @@ bool CanBeProcessed(DnsType type) {
   return false;
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

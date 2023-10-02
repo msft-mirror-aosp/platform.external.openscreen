@@ -14,8 +14,7 @@
 #include "cast/streaming/rtp_defines.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class RtcpSession;
 
@@ -130,7 +129,6 @@ class CompoundRtcpParser {
   RtpTimeTicks latest_frame_log_rtp_timestamp_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_COMPOUND_RTCP_PARSER_H_

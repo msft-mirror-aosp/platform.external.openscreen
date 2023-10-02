@@ -8,8 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace testing {
 
 class SignatureTestData {
@@ -25,7 +24,6 @@ class SignatureTestData {
 SignatureTestData ReadSignatureTestData(absl::string_view filename);
 
 }  // namespace testing
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_COMMON_CERTIFICATE_TESTING_TEST_HELPERS_H_

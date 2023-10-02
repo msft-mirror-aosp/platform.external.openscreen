@@ -15,8 +15,7 @@
 #include "platform/api/time.h"
 #include "util/alarm.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class Environment;
 
@@ -224,7 +223,6 @@ class SimulatedVideoCapturer final : public SimulatedCapturer {
                            Clock::time_point reference_time) final;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STANDALONE_SENDER_SIMULATED_CAPTURER_H_

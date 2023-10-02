@@ -23,8 +23,7 @@
 #include "util/osp_logging.h"
 #include "util/stringprintf.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -436,5 +435,4 @@ bool Offer::IsValid() const {
          std::all_of(video_streams.begin(), video_streams.end(),
                      [](const VideoStream& v) { return v.IsValid(); });
 }
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

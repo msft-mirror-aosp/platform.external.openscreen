@@ -16,8 +16,7 @@
 #include "cast/streaming/environment.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 using clock_operators::operator<<;
 
@@ -418,5 +417,4 @@ void SimulatedVideoCapturer::DeliverDataToClient(
                         reference_time);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

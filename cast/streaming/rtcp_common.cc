@@ -10,8 +10,7 @@
 #include "cast/streaming/packet_util.h"
 #include "util/saturate_cast.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 RtcpCommonHeader::RtcpCommonHeader() = default;
 RtcpCommonHeader::~RtcpCommonHeader() = default;
@@ -241,5 +240,4 @@ absl::optional<RtcpReportBlock> RtcpReportBlock::ParseOne(ByteView buffer,
 RtcpSenderReport::RtcpSenderReport() = default;
 RtcpSenderReport::~RtcpSenderReport() = default;
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

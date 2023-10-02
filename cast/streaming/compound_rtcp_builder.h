@@ -16,8 +16,7 @@
 #include "cast/streaming/rtp_defines.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class RtcpSession;
 
@@ -131,7 +130,6 @@ class CompoundRtcpBuilder {
   uint8_t feedback_count_ = 0;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_COMPOUND_RTCP_BUILDER_H_

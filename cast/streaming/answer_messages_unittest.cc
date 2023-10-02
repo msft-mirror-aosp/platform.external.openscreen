@@ -12,8 +12,7 @@
 #include "util/chrono_helpers.h"
 #include "util/json/json_serialization.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -619,5 +618,4 @@ TEST(AnswerMessagesTest, DisplayDescriptionIsValid) {
 // Instead of being tested here, Answer's IsValid is checked in all other
 // relevant tests.
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

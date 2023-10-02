@@ -53,8 +53,7 @@ using testing::Return;
 using testing::Sequence;
 using testing::StrictMock;
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 // Sender configuration.
@@ -1206,5 +1205,4 @@ TEST_F(SenderTest, ResendsMissingFrames) {
 }
 
 }  // namespace
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

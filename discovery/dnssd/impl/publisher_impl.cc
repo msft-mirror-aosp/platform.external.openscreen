@@ -19,8 +19,7 @@
 #include "platform/base/error.h"
 #include "util/trace_logging.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 DnsSdInstanceEndpoint CreateEndpoint(
@@ -306,5 +305,4 @@ void PublisherImpl::OnDomainFound(const DomainName& requested_name,
   client->OnEndpointClaimed(pair.first->first, pair.first->second);
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

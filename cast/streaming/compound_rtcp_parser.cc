@@ -13,8 +13,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -510,5 +509,4 @@ void CompoundRtcpParser::Client::OnReceiverHasFrames(
 void CompoundRtcpParser::Client::OnReceiverIsMissingPackets(
     std::vector<PacketNack> nacks) {}
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

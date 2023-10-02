@@ -21,8 +21,7 @@
 #include "platform/test/paths.h"
 #include "testing/util/read_file.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 using ::cast::channel::CastMessage;
@@ -201,5 +200,4 @@ TEST_F(DeviceAuthTest, BadCrlSignature) {
 }
 
 }  // namespace
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

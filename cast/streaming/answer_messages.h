@@ -21,8 +21,7 @@
 #include "platform/base/error.h"
 #include "util/simple_fraction.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // For each of the below classes, though a number of methods are shared, the use
 // of a shared base class has intentionally been avoided. This is to improve
@@ -118,7 +117,6 @@ struct Answer {
   std::vector<std::string> rtp_extensions = {};
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_ANSWER_MESSAGES_H_

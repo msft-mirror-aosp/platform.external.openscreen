@@ -14,8 +14,7 @@
 #include "json/value.h"
 #include "util/simple_fraction.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // A resolution in pixels.
 struct Resolution {
@@ -64,7 +63,6 @@ struct Dimensions {
   SimpleFraction frame_rate{0, 1};
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_RESOLUTION_H_

@@ -19,8 +19,7 @@
 #include "util/osp_logging.h"
 #include "util/stringprintf.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -281,5 +280,4 @@ ErrorOr<Json::Value> ReceiverMessage::ToJson() const {
   return root;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

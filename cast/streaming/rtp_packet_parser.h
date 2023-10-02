@@ -14,8 +14,7 @@
 #include "cast/streaming/ssrc.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // Parses RTP packets for all frames in the same Cast RTP stream. One
 // RtpPacketParser instance should be used for all RTP packets having the same
@@ -72,7 +71,6 @@ class RtpPacketParser {
   FrameId highest_rtp_frame_id_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_RTP_PACKET_PARSER_H_

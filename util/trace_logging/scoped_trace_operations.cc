@@ -11,8 +11,7 @@
 
 #if defined(ENABLE_TRACE_LOGGING)
 
-namespace openscreen {
-namespace internal {
+namespace openscreen::internal {
 
 // static
 bool ScopedTraceOperation::TraceAsyncEnd(const uint32_t line,
@@ -134,7 +133,6 @@ AsynchronousTraceLogger::~AsynchronousTraceLogger() {
 
 TraceIdSetter::~TraceIdSetter() = default;
 
-}  // namespace internal
-}  // namespace openscreen
+}  // namespace openscreen::internal
 
 #endif  // defined(ENABLE_TRACE_LOGGING)

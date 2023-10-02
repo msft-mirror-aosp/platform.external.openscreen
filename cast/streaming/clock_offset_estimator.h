@@ -12,8 +12,7 @@
 #include "cast/streaming/statistics_defines.h"
 #include "platform/base/trivial_clock_traits.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // Used to estimate the offset between the Sender and Receiver clocks.
 class ClockOffsetEstimator {
@@ -32,7 +31,6 @@ class ClockOffsetEstimator {
   virtual absl::optional<Clock::duration> GetEstimatedOffset() const = 0;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_CLOCK_OFFSET_ESTIMATOR_H_

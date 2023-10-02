@@ -14,8 +14,7 @@
 
 using ::testing::ElementsAre;
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -707,5 +706,4 @@ TEST(OfferTest, FailsIfUnencrypted) {
                        Error::Code::kUnencryptedOffer);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

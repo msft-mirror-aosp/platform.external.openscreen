@@ -16,8 +16,7 @@
 #include "util/osp_logging.h"
 #include "util/trace_logging.h"
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 UdpTransport::UdpTransport(UdpSocket* socket, const IPEndpoint& destination)
     : socket_(socket), destination_(destination) {
@@ -153,5 +152,4 @@ void QuicConnectionImpl::OnConnectionClosed(
   delegate_->OnConnectionClosed(session_->connection_id());
 }
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp

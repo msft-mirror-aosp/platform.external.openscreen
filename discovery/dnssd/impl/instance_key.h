@@ -11,8 +11,7 @@
 #include "absl/strings/string_view.h"
 #include "discovery/dnssd/impl/service_key.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 class DnsSdInstance;
 class DomainName;
@@ -94,7 +93,6 @@ inline bool operator!=(const InstanceKey& lhs, const InstanceKey& rhs) {
   return !(lhs == rhs);
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_DNSSD_IMPL_INSTANCE_KEY_H_

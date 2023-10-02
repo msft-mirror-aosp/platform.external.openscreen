@@ -14,8 +14,7 @@
 #include "platform/test/fake_clock.h"
 #include "util/chrono_helpers.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class ClockOffsetEstimatorImplTest : public ::testing::Test {
  public:
@@ -375,5 +374,4 @@ TEST_F(ClockOffsetEstimatorImplTest, MultipleIterations) {
   EXPECT_GT(packet_bound, kTrueOffset);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

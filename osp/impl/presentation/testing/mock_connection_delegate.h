@@ -10,8 +10,7 @@
 #include "gmock/gmock.h"
 #include "osp/public/presentation/presentation_connection.h"
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 class MockConnectionDelegate : public Connection::Delegate {
  public:
@@ -26,7 +25,6 @@ class MockConnectionDelegate : public Connection::Delegate {
   MOCK_METHOD1(OnBinaryMessage, void(const std::vector<uint8_t>& data));
 };
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp
 
 #endif  // OSP_IMPL_PRESENTATION_TESTING_MOCK_CONNECTION_DELEGATE_H_

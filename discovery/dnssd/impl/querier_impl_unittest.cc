@@ -23,8 +23,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 namespace {
 
 NetworkInterfaceIndex kNetworkInterface = 0;
@@ -653,5 +652,4 @@ TEST_F(DnsSdQuerierImplTest, MixOfErrorsAndSuccessesHandledCorrectly) {
                             RecordChangedEvent::kCreated);
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

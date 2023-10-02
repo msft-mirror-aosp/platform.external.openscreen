@@ -1518,8 +1518,7 @@ bool WriteHeaderPrologue(int fd, const std::string& header_filename) {
 
 #include "third_party/tinycbor/src/src/cbor.h"
 
-namespace openscreen {
-namespace msgs {
+namespace openscreen::msgs {
 
 enum CborErrors {
   kParserEOF = -CborErrorUnexpectedEOF,
@@ -1567,8 +1566,7 @@ class CborEncodeBuffer {
 CborError ExpectKey(CborValue* it, const uint64_t key);
 CborError ExpectKey(CborValue* it, const char* key, size_t key_length);
 
-}  // namespace msgs
-}  // namespace openscreen
+}  // namespace openscreen::msgs
 #endif  // %s)";
   std::string header_guard = ToHeaderGuard(header_filename);
   dprintf(fd, epilogue, header_guard.c_str());
@@ -1582,8 +1580,7 @@ bool WriteSourcePrologue(int fd, const std::string& header_filename) {
 #include "third_party/tinycbor/src/src/utf8_p.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace msgs {
+namespace openscreen::msgs {
 namespace {
 
 /*
@@ -1707,8 +1704,7 @@ bool IsError(ssize_t x) {
 
 bool WriteSourceEpilogue(int fd) {
   static const char epilogue[] = R"(
-}  // namespace msgs
-}  // namespace openscreen)";
+}  // namespace openscreen::msgs)";
   dprintf(fd, epilogue);
   return true;
 }

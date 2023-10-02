@@ -12,8 +12,7 @@
 #include "util/big_endian.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 // static
 // Decodes a varUint, expecting it to follow the encoding format described here:
@@ -286,5 +285,4 @@ void StopWatching(MessageDemuxer::MessageWatch* watch) {
   *watch = MessageDemuxer::MessageWatch();
 }
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp

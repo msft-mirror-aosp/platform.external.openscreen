@@ -23,8 +23,7 @@
 #include "platform/base/ip_address.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 bool IsValidDomainLabel(absl::string_view label);
 
@@ -652,7 +651,6 @@ bool CanBeQueried(DnsType type);
 // should be processed.
 bool CanBeProcessed(DnsType type);
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_MDNS_PUBLIC_MDNS_RECORDS_H_

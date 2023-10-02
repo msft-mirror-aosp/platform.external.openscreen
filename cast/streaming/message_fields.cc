@@ -10,8 +10,7 @@
 #include "util/enum_name_table.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 constexpr EnumNameTable<AudioCodec, 3> kAudioCodecNames{
@@ -45,5 +44,4 @@ ErrorOr<VideoCodec> StringToVideoCodec(absl::string_view name) {
   return GetEnum(kVideoCodecNames, name);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

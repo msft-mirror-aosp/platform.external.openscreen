@@ -32,8 +32,7 @@
 #include "util/osp_logging.h"
 #include "util/serial_delete_ptr.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 using ::testing::_;
@@ -299,5 +298,4 @@ TEST_F(CastSocketE2ETest, ReceiverClose) {
                          sender_client_.get());
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

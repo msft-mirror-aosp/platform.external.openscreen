@@ -26,8 +26,7 @@
 #include "platform/base/span.h"
 #include "util/yet_another_bit_vector.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class Environment;
 
@@ -342,7 +341,6 @@ class Sender final : public SenderPacketRouter::Sender,
   std::vector<FrameId> pending_cancellations_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_SENDER_H_

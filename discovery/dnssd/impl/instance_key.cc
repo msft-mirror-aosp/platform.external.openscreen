@@ -14,8 +14,7 @@
 #include "discovery/mdns/public/mdns_constants.h"
 #include "discovery/mdns/public/mdns_records.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 InstanceKey::InstanceKey(const MdnsRecord& record)
     : InstanceKey(GetDomainName(record)) {}
@@ -50,5 +49,4 @@ DomainName InstanceKey::GetName() const {
   return DomainName(std::move(labels));
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

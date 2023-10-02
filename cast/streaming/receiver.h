@@ -31,8 +31,7 @@
 #include "platform/base/span.h"
 #include "util/alarm.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 struct EncodedFrame;
 class ReceiverPacketRouter;
@@ -306,7 +305,6 @@ class Receiver : public ReceiverBase {
   static constexpr std::chrono::milliseconds kNackFeedbackInterval{30};
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_RECEIVER_H_

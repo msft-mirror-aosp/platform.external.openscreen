@@ -8,8 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 TxtRecordRdata MakeTxtRecord(std::initializer_list<absl::string_view> strings) {
   return TxtRecordRdata(MakeTxtEntries(strings));
@@ -62,5 +61,4 @@ MdnsRecord GetFakeAAAARecord(const DomainName& name, std::chrono::seconds ttl) {
                     ttl, std::move(rdata));
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

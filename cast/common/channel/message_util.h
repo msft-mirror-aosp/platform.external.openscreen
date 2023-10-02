@@ -15,8 +15,7 @@ namespace Json {
 class Value;
 }
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // Reserved message namespaces for internal messages.
 static constexpr char kCastInternalNamespacePrefix[] =
@@ -225,7 +224,6 @@ std::string ToString(const ::cast::channel::CastMessage& message);
 // Helper to get the actual message payload out of a cast message.
 const std::string& GetPayload(const ::cast::channel::CastMessage& message);
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_COMMON_CHANNEL_MESSAGE_UTIL_H_

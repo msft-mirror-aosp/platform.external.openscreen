@@ -22,8 +22,7 @@
 #include "util/flat_map.h"
 #include "util/weak_ptr.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // A message port interface designed specifically for use by the Receiver
 // and Sender session classes.
@@ -136,7 +135,6 @@ class ReceiverSessionMessenger final : public SessionMessenger {
   FlatMap<SenderMessage::Type, RequestCallback> callbacks_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_SESSION_MESSENGER_H_

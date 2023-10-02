@@ -9,8 +9,7 @@
 #include "absl/strings/string_view.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 // Parse the data in |time| at |index| as a two-digit ascii number. Note this
@@ -122,5 +121,4 @@ ErrorOr<DateTime> GetNotAfterTime(X509* cert) {
   return result;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

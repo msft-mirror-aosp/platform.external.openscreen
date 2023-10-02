@@ -15,8 +15,7 @@
 #include "json/value.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 enum class MediaCapability {
   kAudio,
@@ -109,7 +108,6 @@ struct ReceiverMessage {
       body;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_RECEIVER_MESSAGE_H_

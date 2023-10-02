@@ -14,8 +14,7 @@
 #include "platform/base/error.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace json {
+namespace openscreen::json {
 
 ErrorOr<Json::Value> Parse(absl::string_view document) {
   Json::CharReaderBuilder builder;
@@ -60,5 +59,4 @@ ErrorOr<std::string> Stringify(const Json::Value& value) {
   return stream.str();
 }
 
-}  // namespace json
-}  // namespace openscreen
+}  // namespace openscreen::json

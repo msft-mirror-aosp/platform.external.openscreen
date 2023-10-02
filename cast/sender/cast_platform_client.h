@@ -17,8 +17,7 @@
 #include "util/alarm.h"
 #include "util/json/json_value.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 struct ReceiverInfo;
 class VirtualConnectionRouter;
@@ -90,7 +89,6 @@ class CastPlatformClient final : public CastMessageHandler {
   TaskRunner& task_runner_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_SENDER_CAST_PLATFORM_CLIENT_H_

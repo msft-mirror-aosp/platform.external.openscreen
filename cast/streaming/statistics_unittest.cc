@@ -7,8 +7,7 @@
 #include "gtest/gtest.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 class StatisticsTest : public testing::Test {
  public:
@@ -56,5 +55,4 @@ TEST_F(StatisticsTest, SimpleHistogramSerialization) {
   EXPECT_EQ(kExpected, serialized);
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

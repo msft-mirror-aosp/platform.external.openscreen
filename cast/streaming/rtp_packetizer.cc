@@ -14,8 +14,7 @@
 #include "util/integer_division.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -134,5 +133,4 @@ int RtpPacketizer::ComputeNumberOfPackets(const EncryptedFrame& frame) const {
   return num_packets <= int{kMaxAllowedFramePacketId} ? num_packets : -1;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

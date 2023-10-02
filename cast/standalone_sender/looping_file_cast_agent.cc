@@ -20,8 +20,7 @@
 #include "util/stringprintf.h"
 #include "util/trace_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 using DeviceMediaPolicy = SenderSocketFactory::DeviceMediaPolicy;
@@ -434,5 +433,4 @@ void LoopingFileCastAgent::Shutdown() {
   }
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -18,8 +18,7 @@
 #include "gtest/gtest.h"
 #include "platform/api/network_interface.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 using testing::ElementsAreArray;
 
@@ -798,5 +797,4 @@ TEST(MdnsRecordOperations, CanBeProcessed) {
   EXPECT_FALSE(CanBeProcessed(static_cast<DnsType>(8973)));
 }
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery

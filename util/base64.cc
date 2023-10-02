@@ -14,8 +14,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace base64 {
+namespace openscreen::base64 {
 
 std::string Encode(ByteView input) {
   return Encode(absl::string_view(reinterpret_cast<const char*>(input.data()),
@@ -52,5 +51,4 @@ bool Decode(absl::string_view input, std::vector<uint8_t>* output) {
   return true;
 }
 
-}  // namespace base64
-}  // namespace openscreen
+}  // namespace openscreen::base64

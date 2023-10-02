@@ -16,8 +16,7 @@
 #include "cast/standalone_sender/streaming_video_encoder.h"
 #include "cast/streaming/sender_session.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // Plays the media file at a given path over and over again, transcoding and
 // streaming its audio/video.
@@ -97,7 +96,6 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
   Alarm console_update_task_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STANDALONE_SENDER_LOOPING_FILE_SENDER_H_

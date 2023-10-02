@@ -19,8 +19,7 @@
 
 using testing::ElementsAreArray;
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 namespace {
 
@@ -208,5 +207,4 @@ TEST_F(RtpPacketizerTest, GeneratesPacketForRetransmission) {
 }
 
 }  // namespace
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

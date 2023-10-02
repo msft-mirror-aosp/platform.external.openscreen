@@ -23,8 +23,7 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 template <typename Stream, typename Codec>
@@ -511,5 +510,4 @@ void ReceiverSession::SendErrorAnswerReply(const std::string& sender_id,
   }
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

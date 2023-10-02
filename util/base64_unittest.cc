@@ -9,8 +9,7 @@
 
 #include "gtest/gtest.h"
 
-namespace openscreen {
-namespace base64 {
+namespace openscreen::base64 {
 
 namespace {
 
@@ -68,5 +67,4 @@ TEST(Base64Test, InPlace) {
   CheckEquals(kText, out);
 }
 
-}  // namespace base64
-}  // namespace openscreen
+}  // namespace openscreen::base64

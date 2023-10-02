@@ -15,8 +15,7 @@
 #include "cast/common/public/parsed_certificate.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // This class represents a set of certificates that form a root trust set.  The
 // only operation on this set is to check whether a given set of certificates
@@ -72,7 +71,6 @@ class CastCRLTrustStore {
   static std::unique_ptr<TrustStore> Create();
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_COMMON_PUBLIC_TRUST_STORE_H_

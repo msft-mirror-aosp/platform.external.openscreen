@@ -14,8 +14,7 @@
 #include "platform/base/error.h"
 #include "platform/base/span.h"
 
-namespace openscreen {
-namespace base64 {
+namespace openscreen::base64 {
 
 // Encodes the input binary data in base64.
 std::string Encode(ByteView input);
@@ -28,7 +27,6 @@ std::string Encode(absl::string_view input);
 // be done in-place.
 bool Decode(absl::string_view input, std::vector<uint8_t>* output);
 
-}  // namespace base64
-}  // namespace openscreen
+}  // namespace openscreen::base64
 
 #endif  // UTIL_BASE64_H_

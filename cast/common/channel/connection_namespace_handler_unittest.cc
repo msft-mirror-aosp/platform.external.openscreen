@@ -20,8 +20,7 @@
 #include "util/json/json_value.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 using ::testing::_;
@@ -224,5 +223,4 @@ TEST_F(ConnectionNamespaceHandlerTest, CloseUnknown) {
       VirtualConnection{receiver_id_, sender_id_, socket_->socket_id()}));
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

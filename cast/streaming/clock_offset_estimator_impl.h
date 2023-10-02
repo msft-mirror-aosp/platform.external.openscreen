@@ -17,8 +17,7 @@
 #include "cast/streaming/statistics_defines.h"
 #include "platform/base/trivial_clock_traits.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 // This implementation listens to two pairs of events:
 //     1. FrameAckSent / FrameAckReceived (receiver->sender)
@@ -96,7 +95,6 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
   BoundCalculator frame_bound_;
 };
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_CLOCK_OFFSET_ESTIMATOR_IMPL_H_

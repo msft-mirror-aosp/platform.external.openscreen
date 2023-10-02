@@ -19,8 +19,7 @@
 #include "platform/api/time.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
-namespace osp {
+namespace openscreen::osp {
 
 class UrlAvailabilityRequester;
 
@@ -219,7 +218,6 @@ class Controller final : public ServiceListener::Observer,
       termination_listener_by_id_;
 };
 
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp
 
 #endif  // OSP_PUBLIC_PRESENTATION_PRESENTATION_CONTROLLER_H_

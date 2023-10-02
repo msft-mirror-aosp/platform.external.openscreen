@@ -16,8 +16,7 @@
 #include "util/osp_logging.h"
 #include "util/stringprintf.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 static constexpr std::chrono::seconds kRequestTimeout = std::chrono::seconds(5);
 
@@ -209,5 +208,4 @@ int CastPlatformClient::GetNextRequestId() {
 // static
 int CastPlatformClient::next_request_id_ = 0;
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

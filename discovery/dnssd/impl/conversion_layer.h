@@ -15,8 +15,7 @@
 #include "discovery/mdns/public/mdns_records.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
-namespace discovery {
+namespace openscreen::discovery {
 
 class InstanceKey;
 class ServiceKey;
@@ -56,7 +55,6 @@ DnsQueryInfo GetPtrQueryInfo(const ServiceKey& key);
 std::vector<MdnsRecord> GetDnsRecords(const DnsSdInstanceEndpoint& endpoint);
 std::vector<MdnsRecord> GetDnsRecords(const DnsSdInstance& instance);
 
-}  // namespace discovery
-}  // namespace openscreen
+}  // namespace openscreen::discovery
 
 #endif  // DISCOVERY_DNSSD_IMPL_CONVERSION_LAYER_H_

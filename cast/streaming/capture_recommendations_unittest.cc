@@ -11,8 +11,7 @@
 #include "gtest/gtest.h"
 #include "util/chrono_helpers.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace capture_recommendations {
 namespace {
 
@@ -285,5 +284,4 @@ TEST(CaptureRecommendationsTest, UsesIntersectionOfDisplayAndConstraints) {
 }
 
 }  // namespace capture_recommendations
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -13,8 +13,7 @@
 #include "gtest/gtest.h"
 #include "util/crypto/pem_helpers.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 
 void InitStaticCredentialsFromFiles(
     StaticCredentialsProvider* creds,
@@ -53,5 +52,4 @@ void InitStaticCredentialsFromFiles(
   creds->tls_cert_der.assign(begin, begin + tls_cert[0].size());
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast

@@ -24,8 +24,7 @@
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-namespace cast {
+namespace openscreen::cast {
 namespace {
 
 // -------------------------------------------------------------------------
@@ -534,5 +533,4 @@ BoringSSLTrustStore::FindCertificatePath(
   return result_path;
 }
 
-}  // namespace cast
-}  // namespace openscreen
+}  // namespace openscreen::cast
