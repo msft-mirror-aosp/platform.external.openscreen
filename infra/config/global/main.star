@@ -252,10 +252,9 @@ def builder(builder_type, name, properties, os, cpu):
     if builder_type == "try":
         # We mark some bots as experimental to not block the build.
         experiment_percentage = None
-
-        # TODO(crbug.com/1491253): Remove linux_arm64_debug when arm64 bots are revived.
-        if name in ["linux_arm64_cast_debug", "linux64_coverage_debug", "linux_arm64_debug"]:
+        if name in ["linux_arm64_cast_debug", "linux64_coverage_debug"]:
             experiment_percentage = 100
+
         luci.cq_tryjob_verifier(
             builder = "try/" + name,
             cq_group = "openscreen-build-config",
