@@ -6,8 +6,8 @@
 #define CAST_STREAMING_RTP_PACKET_PARSER_H_
 
 #include <chrono>
+#include <optional>
 
-#include "absl/types/optional.h"
 #include "cast/streaming/frame_id.h"
 #include "cast/streaming/rtp_defines.h"
 #include "cast/streaming/rtp_time.h"
@@ -55,8 +55,8 @@ class RtpPacketParser {
 
   // Parses the packet. The caller should use InspectPacketForRouting()
   // beforehand to ensure that the packet is meant to be parsed by this
-  // instance. Returns absl::nullopt if the |packet| was corrupt.
-  absl::optional<ParseResult> Parse(ByteView packet);
+  // instance. Returns std::nullopt if the |packet| was corrupt.
+  std::optional<ParseResult> Parse(ByteView packet);
 
  private:
   const Ssrc sender_ssrc_;

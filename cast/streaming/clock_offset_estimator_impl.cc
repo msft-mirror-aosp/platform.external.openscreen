@@ -104,7 +104,7 @@ bool ClockOffsetEstimatorImpl::GetReceiverOffsetBounds(
   return true;
 }
 
-absl::optional<Clock::duration> ClockOffsetEstimatorImpl::GetEstimatedOffset()
+std::optional<Clock::duration> ClockOffsetEstimatorImpl::GetEstimatedOffset()
     const {
   Clock::duration frame_bound;
   Clock::duration packet_bound;

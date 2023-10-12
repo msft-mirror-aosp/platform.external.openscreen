@@ -359,7 +359,7 @@ void MdnsPublisher::ProcessRecordQueue() {
     sender_->SendMulticast(message);
   }
 
-  batch_records_alarm_ = absl::nullopt;
+  batch_records_alarm_ = std::nullopt;
   records_to_send_.clear();
 }
 

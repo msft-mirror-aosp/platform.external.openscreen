@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <optional>
 
 #include "cast/common/certificate/testing/test_helpers.h"
 #include "cast/common/channel/connection_namespace_handler.h"
@@ -184,7 +185,7 @@ class CastSocketE2ETest : public ::testing::Test {
 
  protected:
   IPAddress GetLoopbackV4Address() {
-    absl::optional<InterfaceInfo> loopback = GetLoopbackInterfaceForTesting();
+    std::optional<InterfaceInfo> loopback = GetLoopbackInterfaceForTesting();
     OSP_CHECK(loopback);
     IPAddress address = loopback->GetIpAddressV4();
     OSP_CHECK(address);
@@ -192,7 +193,7 @@ class CastSocketE2ETest : public ::testing::Test {
   }
 
   IPAddress GetLoopbackV6Address() {
-    absl::optional<InterfaceInfo> loopback = GetLoopbackInterfaceForTesting();
+    std::optional<InterfaceInfo> loopback = GetLoopbackInterfaceForTesting();
     OSP_CHECK(loopback);
     IPAddress address = loopback->GetIpAddressV6();
     return address;

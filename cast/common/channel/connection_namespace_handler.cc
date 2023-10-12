@@ -5,11 +5,11 @@
 #include "cast/common/channel/connection_namespace_handler.h"
 
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
 
-#include "absl/types/optional.h"
 #include "cast/common/channel/message_util.h"
 #include "cast/common/channel/proto/cast_channel.pb.h"
 #include "cast/common/channel/virtual_connection.h"
@@ -30,12 +30,12 @@ bool IsValidProtocolVersion(int version) {
   return ::cast::channel::CastMessage_ProtocolVersion_IsValid(version);
 }
 
-absl::optional<int> FindMaxProtocolVersion(const Json::Value* version,
-                                           const Json::Value* version_list) {
+std::optional<int> FindMaxProtocolVersion(const Json::Value* version,
+                                          const Json::Value* version_list) {
   using ArrayIndex = Json::Value::ArrayIndex;
   static_assert(std::is_integral<ArrayIndex>::value,
                 "Assuming ArrayIndex is integral");
-  absl::optional<int> max_version;
+  std::optional<int> max_version;
   if (version_list && version_list->isArray()) {
     max_version = ::cast::channel::CastMessage_ProtocolVersion_CASTV2_1_0;
     for (auto it = version_list->begin(), end = version_list->end(); it != end;
@@ -66,7 +66,7 @@ VirtualConnection::CloseReason GetCloseReason(
     const Json::Value& parsed_message) {
   VirtualConnection::CloseReason reason =
       VirtualConnection::CloseReason::kClosedByPeer;
-  absl::optional<int> reason_code = MaybeGetInt(
+  std::optional<int> reason_code = MaybeGetInt(
       parsed_message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyReasonCode));
   if (reason_code) {
     int code = reason_code.value();
@@ -132,7 +132,7 @@ void ConnectionNamespaceHandler::OnMessage(VirtualConnectionRouter* router,
     return;
   }
 
-  absl::optional<absl::string_view> type =
+  std::optional<absl::string_view> type =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyType));
   if (!type) {
     // TODO(btolsch): Some of these paths should have error reporting.  One
@@ -171,7 +171,7 @@ void ConnectionNamespaceHandler::HandleConnect(CastSocket* socket,
     return;
   }
 
-  absl::optional<int> maybe_conn_type = MaybeGetInt(
+  std::optional<int> maybe_conn_type = MaybeGetInt(
       parsed_message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyConnType));
   VirtualConnection::Type conn_type = VirtualConnection::Type::kStrong;
   if (maybe_conn_type) {
@@ -188,7 +188,7 @@ void ConnectionNamespaceHandler::HandleConnect(CastSocket* socket,
 
   data.type = conn_type;
 
-  absl::optional<absl::string_view> user_agent = MaybeGetString(
+  std::optional<absl::string_view> user_agent = MaybeGetString(
       parsed_message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyUserAgent));
   if (user_agent) {
     data.user_agent = std::string(user_agent.value());
@@ -205,7 +205,7 @@ void ConnectionNamespaceHandler::HandleConnect(CastSocket* socket,
       JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyProtocolVersion));
   const Json::Value* version_list_value = parsed_message.find(
       JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyProtocolVersionList));
-  absl::optional<int> negotiated_version =
+  std::optional<int> negotiated_version =
       FindMaxProtocolVersion(version_value, version_list_value);
   if (negotiated_version) {
     data.max_protocol_version = static_cast<VirtualConnection::ProtocolVersion>(

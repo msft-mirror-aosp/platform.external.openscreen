@@ -9,9 +9,9 @@
 #include <stdint.h>
 
 #include <map>
+#include <optional>
 #include <utility>
 
-#include "absl/types/optional.h"
 #include "cast/streaming/clock_offset_estimator.h"
 #include "cast/streaming/rtp_time.h"
 #include "cast/streaming/statistics_defines.h"
@@ -43,7 +43,7 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
 
   // Returns the average of the offset bounds for frame and packet events.
   // Returns nullopt if not enough data is in yet to produce an estimate.
-  absl::optional<Clock::duration> GetEstimatedOffset() const final;
+  std::optional<Clock::duration> GetEstimatedOffset() const final;
 
  private:
   // This helper uses the difference between sent and received event
@@ -56,8 +56,8 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
   // relationship.
   class BoundCalculator {
    public:
-    typedef std::pair<absl::optional<Clock::time_point>,
-                      absl::optional<Clock::time_point>>
+    typedef std::pair<std::optional<Clock::time_point>,
+                      std::optional<Clock::time_point>>
         TimeTickPair;
     typedef std::map<uint64_t, TimeTickPair> EventMap;
 

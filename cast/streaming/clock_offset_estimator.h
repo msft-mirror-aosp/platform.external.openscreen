@@ -6,8 +6,8 @@
 #define CAST_STREAMING_CLOCK_OFFSET_ESTIMATOR_H_
 
 #include <memory>
+#include <optional>
 
-#include "absl/types/optional.h"
 #include "cast/streaming/statistics.h"
 #include "cast/streaming/statistics_defines.h"
 #include "platform/base/trivial_clock_traits.h"
@@ -28,7 +28,7 @@ class ClockOffsetEstimator {
   virtual void OnPacketEvent(const PacketEvent& packet_event) = 0;
 
   // Returns nullopt if not enough data is in yet to produce an estimate.
-  virtual absl::optional<Clock::duration> GetEstimatedOffset() const = 0;
+  virtual std::optional<Clock::duration> GetEstimatedOffset() const = 0;
 };
 
 }  // namespace openscreen::cast

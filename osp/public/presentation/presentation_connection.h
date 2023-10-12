@@ -8,11 +8,11 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
 #include "osp/public/message_demuxer.h"
 #include "platform/api/time.h"
 #include "platform/base/error.h"
@@ -177,8 +177,8 @@ class Connection {
   State state_ = State::kConnecting;
   Delegate* delegate_;
   ParentDelegate* parent_delegate_;
-  absl::optional<uint64_t> connection_id_;
-  absl::optional<uint64_t> endpoint_id_;
+  std::optional<uint64_t> connection_id_;
+  std::optional<uint64_t> endpoint_id_;
   std::unique_ptr<ProtocolConnection> protocol_connection_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(Connection);

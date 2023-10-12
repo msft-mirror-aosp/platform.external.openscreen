@@ -96,7 +96,7 @@ static constexpr char kSsrcs[] = "ssrcs";
 static constexpr char kConstraints[] = "constraints";
 // Provides details about the display on the receiver.
 static constexpr char kDisplay[] = "display";
-// absl::optional array of numbers specifying the indexes of streams that will
+// std::optional array of numbers specifying the indexes of streams that will
 // send event logs through RTCP.
 static constexpr char kReceiverRtcpEventLog[] = "receiverRtcpEventLog";
 // OPtional array of numbers specifying the indexes of streams that will use
@@ -132,7 +132,7 @@ bool TryParseAspectRatioConstraint(const Json::Value& value,
 }
 
 template <typename T>
-bool ParseOptional(const Json::Value& value, absl::optional<T>* out) {
+bool ParseOptional(const Json::Value& value, std::optional<T>* out) {
   // It's fine if the value is empty.
   if (!value) {
     return true;
@@ -296,9 +296,9 @@ bool DisplayDescription::TryParse(const Json::Value& root,
   AspectRatioConstraint constraint;
   if (TryParseAspectRatioConstraint(root[kScaling], &constraint)) {
     out->aspect_ratio_constraint =
-        absl::optional<AspectRatioConstraint>(std::move(constraint));
+        std::optional<AspectRatioConstraint>(std::move(constraint));
   } else {
-    out->aspect_ratio_constraint = absl::nullopt;
+    out->aspect_ratio_constraint = std::nullopt;
   }
 
   return out->IsValid();

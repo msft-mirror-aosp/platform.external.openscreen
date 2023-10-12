@@ -445,7 +445,7 @@ Answer ReceiverSession::ConstructAnswer(const PendingOffer& properties) {
       if (limit.codec == properties.selected_video->codec ||
           limit.applies_to_all_codecs) {
         constraints.video = VideoConstraints{
-            limit.max_pixels_per_second, absl::nullopt, /* min dimensions */
+            limit.max_pixels_per_second, std::nullopt, /* min dimensions */
             limit.max_dimensions,        limit.min_bit_rate,
             limit.max_bit_rate,          limit.max_delay,
         };
@@ -454,10 +454,10 @@ Answer ReceiverSession::ConstructAnswer(const PendingOffer& properties) {
     }
   }
 
-  absl::optional<DisplayDescription> display;
+  std::optional<DisplayDescription> display;
   if (constraints_.display_description) {
     const auto* d = constraints_.display_description.get();
-    display = DisplayDescription{d->dimensions, absl::nullopt,
+    display = DisplayDescription{d->dimensions, std::nullopt,
                                  d->can_scale_content
                                      ? AspectRatioConstraint::kVariable
                                      : AspectRatioConstraint::kFixed};
@@ -465,7 +465,7 @@ Answer ReceiverSession::ConstructAnswer(const PendingOffer& properties) {
 
   // Only set the constraints in the answer if they are valid (meaning we
   // successfully found limits above).
-  absl::optional<Constraints> answer_constraints;
+  std::optional<Constraints> answer_constraints;
   if (constraints.IsValid()) {
     answer_constraints = std::move(constraints);
   }

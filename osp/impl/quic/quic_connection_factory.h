@@ -8,7 +8,6 @@
 #include <memory>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "osp/impl/quic/quic_connection.h"
 #include "platform/api/time.h"
 #include "platform/base/ip_address.h"

@@ -15,7 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "cast/streaming/compound_rtcp_builder.h"
 #include "cast/streaming/constants.h"
 #include "cast/streaming/encoded_frame.h"
@@ -243,7 +242,7 @@ class MockReceiver : public Environment::PacketConsumer {
     EXPECT_NE(ApparentPacketType::UNKNOWN, type_and_ssrc.first);
     EXPECT_EQ(kSenderSsrc, type_and_ssrc.second);
     if (type_and_ssrc.first == ApparentPacketType::RTP) {
-      const absl::optional<RtpPacketParser::ParseResult> part_of_frame =
+      const std::optional<RtpPacketParser::ParseResult> part_of_frame =
           rtp_parser_.Parse(packet);
       ASSERT_TRUE(part_of_frame);
 
@@ -259,7 +258,7 @@ class MockReceiver : public Environment::PacketConsumer {
       OnRtpPacket(*part_of_frame);
       CollectRtpPacket(*part_of_frame, std::move(packet));
     } else if (type_and_ssrc.first == ApparentPacketType::RTCP) {
-      absl::optional<SenderReportParser::SenderReportWithId> report =
+      std::optional<SenderReportParser::SenderReportWithId> report =
           sender_report_parser_.Parse(packet);
       ASSERT_TRUE(report);
       OnSenderReport(*report);

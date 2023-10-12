@@ -8,10 +8,10 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "cast/common/channel/cast_message_handler.h"
 #include "cast/sender/channel/message_util.h"
 #include "util/alarm.h"
@@ -41,9 +41,9 @@ class CastPlatformClient final : public CastMessageHandler {
 
   // Requests availability information for |app_id| from the receiver identified
   // by |receiver_id|.  |callback| will be called exactly once with a result.
-  absl::optional<int> RequestAppAvailability(const std::string& receiver_id,
-                                             const std::string& app_id,
-                                             AppAvailabilityCallback callback);
+  std::optional<int> RequestAppAvailability(const std::string& receiver_id,
+                                            const std::string& app_id,
+                                            AppAvailabilityCallback callback);
 
   // Notifies this object about general receiver connectivity or property
   // changes.

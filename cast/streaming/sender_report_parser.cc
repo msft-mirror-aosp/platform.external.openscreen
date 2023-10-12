@@ -19,9 +19,9 @@ SenderReportParser::SenderReportParser(RtcpSession* session)
 
 SenderReportParser::~SenderReportParser() = default;
 
-absl::optional<SenderReportParser::SenderReportWithId>
-SenderReportParser::Parse(ByteView buffer) {
-  absl::optional<SenderReportWithId> sender_report;
+std::optional<SenderReportParser::SenderReportWithId> SenderReportParser::Parse(
+    ByteView buffer) {
+  std::optional<SenderReportWithId> sender_report;
 
   // The data contained in |buffer| can be a "compound packet," which means that
   // it can be the concatenation of multiple RTCP packets. The loop here
@@ -29,11 +29,11 @@ SenderReportParser::Parse(ByteView buffer) {
   while (!buffer.empty()) {
     const auto header = RtcpCommonHeader::Parse(buffer);
     if (!header) {
-      return absl::nullopt;
+      return std::nullopt;
     }
     buffer.remove_prefix(kRtcpCommonHeaderSize);
     if (static_cast<int>(buffer.size()) < header->payload_size) {
-      return absl::nullopt;
+      return std::nullopt;
     }
     auto chunk = buffer.subspan(0, header->payload_size);
     buffer.remove_prefix(header->payload_size);
@@ -43,7 +43,7 @@ SenderReportParser::Parse(ByteView buffer) {
       continue;
     }
     if (header->payload_size < kRtcpSenderReportSize) {
-      return absl::nullopt;
+      return std::nullopt;
     }
     if (ConsumeField<uint32_t>(chunk) != session_->sender_ssrc()) {
       continue;

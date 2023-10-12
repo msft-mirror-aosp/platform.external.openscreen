@@ -15,11 +15,11 @@ TEST(JsonValueTest, GetInt) {
   ErrorOr<Json::Value> value_or_error = json::Parse(obj);
   ASSERT_TRUE(value_or_error);
   Json::Value& value = value_or_error.value();
-  absl::optional<int> result1 =
+  std::optional<int> result1 =
       MaybeGetInt(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key1"));
-  absl::optional<int> result2 =
+  std::optional<int> result2 =
       MaybeGetInt(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key2"));
-  absl::optional<int> result3 =
+  std::optional<int> result3 =
       MaybeGetInt(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key42"));
   EXPECT_FALSE(result2);
   EXPECT_FALSE(result3);
@@ -34,13 +34,13 @@ TEST(JsonValueTest, GetString) {
   ErrorOr<Json::Value> value_or_error = json::Parse(obj);
   ASSERT_TRUE(value_or_error);
   Json::Value& value = value_or_error.value();
-  absl::optional<absl::string_view> result1 =
+  std::optional<absl::string_view> result1 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key3"));
-  absl::optional<absl::string_view> result2 =
+  std::optional<absl::string_view> result2 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key2"));
-  absl::optional<absl::string_view> result3 =
+  std::optional<absl::string_view> result3 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key42"));
-  absl::optional<absl::string_view> result4 =
+  std::optional<absl::string_view> result4 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key4"));
 
   EXPECT_FALSE(result2);

@@ -62,22 +62,22 @@ void RtcpCommonHeader::AppendFields(ByteBuffer& buffer) const {
 }
 
 // static
-absl::optional<RtcpCommonHeader> RtcpCommonHeader::Parse(ByteView buffer) {
+std::optional<RtcpCommonHeader> RtcpCommonHeader::Parse(ByteView buffer) {
   if (buffer.size() < kRtcpCommonHeaderSize) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   const uint8_t byte0 = ConsumeField<uint8_t>(buffer);
   if ((byte0 >> kRtcpReportCountFieldNumBits) !=
       kRtcpRequiredVersionAndPaddingBits) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   const uint8_t report_count_or_subtype =
       byte0 & FieldBitmask<uint8_t>(kRtcpReportCountFieldNumBits);
 
   const uint8_t byte1 = ConsumeField<uint8_t>(buffer);
   if (!IsRtcpPacketType(byte1)) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   // Optionally set |header.with.report_count| or |header.with.subtype|,
@@ -204,14 +204,14 @@ void RtcpReportBlock::SetDelaySinceLastReport(
 }
 
 // static
-absl::optional<RtcpReportBlock> RtcpReportBlock::ParseOne(ByteView buffer,
-                                                          int report_count,
-                                                          Ssrc ssrc) {
+std::optional<RtcpReportBlock> RtcpReportBlock::ParseOne(ByteView buffer,
+                                                         int report_count,
+                                                         Ssrc ssrc) {
   if (static_cast<int>(buffer.size()) < (kRtcpReportBlockSize * report_count)) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
-  absl::optional<RtcpReportBlock> result;
+  std::optional<RtcpReportBlock> result;
   for (int block = 0; block < report_count; ++block) {
     if (ConsumeField<uint32_t>(buffer) != ssrc) {
       // Skip-over report block meant for some other recipient.

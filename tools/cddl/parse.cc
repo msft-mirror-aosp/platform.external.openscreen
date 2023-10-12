@@ -15,7 +15,6 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
-#include "absl/types/optional.h"
 #include "tools/cddl/logging.h"
 
 static_assert(sizeof(absl::string_view::size_type) == sizeof(size_t),
@@ -254,16 +253,16 @@ AstNode* ParseOccur(Parser* p) {
   return node;
 }
 
-absl::optional<std::string> ParseTypeKeyFromComment(Parser* p) {
+std::optional<std::string> ParseTypeKeyFromComment(Parser* p) {
   Parser p_speculative{p->data};
   if (!TrySkipCharacter(&p_speculative, ';')) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   SkipWhitespace(&p_speculative, false);
   const char kTypeKeyPrefix[] = "type key";
   if (!absl::StartsWith(p_speculative.data, kTypeKeyPrefix)) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   p_speculative.data += strlen(kTypeKeyPrefix);
 
@@ -911,7 +910,7 @@ AstNode* ParseRule(Parser* p) {
   const char* start = p->data;
 
   // Parse the type key, if it's present
-  absl::optional<std::string> type_key = ParseTypeKeyFromComment(p);
+  std::optional<std::string> type_key = ParseTypeKeyFromComment(p);
   SkipWhitespace(p);
 
   // Use the parser to extract the id and data.
@@ -1082,7 +1081,7 @@ void DumpAst(AstNode* node, int indent_level) {
         node_text += "kOther";
         break;
     }
-    if (node->type_key != absl::nullopt) {
+    if (node->type_key != std::nullopt) {
       node_text += " (type key=\"" + node->type_key.value() + "\")";
     }
     node_text += ": ";

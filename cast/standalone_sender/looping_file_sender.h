@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "cast/standalone_sender/connection_settings.h"
@@ -89,8 +90,8 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
   int num_capturers_running_ = 0;
   Clock::time_point capture_begin_time_{};
   Clock::time_point latest_frame_time_{};
-  absl::optional<SimulatedAudioCapturer> audio_capturer_;
-  absl::optional<SimulatedVideoCapturer> video_capturer_;
+  std::optional<SimulatedAudioCapturer> audio_capturer_;
+  std::optional<SimulatedVideoCapturer> video_capturer_;
 
   Alarm next_task_;
   Alarm console_update_task_;

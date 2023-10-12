@@ -7,6 +7,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -164,7 +165,7 @@ class StatisticsAnalyzer {
 
   // Calculates the offset between the sender and receiver clocks and returns
   // the sender-side version of this receiver timestamp, if possible.
-  absl::optional<Clock::time_point> ToSenderTimestamp(
+  std::optional<Clock::time_point> ToSenderTimestamp(
       Clock::time_point receiver_timestamp,
       StatisticsEventMediaType media_type) const;
 

@@ -5,23 +5,24 @@
 #ifndef UTIL_JSON_JSON_VALUE_H_
 #define UTIL_JSON_JSON_VALUE_H_
 
+#include <optional>
+
 #include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
 #include "json/value.h"
 
 #define JSON_EXPAND_FIND_CONSTANT_ARGS(s) (s), ((s) + sizeof(s) - 1)
 
 namespace openscreen {
 
-absl::optional<int> MaybeGetInt(const Json::Value& message,
-                                const char* first,
-                                const char* last);
+std::optional<int> MaybeGetInt(const Json::Value& message,
+                               const char* first,
+                               const char* last);
 
-absl::optional<absl::string_view> MaybeGetString(const Json::Value& message);
+std::optional<absl::string_view> MaybeGetString(const Json::Value& message);
 
-absl::optional<absl::string_view> MaybeGetString(const Json::Value& message,
-                                                 const char* first,
-                                                 const char* last);
+std::optional<absl::string_view> MaybeGetString(const Json::Value& message,
+                                                const char* first,
+                                                const char* last);
 
 }  // namespace openscreen
 

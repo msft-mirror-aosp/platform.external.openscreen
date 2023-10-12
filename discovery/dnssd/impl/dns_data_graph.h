@@ -10,7 +10,6 @@
 #include <memory>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "discovery/dnssd/impl/constants.h"
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 #include "discovery/mdns/public/mdns_record_changed_callback.h"

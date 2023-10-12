@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
-#include "absl/types/optional.h"
 #include "cast/common/channel/proto/cast_channel.pb.h"
 #include "cast/common/channel/virtual_connection.h"
 #include "cast/common/public/cast_socket.h"
@@ -79,7 +79,7 @@ class VirtualConnectionRouter final : public CastSocket::Client {
   // Returns the AssociatedData for a |virtual_connection| if a connection
   // exists, nullopt otherwise. The pointer isn't stable in the long term; so,
   // if it actually needs to be stored for later, the caller should make a copy.
-  absl::optional<const VirtualConnection::AssociatedData*> GetConnectionData(
+  std::optional<const VirtualConnection::AssociatedData*> GetConnectionData(
       const VirtualConnection& virtual_connection) const;
 
   // Adds/Removes a CastMessageHandler for all messages destined for the given

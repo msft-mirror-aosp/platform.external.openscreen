@@ -19,13 +19,12 @@
 #include "absl/algorithm/container.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
 #include "tools/cddl/logging.h"
 
 std::vector<CppType*> CppSymbolTable::TypesWithId() {
   if (!this->TypesWithId_.size()) {
     for (const std::unique_ptr<CppType>& ptr : this->cpp_types) {
-      if (ptr->type_key == absl::nullopt) {
+      if (ptr->type_key == std::nullopt) {
         continue;
       }
       this->TypesWithId_.emplace_back(ptr.get());
@@ -352,14 +351,14 @@ CddlGroup* AnalyzeGroup(CddlSymbolTable* table, const AstNode& group) {
 // be parsed.
 // TODO(issuetracker.google.com/281741443): Add support for hex and binary
 // options.
-absl::optional<uint64_t> ParseOptionalUint(const std::string& text) {
+std::optional<uint64_t> ParseOptionalUint(const std::string& text) {
   if (text == "0") {
     return 0;
   }
 
   uint64_t parsed = std::strtoul(text.c_str(), nullptr, 10);
   if (!parsed) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   return parsed;
 }
@@ -474,9 +473,9 @@ std::pair<bool, CddlSymbolTable> BuildSymbolTable(const AstNode& rules) {
     node = node->sibling;
     if (is_type) {
       CddlType* type = AnalyzeType(&table, *node);
-      if (rule->type_key != absl::nullopt) {
+      if (rule->type_key != std::nullopt) {
         auto parsed_type_key = ParseOptionalUint(rule->type_key.value());
-        if (parsed_type_key == absl::nullopt) {
+        if (parsed_type_key == std::nullopt) {
           return result;
         }
         type->type_key = parsed_type_key.value();
@@ -826,8 +825,8 @@ bool ValidateCppTypes(const CppSymbolTable& cpp_symbols) {
       });
 }
 
-std::string DumpTypeKey(absl::optional<uint64_t> key) {
-  if (key != absl::nullopt) {
+std::string DumpTypeKey(std::optional<uint64_t> key) {
+  if (key != std::nullopt) {
     return " (type key=\"" + std::to_string(key.value()) + "\")";
   }
   return "";

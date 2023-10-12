@@ -88,25 +88,25 @@ void VirtualConnectionRouter::RemoveConnectionsBySocketId(int socket_id) {
   }
 }
 
-absl::optional<const VirtualConnection::AssociatedData*>
+std::optional<const VirtualConnection::AssociatedData*>
 VirtualConnectionRouter::GetConnectionData(
     const VirtualConnection& virtual_connection) const {
   auto socket_entry = connections_.find(virtual_connection.socket_id);
   if (socket_entry == connections_.end()) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   auto& socket_map = socket_entry->second;
   auto local_entries = socket_map.equal_range(virtual_connection.local_id);
   if (local_entries.first == socket_map.end()) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   for (auto it = local_entries.first; it != local_entries.second; ++it) {
     if (it->second.peer_id == virtual_connection.peer_id) {
       return &it->second.data;
     }
   }
-  return absl::nullopt;
+  return std::nullopt;
 }
 
 bool VirtualConnectionRouter::AddHandlerForLocalId(

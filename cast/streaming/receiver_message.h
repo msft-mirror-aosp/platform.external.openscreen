@@ -6,6 +6,7 @@
 #define CAST_STREAMING_RECEIVER_MESSAGE_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -68,7 +69,7 @@ struct ReceiverError {
   int32_t code = -1;
 
   // Parsed openscreen::Error code. May be nullopt if not a match.
-  absl::optional<Error::Code> openscreen_code;
+  std::optional<Error::Code> openscreen_code;
 
   // Error description.
   std::string description;

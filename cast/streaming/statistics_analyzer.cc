@@ -285,7 +285,7 @@ void StatisticsAnalyzer::RecordPacketLatencies(
 
     // Use the offset estimator directly since we are trying to calculate the
     // average network latency.
-    const absl::optional<Clock::duration> receiver_offset =
+    const std::optional<Clock::duration> receiver_offset =
         offset_estimator_->GetEstimatedOffset();
     if (!receiver_offset) {
       return;
@@ -546,10 +546,10 @@ void StatisticsAnalyzer::PopulateSessionStats(
       session_stats.late_frame_counter;
 }
 
-absl::optional<Clock::time_point> StatisticsAnalyzer::ToSenderTimestamp(
+std::optional<Clock::time_point> StatisticsAnalyzer::ToSenderTimestamp(
     Clock::time_point receiver_timestamp,
     StatisticsEventMediaType media_type) const {
-  const absl::optional<Clock::duration> receiver_offset =
+  const std::optional<Clock::duration> receiver_offset =
       offset_estimator_->GetEstimatedOffset();
   if (!receiver_offset) {
     return {};

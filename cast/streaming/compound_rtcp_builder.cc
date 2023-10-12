@@ -127,7 +127,7 @@ void CompoundRtcpBuilder::AppendReceiverReportPacket(ByteBuffer& buffer) {
   AppendField<uint32_t>(session_->receiver_ssrc(), buffer);
   if (receiver_report_for_next_packet_) {
     receiver_report_for_next_packet_->AppendFields(buffer);
-    receiver_report_for_next_packet_ = absl::nullopt;
+    receiver_report_for_next_packet_ = std::nullopt;
   }
 }
 

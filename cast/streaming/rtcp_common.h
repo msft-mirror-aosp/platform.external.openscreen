@@ -7,10 +7,10 @@
 
 #include <stdint.h>
 
+#include <optional>
 #include <tuple>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "cast/streaming/frame_id.h"
 #include "cast/streaming/ntp_time.h"
 #include "cast/streaming/rtp_defines.h"
@@ -48,7 +48,7 @@ struct RtcpCommonHeader {
 
   // Parse from the 4-byte wire format in |buffer|. Returns nullopt if the data
   // is corrupt.
-  static absl::optional<RtcpCommonHeader> Parse(ByteView buffer);
+  static std::optional<RtcpCommonHeader> Parse(ByteView buffer);
 };
 
 // The middle 32-bits of the 64-bit NtpTimestamp field from the Sender Reports.
@@ -125,9 +125,9 @@ struct RtcpReportBlock {
   // Scans the wire-format report blocks in |buffer|, searching for one with the
   // matching |ssrc| and, if found, returns the parse result. Returns nullopt if
   // the data is corrupt or no report block with the matching SSRC was found.
-  static absl::optional<RtcpReportBlock> ParseOne(ByteView buffer,
-                                                  int report_count,
-                                                  Ssrc ssrc);
+  static std::optional<RtcpReportBlock> ParseOne(ByteView buffer,
+                                                 int report_count,
+                                                 Ssrc ssrc);
 };
 
 struct RtcpSenderReport {
@@ -151,7 +151,7 @@ struct RtcpSenderReport {
 
   // The report block, if present. While the RTCP spec allows for zero or
   // multiple reports, Cast Streaming only uses zero or one.
-  absl::optional<RtcpReportBlock> report_block;
+  std::optional<RtcpReportBlock> report_block;
 };
 
 // A pair of IDs that refers to a specific missing packet within a frame. If

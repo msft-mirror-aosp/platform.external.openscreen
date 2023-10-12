@@ -89,12 +89,11 @@ TEST_F(CastPlatformClientTest, CancelRequest) {
                                           CastMessage message) {
         VerifyAppAvailabilityRequest(message, "AAA", &request_id, &sender_id);
       });
-  absl::optional<int> maybe_request_id =
-      platform_client_.RequestAppAvailability(
-          "receiverId1", "AAA",
-          [](const std::string& app_id, AppAvailabilityResult availability) {
-            EXPECT_TRUE(false);
-          });
+  std::optional<int> maybe_request_id = platform_client_.RequestAppAvailability(
+      "receiverId1", "AAA",
+      [](const std::string& app_id, AppAvailabilityResult availability) {
+        EXPECT_TRUE(false);
+      });
   ASSERT_TRUE(maybe_request_id);
   int local_request_id = maybe_request_id.value();
   platform_client_.CancelRequest(local_request_id);

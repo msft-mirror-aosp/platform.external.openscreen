@@ -132,7 +132,7 @@ bool CompoundRtcpParser::Parse(ByteView buffer, FrameId max_feedback_frame_id) {
   // the results will be dispatched to the Client until the entire parse
   // succeeds.
   Clock::time_point receiver_reference_time = kNullTimePoint;
-  absl::optional<RtcpReportBlock> receiver_report;
+  std::optional<RtcpReportBlock> receiver_report;
   std::vector<RtcpReceiverFrameLogMessage> log_messages;
   FrameId checkpoint_frame_id;
   milliseconds target_playout_delay{};
@@ -250,7 +250,7 @@ bool CompoundRtcpParser::Parse(ByteView buffer, FrameId max_feedback_frame_id) {
 bool CompoundRtcpParser::ParseReceiverReport(
     ByteView in,
     int num_report_blocks,
-    absl::optional<RtcpReportBlock>& receiver_report) {
+    std::optional<RtcpReportBlock>& receiver_report) {
   if (in.size() < kRtcpReceiverReportSize) {
     return false;
   }

@@ -5,6 +5,7 @@
 #include "cast/streaming/offer_messages.h"
 
 #include <limits>
+#include <optional>
 #include <utility>
 
 #include "cast/streaming/rtp_defines.h"
@@ -100,9 +101,8 @@ constexpr char kValidOffer[] = R"({
   ]
 })";
 
-void ExpectFailureOnParse(
-    absl::string_view body,
-    absl::optional<Error::Code> expected = absl::nullopt) {
+void ExpectFailureOnParse(absl::string_view body,
+                          std::optional<Error::Code> expected = std::nullopt) {
   ErrorOr<Json::Value> root = json::Parse(body);
   ASSERT_TRUE(root.is_value()) << root.error();
 

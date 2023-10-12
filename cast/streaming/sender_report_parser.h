@@ -5,7 +5,8 @@
 #ifndef CAST_STREAMING_SENDER_REPORT_PARSER_H_
 #define CAST_STREAMING_SENDER_REPORT_PARSER_H_
 
-#include "absl/types/optional.h"
+#include <optional>
+
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtcp_session.h"
 #include "cast/streaming/rtp_defines.h"
@@ -34,7 +35,7 @@ class SenderReportParser {
   // Parses the RTCP |packet|, and returns a parsed sender report if the packet
   // contained one. Returns nullopt if the data is corrupt or the packet did not
   // contain a sender report.
-  absl::optional<SenderReportWithId> Parse(ByteView packet);
+  std::optional<SenderReportWithId> Parse(ByteView packet);
 
  private:
   RtcpSession* const session_;

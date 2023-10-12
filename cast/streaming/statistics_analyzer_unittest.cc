@@ -95,7 +95,7 @@ class FakeClockOffsetEstimator : public ClockOffsetEstimator {
  public:
   MOCK_METHOD(void, OnFrameEvent, (const FrameEvent&), (override));
   MOCK_METHOD(void, OnPacketEvent, (const PacketEvent&), (override));
-  MOCK_METHOD(absl::optional<Clock::duration>,
+  MOCK_METHOD(std::optional<Clock::duration>,
               GetEstimatedOffset,
               (),
               (const, override));

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -15,7 +16,6 @@
 #include <vector>
 
 #include "absl/algorithm/container.h"
-#include "absl/types/optional.h"
 
 // Convert '-' to '_' to use a CDDL identifier as a C identifier.
 std::string ToUnderscoreId(const std::string& x) {
@@ -354,7 +354,7 @@ bool WriteTypeDefinition(int fd, const CppType& type) {
     } break;
     case CppType::Which::kStruct: {
       dprintf(fd, "\nstruct %s {\n", name.c_str());
-      if (type.type_key != absl::nullopt) {
+      if (type.type_key != std::nullopt) {
         dprintf(fd, "  // type key: %" PRIu64 "\n", type.type_key.value());
       }
       dprintf(fd, "  bool operator==(const %s& other) const;\n", name.c_str());
@@ -854,7 +854,7 @@ uint8_t GetByte(uint64_t value, size_t byte) {
 }
 
 std::string GetEncodedTypeKey(const CppType& type) {
-  if (type.type_key == absl::nullopt) {
+  if (type.type_key == std::nullopt) {
     return "";
   }
 

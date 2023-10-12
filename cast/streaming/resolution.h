@@ -10,7 +10,6 @@
 #ifndef CAST_STREAMING_RESOLUTION_H_
 #define CAST_STREAMING_RESOLUTION_H_
 
-#include "absl/types/optional.h"
 #include "json/value.h"
 #include "util/simple_fraction.h"
 

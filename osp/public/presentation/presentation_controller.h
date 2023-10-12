@@ -7,12 +7,12 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
 #include "osp/public/presentation/presentation_connection.h"
 #include "osp/public/protocol_connection.h"
 #include "osp/public/service_listener.h"
@@ -80,7 +80,7 @@ class Controller final : public ServiceListener::Observer,
     ConnectRequest(Controller* controller,
                    const std::string& service_id,
                    bool is_reconnect,
-                   absl::optional<uint64_t> request_id);
+                   std::optional<uint64_t> request_id);
     ConnectRequest(ConnectRequest&&) noexcept;
     ~ConnectRequest();
 
@@ -93,7 +93,7 @@ class Controller final : public ServiceListener::Observer,
    private:
     std::string service_id_;
     bool is_reconnect_;
-    absl::optional<uint64_t> request_id_;
+    std::optional<uint64_t> request_id_;
     Controller* controller_;
   };
 

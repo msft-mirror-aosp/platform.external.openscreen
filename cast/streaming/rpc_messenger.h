@@ -5,6 +5,7 @@
 #ifndef CAST_STREAMING_RPC_MESSENGER_H_
 #define CAST_STREAMING_RPC_MESSENGER_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>

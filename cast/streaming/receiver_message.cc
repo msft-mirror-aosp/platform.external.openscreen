@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "absl/strings/ascii.h"
-#include "absl/types/optional.h"
 #include "cast/streaming/message_fields.h"
 #include "json/reader.h"
 #include "json/writer.h"

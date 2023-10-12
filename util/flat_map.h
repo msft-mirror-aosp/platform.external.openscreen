@@ -5,12 +5,12 @@
 #ifndef UTIL_FLAT_MAP_H_
 #define UTIL_FLAT_MAP_H_
 
+#include <algorithm>
 #include <initializer_list>
 #include <map>
 #include <utility>
 #include <vector>
 
-#include "absl/types/optional.h"
 #include "util/osp_logging.h"
 
 namespace openscreen {
