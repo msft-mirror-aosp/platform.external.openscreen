@@ -8,7 +8,6 @@
 
 #include <memory>
 
-#include "absl/strings/string_view.h"
 #include "cast/common/certificate/date_time.h"
 #include "cast/common/public/parsed_certificate.h"
 #include "cast/common/public/trust_store.h"

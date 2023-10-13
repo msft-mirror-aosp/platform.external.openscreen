@@ -17,11 +17,11 @@
 namespace openscreen::base64 {
 
 std::string Encode(ByteView input) {
-  return Encode(absl::string_view(reinterpret_cast<const char*>(input.data()),
-                                  input.size()));
+  return Encode(std::string_view(reinterpret_cast<const char*>(input.data()),
+                                 input.size()));
 }
 
-std::string Encode(absl::string_view input) {
+std::string Encode(std::string_view input) {
   std::string out;
   out.resize(modp_b64_encode_len(input.size()));
 
@@ -36,7 +36,7 @@ std::string Encode(absl::string_view input) {
   return out;
 }
 
-bool Decode(absl::string_view input, std::vector<uint8_t>* output) {
+bool Decode(std::string_view input, std::vector<uint8_t>* output) {
   std::vector<uint8_t> out(modp_b64_decode_len(input.size()));
 
   const size_t output_size = modp_b64_decode(

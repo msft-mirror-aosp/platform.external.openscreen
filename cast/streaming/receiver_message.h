@@ -8,9 +8,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "absl/types/variant.h"
 #include "cast/streaming/answer_messages.h"
 #include "json/value.h"
@@ -47,8 +47,8 @@ struct ReceiverCapability {
 // To avoid collisions with legacy error values, all Open Screen receiver errors
 // are offset.
 struct ReceiverError {
-  explicit ReceiverError(int code, absl::string_view description = "");
-  explicit ReceiverError(Error::Code code, absl::string_view description = "");
+  explicit ReceiverError(int code, std::string_view description = "");
+  explicit ReceiverError(Error::Code code, std::string_view description = "");
   explicit ReceiverError(Error error);
 
   ReceiverError(const ReceiverError&);

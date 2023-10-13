@@ -94,7 +94,7 @@ bool IsGreaterThan(DnsType type, const Rdata& lhs, const Rdata& rhs) {
 
 }  // namespace
 
-bool IsValidDomainLabel(absl::string_view label) {
+bool IsValidDomainLabel(std::string_view label) {
   const size_t label_size = label.size();
   return label_size > 0 && label_size <= kMaxLabelLength;
 }
@@ -104,10 +104,10 @@ DomainName::DomainName() = default;
 DomainName::DomainName(std::vector<std::string> labels)
     : DomainName(labels.begin(), labels.end()) {}
 
-DomainName::DomainName(const std::vector<absl::string_view>& labels)
+DomainName::DomainName(const std::vector<std::string_view>& labels)
     : DomainName(labels.begin(), labels.end()) {}
 
-DomainName::DomainName(std::initializer_list<absl::string_view> labels)
+DomainName::DomainName(std::initializer_list<std::string_view> labels)
     : DomainName(labels.begin(), labels.end()) {}
 
 DomainName::DomainName(std::vector<std::string> labels, size_t max_wire_size)

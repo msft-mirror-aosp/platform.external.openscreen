@@ -258,7 +258,6 @@ include_rules = [
   '+absl/strings/str_join.h',
   '+absl/strings/str_replace.h',
   '+absl/strings/str_split.h',
-  '+absl/strings/string_view.h',
   '+absl/strings/substitute.h',
   '+absl/types/variant.h',
 

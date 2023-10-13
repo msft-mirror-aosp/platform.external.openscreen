@@ -57,7 +57,7 @@ TEST(MdnsDomainNameTest, Construct) {
   name2_stream << name2;
   EXPECT_EQ(name2_stream.str(), "MyDevice._mYSERvice.local");
 
-  std::vector<absl::string_view> labels{"OtherDevice", "_MYservice", "LOcal"};
+  std::vector<std::string_view> labels{"OtherDevice", "_MYservice", "LOcal"};
   DomainName name3(labels);
   EXPECT_FALSE(name3.empty());
   EXPECT_EQ(name3.MaxWireSize(), size_t{30});

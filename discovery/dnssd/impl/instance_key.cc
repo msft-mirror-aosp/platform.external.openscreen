@@ -29,9 +29,9 @@ InstanceKey::InstanceKey(const DnsSdInstance& instance)
                   instance.service_id(),
                   instance.domain_id()) {}
 
-InstanceKey::InstanceKey(absl::string_view instance,
-                         absl::string_view service,
-                         absl::string_view domain)
+InstanceKey::InstanceKey(std::string_view instance,
+                         std::string_view service,
+                         std::string_view domain)
     : ServiceKey(service, domain), instance_id_(instance) {
   OSP_DCHECK(IsInstanceValid(instance_id_))
       << "invalid instance id" << instance;

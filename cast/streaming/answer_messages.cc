@@ -4,6 +4,7 @@
 
 #include "cast/streaming/answer_messages.h"
 
+#include <string_view>
 #include <utility>
 
 #include "absl/strings/str_cat.h"
@@ -154,7 +155,7 @@ bool AspectRatio::TryParse(const Json::Value& value, AspectRatio* out) {
     return false;
   }
 
-  std::vector<absl::string_view> fields =
+  std::vector<std::string_view> fields =
       absl::StrSplit(parsed_value, kAspectRatioDelimiter);
   if (fields.size() != 2) {
     return false;

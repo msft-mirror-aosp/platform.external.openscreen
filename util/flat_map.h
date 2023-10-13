@@ -21,7 +21,7 @@ namespace openscreen {
 // performance of a vector with the convenience of a map.
 //
 // NOTE: this class allows usage of const char* as Key or Value types, but
-// it is generally recommended that you use std::string, or absl::string_view
+// it is generally recommended that you use std::string, or std::string_view
 // for literals. string_view is similarly efficient to a raw char* pointer,
 // but gives sizing and equality operators, among other features.
 template <class Key, class Value>

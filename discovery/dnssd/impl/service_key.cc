@@ -27,7 +27,7 @@ ServiceKey::ServiceKey(const DomainName& domain) {
   *this = std::move(key.value());
 }
 
-ServiceKey::ServiceKey(absl::string_view service, absl::string_view domain)
+ServiceKey::ServiceKey(std::string_view service, std::string_view domain)
     : service_id_(service.data(), service.size()),
       domain_id_(domain.data(), domain.size()) {
   OSP_DCHECK(IsServiceValid(service_id_)) << "invalid service id: " << service;

@@ -6,8 +6,8 @@
 
 #include <numeric>
 #include <string>
+#include <string_view>
 
-#include "absl/strings/string_view.h"
 #include "cast/protocol/castv2/receiver_examples/get_app_availability_data.h"
 #include "cast/protocol/castv2/receiver_examples/get_app_availability_response_data.h"
 #include "cast/protocol/castv2/receiver_examples/launch_data.h"
@@ -69,7 +69,7 @@ std::string BuildSchema(const char* definitions,
   return StringPrintf(kSchemaFormat, definitions, properties, required);
 }
 
-bool TestValidate(absl::string_view document, absl::string_view schema) {
+bool TestValidate(std::string_view document, std::string_view schema) {
   ErrorOr<Json::Value> document_root = json::Parse(document);
   EXPECT_TRUE(document_root.is_value());
   ErrorOr<Json::Value> schema_root = json::Parse(schema);

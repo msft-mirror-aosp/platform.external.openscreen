@@ -16,7 +16,7 @@
 
 namespace openscreen::json {
 
-ErrorOr<Json::Value> Parse(absl::string_view document) {
+ErrorOr<Json::Value> Parse(std::string_view document) {
   Json::CharReaderBuilder builder;
   Json::CharReaderBuilder::strictMode(&builder.settings_);
   if (document.empty()) {

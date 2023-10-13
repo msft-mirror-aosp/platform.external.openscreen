@@ -6,6 +6,7 @@
 
 #include <limits>
 #include <optional>
+#include <string_view>
 #include <utility>
 
 #include "cast/streaming/rtp_defines.h"
@@ -101,7 +102,7 @@ constexpr char kValidOffer[] = R"({
   ]
 })";
 
-void ExpectFailureOnParse(absl::string_view body,
+void ExpectFailureOnParse(std::string_view body,
                           std::optional<Error::Code> expected = std::nullopt) {
   ErrorOr<Json::Value> root = json::Parse(body);
   ASSERT_TRUE(root.is_value()) << root.error();

@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "discovery/dnssd/impl/constants.h"
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 #include "discovery/dnssd/public/dns_sd_txt_record.h"

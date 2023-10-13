@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <cstring>
 #include <optional>
+#include <string_view>
 
-#include "absl/strings/string_view.h"
 #include "platform/api/network_interface.h"
 #include "platform/base/ip_address.h"
 #include "platform/impl/network_interface.h"
@@ -36,7 +36,7 @@ constexpr int kNetlinkRecvmsgBufSize = 8192;
 
 // Safely reads the system name for the interface from the (probably)
 // null-terminated string |kernel_name| and returns a std::string.
-std::string GetInterfaceName(absl::string_view kernel_name) {
+std::string GetInterfaceName(std::string_view kernel_name) {
   OSP_CHECK_LT(kernel_name.length(), IFNAMSIZ);
   return std::string(kernel_name);
 }

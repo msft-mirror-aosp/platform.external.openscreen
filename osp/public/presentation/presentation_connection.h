@@ -10,9 +10,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "osp/public/message_demuxer.h"
 #include "platform/api/time.h"
 #include "platform/base/error.h"
@@ -72,13 +72,13 @@ class Connection {
     virtual void OnDiscarded() = 0;
 
     // Closed because of an error.
-    virtual void OnError(const absl::string_view message) = 0;
+    virtual void OnError(const std::string_view message) = 0;
 
     // Terminated through a different connection.
     virtual void OnTerminated() = 0;
 
     // A UTF-8 string message was received.
-    virtual void OnStringMessage(const absl::string_view message) = 0;
+    virtual void OnStringMessage(const std::string_view message) = 0;
 
     // A binary message was received.
     virtual void OnBinaryMessage(const std::vector<uint8_t>& data) = 0;
@@ -140,7 +140,7 @@ class Connection {
   }
 
   // Sends a UTF-8 string message.
-  Error SendString(absl::string_view message);
+  Error SendString(std::string_view message);
 
   // Sends a binary message.
   Error SendBinary(std::vector<uint8_t>&& data);

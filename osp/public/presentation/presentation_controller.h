@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "osp/public/presentation/presentation_connection.h"
 #include "osp/public/protocol_connection.h"
 #include "osp/public/service_listener.h"

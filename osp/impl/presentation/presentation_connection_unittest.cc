@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "absl/strings/string_view.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "osp/impl/presentation/testing/mock_connection_delegate.h"
@@ -177,9 +176,9 @@ TEST_F(ConnectionTest, ConnectAndSend) {
 
   std::string received;
   EXPECT_CALL(mock_receiver_delegate,
-              OnStringMessage(static_cast<absl::string_view>(expected_message)))
+              OnStringMessage(static_cast<std::string_view>(expected_message)))
       .WillOnce(Invoke(
-          [&received](absl::string_view s) { received = std::string(s); }));
+          [&received](std::string_view s) { received = std::string(s); }));
   quic_bridge_.RunTasksUntilIdle();
 
   std::string string_response = MakeEchoResponse(received);
@@ -187,7 +186,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
 
   EXPECT_CALL(
       mock_controller_delegate,
-      OnStringMessage(static_cast<absl::string_view>(expected_response)));
+      OnStringMessage(static_cast<std::string_view>(expected_response)));
   quic_bridge_.RunTasksUntilIdle();
 
   std::vector<uint8_t> data{0, 3, 2, 4, 4, 6, 1};

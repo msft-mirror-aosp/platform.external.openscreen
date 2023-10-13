@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <random>
+#include <string_view>
 #include <utility>
 
 #include "absl/strings/str_cat.h"
@@ -165,7 +166,7 @@ void CastPlatformClient::HandleResponse(const std::string& receiver_id,
     const Json::Value* maybe_availability =
         message.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyAvailability));
     if (maybe_availability && maybe_availability->isObject()) {
-      std::optional<absl::string_view> result =
+      std::optional<std::string_view> result =
           MaybeGetString(*maybe_availability, &it->app_id[0],
                          &it->app_id[0] + it->app_id.size());
       if (result) {

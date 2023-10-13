@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "json/value.h"
 #include "platform/base/error.h"
 #include "util/chrono_helpers.h"

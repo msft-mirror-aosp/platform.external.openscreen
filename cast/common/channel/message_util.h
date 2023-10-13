@@ -6,8 +6,8 @@
 #define CAST_COMMON_CHANNEL_MESSAGE_UTIL_H_
 
 #include <string>
+#include <string_view>
 
-#include "absl/strings/string_view.h"
 #include "cast/common/channel/proto/cast_channel.pb.h"
 #include "util/enum_name_table.h"
 
@@ -194,7 +194,7 @@ inline bool IsAuthMessage(const ::cast::channel::CastMessage& message) {
   return message.namespace_() == kAuthNamespace;
 }
 
-inline bool IsTransportNamespace(absl::string_view namespace_) {
+inline bool IsTransportNamespace(std::string_view namespace_) {
   return (namespace_.size() > (sizeof(kTransportNamespacePrefix) - 1)) &&
          (namespace_.find_first_of(kTransportNamespacePrefix) == 0);
 }

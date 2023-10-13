@@ -4,6 +4,7 @@
 
 #include "util/base64.h"
 
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -51,7 +52,7 @@ TEST(Base64Test, Binary) {
   // Check that encoding the same data through the StringPiece interface gives
   // the same results.
   std::string string_piece_encoded = Encode(
-      absl::string_view(reinterpret_cast<const char*>(kData), sizeof(kData)));
+      std::string_view(reinterpret_cast<const char*>(kData), sizeof(kData)));
 
   EXPECT_EQ(binary_encoded, string_piece_encoded);
 }

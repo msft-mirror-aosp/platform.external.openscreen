@@ -23,7 +23,7 @@ SignatureTestData::~SignatureTestData() {
   OPENSSL_free(sha256.data());
 }
 
-SignatureTestData ReadSignatureTestData(absl::string_view filename) {
+SignatureTestData ReadSignatureTestData(std::string_view filename) {
   FILE* fp = fopen(filename.data(), "r");
   OSP_DCHECK(fp);
   SignatureTestData result = {};

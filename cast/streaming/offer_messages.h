@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/resolution.h"
 #include "cast/streaming/rtp_defines.h"

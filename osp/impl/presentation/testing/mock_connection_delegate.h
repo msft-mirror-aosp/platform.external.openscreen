@@ -5,6 +5,7 @@
 #ifndef OSP_IMPL_PRESENTATION_TESTING_MOCK_CONNECTION_DELEGATE_H_
 #define OSP_IMPL_PRESENTATION_TESTING_MOCK_CONNECTION_DELEGATE_H_
 
+#include <string_view>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -19,9 +20,9 @@ class MockConnectionDelegate : public Connection::Delegate {
   MOCK_METHOD0(OnConnected, void());
   MOCK_METHOD0(OnClosedByRemote, void());
   MOCK_METHOD0(OnDiscarded, void());
-  MOCK_METHOD1(OnError, void(const absl::string_view message));
+  MOCK_METHOD1(OnError, void(const std::string_view message));
   MOCK_METHOD0(OnTerminated, void());
-  MOCK_METHOD1(OnStringMessage, void(const absl::string_view message));
+  MOCK_METHOD1(OnStringMessage, void(const std::string_view message));
   MOCK_METHOD1(OnBinaryMessage, void(const std::vector<uint8_t>& data));
 };
 

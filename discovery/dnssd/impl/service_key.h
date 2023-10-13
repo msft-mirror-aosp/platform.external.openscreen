@@ -6,9 +6,9 @@
 #define DISCOVERY_DNSSD_IMPL_SERVICE_KEY_H_
 
 #include <string>
+#include <string_view>
 #include <utility>
 
-#include "absl/strings/string_view.h"
 #include "platform/base/error.h"
 
 namespace openscreen::discovery {
@@ -26,7 +26,7 @@ class ServiceKey {
   virtual ~ServiceKey() = default;
 
   // NOTE: The provided service and domain labels must be valid.
-  ServiceKey(absl::string_view service, absl::string_view domain);
+  ServiceKey(std::string_view service, std::string_view domain);
   ServiceKey(const ServiceKey& other);
   ServiceKey(ServiceKey&& other) noexcept;
 

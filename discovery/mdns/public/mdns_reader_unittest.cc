@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <sstream>
+#include <string_view>
 
 #include "discovery/common/config.h"
 #include "discovery/mdns/testing/mdns_test_util.h"
@@ -379,7 +380,7 @@ TEST(MdnsReaderTest, ReadTxtRecordRdata_WithNullInTheMiddle) {
   // clang-format on
   TestReadEntrySucceeds(
       kTxtRecordRdata, sizeof(kTxtRecordRdata),
-      MakeTxtRecord({absl::string_view("with\0NULL", 9), "other"}));
+      MakeTxtRecord({std::string_view("with\0NULL", 9), "other"}));
 }
 
 TEST(MdnsReaderTest, ReadTxtRecordRdata_EmptyEntries) {

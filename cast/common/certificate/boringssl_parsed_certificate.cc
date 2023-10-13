@@ -6,6 +6,7 @@
 
 #include <openssl/x509v3.h>
 
+#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>

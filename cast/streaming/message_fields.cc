@@ -32,7 +32,7 @@ const char* CodecToString(AudioCodec codec) {
   return GetEnumName(kAudioCodecNames, codec).value();
 }
 
-ErrorOr<AudioCodec> StringToAudioCodec(absl::string_view name) {
+ErrorOr<AudioCodec> StringToAudioCodec(std::string_view name) {
   return GetEnum(kAudioCodecNames, name);
 }
 
@@ -40,7 +40,7 @@ const char* CodecToString(VideoCodec codec) {
   return GetEnumName(kVideoCodecNames, codec).value();
 }
 
-ErrorOr<VideoCodec> StringToVideoCodec(absl::string_view name) {
+ErrorOr<VideoCodec> StringToVideoCodec(std::string_view name) {
   return GetEnum(kVideoCodecNames, name);
 }
 

@@ -11,11 +11,11 @@
 #include <initializer_list>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/ascii.h"
-#include "absl/strings/string_view.h"
 #include "absl/types/variant.h"
 #include "discovery/mdns/public/mdns_constants.h"
 #include "platform/base/error.h"
@@ -25,7 +25,7 @@
 
 namespace openscreen::discovery {
 
-bool IsValidDomainLabel(absl::string_view label);
+bool IsValidDomainLabel(std::string_view label);
 
 // Represents domain name as a collection of labels, ensures label length and
 // domain name length requirements are met.
@@ -60,8 +60,8 @@ class DomainName {
     *this = std::move(domain.value());
   }
   explicit DomainName(std::vector<std::string> labels);
-  explicit DomainName(const std::vector<absl::string_view>& labels);
-  explicit DomainName(std::initializer_list<absl::string_view> labels);
+  explicit DomainName(const std::vector<std::string_view>& labels);
+  explicit DomainName(std::initializer_list<std::string_view> labels);
   DomainName(const DomainName& other);
   DomainName(DomainName&& other) noexcept;
 

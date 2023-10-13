@@ -13,12 +13,12 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
 #include "absl/algorithm/container.h"
 #include "absl/strings/numbers.h"
-#include "absl/strings/string_view.h"
 #include "tools/cddl/logging.h"
 
 std::vector<CppType*> CppSymbolTable::TypesWithId() {
@@ -126,7 +126,7 @@ void CppType::InitBytes() {
   which = Which::kBytes;
 }
 
-void InitString(std::string* s, absl::string_view value) {
+void InitString(std::string* s, std::string_view value) {
   new (s) std::string(value);
 }
 
@@ -459,7 +459,7 @@ std::pair<bool, CddlSymbolTable> BuildSymbolTable(const AstNode& rules) {
       return result;
     }
     bool is_type = node->type == AstNode::Type::kTypename;
-    absl::string_view name = node->text;
+    std::string_view name = node->text;
 
     // Ensure that the node is assignment.
     node = node->sibling;

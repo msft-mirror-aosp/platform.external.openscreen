@@ -68,14 +68,14 @@ bool TryParseCapability(const Json::Value& value, MediaCapability* out) {
 
 }  // namespace
 
-ReceiverError::ReceiverError(int code, absl::string_view description)
+ReceiverError::ReceiverError(int code, std::string_view description)
     : code(code), description(description) {
   if (code >= kOpenscreenErrorOffset) {
     openscreen_code = static_cast<Error::Code>(code - kOpenscreenErrorOffset);
   }
 }
 
-ReceiverError::ReceiverError(Error::Code code, absl::string_view description)
+ReceiverError::ReceiverError(Error::Code code, std::string_view description)
     : code(static_cast<int>(code) + kOpenscreenErrorOffset),
       openscreen_code(code),
       description(description) {}

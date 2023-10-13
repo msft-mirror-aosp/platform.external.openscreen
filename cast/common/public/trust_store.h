@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "cast/common/public/certificate_types.h"
 #include "cast/common/public/parsed_certificate.h"
 #include "platform/base/error.h"
@@ -26,7 +26,7 @@ class TrustStore {
   using CertificatePathResult = std::vector<std::unique_ptr<ParsedCertificate>>;
 
   static std::unique_ptr<TrustStore> CreateInstanceFromPemFile(
-      absl::string_view file_path);
+      std::string_view file_path);
 
   static std::unique_ptr<TrustStore> CreateInstanceForTest(
       const std::vector<uint8_t>& trust_anchor_der);

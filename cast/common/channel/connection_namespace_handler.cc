@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -132,7 +133,7 @@ void ConnectionNamespaceHandler::OnMessage(VirtualConnectionRouter* router,
     return;
   }
 
-  std::optional<absl::string_view> type =
+  std::optional<std::string_view> type =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyType));
   if (!type) {
     // TODO(btolsch): Some of these paths should have error reporting.  One
@@ -142,7 +143,7 @@ void ConnectionNamespaceHandler::OnMessage(VirtualConnectionRouter* router,
     return;
   }
 
-  absl::string_view type_str = type.value();
+  std::string_view type_str = type.value();
   if (type_str == kMessageTypeConnect) {
     HandleConnect(socket, std::move(message), std::move(value));
   } else if (type_str == kMessageTypeClose) {
@@ -188,7 +189,7 @@ void ConnectionNamespaceHandler::HandleConnect(CastSocket* socket,
 
   data.type = conn_type;
 
-  std::optional<absl::string_view> user_agent = MaybeGetString(
+  std::optional<std::string_view> user_agent = MaybeGetString(
       parsed_message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyUserAgent));
   if (user_agent) {
     data.user_agent = std::string(user_agent.value());

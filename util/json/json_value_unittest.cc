@@ -11,7 +11,7 @@
 namespace openscreen {
 
 TEST(JsonValueTest, GetInt) {
-  absl::string_view obj(R"!({"key1": 17, "key2": 32.3, "key3": "asdf"})!");
+  std::string_view obj(R"!({"key1": 17, "key2": 32.3, "key3": "asdf"})!");
   ErrorOr<Json::Value> value_or_error = json::Parse(obj);
   ASSERT_TRUE(value_or_error);
   Json::Value& value = value_or_error.value();
@@ -29,18 +29,18 @@ TEST(JsonValueTest, GetInt) {
 }
 
 TEST(JsonValueTest, GetString) {
-  absl::string_view obj(
+  std::string_view obj(
       R"!({"key1": 17, "key2": 32.3, "key3": "asdf", "key4": ""})!");
   ErrorOr<Json::Value> value_or_error = json::Parse(obj);
   ASSERT_TRUE(value_or_error);
   Json::Value& value = value_or_error.value();
-  std::optional<absl::string_view> result1 =
+  std::optional<std::string_view> result1 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key3"));
-  std::optional<absl::string_view> result2 =
+  std::optional<std::string_view> result2 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key2"));
-  std::optional<absl::string_view> result3 =
+  std::optional<std::string_view> result3 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key42"));
-  std::optional<absl::string_view> result4 =
+  std::optional<std::string_view> result4 =
       MaybeGetString(value, JSON_EXPAND_FIND_CONSTANT_ARGS("key4"));
 
   EXPECT_FALSE(result2);

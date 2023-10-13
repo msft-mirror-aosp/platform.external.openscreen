@@ -8,7 +8,6 @@
 #include <memory>
 #include <ostream>
 
-#include "absl/strings/string_view.h"
 #include "osp/impl/presentation/presentation_common.h"
 #include "osp/msgs/osp_messages.h"
 #include "osp/public/network_service_manager.h"
@@ -100,7 +99,7 @@ void Connection::OnTerminated() {
   delegate_->OnTerminated();
 }
 
-Error Connection::SendString(absl::string_view message) {
+Error Connection::SendString(std::string_view message) {
   if (state_ != State::kConnected)
     return Error::Code::kNoActiveConnection;
 

@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -105,7 +106,7 @@ class ConnectionNamespaceHandlerTest : public ::testing::Test {
                                                        CastMessage message) {
           VerifyConnectionMessage(message, source_id, destination_id);
           Json::Value value = ParseConnectionMessage(message);
-          std::optional<absl::string_view> type = MaybeGetString(
+          std::optional<std::string_view> type = MaybeGetString(
               value, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyType));
           ASSERT_TRUE(type) << message.payload_utf8();
           EXPECT_EQ(type.value(), kMessageTypeClose) << message.payload_utf8();
@@ -122,7 +123,7 @@ class ConnectionNamespaceHandlerTest : public ::testing::Test {
                              CastSocket* socket, CastMessage message) {
           VerifyConnectionMessage(message, source_id, destination_id);
           Json::Value value = ParseConnectionMessage(message);
-          std::optional<absl::string_view> type = MaybeGetString(
+          std::optional<std::string_view> type = MaybeGetString(
               value, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyType));
           ASSERT_TRUE(type) << message.payload_utf8();
           EXPECT_EQ(type.value(), kMessageTypeConnected)

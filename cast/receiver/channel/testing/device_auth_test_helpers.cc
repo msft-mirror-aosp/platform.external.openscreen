@@ -19,9 +19,9 @@ void InitStaticCredentialsFromFiles(
     StaticCredentialsProvider* creds,
     std::unique_ptr<ParsedCertificate>* parsed_cert,
     std::unique_ptr<TrustStore>* fake_trust_store,
-    absl::string_view privkey_filename,
-    absl::string_view chain_filename,
-    absl::string_view tls_filename) {
+    std::string_view privkey_filename,
+    std::string_view chain_filename,
+    std::string_view tls_filename) {
   auto private_key = ReadKeyFromPemFile(privkey_filename);
   ASSERT_TRUE(private_key);
   std::vector<std::string> certs = ReadCertificatesFromPemFile(chain_filename);

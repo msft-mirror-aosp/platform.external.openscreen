@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "absl/strings/match.h"
@@ -136,7 +137,7 @@ bool TryParseAesHexBytes(const Json::Value& value,
   return false;
 }
 
-absl::string_view ToString(Stream::Type type) {
+std::string_view ToString(Stream::Type type) {
   switch (type) {
     case Stream::Type::kAudioSource:
       return kAudioSourceType;

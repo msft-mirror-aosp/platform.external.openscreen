@@ -11,9 +11,8 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
-
-#include "absl/strings/string_view.h"
 
 struct AstNode {
   // These types all correspond to types in the grammar, which can be found in
@@ -151,7 +150,7 @@ struct ParseResult {
   std::vector<std::unique_ptr<AstNode>> nodes;
 };
 
-ParseResult ParseCddl(absl::string_view data);
+ParseResult ParseCddl(std::string_view data);
 void DumpAst(AstNode* node, int indent_level = 0);
 
 #endif  // TOOLS_CDDL_PARSE_H_

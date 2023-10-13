@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "absl/hash/hash.h"
-#include "absl/strings/string_view.h"
 #include "discovery/dnssd/impl/constants.h"
 #include "discovery/dnssd/impl/conversion_layer.h"
 #include "discovery/dnssd/impl/dns_data_graph.h"

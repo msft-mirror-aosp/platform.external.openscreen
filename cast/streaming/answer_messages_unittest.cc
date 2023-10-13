@@ -5,6 +5,7 @@
 #include "cast/streaming/answer_messages.h"
 
 #include <chrono>
+#include <string_view>
 #include <utility>
 
 #include "gmock/gmock.h"
@@ -149,7 +150,7 @@ void ExpectEqualsValidAnswerJson(const Answer& answer) {
   EXPECT_THAT(answer.rtp_extensions, ElementsAre("adaptive_playout_delay"));
 }
 
-void ExpectFailureOnParse(absl::string_view raw_json) {
+void ExpectFailureOnParse(std::string_view raw_json) {
   ErrorOr<Json::Value> root = json::Parse(raw_json);
   // Must be a valid JSON object, but not a valid answer.
   ASSERT_TRUE(root.is_value());
@@ -161,7 +162,7 @@ void ExpectFailureOnParse(absl::string_view raw_json) {
 
 // Functions that use ASSERT_* must return void, so we use an out parameter
 // here instead of returning.
-void ExpectSuccessOnParse(absl::string_view raw_json, Answer* out = nullptr) {
+void ExpectSuccessOnParse(std::string_view raw_json, Answer* out = nullptr) {
   ErrorOr<Json::Value> root = json::Parse(raw_json);
   // Must be a valid JSON object, but not a valid answer.
   ASSERT_TRUE(root.is_value());
