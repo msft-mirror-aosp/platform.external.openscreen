@@ -65,7 +65,7 @@ source_set("base") {
   ]
 
   deps = [
-    "../third_party/mozilla",
+    "../third_party/googleurl",
 
     # We do a clone of Chrome's modp_b64 in order to share their BUILD.gn
     # and license files, so this should always be an absolute reference.
