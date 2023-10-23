@@ -114,7 +114,8 @@ ByteBuffer RtpPacketizer::GeneratePacket(const EncryptedFrame& frame,
   OSP_DCHECK_EQ(buffer.data() + data_chunk_size, packet.end());
 
   // Copy the encrypted payload data into the packet.
-  memcpy(buffer.data(), frame.data.data() + data_chunk_start, data_chunk_size);
+  auto data_chunk = frame.data.subspan(data_chunk_start, data_chunk_size);
+  std::copy(data_chunk.begin(), data_chunk.end(), buffer.data());
 
   return packet;
 }

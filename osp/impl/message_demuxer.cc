@@ -84,12 +84,10 @@ MessageDemuxer::MessageWatch::MessageWatch(MessageDemuxer* parent,
       message_type_(message_type) {}
 
 MessageDemuxer::MessageWatch::MessageWatch(
-    MessageDemuxer::MessageWatch&& other) noexcept
-    : parent_(other.parent_),
-      is_default_(other.is_default_),
-      endpoint_id_(other.endpoint_id_),
-      message_type_(other.message_type_) {
-  other.parent_ = nullptr;
+    MessageDemuxer::MessageWatch&& other) noexcept {
+  // Although all fields are POD, this does not use the default implementation.
+  // See `operator=` for details.
+  *this = std::move(other);
 }
 
 MessageDemuxer::MessageWatch::~MessageWatch() {
@@ -108,6 +106,9 @@ MessageDemuxer::MessageWatch::~MessageWatch() {
 
 MessageDemuxer::MessageWatch& MessageDemuxer::MessageWatch::operator=(
     MessageWatch&& other) noexcept {
+  // Although all fields are POD, this does not use the default `operator=`
+  // implementation because it is important that exactly one of `this` or
+  // `other` refers to `parent_`, so that the destructor behaves correctly.
   using std::swap;
   swap(parent_, other.parent_);
   swap(is_default_, other.is_default_);
