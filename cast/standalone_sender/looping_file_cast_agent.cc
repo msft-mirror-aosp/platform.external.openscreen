@@ -351,7 +351,7 @@ void LoopingFileCastAgent::OnStatisticsUpdated(
   if ((num_times_on_statistics_updated_called_++ % kLoggingInterval) == 0) {
     OSP_VLOG << __func__ << ": updated_stats=" << updated_stats.ToString();
   }
-  last_reported_statistics_ = absl::make_optional<SenderStats>(updated_stats);
+  last_reported_statistics_ = std::make_optional<SenderStats>(updated_stats);
 }
 
 void LoopingFileCastAgent::OnReady() {
