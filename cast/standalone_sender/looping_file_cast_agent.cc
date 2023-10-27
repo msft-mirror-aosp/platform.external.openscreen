@@ -4,6 +4,7 @@
 
 #include "cast/standalone_sender/looping_file_cast_agent.h"
 
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>

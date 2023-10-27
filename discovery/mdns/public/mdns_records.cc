@@ -52,10 +52,10 @@ bool IsGreaterThan(const Rdata& lhs, const Rdata& rhs) {
   const size_t lhs_size = lhs_cast.MaxWireSize() + 2;
   const size_t rhs_size = rhs_cast.MaxWireSize() + 2;
 
-  uint8_t lhs_bytes[lhs_size];  // NOLINT(runtime/arrays)
-  uint8_t rhs_bytes[rhs_size];  // NOLINT(runtime/arrays)
-  MdnsWriter lhs_writer(lhs_bytes, lhs_size);
-  MdnsWriter rhs_writer(rhs_bytes, rhs_size);
+  std::vector<uint8_t> lhs_bytes(lhs_size);
+  std::vector<uint8_t> rhs_bytes(rhs_size);
+  MdnsWriter lhs_writer(lhs_bytes.data(), lhs_size);
+  MdnsWriter rhs_writer(rhs_bytes.data(), rhs_size);
 
   const bool lhs_write = lhs_writer.Write(lhs_cast);
   const bool rhs_write = rhs_writer.Write(rhs_cast);
