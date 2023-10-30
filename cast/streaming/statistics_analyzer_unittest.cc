@@ -635,4 +635,90 @@ TEST_F(StatisticsAnalyzerTest, AudioAndVideoFrameEncodedPacketSentAndReceived) {
                                    (frame_interval_ms * num_events)));
 }
 
+TEST_F(StatisticsAnalyzerTest, LotsOfEventsStillWorksProperly) {
+  constexpr std::array<StatisticsEventType, 5> kEventsToReport{
+      StatisticsEventType::kFrameCaptureBegin,
+      StatisticsEventType::kFrameCaptureEnd, StatisticsEventType::kFrameEncoded,
+      StatisticsEventType::kFrameAckSent, StatisticsEventType::kFramePlayedOut};
+  constexpr int kNumFrames = 1000;
+  constexpr int kNumEvents = kNumFrames * kEventsToReport.size();
+
+  constexpr std::array<int, 5> kFramePlayoutDelayDeltasMs{10, 14, 3, 40, 1};
+  constexpr std::array<int, 25> kTimestampOffsetsMs{
+      // clang-format off
+      0, 13, 39, 278, 552,   // Frame One.
+      0, 14, 34, 239, 373,   // Frame Two.
+      0, 19, 29, 245, 389,   // Frame Three.
+      0, 17, 37, 261, 390,   // Frame Four.
+      0, 14, 44, 290, 440,   // Frame Five.
+      // clang-format on
+  };
+
+  constexpr std::array<std::pair<StatisticType, double>, 7> kExpectedStats{{
+      {StatisticType::kNumLateFrames, 1000},
+      {StatisticType::kNumFramesCaptured, 1000},
+      {StatisticType::kAvgEndToEndLatencyMs, 428.8},
+      {StatisticType::kAvgCaptureLatencyMs, 15.4},
+      {StatisticType::kAvgFrameLatencyMs, 226},
+      {StatisticType::kAvgEncodeTimeMs, 21.2},
+      {StatisticType::kEnqueueFps, 40},
+  }};
+
+  constexpr std::array<std::pair<HistogramType, std::array<int, 30>>, 4>
+      kExpectedHistograms{
+          {{HistogramType::kCaptureLatencyMs, {0, 1000}},
+           {HistogramType::kEncodeTimeMs, {0, 200, 800}},
+           {HistogramType::kEndToEndLatencyMs,
+            {0, 0, 0, 0, 0,   0,   0, 0, 0,   0, 0, 0, 0, 0,  0,
+             0, 0, 0, 0, 200, 400, 0, 0, 200, 0, 0, 0, 0, 200
+
+            }},
+           {HistogramType::kFrameLatenessMs, {0, 800, 0, 200}}}};
+
+  // We don't check stats the first 49 times, only the last.
+  {
+    testing::InSequence s;
+    EXPECT_CALL(stats_client_, OnStatisticsUpdated(_)).Times(49);
+    EXPECT_CALL(stats_client_, OnStatisticsUpdated(_))
+        .WillOnce(Invoke([&](const SenderStats& stats) {
+          for (const auto& stat_pair : kExpectedStats) {
+            ExpectStatEq(stats.video_statistics, stat_pair.first,
+                         stat_pair.second);
+          }
+          for (const auto& histogram_pair : kExpectedHistograms) {
+            ExpectHistoBuckets(stats.video_histograms, histogram_pair.first,
+                               histogram_pair.second);
+          }
+        }));
+  }
+
+  analyzer_->ScheduleAnalysis();
+  RtpTimeTicks rtp_timestamp;
+  int current_event = 0;
+  for (int frame_id = 0; frame_id < kNumFrames; frame_id++) {
+    for (StatisticsEventType event_type : kEventsToReport) {
+      FrameEvent event(kDefaultFrameEvent);
+      event.type = event_type;
+      event.frame_id = FrameId(frame_id);
+      event.rtp_timestamp = rtp_timestamp;
+      event.timestamp =
+          fake_clock_.now() +
+          milliseconds(
+              kTimestampOffsetsMs[current_event % kTimestampOffsetsMs.size()]);
+      event.delay_delta = milliseconds(
+          kFramePlayoutDelayDeltasMs[frame_id %
+                                     kFramePlayoutDelayDeltasMs.size()]);
+      collector_->CollectFrameEvent(std::move(event));
+
+      current_event++;
+    }
+    fake_clock_.Advance(
+        milliseconds(kDefaultStatIntervalMs * kEventsToReport.size()));
+    rtp_timestamp += RtpTimeDelta::FromTicks(90);
+  }
+
+  fake_clock_.Advance(milliseconds(kDefaultStatsAnalysisIntervalMs -
+                                   (kDefaultStatIntervalMs * kNumEvents)));
+}
+
 }  // namespace openscreen::cast
