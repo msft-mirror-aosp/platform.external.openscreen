@@ -41,7 +41,7 @@ source_set("streaming_configs") {
 
   deps = [
     "../../platform:base",
-    "../../util:base",
+    "../../util",
   ]
 }
 
