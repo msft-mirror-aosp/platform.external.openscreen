@@ -134,7 +134,7 @@ class StatisticsAnalyzerTest : public ::testing::Test {
 
   PacketEvent MakePacketEvent(int frame_and_packet_id,
                               RtpTimeTicks rtp_timestamp) {
-    OSP_CHECK_LT(frame_and_packet_id, UINT16_MAX);
+    OSP_CHECK_LT(frame_and_packet_id, static_cast<int>(UINT16_MAX));
     PacketEvent event = kDefaultPacketEvent;
     event.packet_id = static_cast<uint16_t>(frame_and_packet_id);
     event.rtp_timestamp = rtp_timestamp;
