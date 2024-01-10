@@ -104,8 +104,10 @@ std::vector<InterfaceInfo> GetAllInterfaces() {
             }
         }
         OSP_DVLOG << "\tIfType=" << pcurraddrs->IfType;
-        OSP_DVLOG << "\tDescription=" << pcurraddrs->Description;
-        OSP_DVLOG << "\tFreindlyName=" << pcurraddrs->FriendlyName;
+        // TODO: Convert the wide strings to the proper narrow encoding (e.g.
+        // UTF-8) rather than print the addresses.
+        OSP_DVLOG << "\tDescription=" << static_cast<void*>(pcurraddrs->Description);
+        OSP_DVLOG << "\tFriendlyName=" << static_cast<void*>(pcurraddrs->FriendlyName);
         pcurraddrs = pcurraddrs->Next;
     }
     return infos;
