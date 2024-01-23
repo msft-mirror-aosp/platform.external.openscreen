@@ -21,16 +21,6 @@
 
 namespace openscreen::osp {
 
-namespace {
-
-// TODO(jophba): replace Write methods with a unified write message surface
-Error WriteConnectionMessage(const msgs::PresentationConnectionMessage& message,
-                             ProtocolConnection* connection) {
-  return connection->WriteMessage(message,
-                                  msgs::EncodePresentationConnectionMessage);
-}
-}  // namespace
-
 Connection::Connection(const PresentationInfo& info,
                        Delegate* delegate,
                        ParentDelegate* parent_delegate)
@@ -112,7 +102,8 @@ Error Connection::SendString(std::string_view message) {
 
   new (&cbor_message.message.str) std::string(message);
 
-  return WriteConnectionMessage(cbor_message, protocol_connection_.get());
+  return protocol_connection_->WriteMessage(
+      cbor_message, &msgs::EncodePresentationConnectionMessage);
 }
 
 Error Connection::SendBinary(std::vector<uint8_t>&& data) {
@@ -128,7 +119,8 @@ Error Connection::SendBinary(std::vector<uint8_t>&& data) {
 
   new (&cbor_message.message.bytes) std::vector<uint8_t>(std::move(data));
 
-  return WriteConnectionMessage(cbor_message, protocol_connection_.get());
+  return protocol_connection_->WriteMessage(
+      cbor_message, &msgs::EncodePresentationConnectionMessage);
 }
 
 Error Connection::Close(CloseReason reason) {
