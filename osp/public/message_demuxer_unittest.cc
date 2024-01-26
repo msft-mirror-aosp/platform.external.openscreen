@@ -334,7 +334,7 @@ TEST_F(MessageDemuxerTest, DeserializeMessages) {
   std::vector<uint8_t> kAgentInfoResponseSerialized{0x0B, 0xFF};
   std::vector<uint8_t> kPresentationConnectionCloseEventSerialized{0x40, 0x71,
                                                                    0x00};
-  std::vector<uint8_t> kAuthenticationRequestSerialized{0x43, 0xE9, 0xFF, 0x00};
+  std::vector<uint8_t> kAuthCapabilitiesSerialized{0x43, 0xE9, 0xFF, 0x00};
 
   size_t used_bytes;
   auto kAgentInfoResponseInfo =
@@ -350,12 +350,11 @@ TEST_F(MessageDemuxerTest, DeserializeMessages) {
   EXPECT_EQ(kPresentationConnectionCloseEventInfo.value(),
             msgs::Type::kPresentationConnectionCloseEvent);
 
-  auto kAuthenticationRequestInfo = MessageTypeDecoder::DecodeType(
-      kAuthenticationRequestSerialized, &used_bytes);
-  EXPECT_FALSE(kAuthenticationRequestInfo.is_error());
+  auto kAuthCapabilitiesInfo =
+      MessageTypeDecoder::DecodeType(kAuthCapabilitiesSerialized, &used_bytes);
+  EXPECT_FALSE(kAuthCapabilitiesInfo.is_error());
   EXPECT_EQ(used_bytes, size_t{2});
-  EXPECT_EQ(kAuthenticationRequestInfo.value(),
-            msgs::Type::kAuthenticationRequest);
+  EXPECT_EQ(kAuthCapabilitiesInfo.value(), msgs::Type::kAuthCapabilities);
 
   auto kUnknownInfo = MessageTypeDecoder::DecodeType({0xFF}, &used_bytes);
   EXPECT_TRUE(kUnknownInfo.is_error());

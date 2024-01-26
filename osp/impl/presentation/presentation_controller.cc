@@ -550,6 +550,7 @@ Error Controller::CloseConnection(Connection* connection,
 }
 
 Error Controller::OnPresentationTerminated(const std::string& presentation_id,
+                                           TerminationSource source,
                                            TerminationReason reason) {
   auto presentation_entry = presentations_.find(presentation_id);
   if (presentation_entry == presentations_.end()) {
@@ -561,8 +562,7 @@ Error Controller::OnPresentationTerminated(const std::string& presentation_id,
   }
   TerminationRequest request;
   request.request.presentation_id = presentation_id;
-  request.request.reason =
-      msgs::PresentationTerminationRequest_reason::kUserTerminatedViaController;
+  request.request.reason = msgs::PresentationTerminationReason::kUserRequest;
   group_streams_[presentation.service_id]->SendTerminationRequest(
       std::move(request));
   presentations_.erase(presentation_entry);

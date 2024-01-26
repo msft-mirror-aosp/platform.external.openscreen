@@ -13,24 +13,6 @@ using openscreen::msgs::PresentationUrlAvailabilityRequest;
 
 namespace openscreen::osp {
 
-// TODO(btolsch): This is in the current (draft) spec, but should we actually
-// allow this?
-TEST(PresentationMessagesTest, EncodeRequestZeroUrls) {
-  uint8_t buffer[256];
-  std::vector<std::string> urls;
-  ssize_t bytes_out = EncodePresentationUrlAvailabilityRequest(
-      PresentationUrlAvailabilityRequest{3, urls}, buffer, sizeof(buffer));
-  ASSERT_LE(bytes_out, static_cast<ssize_t>(sizeof(buffer)));
-  ASSERT_GT(bytes_out, 0);
-
-  PresentationUrlAvailabilityRequest decoded_request;
-  ssize_t bytes_read = DecodePresentationUrlAvailabilityRequest(
-      buffer, bytes_out, &decoded_request);
-  ASSERT_EQ(bytes_read, bytes_out);
-  EXPECT_EQ(3u, decoded_request.request_id);
-  EXPECT_EQ(urls, decoded_request.urls);
-}
-
 TEST(PresentationMessagesTest, EncodeRequestOneUrl) {
   uint8_t buffer[256];
   std::vector<std::string> urls{"https://example.com/receiver.html"};

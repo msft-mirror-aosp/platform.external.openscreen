@@ -281,6 +281,8 @@ class ControllerTest : public ::testing::Test {
     response.request_id = request.request_id;
     response.result = msgs::PresentationStartResponse_result::kSuccess;
     response.connection_id = 1;
+    response.has_http_response_code = false;
+    response.http_response_code = 0u;
     SendStartResponse(response);
 
     EXPECT_CALL(mock_request_delegate, OnConnectionMock(_))
@@ -418,7 +420,8 @@ TEST_F(ControllerTest, TerminatePresentationFromController) {
             buffer, buffer_size, &termination_request);
         return result;
       }));
-  connection->Terminate(TerminationReason::kControllerTerminateCalled);
+  connection->Terminate(TerminationSource::kController,
+                        TerminationReason::kApplicationTerminated);
   quic_bridge_.RunTasksUntilIdle();
 
   ASSERT_EQ(msgs::Type::kPresentationTerminationRequest, msg_type);
@@ -441,8 +444,9 @@ TEST_F(ControllerTest, TerminatePresentationFromReceiver) {
 
   msgs::PresentationTerminationEvent termination_event;
   termination_event.presentation_id = connection->presentation_info().id;
+  termination_event.source = msgs::PresentationTerminationSource::kReceiver;
   termination_event.reason =
-      msgs::PresentationTerminationEvent_reason::kReceiverCalledTerminate;
+      msgs::PresentationTerminationReason::kApplicationRequest;
   SendTerminationEvent(termination_event);
 
   EXPECT_CALL(mock_connection_delegate, OnTerminated());

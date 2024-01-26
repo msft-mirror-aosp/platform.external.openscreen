@@ -12,10 +12,28 @@ agent-info-response = {
   1: agent-info ; agent-info
 }
 
+; type key 122
+agent-info-event = {
+  1: agent-info ; agent-info
+}
+
+agent-capability = &(
+  receive-audio: 1
+  receive-video: 2
+  receive-presentation: 3
+  control-presentation: 4
+  receive-remote-playback: 5
+  control-remote-playback: 6
+  receive-streaming: 7
+  send-streaming: 8
+)
+
 agent-info = {
-  0: text ; friendly-name
+  0: text ; display-name
   1: text ; model-name
-  ; ...
+  2: [* agent-capability] ; capabilities
+  3: text ; state-token
+  4: [* text] ; locales
 }
 
 ; type key 12
@@ -28,6 +46,10 @@ agent-status-request = {
 agent-status-response = {
   response
   ? 1: status ; status
+}
+
+status = {
+  0: text ; status
 }
 
 request = (
@@ -43,64 +65,71 @@ request-id = uint
 microseconds = uint
 
 ; type key 1001
-authentication-request = {
-  request
-  1: authentication-mechanism ; mechanism
-  2: bytes ; salt
-  3: uint ; cost
+auth-capabilities = {
+  0: uint ; psk-ease-of-input
+  1: [* psk-input-method] ; psk-input-methods
+  2: uint ; psk-min-bits-of-entropy
 }
 
+psk-input-method = &(
+  numeric: 0
+  qr-code: 1
+)
+
+auth-initiation-token = (
+  ? 0 : text ; token
+)
+
 ; type key 1002
-authentication-response = {
-  response
-  1: authentication-response-result ; result
-  2: bytes ; proof
+auth-spake2-need-psk = {
+  auth-initiation-token
 }
 
 ; type key 1003
-authentication-result = {
-  1: authentication-result-result ; result
+auth-spake2-handshake = {
+  auth-initiation-token
+  1 : bytes .size 32 ; random
 }
 
-authentication-mechanism = &(
-  hkdf-of-scrypt-of-psk: 1
-)
+; type key 1004
+auth-spake2-confirmation = {
+  1 : bytes .size 32 ; transcript-mac
+}
 
-authentication-response-result = &(
-  ok: 0
-  unknown-error: 1
-  mechanism-unknown: 2
-  salt-too-small: 3
-  cost-too-low: 4
-  cost-too-high: 5
-  secret-unknown: 6
-  calculation-took-too-long: 7
-)
+; type key 1005
+auth-status = {
+  1 : auth-status-result ; result
+}
 
-authentication-result-result = &(
+auth-status-result = &(
   authenticated: 0
   unknown-error: 1
-  proof-invalid: 2
+  timeout: 2
+  secret-unknown: 3
+  validation-took-too-long : 4
+  proof-invalid: 5
 )
+
+watch-id = uint
 
 ; type key 14
 presentation-url-availability-request = {
   request
-  1: [* text] ; urls
+  1: [1* text] ; urls
   2: microseconds ; watch-duration
-  3: uint ; watch-id
+  3: watch-id ; watch-id
 }
 
 ; type key 15
 presentation-url-availability-response = {
   response
-  1: [* url-availability] ; url-availabilities
+  1: [1* url-availability] ; url-availabilities
 }
 
 ; type key 103
 presentation-url-availability-event = {
-  1: uint ; watch-id
-  2: [* url-availability] ; url-availabilities
+  1: watch-id ; watch-id
+  2: [1* url-availability] ; url-availabilities
 }
 
 ; idea: use HTTP response codes?
@@ -128,18 +157,31 @@ presentation-start-response = {
   response
   1: &result ; result
   2: uint ; connection-id
+  ? 3: uint ; http-response-code
 }
+
+presentation-termination-source = &(
+  controller: 1
+  receiver: 2
+  unknown: 255
+)
+
+presentation-termination-reason = &(
+  application-request: 1
+  user-request: 2
+  receiver-replaced-presentation: 20
+  receiver-idle-too-long: 30
+  receiver-attempted-to-navigate: 31
+  receiver-powering-down: 100
+  receiver-error: 101
+  unknown: 255
+)
 
 ; type key 106
 presentation-termination-request = {
   request
   1: text ; presentation-id
-  2: &(
-    controller-called-terminate: 10
-    user-terminated-via-controller: 11
-    unknown: 255
-  )
- ; reason
+  2: presentation-termination-reason ; reason
 }
 
 ; type key 107
@@ -151,18 +193,8 @@ presentation-termination-response = {
 ; type key 108
 presentation-termination-event = {
   1: text ; presentation-id
-  2: &(
-    receiver-called-terminate: 1
-    user-terminated-via-receiver: 2
-    controller-called-terminate: 10
-    user-terminated-via-controller: 11
-    receiver-replaced-presentation: 20
-    receiver-idle-too-long: 30
-    receiver-attempted-to-navigate: 31
-    receiver-powering-down: 100
-    receiver-crashed: 101
-    unknown: 255
-  ) ; reason
+  2: presentation-termination-source ; source
+  3: presentation-termination-reason ; reason
 }
 
 ; type key 109
@@ -177,6 +209,7 @@ presentation-connection-open-response = {
   response
   1: &result ; result
   2: uint; connection-id
+  3: uint; connection-count
 }
 
 ; type key 111
@@ -201,16 +234,19 @@ presentation-connection-close-event = {
     unrecoverable-error-while-sending-or-receiving-message: 100
   ) ; reason
   ? 3: text ; error-message
+  4: uint; connection-count
+}
+
+; type key 121
+presentation-change-event = {
+  1: text ; presentation-id
+  2: uint ; connection-count
 }
 
 ; type key 16
 presentation-connection-message = {
   1: uint ; connection-id
   2: bytes / text ; message
-}
-
-status = {
-  status: text
 }
 
 result = (

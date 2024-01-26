@@ -55,8 +55,10 @@ class MockReceiverDelegate final : public ReceiverDelegate {
                bool(uint64_t request_id,
                     const std::string& id,
                     uint64_t source_id));
-  MOCK_METHOD2(TerminatePresentation,
-               void(const std::string& id, TerminationReason reason));
+  MOCK_METHOD3(TerminatePresentation,
+               void(const std::string& id,
+                    TerminationSource source,
+                    TerminationReason reason));
 };
 
 class PresentationReceiverTest : public ::testing::Test {

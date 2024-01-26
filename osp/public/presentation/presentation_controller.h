@@ -141,6 +141,7 @@ class Controller final : public ServiceListener::Observer,
   // Also called by the embedder to report that a presentation has been
   // terminated.
   Error OnPresentationTerminated(const std::string& presentation_id,
+                                 TerminationSource source,
                                  TerminationReason reason) override;
 
   void OnConnectionDestroyed(Connection* connection) override;

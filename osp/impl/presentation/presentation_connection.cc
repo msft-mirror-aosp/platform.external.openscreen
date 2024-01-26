@@ -133,12 +133,12 @@ Error Connection::Close(CloseReason reason) {
   return parent_delegate_->CloseConnection(this, reason);
 }
 
-void Connection::Terminate(TerminationReason reason) {
+void Connection::Terminate(TerminationSource source, TerminationReason reason) {
   if (state_ == State::kTerminated)
     return;
   state_ = State::kTerminated;
   protocol_connection_.reset();
-  parent_delegate_->OnPresentationTerminated(presentation_.id, reason);
+  parent_delegate_->OnPresentationTerminated(presentation_.id, source, reason);
 }
 
 ConnectionManager::ConnectionManager(MessageDemuxer* demuxer) {
