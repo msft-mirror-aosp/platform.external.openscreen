@@ -17,6 +17,12 @@
 
 #include "absl/algorithm/container.h"
 
+// Use different variables for each loop to avoid problems with loop nesting.
+std::string GetLoopVariable() {
+  static size_t index = 0;
+  return "x" + std::to_string(++index);
+}
+
 // Convert '-' to '_' to use a CDDL identifier as a C identifier.
 std::string ToUnderscoreId(const std::string& x) {
   std::string result(x);
@@ -607,8 +613,10 @@ bool WriteEncoder(int fd,
               "  CBOR_RETURN_ON_ERROR(cbor_encoder_create_array(&encoder%d, "
               "&encoder%d, %s.size()));\n",
               encoder_depth, encoder_depth + 1, cid.c_str());
-      dprintf(fd, "  for (const auto& x : %s) {\n", cid.c_str());
-      if (!WriteEncoder(fd, "x", *cpp_type.vector_type.element_type,
+      std::string loop_variable = GetLoopVariable();
+      dprintf(fd, "  for (const auto& %s : %s) {\n", loop_variable.c_str(),
+              cid.c_str());
+      if (!WriteEncoder(fd, loop_variable, *cpp_type.vector_type.element_type,
                         nested_type_scope, encoder_depth + 1)) {
         return false;
       }
@@ -1143,11 +1151,14 @@ bool WriteDecoder(int fd,
           fd,
           "  CBOR_RETURN_ON_ERROR(cbor_value_enter_container(&it%d, &it%d));\n",
           decoder_depth, decoder_depth + 1);
-      dprintf(fd, "  for (auto i = %s%sbegin(); i != %s%send(); ++i) {\n",
-              name.c_str(), member_accessor.c_str(), name.c_str(),
-              member_accessor.c_str());
-      if (!WriteDecoder(fd, "(*i)", ".", *cpp_type.vector_type.element_type,
-                        decoder_depth + 1, temporary_count)) {
+      std::string loop_variable = GetLoopVariable();
+      dprintf(fd, " for (auto %s = %s%sbegin(); %s != %s%send(); ++%s) {\n",
+              loop_variable.c_str(), name.c_str(), member_accessor.c_str(),
+              loop_variable.c_str(), name.c_str(), member_accessor.c_str(),
+              loop_variable.c_str());
+      if (!WriteDecoder(fd, "(*" + loop_variable + ")", ".",
+                        *cpp_type.vector_type.element_type, decoder_depth + 1,
+                        temporary_count)) {
         return false;
       }
       dprintf(fd, "  }\n");
