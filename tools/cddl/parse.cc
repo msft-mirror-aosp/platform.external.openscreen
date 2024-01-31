@@ -69,10 +69,19 @@ std::string_view SkipNewline(std::string_view view) {
   return view.substr(index);
 }
 
+std::optional<std::string> ParseTypeKeyFromComment(Parser* p);
+
 // Skips over a comment that makes up the remainder of the current line.
-std::string_view SkipComment(std::string_view view) {
+std::string_view SkipComment(std::string_view view, bool skip_type_key = true) {
   size_t index = 0;
   if (view[index] == ';') {
+    if (!skip_type_key) {
+      Parser p{view.data()};
+      if (ParseTypeKeyFromComment(&p).has_value()) {
+        return view;
+      }
+    }
+
     ++index;
     while (!IsNewline(view[index]) && index < view.length()) {
       CHECK(absl::ascii_isprint(view[index]));
@@ -87,17 +96,12 @@ std::string_view SkipComment(std::string_view view) {
   return view.substr(index);
 }
 
-void SkipWhitespace(Parser* p, bool skip_comments = true) {
-  if (!skip_comments) {
-    p->data = absl::StripLeadingAsciiWhitespace(p->data).data();
-    return;
-  }
-
+void SkipWhitespaceImpl(Parser* p, bool skip_type_key = true) {
   std::string_view view = p->data;
   std::string_view new_view;
 
   while (true) {
-    new_view = SkipComment(view);
+    new_view = SkipComment(view, skip_type_key);
     if (new_view.data() == view.data()) {
       new_view = absl::StripLeadingAsciiWhitespace(view);
     }
@@ -110,6 +114,21 @@ void SkipWhitespace(Parser* p, bool skip_comments = true) {
   }
 
   p->data = new_view.data();
+}
+
+void SkipWhitespace(Parser* p, bool skip_comments = true) {
+  if (!skip_comments) {
+    p->data = absl::StripLeadingAsciiWhitespace(p->data).data();
+    return;
+  }
+
+  SkipWhitespaceImpl(p);
+}
+
+// This is only used for the start of the file to avoid losing the first type
+// key.
+void SkipStartWhitespace(Parser* p) {
+  SkipWhitespaceImpl(p, false);
 }
 
 bool TrySkipNewline(Parser* p) {
@@ -971,7 +990,7 @@ ParseResult ParseCddl(std::string_view data) {
   }
   Parser p{data.data()};
 
-  SkipWhitespace(&p);
+  SkipStartWhitespace(&p);
   AstNode* root = nullptr;
   AstNode* tail = nullptr;
   do {
