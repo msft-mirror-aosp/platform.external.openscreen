@@ -1076,6 +1076,15 @@ void DumpAst(AstNode* node, int indent_level) {
       case AstNode::Type::kBytes:
         node_text += "kBytes";
         break;
+      case AstNode::Type::kBool:
+        node_text += "kBool";
+        break;
+      case AstNode::Type::kFloat:
+        node_text += "kFloat";
+        break;
+      case AstNode::Type::kInt:
+        node_text += "kInt";
+        break;
       case AstNode::Type::kOther:
         node_text += "kOther";
         break;

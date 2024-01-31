@@ -58,6 +58,12 @@ std::string ToCamelCase(const std::string& x) {
 // vector with an invalid element type).
 std::string CppTypeToString(const CppType& cpp_type) {
   switch (cpp_type.which) {
+    case CppType::Which::kBool:
+      return "bool";
+    case CppType::Which::kFloat:
+      return "float";
+    case CppType::Which::kInt64:
+      return "int64_t";
     case CppType::Which::kUint64:
       return "uint64_t";
     case CppType::Which::kString:
@@ -191,6 +197,21 @@ bool WriteDiscriminatedUnionEqualityOperator(
   for (auto* union_member : type.discriminated_union.members) {
     dprintf(fd, " &&\n         ");
     switch (union_member->which) {
+      case CppType::Which::kBool:
+        dprintf(fd,
+                "(this->which != Which::kBool || this->bool_var == "
+                "other.bool_var)");
+        break;
+      case CppType::Which::kFloat:
+        dprintf(fd,
+                "(this->which != Which::kFloat || this->float_var == "
+                "other.float_var)");
+        break;
+      case CppType::Which::kInt64:
+        dprintf(
+            fd,
+            "(this->which != Which::kInt64 || this->int_var == other.int_var)");
+        break;
       case CppType::Which::kUint64:
         dprintf(fd,
                 "(this->which != Which::kUint64 || this->uint == other.uint)");
@@ -265,7 +286,7 @@ bool WriteStructMembers(
             return false;
           continue;
         } else {
-          type_string = ToCamelCase(x.name);
+          type_string = ToCamelCase(x.type->name);
         }
       } break;
       case CppType::Which::kOptional: {
@@ -287,6 +308,15 @@ bool WriteStructMembers(
         dprintf(fd, "  enum class Which {\n");
         for (auto* union_member : x.type->discriminated_union.members) {
           switch (union_member->which) {
+            case CppType::Which::kBool:
+              dprintf(fd, "    kBool,\n");
+              break;
+            case CppType::Which::kFloat:
+              dprintf(fd, "    kFloat,\n");
+              break;
+            case CppType::Which::kInt64:
+              dprintf(fd, "    kInt64,\n");
+              break;
             case CppType::Which::kUint64:
               dprintf(fd, "    kUint64,\n");
               break;
@@ -305,6 +335,15 @@ bool WriteStructMembers(
         dprintf(fd, "  union {\n");
         for (auto* union_member : x.type->discriminated_union.members) {
           switch (union_member->which) {
+            case CppType::Which::kBool:
+              dprintf(fd, "    bool bool_var;\n");
+              break;
+            case CppType::Which::kFloat:
+              dprintf(fd, "    float float_var;\n");
+              break;
+            case CppType::Which::kInt64:
+              dprintf(fd, "    int64_t int_var;\n");
+              break;
             case CppType::Which::kUint64:
               dprintf(fd, "    uint64_t uint;\n");
               break;
@@ -567,6 +606,20 @@ bool WriteEncoder(int fd,
         }
         return true;
       }
+    case CppType::Which::kBool:
+      dprintf(fd,
+              "  CBOR_RETURN_ON_ERROR(cbor_encode_boolean(&encoder%d, %s));\n",
+              encoder_depth, ToUnderscoreId(name).c_str());
+      return true;
+    case CppType::Which::kFloat:
+      dprintf(fd,
+              "  CBOR_RETURN_ON_ERROR(cbor_encode_float(&encoder%d, %s));\n",
+              encoder_depth, ToUnderscoreId(name).c_str());
+      return true;
+    case CppType::Which::kInt64:
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_encode_int(&encoder%d, %s));\n",
+              encoder_depth, ToUnderscoreId(name).c_str());
+      return true;
     case CppType::Which::kUint64:
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_encode_uint(&encoder%d, %s));\n",
               encoder_depth, ToUnderscoreId(name).c_str());
@@ -638,6 +691,39 @@ bool WriteEncoder(int fd,
     case CppType::Which::kDiscriminatedUnion: {
       for (const auto* union_member : cpp_type.discriminated_union.members) {
         switch (union_member->which) {
+          case CppType::Which::kBool:
+            dprintf(fd, "  case %s::%s::Which::kBool:\n",
+                    ToCamelCase(nested_type_scope).c_str(),
+                    ToCamelCase(cpp_type.name).c_str());
+            if (!WriteEncoder(fd, ToUnderscoreId(name + ".bool_var"),
+                              *union_member, nested_type_scope,
+                              encoder_depth)) {
+              return false;
+            }
+            dprintf(fd, "    break;\n");
+            break;
+          case CppType::Which::kFloat:
+            dprintf(fd, "  case %s::%s::Which::kFloat:\n",
+                    ToCamelCase(nested_type_scope).c_str(),
+                    ToCamelCase(cpp_type.name).c_str());
+            if (!WriteEncoder(fd, ToUnderscoreId(name + ".float_var"),
+                              *union_member, nested_type_scope,
+                              encoder_depth)) {
+              return false;
+            }
+            dprintf(fd, "    break;\n");
+            break;
+          case CppType::Which::kInt64:
+            dprintf(fd, "  case %s::%s::Which::kInt64:\n",
+                    ToCamelCase(nested_type_scope).c_str(),
+                    ToCamelCase(cpp_type.name).c_str());
+            if (!WriteEncoder(fd, ToUnderscoreId(name + ".int_var"),
+                              *union_member, nested_type_scope,
+                              encoder_depth)) {
+              return false;
+            }
+            dprintf(fd, "    break;\n");
+            break;
           case CppType::Which::kUint64:
             dprintf(fd, "  case %s::%s::Which::kUint64:\n",
                     ToCamelCase(nested_type_scope).c_str(),
@@ -926,24 +1012,33 @@ bool WriteEncoders(int fd, CppSymbolTable* table) {
       dprintf(fd, "  switch (which) {\n");
       for (const auto* y : x.type->discriminated_union.members) {
         switch (y->which) {
+          case CppType::Which::kBool: {
+            dprintf(fd, "    case Which::kBool: break;\n");
+          } break;
+          case CppType::Which::kFloat: {
+            dprintf(fd, "    case Which::kFloat: break;\n");
+          } break;
+          case CppType::Which::kInt64: {
+            dprintf(fd, "    case Which::kInt64: break;\n");
+          } break;
           case CppType::Which::kUint64: {
-            dprintf(fd, " case Which::kUint64: break;\n");
+            dprintf(fd, "    case Which::kUint64: break;\n");
           } break;
           case CppType::Which::kString: {
-            dprintf(fd, "  case Which::kString:\n");
-            dprintf(fd, "    str.std::string::~basic_string();\n");
-            dprintf(fd, "    break;\n");
+            dprintf(fd, "    case Which::kString:\n");
+            dprintf(fd, "      str.std::string::~basic_string();\n");
+            dprintf(fd, "      break;\n");
           } break;
           case CppType::Which::kBytes: {
-            dprintf(fd, "  case Which::kBytes:\n");
-            dprintf(fd, "    bytes.std::vector<uint8_t>::~vector();\n");
-            dprintf(fd, "    break;\n");
+            dprintf(fd, "    case Which::kBytes:\n");
+            dprintf(fd, "      bytes.std::vector<uint8_t>::~vector();\n");
+            dprintf(fd, "      break;\n");
           } break;
           default:
             return false;
         }
       }
-      dprintf(fd, " case Which::kUninitialized: break;\n");
+      dprintf(fd, "    case Which::kUninitialized: break;\n");
       dprintf(fd, "  }\n");
       dprintf(fd, "}\n");
     }
@@ -1043,6 +1138,28 @@ bool WriteDecoder(int fd,
                   int decoder_depth,
                   int* temporary_count) {
   switch (cpp_type.which) {
+    case CppType::Which::kBool: {
+      dprintf(fd,
+              "  CBOR_RETURN_ON_ERROR(cbor_value_get_boolean(&it%d, &%s));\n",
+              decoder_depth, name.c_str());
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
+              decoder_depth);
+      return true;
+    }
+    case CppType::Which::kFloat: {
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_get_float(&it%d, &%s));\n",
+              decoder_depth, name.c_str());
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
+              decoder_depth);
+      return true;
+    }
+    case CppType::Which::kInt64: {
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_get_int64(&it%d, &%s));\n",
+              decoder_depth, name.c_str());
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
+              decoder_depth);
+      return true;
+    }
     case CppType::Which::kUint64: {
       dprintf(fd,
               "  CBOR_RETURN_ON_ERROR(cbor_value_get_uint64(&it%d, &%s));\n",
@@ -1202,6 +1319,37 @@ bool WriteDecoder(int fd,
         else
           dprintf(fd, " else ");
         switch (x->which) {
+          case CppType::Which::kBool:
+            dprintf(fd, "  if (type%d == CborBooleanType) {\n",
+                    temp_value_type);
+            dprintf(fd, "  %s.which = decltype(%s)::Which::kBool;\n",
+                    name.c_str(), name.c_str());
+            if (!WriteDecoder(fd, name + ".bool_var", ".", *x, decoder_depth,
+                              temporary_count)) {
+              return false;
+            }
+            break;
+          case CppType::Which::kFloat:
+            dprintf(fd, "  if (type%d == CborFloatType) {\n", temp_value_type);
+            dprintf(fd, "  %s.which = decltype(%s)::Which::kFloat;\n",
+                    name.c_str(), name.c_str());
+            if (!WriteDecoder(fd, name + ".float_var", ".", *x, decoder_depth,
+                              temporary_count)) {
+              return false;
+            }
+            break;
+          case CppType::Which::kInt64:
+            dprintf(fd,
+                    "  if (type%d == CborIntegerType && (it%d.flags & "
+                    "CborIteratorFlag_NegativeInteger) != 0) {\n",
+                    temp_value_type, decoder_depth);
+            dprintf(fd, "  %s.which = decltype(%s)::Which::kInt64;\n",
+                    name.c_str(), name.c_str());
+            if (!WriteDecoder(fd, name + ".int_var", ".", *x, decoder_depth,
+                              temporary_count)) {
+              return false;
+            }
+            break;
           case CppType::Which::kUint64:
             dprintf(fd,
                     "  if (type%d == CborIntegerType && (it%d.flags & "
