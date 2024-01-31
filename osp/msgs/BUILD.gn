@@ -19,10 +19,22 @@ source_set("msgs") {
     "../../third_party/tinycbor",
   ]
 
+  configs += [ ":msgs_internal_config" ]
   public_configs = [
     ":cddl_gen_config",
     "../../build:openscreen_include_dirs",
   ]
+}
+
+config("msgs_internal_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+  ]
+
+  if (is_clang) {
+    cflags += [ "-Wno-shadow" ]
+  }
 }
 
 config("cddl_gen_config") {

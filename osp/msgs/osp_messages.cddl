@@ -12,7 +12,7 @@ agent-info-response = {
   1: agent-info ; agent-info
 }
 
-; type key 122
+; type key 120
 agent-info-event = {
   1: agent-info ; agent-info
 }
@@ -259,3 +259,272 @@ result = (
   terminating: 103
   unknown-error: 199
 )
+
+media-time = [
+  value: uint
+  scale: uint
+]
+
+; type key 22
+audio-frame = [
+  encoding-id: uint
+  start-time: uint
+  payload: bytes
+  ? optional: {
+    ? 0: uint ; duration
+    ? 1: media-time ; sync-time
+  }
+]
+
+; type key 23
+video-frame = {
+  0: uint ; encoding-id
+  1: uint ; sequence-number
+  ? 2: [* int] ; depends-on
+  3: uint ; start-time
+  ? 4: uint ; duration
+  5: bytes ; payload
+  ? 6: uint ; video-rotation
+  ? 7: media-time ; sync-time
+}
+
+; type key 24
+data-frame = {
+  0: uint; encoding-id
+  ? 1: uint ; sequence-number
+  ? 2: uint ; start-time
+  ? 3: uint ; duration
+  4: bytes; payload
+  ? 5: media-time ; sync-time
+}
+
+ratio = [
+  antecedent: uint
+  consequent: uint
+]
+
+; type key 122
+streaming-capabilities-request = {
+  request
+}
+
+; type key 123
+streaming-capabilities-response = {
+  response
+  1: streaming-capabilities ; streaming-capabilities
+}
+
+streaming-capabilities = {
+  0: [* receive-audio-capability] ; receive-audio
+  1: [* receive-video-capability] ; receive-video
+  2: [* receive-data-capability] ; receive-data
+}
+
+format = {
+  0: text ; codec-name
+}
+
+receive-audio-capability = {
+  0: format ; codec
+  ? 1: uint ; max-audio-channels
+  ? 2: uint ; min-bit-rate
+}
+
+video-resolution = {
+  0: uint ; height
+  1: uint ; width
+}
+
+video-hdr-format = {
+  0: text; transfer-function
+  ? 1: text; hdr-metadata
+}
+
+receive-video-capability = {
+  0: format ; codec
+  ? 1: video-resolution ; max-resolution
+  ? 2: ratio ; max-frames-per-second
+  ? 3: uint ; max-pixels-per-second
+  ? 4: uint ; min-bit-rate
+  ? 5: ratio ; aspect-ratio
+  ? 6: text ; color-gamut
+  ? 7: [* video-resolution] ; native-resolutions
+  ? 8: bool ; supports-scaling
+  ? 9: bool ; supports-rotation
+  ? 10: [* video-hdr-format] ; hdr-formats
+}
+
+receive-data-capability = {
+  0: format ; data-type
+}
+
+; type key 124
+streaming-session-start-request = {
+  request
+  streaming-session-start-request-params
+}
+
+; type key 125
+streaming-session-start-response = {
+  response
+  streaming-session-start-response-params
+}
+
+; A separate group so it can be used in remote-playback-start-request
+streaming-session-start-request-params = (
+  1: uint; streaming-session-id
+  2: [* media-stream-offer] ;  stream-offers
+  3: microseconds ; desired-stats-interval
+)
+
+; type key 126
+streaming-session-modify-request = {
+  request
+  streaming-session-modify-request-params
+}
+
+; A separate group so it can be used in remote-playback-start-response
+streaming-session-start-response-params = (
+  1: &result ; result
+  2: [* media-stream-request] ; stream-requests
+  3: microseconds ; desired-stats-interval
+)
+
+streaming-session-modify-request-params = (
+  1: uint ; streaming-session-id
+  2: [* media-stream-request] ; stream-requests
+)
+
+; type key 127
+streaming-session-modify-response = {
+  response
+  1: &result ; result
+}
+
+; type key 128
+streaming-session-terminate-request = {
+  request
+  1 : uint ; streaming-session-id
+}
+
+; type key 129
+streaming-session-terminate-response = {
+  response
+}
+
+; type key 130
+streaming-session-terminate-event = {
+  1 : uint ; streaming-session-id
+}
+
+media-stream-offer = {
+  1 : uint ; media-stream-id
+  ? 2 : text ; display-name
+  ? 3 : [1* audio-encoding-offer] ; audio
+  ? 4 : [1* video-encoding-offer] ; video
+  ? 5 : [1* data-encoding-offer] ; data
+}
+
+media-stream-request = {
+  1 : uint ; media-stream-id
+  ? 2 : audio-encoding-request ; audio
+  ? 3 : video-encoding-request ; video
+  ? 4 : data-encoding-request ; data
+}
+
+audio-encoding-offer = {
+  1 : uint ; encoding-id
+  2 : text ; codec-name
+  3 : uint ; time-scale
+  ? 4 : uint ; default-duration
+}
+
+video-encoding-offer = {
+  1 : uint ; encoding-id
+  2 : text ; codec-name
+  3 : uint ; time-scale
+  ? 4 : uint ; default-duration
+  ? 5 : video-rotation ; default-rotation
+}
+
+data-encoding-offer = {
+  1 : uint ; encoding-id
+  2 : text ; data-type-name
+  3 : uint ; time-scale
+  ? 4 : uint ; default-duration
+}
+
+audio-encoding-request = {
+  1: uint ; encoding-id
+}
+
+video-encoding-request = {
+  1 : uint ; encoding-id
+  ? 2 : video-resolution ; target-resolution
+  ? 3 : ratio ; max-frames-per-second
+}
+
+data-encoding-request = {
+  1: uint ; encoding-id
+}
+
+video-rotation = &(
+  ; Degrees clockwise
+  video-rotation-0
+  video-rotation-90
+  video-rotation-180
+  video-rotation-270
+)
+
+sender-stats-audio = {
+  1: uint ; encoding-id
+  ? 2: uint ; cumulative-sent-frames
+  ? 3: microseconds ; cumulative-encode-delay
+}
+
+sender-stats-video = {
+  1: uint ; encoding-id
+  ? 2: microseconds ; cumulative-sent-duration
+  ? 3: microseconds ; cumulative-encode-delay
+  ? 4: uint ; cumulative-dropped-frames
+}
+
+; type key 131
+streaming-session-sender-stats-event = {
+  1: uint; streaming-session-id
+  2: microseconds ; system-time
+  ? 3: [1* sender-stats-audio] ; audio
+  ? 4: [1* sender-stats-video] ; video
+}
+
+streaming-buffer-status = &(
+  enough-data: 0
+  insufficient-data: 1
+  too-much-data: 2
+)
+
+receiver-stats-audio = {
+  1: uint ; encoding-id
+  ? 2: microseconds ; cumulative-received-duration
+  ? 3: microseconds ; cumulative-lost-duration
+  ? 4: microseconds ; cumulative-buffer-delay
+  ? 5: microseconds ; cumulative-decode-delay
+  ? 6: streaming-buffer-status ; remote-buffer-status
+}
+
+receiver-stats-video = {
+  1: uint ; encoding-id
+  ? 2: uint ; cumulative-decoded-frames
+  ? 3: uint ; cumulative-lost-frames
+  ? 4: microseconds ; cumulative-buffer-delay
+  ? 5: microseconds ; cumulative-decode-delay
+  ? 6: streaming-buffer-status ; remote-buffer-status
+}
+
+; type key 132
+streaming-session-receiver-stats-event = {
+  1: uint; streaming-session-id
+  2: microseconds ; system-time
+  ? 3: [1* receiver-stats-audio] ; audio
+  ? 4: [1* receiver-stats-video] ; video
+}
