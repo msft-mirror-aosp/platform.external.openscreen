@@ -17,12 +17,6 @@
 
 #include "absl/algorithm/container.h"
 
-// Use different variables for each loop to avoid problems with loop nesting.
-std::string GetLoopVariable() {
-  static size_t index = 0;
-  return "x" + std::to_string(++index);
-}
-
 // Convert '-' to '_' to use a CDDL identifier as a C identifier.
 std::string ToUnderscoreId(const std::string& x) {
   std::string result(x);
@@ -666,7 +660,7 @@ bool WriteEncoder(int fd,
               "  CBOR_RETURN_ON_ERROR(cbor_encoder_create_array(&encoder%d, "
               "&encoder%d, %s.size()));\n",
               encoder_depth, encoder_depth + 1, cid.c_str());
-      std::string loop_variable = GetLoopVariable();
+      std::string loop_variable = "x" + std::to_string(encoder_depth + 1);
       dprintf(fd, "  for (const auto& %s : %s) {\n", loop_variable.c_str(),
               cid.c_str());
       if (!WriteEncoder(fd, loop_variable, *cpp_type.vector_type.element_type,
@@ -1166,7 +1160,7 @@ bool WriteDecoder(int fd,
     }
     case CppType::Which::kString: {
       int temp_length = (*temporary_count)++;
-      dprintf(fd, "  size_t length%d = 0;", temp_length);
+      dprintf(fd, "  size_t length%d = 0;\n", temp_length);
       dprintf(fd,
               "  CBOR_RETURN_ON_ERROR(cbor_value_validate(&it%d, "
               "CborValidateUtf8));\n",
@@ -1195,7 +1189,7 @@ bool WriteDecoder(int fd,
     }
     case CppType::Which::kBytes: {
       int temp_length = (*temporary_count)++;
-      dprintf(fd, "  size_t length%d = 0;", temp_length);
+      dprintf(fd, "  size_t length%d = 0;\n", temp_length);
       dprintf(fd, "  if (cbor_value_is_length_known(&it%d)) {\n",
               decoder_depth);
       dprintf(fd,
@@ -1260,7 +1254,7 @@ bool WriteDecoder(int fd,
           fd,
           "  CBOR_RETURN_ON_ERROR(cbor_value_enter_container(&it%d, &it%d));\n",
           decoder_depth, decoder_depth + 1);
-      std::string loop_variable = GetLoopVariable();
+      std::string loop_variable = "x" + std::to_string(decoder_depth + 1);
       dprintf(fd, " for (auto& %s : %s) {\n", loop_variable.c_str(),
               name.c_str());
       if (!WriteDecoder(fd, loop_variable, *cpp_type.vector_type.element_type,
