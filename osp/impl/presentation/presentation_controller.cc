@@ -653,7 +653,7 @@ ErrorOr<size_t> Controller::TerminationListener::OnStreamMessage(
                static_cast<int>(message_type));
   msgs::PresentationTerminationEvent event;
   ssize_t result =
-      msgs::DecodePresentationTerminationEvent(buffer, buffer_size, &event);
+      msgs::DecodePresentationTerminationEvent(buffer, buffer_size, event);
   if (result < 0) {
     OSP_LOG_WARN << "decode presentation-termination-event error: " << result;
     return Error::Code::kCborParsing;

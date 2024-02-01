@@ -141,7 +141,7 @@ TEST_F(PresentationReceiverTest, QueryAvailability) {
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buffer_size, Clock::time_point now) {
         ssize_t result = msgs::DecodePresentationUrlAvailabilityResponse(
-            buf, buffer_size, &response);
+            buf, buffer_size, response);
         return result;
       }));
   quic_bridge_.RunTasksUntilIdle();
@@ -188,7 +188,7 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buf_size, Clock::time_point now) {
         ssize_t result =
-            msgs::DecodePresentationStartResponse(buf, buf_size, &response);
+            msgs::DecodePresentationStartResponse(buf, buf_size, response);
         return result;
       }));
   quic_bridge_.RunTasksUntilIdle();

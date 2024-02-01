@@ -545,7 +545,7 @@ bool WriteFunctionDeclarations(int fd, CppSymbolTable* table) {
     dprintf(fd, "    uint8_t* buffer,\n    size_t length);\n");
     dprintf(fd, "ssize_t Decode%s(\n", cpp_name.c_str());
     dprintf(fd, "    const uint8_t* buffer,\n    size_t length,\n");
-    dprintf(fd, "    %s* data);\n", cpp_name.c_str());
+    dprintf(fd, "    %s& data);\n", cpp_name.c_str());
   }
   return true;
 }
@@ -1113,27 +1113,23 @@ bool Encode%1$s(
 
 bool WriteMapDecoder(int fd,
                      const std::string& name,
-                     const std::string& member_accessor,
                      const std::vector<CppType::Struct::CppMember>& members,
                      int decoder_depth,
                      int* temporary_count);
 bool WriteArrayDecoder(int fd,
                        const std::string& name,
-                       const std::string& member_accessor,
                        const std::vector<CppType::Struct::CppMember>& members,
                        int decoder_depth,
                        int* temporary_count);
 
 // Writes the decoding function for the C++ type |cpp_type| to the file
-// descriptor |fd|.  |name| is the C++ variable name that needs to be encoded.
-// |member_accessor| is either "." or "->" depending on whether |name| is a
-// pointer type.  |decoder_depth| is used to independently name independent cbor
+// descriptor |fd|.  |name| is the C++ variable name that needs to be decoded.
+// |decoder_depth| is used to independently name independent cbor
 // decoders that need to be created.  |temporary_count| is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteDecoder(int fd,
                   const std::string& name,
-                  const std::string& member_accessor,
                   const CppType& cpp_type,
                   int decoder_depth,
                   int* temporary_count) {
@@ -1188,13 +1184,11 @@ bool WriteDecoder(int fd,
           "&length%d));\n",
           decoder_depth, temp_length);
       dprintf(fd, "  }\n");
-      dprintf(fd, "  %s%sresize(length%d);\n", name.c_str(),
-              member_accessor.c_str(), temp_length);
+      dprintf(fd, "  %s.resize(length%d);\n", name.c_str(), temp_length);
       dprintf(fd,
               "  CBOR_RETURN_ON_ERROR(cbor_value_copy_text_string(&it%d, "
-              "const_cast<char*>(%s%sdata()), &length%d, nullptr));\n",
-              decoder_depth, name.c_str(), member_accessor.c_str(),
-              temp_length);
+              "const_cast<char*>(%s.data()), &length%d, nullptr));\n",
+              decoder_depth, name.c_str(), temp_length);
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance(&it%d));\n",
               decoder_depth);
       return true;
@@ -1216,8 +1210,7 @@ bool WriteDecoder(int fd,
           decoder_depth, temp_length);
       dprintf(fd, "  }\n");
       if (!cpp_type.bytes_type.fixed_size) {
-        dprintf(fd, "  %s%sresize(length%d);\n", name.c_str(),
-                member_accessor.c_str(), temp_length);
+        dprintf(fd, "  %s.resize(length%d);\n", name.c_str(), temp_length);
       } else {
         dprintf(fd, "  if (length%d < %d) {\n", temp_length,
                 static_cast<int>(cpp_type.bytes_type.fixed_size.value()));
@@ -1229,9 +1222,8 @@ bool WriteDecoder(int fd,
       }
       dprintf(fd,
               "  CBOR_RETURN_ON_ERROR(cbor_value_copy_byte_string(&it%d, "
-              "const_cast<uint8_t*>(%s%sdata()), &length%d, nullptr));\n",
-              decoder_depth, name.c_str(), member_accessor.c_str(),
-              temp_length);
+              "const_cast<uint8_t*>(%s.data()), &length%d, nullptr));\n",
+              decoder_depth, name.c_str(), temp_length);
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance(&it%d));\n",
               decoder_depth);
       return true;
@@ -1262,20 +1254,17 @@ bool WriteDecoder(int fd,
         dprintf(fd, "    return -CborErrorTooManyItems;\n");
         dprintf(fd, "  }\n");
       }
-      dprintf(fd, "  %s%sresize(it%d_length);\n", name.c_str(),
-              member_accessor.c_str(), decoder_depth + 1);
+      dprintf(fd, "  %s.resize(it%d_length);\n", name.c_str(),
+              decoder_depth + 1);
       dprintf(
           fd,
           "  CBOR_RETURN_ON_ERROR(cbor_value_enter_container(&it%d, &it%d));\n",
           decoder_depth, decoder_depth + 1);
       std::string loop_variable = GetLoopVariable();
-      dprintf(fd, " for (auto %s = %s%sbegin(); %s != %s%send(); ++%s) {\n",
-              loop_variable.c_str(), name.c_str(), member_accessor.c_str(),
-              loop_variable.c_str(), name.c_str(), member_accessor.c_str(),
-              loop_variable.c_str());
-      if (!WriteDecoder(fd, "(*" + loop_variable + ")", ".",
-                        *cpp_type.vector_type.element_type, decoder_depth + 1,
-                        temporary_count)) {
+      dprintf(fd, " for (auto& %s : %s) {\n", loop_variable.c_str(),
+              name.c_str());
+      if (!WriteDecoder(fd, loop_variable, *cpp_type.vector_type.element_type,
+                        decoder_depth + 1, temporary_count)) {
         return false;
       }
       dprintf(fd, "  }\n");
@@ -1298,13 +1287,11 @@ bool WriteDecoder(int fd,
     }
     case CppType::Which::kStruct: {
       if (cpp_type.struct_type.key_type == CppType::Struct::KeyType::kMap) {
-        return WriteMapDecoder(fd, name, member_accessor,
-                               cpp_type.struct_type.members, decoder_depth + 1,
-                               temporary_count);
+        return WriteMapDecoder(fd, name, cpp_type.struct_type.members,
+                               decoder_depth + 1, temporary_count);
       } else if (cpp_type.struct_type.key_type ==
                  CppType::Struct::KeyType::kArray) {
-        return WriteArrayDecoder(fd, name, member_accessor,
-                                 cpp_type.struct_type.members,
+        return WriteArrayDecoder(fd, name, cpp_type.struct_type.members,
                                  decoder_depth + 1, temporary_count);
       }
     } break;
@@ -1324,7 +1311,7 @@ bool WriteDecoder(int fd,
                     temp_value_type);
             dprintf(fd, "  %s.which = decltype(%s)::Which::kBool;\n",
                     name.c_str(), name.c_str());
-            if (!WriteDecoder(fd, name + ".bool_var", ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, name + ".bool_var", *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1333,7 +1320,7 @@ bool WriteDecoder(int fd,
             dprintf(fd, "  if (type%d == CborFloatType) {\n", temp_value_type);
             dprintf(fd, "  %s.which = decltype(%s)::Which::kFloat;\n",
                     name.c_str(), name.c_str());
-            if (!WriteDecoder(fd, name + ".float_var", ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, name + ".float_var", *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1345,7 +1332,7 @@ bool WriteDecoder(int fd,
                     temp_value_type, decoder_depth);
             dprintf(fd, "  %s.which = decltype(%s)::Which::kInt64;\n",
                     name.c_str(), name.c_str());
-            if (!WriteDecoder(fd, name + ".int_var", ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, name + ".int_var", *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1357,7 +1344,7 @@ bool WriteDecoder(int fd,
                     temp_value_type, decoder_depth);
             dprintf(fd, "  %s.which = decltype(%s)::Which::kUint64;\n",
                     name.c_str(), name.c_str());
-            if (!WriteDecoder(fd, name + ".uint", ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, name + ".uint", *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1369,7 +1356,7 @@ bool WriteDecoder(int fd,
                     name.c_str(), name.c_str());
             std::string str_name = name + ".str";
             dprintf(fd, "  new (&%s) std::string();\n", str_name.c_str());
-            if (!WriteDecoder(fd, str_name, ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, str_name, *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1382,7 +1369,7 @@ bool WriteDecoder(int fd,
                     name.c_str(), name.c_str());
             dprintf(fd, "  new (&%s) std::vector<uint8_t>();\n",
                     bytes_name.c_str());
-            if (!WriteDecoder(fd, bytes_name, ".", *x, decoder_depth,
+            if (!WriteDecoder(fd, bytes_name, *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
@@ -1406,9 +1393,8 @@ bool WriteDecoder(int fd,
       dprintf(fd, "  }\n");
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
               decoder_depth);
-      if (!WriteDecoder(fd, name, member_accessor,
-                        *cpp_type.tagged_type.real_type, decoder_depth,
-                        temporary_count)) {
+      if (!WriteDecoder(fd, name, *cpp_type.tagged_type.real_type,
+                        decoder_depth, temporary_count)) {
         return false;
       }
       return true;
@@ -1421,14 +1407,12 @@ bool WriteDecoder(int fd,
 
 // Writes the decoding function for the CBOR map with members in |members| to
 // the file descriptor |fd|.  |name| is the C++ variable name that needs to be
-// encoded.  |member_accessor| is either "." or "->" depending on whether |name|
-// is a pointer type.  |decoder_depth| is used to independently name independent
+// decoded.  |decoder_depth| is used to independently name independent
 // cbor decoders that need to be created.  |temporary_count| is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteMapDecoder(int fd,
                      const std::string& name,
-                     const std::string& member_accessor,
                      const std::vector<CppType::Struct::CppMember>& members,
                      int decoder_depth,
                      int* temporary_count) {
@@ -1463,7 +1447,7 @@ bool WriteMapDecoder(int fd,
   int member_pos = 0;
   for (const auto& x : members) {
     std::string cid = ToUnderscoreId(x.name);
-    std::string fullname = name + member_accessor + cid;
+    std::string fullname = name + "." + cid;
     if (x.type->which == CppType::Which::kOptional) {
       // TODO(btolsch): This is wrong for the same reason as arrays, but will be
       // easier to handle when doing out-of-order keys.
@@ -1479,15 +1463,13 @@ bool WriteMapDecoder(int fd,
                 "  CBOR_RETURN_ON_ERROR(EXPECT_KEY_CONSTANT(&it%d, \"%s\"));\n",
                 decoder_depth, x.name.c_str());
       }
-      dprintf(fd, "    %s%shas_%s = true;\n", name.c_str(),
-              member_accessor.c_str(), cid.c_str());
-      if (!WriteDecoder(fd, fullname, ".", *x.type->optional_type,
-                        decoder_depth, temporary_count)) {
+      dprintf(fd, "    %s.has_%s = true;\n", name.c_str(), cid.c_str());
+      if (!WriteDecoder(fd, fullname, *x.type->optional_type, decoder_depth,
+                        temporary_count)) {
         return false;
       }
       dprintf(fd, "  } else {\n");
-      dprintf(fd, "    %s%shas_%s = false;\n", name.c_str(),
-              member_accessor.c_str(), cid.c_str());
+      dprintf(fd, "    %s.has_%s = false;\n", name.c_str(), cid.c_str());
       dprintf(fd, "  }\n");
     } else {
       if (x.integer_key.has_value()) {
@@ -1500,7 +1482,7 @@ bool WriteMapDecoder(int fd,
                 "  CBOR_RETURN_ON_ERROR(EXPECT_KEY_CONSTANT(&it%d, \"%s\"));\n",
                 decoder_depth, x.name.c_str());
       }
-      if (!WriteDecoder(fd, fullname, ".", *x.type, decoder_depth,
+      if (!WriteDecoder(fd, fullname, *x.type, decoder_depth,
                         temporary_count)) {
         return false;
       }
@@ -1515,14 +1497,12 @@ bool WriteMapDecoder(int fd,
 
 // Writes the decoding function for the CBOR array with members in |members| to
 // the file descriptor |fd|.  |name| is the C++ variable name that needs to be
-// encoded.  |member_accessor| is either "." or "->" depending on whether |name|
-// is a pointer type.  |decoder_depth| is used to independently name independent
+// decoded.  |decoder_depth| is used to independently name independent
 // cbor decoders that need to be created.  |temporary_count| is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteArrayDecoder(int fd,
                        const std::string& name,
-                       const std::string& member_accessor,
                        const std::vector<CppType::Struct::CppMember>& members,
                        int decoder_depth,
                        int* temporary_count) {
@@ -1557,7 +1537,7 @@ bool WriteArrayDecoder(int fd,
   int member_pos = 0;
   for (const auto& x : members) {
     std::string cid = ToUnderscoreId(x.name);
-    std::string fullname = name + member_accessor + cid;
+    std::string fullname = name + "." + cid;
     if (x.type->which == CppType::Which::kOptional) {
       // TODO(btolsch): This only handles a single block of optionals and only
       // the ones present form a contiguous range from the start of the block.
@@ -1566,18 +1546,16 @@ bool WriteArrayDecoder(int fd,
       // of possible types for the next element and a map for the member to
       // which each corresponds.
       dprintf(fd, "  if (it%d_length > %d) {\n", decoder_depth, member_pos);
-      dprintf(fd, "    %s%shas_%s = true;\n", name.c_str(),
-              member_accessor.c_str(), cid.c_str());
-      if (!WriteDecoder(fd, fullname, ".", *x.type->optional_type,
-                        decoder_depth, temporary_count)) {
+      dprintf(fd, "    %s.has_%s = true;\n", name.c_str(), cid.c_str());
+      if (!WriteDecoder(fd, fullname, *x.type->optional_type, decoder_depth,
+                        temporary_count)) {
         return false;
       }
       dprintf(fd, "  } else {\n");
-      dprintf(fd, "    %s%shas_%s = false;\n", name.c_str(),
-              member_accessor.c_str(), cid.c_str());
+      dprintf(fd, "    %s.has_%s = false;\n", name.c_str(), cid.c_str());
       dprintf(fd, "  }\n");
     } else {
-      if (!WriteDecoder(fd, fullname, ".", *x.type, decoder_depth,
+      if (!WriteDecoder(fd, fullname, *x.type, decoder_depth,
                         temporary_count)) {
         return false;
       }
@@ -1622,7 +1600,7 @@ bool WriteDecoders(int fd, CppSymbolTable* table) {
     std::string cpp_name = ToCamelCase(name);
     dprintf(fd, "\nssize_t Decode%s(\n", cpp_name.c_str());
     dprintf(fd, "    const uint8_t* buffer,\n    size_t length,\n");
-    dprintf(fd, "    %s* data) {\n", cpp_name.c_str());
+    dprintf(fd, "    %s& data) {\n", cpp_name.c_str());
     dprintf(fd, "  CborParser parser;\n");
     dprintf(fd, "  CborValue it0;\n");
     dprintf(
@@ -1630,13 +1608,13 @@ bool WriteDecoders(int fd, CppSymbolTable* table) {
         "  CBOR_RETURN_ON_ERROR(cbor_parser_init(buffer, length, 0, &parser, "
         "&it0));\n");
     if (real_type->struct_type.key_type == CppType::Struct::KeyType::kMap) {
-      if (!WriteMapDecoder(fd, "data", "->", real_type->struct_type.members, 1,
+      if (!WriteMapDecoder(fd, "data", real_type->struct_type.members, 1,
                            &temporary_count)) {
         return false;
       }
     } else {
-      if (!WriteArrayDecoder(fd, "data", "->", real_type->struct_type.members,
-                             1, &temporary_count)) {
+      if (!WriteArrayDecoder(fd, "data", real_type->struct_type.members, 1,
+                             &temporary_count)) {
         return false;
       }
     }

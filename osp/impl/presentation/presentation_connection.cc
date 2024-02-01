@@ -180,7 +180,7 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t endpoint_id,
     case msgs::Type::kPresentationConnectionMessage: {
       msgs::PresentationConnectionMessage message;
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionMessage(
-          buffer, buffer_size, &message);
+          buffer, buffer_size, message);
       if (bytes_decoded < 0) {
         OSP_LOG_WARN << "presentation-connection-message parse error";
         return Error::Code::kParseError;
@@ -209,7 +209,7 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t endpoint_id,
     case msgs::Type::kPresentationConnectionCloseRequest: {
       msgs::PresentationConnectionCloseRequest request;
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionCloseRequest(
-          buffer, buffer_size, &request);
+          buffer, buffer_size, request);
       if (bytes_decoded < 0) {
         OSP_LOG_WARN << "decode presentation-connection-close-request error: "
                      << bytes_decoded;
@@ -247,7 +247,7 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t endpoint_id,
     case msgs::Type::kPresentationConnectionCloseEvent: {
       msgs::PresentationConnectionCloseEvent event;
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionCloseEvent(
-          buffer, buffer_size, &event);
+          buffer, buffer_size, event);
       if (bytes_decoded < 0) {
         OSP_LOG_WARN << "decode presentation-connection-close-event error: "
                      << bytes_decoded;
