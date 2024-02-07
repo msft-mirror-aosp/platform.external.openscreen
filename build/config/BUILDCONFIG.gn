@@ -65,8 +65,8 @@ declare_args() {
   is_debug = false
 
   # By default, we use the clang compiler on both Mac and Linux. To use the
-  # gcc compiler on Linux instead, set is_gcc to true.
-  is_gcc = false
+  # gcc compiler on Linux instead, set is_clang to false.
+  is_clang = true
   clang_base_path = default_clang_base_path
 
   # This would not normally be set as a build argument, but rather is used as a
@@ -78,10 +78,6 @@ declare_args() {
 
   # Must be enabled for fuzzing targets.
   use_libfuzzer = false
-}
-
-declare_args() {
-  is_clang = !is_gcc
 }
 
 # ==============================================================================

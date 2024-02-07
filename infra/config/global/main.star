@@ -164,7 +164,7 @@ def get_properties(
     if not is_release:
         properties["is_debug"] = True
     if is_gcc:
-        properties["is_gcc"] = True
+        properties["is_clang"] = False
     if is_asan:
         properties["is_asan"] = True
     if is_tsan:

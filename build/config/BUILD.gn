@@ -117,7 +117,7 @@ config("openscreen_code") {
 
   ldflags = [ "-Werror" ]
 
-  if (is_gcc) {
+  if (!is_clang) {
     cflags += [ "-Wno-maybe-uninitialized" ]
   }
 

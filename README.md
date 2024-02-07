@@ -107,12 +107,12 @@ TODO(https://issuetracker.google.com/202964797): Switch to use Chromium clang fo
 
 ##  gcc (optional, Linux only)
 
-Setting the `gn` argument `is_gcc=true` on Linux enables building using gcc
+Setting the `gn` argument `is_clang=false` on Linux enables building using gcc
 instead.
 
 ```bash
   mkdir out/debug-gcc
-  gn gen out/debug-gcc --args="is_gcc=true"
+  gn gen out/debug-gcc --args="is_clang=false"
 ```
 
 Note that g++ version 9 or newer must be installed.  On Debian flavors you can

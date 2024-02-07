@@ -168,7 +168,7 @@ gcc_toolchain("gcc_x64") {
   toolchain_args = {
     current_cpu = "x64"
     current_os = "linux"
-    is_gcc = true
+    is_clang = false
   }
 }
 
@@ -180,7 +180,7 @@ gcc_toolchain("gcc_x86") {
   toolchain_args = {
     current_cpu = "x86"
     current_os = "linux"
-    is_gcc = true
+    is_clang = false
   }
 }
 
@@ -192,7 +192,7 @@ gcc_toolchain("gcc_arm") {
   toolchain_args = {
     current_cpu = "arm"
     current_os = "linux"
-    is_gcc = true
+    is_clang = false
   }
 }
 
@@ -204,6 +204,6 @@ gcc_toolchain("gcc_arm64") {
   toolchain_args = {
     current_cpu = "arm64"
     current_os = "linux"
-    is_gcc = true
+    is_clang = false
   }
 }
