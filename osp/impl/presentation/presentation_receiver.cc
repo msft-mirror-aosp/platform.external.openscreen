@@ -472,6 +472,7 @@ Error Receiver::CloseConnection(Connection* connection,
   event.connection_id = connection->connection_id();
   event.reason = GetEventCloseReason(reason);
   event.has_error_message = false;
+  event.connection_count = connection_manager_->ConnectionCount();
   msgs::CborEncodeBuffer buffer;
   return protocol_connection->WriteMessage(
       event, msgs::EncodePresentationConnectionCloseEvent);

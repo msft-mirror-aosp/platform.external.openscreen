@@ -280,4 +280,8 @@ Connection* ConnectionManager::GetConnection(uint64_t connection_id) {
   return nullptr;
 }
 
+size_t ConnectionManager::ConnectionCount() const {
+  return connections_.size();
+}
+
 }  // namespace openscreen::osp

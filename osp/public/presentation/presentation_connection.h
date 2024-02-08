@@ -204,6 +204,7 @@ class ConnectionManager final : public MessageDemuxer::MessageCallback {
                                   Clock::time_point now) override;
 
   Connection* GetConnection(uint64_t connection_id);
+  size_t ConnectionCount() const;
 
  private:
   // TODO(btolsch): Connection IDs were changed to be per-endpoint, but this

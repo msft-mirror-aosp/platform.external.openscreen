@@ -523,6 +523,7 @@ TEST_F(ControllerTest, Reconnect) {
   open_response.connection_id = 17;
   open_response.result =
       msgs::PresentationConnectionOpenResponse_result::kSuccess;
+  open_response.connection_count = 1ULL;
   SendOpenResponse(open_response);
 
   EXPECT_CALL(reconnect_delegate, OnConnectionMock(_))
