@@ -29,6 +29,10 @@
 	path = third_party/quiche/src
 	url = https://quiche.googlesource.com/quiche
 	gclient-condition = not build_with_chromium
+[submodule "third_party/instrumented_libraries"]
+	path = third_party/instrumented_libraries
+	url = https://chromium.googlesource.com/chromium/src/third_party/instrumented_libraries
+	gclient-condition = not build_with_chromium
 [submodule "third_party/tinycbor/src"]
 	path = third_party/tinycbor/src
 	url = https://chromium.googlesource.com/external/github.com/intel/tinycbor

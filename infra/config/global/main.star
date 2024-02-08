@@ -121,6 +121,7 @@ def get_properties(
         is_gcc = False,
         is_asan = False,
         is_tsan = False,
+        is_msan = False,
         use_coverage = False,
         sysroot_platform = None,
         target_cpu = "x64",
@@ -135,6 +136,7 @@ def get_properties(
       is_release: if True, the build mode is release instead of debug.
       is_gcc: if True, the GCC compiler is used instead of clang.
       is_asan: if True, this is an address sanitizer build.
+      is_msan: if True, this is a memory sanitizer build.
       is_tsan: if True, this is a thread sanitizer build.
       use_coverage: if True, this is a code coverage build.
       sysroot_platform: if not None, the platform (e.g. "bullseye") to be
@@ -167,6 +169,8 @@ def get_properties(
         properties["is_clang"] = False
     if is_asan:
         properties["is_asan"] = True
+    if is_msan:
+        properties["is_msan"] = True
     if is_tsan:
         properties["is_tsan"] = True
     if use_coverage:
@@ -252,7 +256,7 @@ def builder(builder_type, name, properties, os, cpu):
     if builder_type == "try":
         # We mark some bots as experimental to not block the build.
         experiment_percentage = None
-        if name in ["linux_arm64_cast_debug", "linux64_coverage_debug"]:
+        if name in ["linux_arm64_cast_debug", "linux64_coverage_debug", "linux64_msan"]:
             experiment_percentage = 100
 
         luci.cq_tryjob_verifier(
@@ -320,6 +324,10 @@ try_and_ci_builders("linux64_debug", get_properties(is_asan = True))
 try_and_ci_builders(
     "linux64_gcc_debug",
     get_properties(is_gcc = True),
+)
+try_and_ci_builders(
+    "linux64_msan",
+    get_properties(is_release = True, is_msan = True),
 )
 try_and_ci_builders(
     "linux64_tsan",

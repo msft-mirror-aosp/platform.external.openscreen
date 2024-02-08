@@ -41,6 +41,10 @@ vars = {
   # Fetch clangd into the same bin/ directory as our clang binary.
   'checkout_clangd': False,
 
+  # Fetch instrumented libraries for using MSAN builds.
+  'checkout_configuration': 'default',
+  'checkout_instrumented_libraries': 'checkout_linux and checkout_configuration == "default"',
+
   # GN CIPD package version.
   'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
   'clang_format_revision': 'e435ad79c17b1888b34df88d6a30a094936e3836',
@@ -164,6 +168,12 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
+  'third_party/instrumented_libraries': {
+    'url': Var('chromium_git') + '/chromium/src/third_party/instrumented_libraries.git' +
+      '@' + '0011c28c8d35fc5093bb29631d05428932cd1206',
+    'condition': 'not build_with_chromium',
+  },
+
   'third_party/tinycbor/src':
     Var('chromium_git') + '/external/github.com/intel/tinycbor.git' +
     '@' +  'd393c16f3eb30d0c47e6f9d92db62272f0ec4dc7',  # Version 0.6.0
@@ -275,6 +285,30 @@ hooks = [
                 '-s', 'buildtools/win/clang-format.exe.sha1',
     ],
     'condition': 'host_os == "win" and not build_with_chromium',
+  },
+  {
+    'name': 'msan_chained_origins_focal',
+    'pattern': '.',
+    'condition': 'checkout_instrumented_libraries and not build_with_chromium',
+    'action': [
+                'download_from_google_storage.py',
+                '--no_resume',
+                '--no_auth',
+                '--bucket', 'chromium-instrumented-libraries',
+                '-s', 'third_party/instrumented_libraries/binaries/msan-chained-origins-focal.tgz.sha1',
+              ],
+  },
+  {
+    'name': 'msan_no_origins_focal',
+    'pattern': '.',
+    'condition': 'checkout_instrumented_libraries and not build_with_chromium',
+    'action': [
+                'download_from_google_storage.py',
+                '--no_resume',
+                '--no_auth',
+                '--bucket', 'chromium-instrumented-libraries',
+                '-s', 'third_party/instrumented_libraries/binaries/msan-no-origins-focal.tgz.sha1',
+              ],
   },
  {
     'name': 'sysroot_arm',
