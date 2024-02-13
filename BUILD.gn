@@ -5,7 +5,7 @@
 import("//build_overrides/build.gni")
 
 # All compilable non-test targets in the repository (both executables and
-# source_sets).
+# source_sets)
 group("gn_all") {
   testonly = true
   deps = [
@@ -91,10 +91,13 @@ if (!build_with_chromium && is_posix) {
   source_set("e2e_tests_all") {
     testonly = true
     public_deps = [
-      "cast/common:discovery_e2e_test",
       "cast/test:e2e_tests",
       "cast/test:make_crl_tests($host_toolchain)",
     ]
+
+    if (is_linux) {
+      public_deps += [ "cast/common:discovery_e2e_test" ]
+    }
   }
 
   executable("e2e_tests") {

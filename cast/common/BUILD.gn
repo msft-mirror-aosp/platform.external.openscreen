@@ -16,10 +16,8 @@ config("certificate_config") {
   ]
   defines = []
 
-  if (!build_with_chromium) {
-    if (cast_allow_developer_certificate) {
-      defines += [ "CAST_ALLOW_DEVELOPER_CERTIFICATE" ]
-    }
+  if (cast_allow_developer_certificate) {
+    defines += [ "CAST_ALLOW_DEVELOPER_CERTIFICATE" ]
   }
 }
 
@@ -152,14 +150,12 @@ source_set("public") {
   ]
 }
 
-if (!build_with_chromium) {
+if (!build_with_chromium && is_linux) {
   source_set("discovery_e2e_test") {
     visibility += [ "../..:e2e_tests_all" ]
     testonly = true
     public = []
-    if (!is_mac) {
-      sources = [ "discovery/e2e_test/tests.cc" ]
-    }
+    sources = [ "discovery/e2e_test/tests.cc" ]
 
     deps = [
       ":public",

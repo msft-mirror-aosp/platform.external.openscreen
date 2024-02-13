@@ -59,4 +59,11 @@ source_set("test_support") {
   testonly = true
   visibility += [ "..:unittests" ]
   public = [ "testing/message_demuxer_test_support.h" ]
+
+  deps = [
+    ":public",
+    "../../platform",
+    "../../platform:api",
+    "../../util",
+  ]
 }

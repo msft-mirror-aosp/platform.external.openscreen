@@ -250,10 +250,7 @@ source_set("unittests") {
   # The unit tests in impl/ assume the standalone implementation is being used.
   # Exclude them if an embedder is providing the implementation.
   if (!build_with_chromium) {
-    sources += [
-      "impl/task_runner_unittest.cc",
-      "impl/time_unittest.cc",
-    ]
+    sources += [ "impl/task_runner_unittest.cc" ]
 
     if (is_posix) {
       sources += [

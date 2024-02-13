@@ -60,9 +60,9 @@ void LoopingFileCastAgent::Connect(ConnectionSettings settings) {
                           : DeviceMediaPolicy::kAudioOnly;
 
   task_runner_.PostTask([this, policy] {
-#if defined(MAC_OSX)
+#if defined(__APPLE__)
     wake_lock_ = ScopedWakeLock::Create(task_runner_);
-#endif  // defined(MAC_OSX)
+#endif  // defined(__APPLE__)
     socket_factory_.Connect(connection_settings_->receiver_endpoint, policy,
                             &router_);
   });

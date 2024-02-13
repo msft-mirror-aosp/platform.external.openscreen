@@ -30,7 +30,7 @@ namespace openscreen {
 namespace {
 
 // 64 KB is the maximum possible UDP datagram size.
-#if !defined(OS_LINUX)
+#if !defined(__linux__)
 constexpr int kMaxUdpBufferSize = 64 << 10;
 #endif
 
@@ -379,13 +379,13 @@ bool IsPacketInfo<in6_pktinfo>(cmsghdr* cmh) {
 template <class SockAddrType, class PktInfoType>
 ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   int upper_bound_bytes;
-#if defined(OS_LINUX)
+#if defined(__linux__)
   // This should return the exact size of the next message.
   upper_bound_bytes = recv(fd, nullptr, 0, MSG_PEEK | MSG_TRUNC);
   if (upper_bound_bytes == -1) {
     return ChooseError(errno, Error::Code::kSocketReadFailure);
   }
-#elif defined(MAC_OSX)
+#elif defined(__APPLE__)
   // Can't use MSG_TRUNC in recv(). Use the FIONREAD ioctl() to get an
   // upper-bound.
   if (ioctl(fd, FIONREAD, &upper_bound_bytes) == -1 || upper_bound_bytes < 0) {
@@ -394,6 +394,8 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   upper_bound_bytes = std::min(upper_bound_bytes, kMaxUdpBufferSize);
 #else  // Other POSIX platforms (neither MSG_TRUNC nor FIONREAD available).
   upper_bound_bytes = kMaxUdpBufferSize;
+  OSP_LOG_ERROR << __func__
+                << ": POSIX upper bound bytes=" << upper_bound_bytes;
 #endif
 
   UdpPacket packet(upper_bound_bytes);
@@ -407,8 +409,8 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
 
   // Although we don't do anything with the control buffer, on Linux
   // it is required for the message to be properly read.
-#if defined(OS_LINUX)
-  alignas(alignof(cmsghdr)) uint8_t control_buffer[1024];
+#if defined(__linux__)
+  alignas(alignof(cmsghdr)) uint8_t control_buffer[2048];
   msg.msg_control = control_buffer;
   msg.msg_controllen = sizeof(control_buffer);
 #endif
@@ -431,9 +433,12 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   // specifically, mDNSResponder requires this information to work properly.
 
   socklen_t sa_len = sizeof(sa);
-  if (((msg.msg_flags & MSG_CTRUNC) != 0) ||
-      (getsockname(fd, reinterpret_cast<sockaddr*>(&sa), &sa_len) == -1)) {
-    return Error::Code::kNone;
+  if (((msg.msg_flags & MSG_CTRUNC) != 0)) {
+    return Error(Error::Code::kSocketReadFailure, "Packet was truncated");
+  }
+
+  if ((getsockname(fd, reinterpret_cast<sockaddr*>(&sa), &sa_len) == -1)) {
+    return Error(Error::Code::kSocketReadFailure, "Failed to get socket name");
   }
   for (cmsghdr* cmh = CMSG_FIRSTHDR(&msg); cmh; cmh = CMSG_NXTHDR(&msg, cmh)) {
     if (IsPacketInfo<PktInfoType>(cmh)) {
