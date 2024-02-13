@@ -99,7 +99,7 @@ source_set("util") {
   ]
 
   public_configs = [
-    "../build:openscreen_include_dirs",
+    "../build_overrides:openscreen_include_dirs",
     ":trace_logging_config",
   ]
 

@@ -37,7 +37,7 @@ source_set("base") {
     "base/udp_packet.cc",
   ]
 
-  public_configs = [ "../build:openscreen_include_dirs" ]
+  public_configs = [ "../build_overrides:openscreen_include_dirs" ]
 }
 
 # Public API source files. May depend on nothing except :base.

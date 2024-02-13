@@ -26,6 +26,6 @@ if (current_toolchain == host_toolchain) {
 
     deps = [ "../../third_party/abseil" ]
 
-    configs += [ "../../build:openscreen_include_dirs" ]
+    configs += [ "../../build_overrides:openscreen_include_dirs" ]
   }
 }

@@ -32,7 +32,7 @@ source_set("castv2") {
     "//third_party/valijson",
   ]
 
-  public_configs = [ "../../build:openscreen_include_dirs" ]
+  public_configs = [ "../../build_overrides:openscreen_include_dirs" ]
 
   friend = [ ":unittests" ]
 }

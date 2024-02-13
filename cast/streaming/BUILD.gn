@@ -32,7 +32,7 @@ source_set("streaming_configs") {
     "resolution.cc",
   ]
 
-  public_configs = [ "../../build:openscreen_include_dirs" ]
+  public_configs = [ "../../build_overrides:openscreen_include_dirs" ]
 
   public_deps = [
     "../../third_party/abseil",
@@ -98,7 +98,7 @@ source_set("common") {
     "statistics_defines.h",
   ]
 
-  public_configs = [ "../../build:openscreen_include_dirs" ]
+  public_configs = [ "../../build_overrides:openscreen_include_dirs" ]
 
   public_deps = [
     ":remoting_proto",
