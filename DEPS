@@ -390,7 +390,7 @@ hooks = [
     # Update the Mac toolchain if necessary.
     'name': 'mac_toolchain',
     'pattern': '.',
-    'condition': 'not build_with_chromium and checkout_mac or checkout_ios',
+    'condition': 'not build_with_chromium and (checkout_mac or checkout_ios)',
     'action': ['python3', 'build/mac_toolchain.py'],
   },
   {
