@@ -5,13 +5,9 @@
 import("//build_overrides/build.gni")
 import("//third_party/protobuf/proto_library.gni")
 import("../../testing/libfuzzer/fuzzer_test.gni")
+import("./public/developer_certificate.gni")
 
 visibility = [ "./*" ]
-
-# TODO(jophba): remove if checks once Chrome uses the cast.gni file
-if (!build_with_chromium) {
-  import("../../build/config/cast.gni")
-}
 
 config("certificate_config") {
   visibility += [

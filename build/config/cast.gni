@@ -2,8 +2,4 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-declare_args() {
-  # Whether or not self-signed certificates are enabled for the receiver
-  # and sender implementations.
-  cast_allow_developer_certificate = false
-}
+import("../../cast/common/public/developer_certificate.gni")
