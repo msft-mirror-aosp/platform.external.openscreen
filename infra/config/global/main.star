@@ -6,6 +6,7 @@ Open Screen's LUCI configuration for post-submit and pre-submit builders.
 REPO_URL = "https://chromium.googlesource.com/openscreen"
 CHROMIUM_REPO_URL = "https://chromium.googlesource.com/chromium/src"
 MAC_VERSION = "Mac-13"
+WINDOWS_VERSION = "Windows-11"
 REF = "refs/heads/main"
 
 # Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
@@ -261,6 +262,7 @@ def builder(builder_type, name, properties, os, cpu):
             "linux_arm64_cast_debug",
             "linux64_coverage_debug",
             "linux64_msan",
+            "win_rel",
         ]:
             experiment_percentage = 100
 
@@ -343,22 +345,11 @@ try_and_ci_builders(
     get_properties(target_cpu = "arm64", sysroot_platform = "bullseye"),
 )
 try_and_ci_builders("mac_debug", get_properties(), os = MAC_VERSION)
-
-try_builder(
+try_and_ci_builders(
     "chromium_linux64_debug",
     get_properties(chromium = True, reclient_instance = _reclient.instance.DEFAULT_UNTRUSTED),
 )
-
-ci_builder(
-    "chromium_linux64_debug",
-    get_properties(
-        chromium = True,
-        is_ci = True,
-        reclient_instance = _reclient.instance.DEFAULT_TRUSTED,
-    ),
-)
-
-try_builder(
+try_and_ci_builders(
     "chromium_mac_debug",
     get_properties(
         chromium = True,
@@ -366,13 +357,8 @@ try_builder(
     ),
     os = MAC_VERSION,
 )
-
-ci_builder(
-    "chromium_mac_debug",
-    get_properties(
-        chromium = True,
-        is_ci = True,
-        reclient_instance = _reclient.instance.DEFAULT_TRUSTED,
-    ),
-    os = MAC_VERSION,
+try_and_ci_builders(
+    "win_rel",
+    get_properties(is_release = True),
+    os = WINDOWS_VERSION,
 )
