@@ -262,6 +262,7 @@ def builder(builder_type, name, properties, os, cpu):
             "linux_arm64_cast_debug",
             "linux64_coverage_debug",
             "linux64_msan",
+            "chromium_win_rel",
             "win_rel",
         ]:
             experiment_percentage = 100
@@ -359,6 +360,11 @@ try_and_ci_builders(
         chromium = True,
     ),
     os = MAC_VERSION,
+)
+try_and_ci_builders(
+    "chromium_win_rel",
+    get_properties(chromium = True),
+    os = WINDOWS_VERSION,
 )
 try_and_ci_builders(
     "win_rel",
