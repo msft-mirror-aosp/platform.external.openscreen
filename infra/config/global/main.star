@@ -310,11 +310,13 @@ def try_and_ci_builders(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
       os: the target operating system.
       cpu: the target central processing unit.
     """
-    try_builder(name, properties, os, cpu)
+    try_properties = dict(properties)
+    try_properties["reclient_instance"] = _reclient.instance.DEFAULT_UNTRUSTED
+    try_builder(name, try_properties, os, cpu)
 
-    # NOTE: properties is immutable at this point and must be copied.
     ci_properties = dict(properties)
     ci_properties["is_ci"] = True
+    ci_properties["reclient_instance"] = _reclient.instance.DEFAULT_TRUSTED
     ci_builder(name, ci_properties, os, cpu)
 
 # BUILDER CONFIGURATIONS
@@ -347,13 +349,14 @@ try_and_ci_builders(
 try_and_ci_builders("mac_debug", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
     "chromium_linux64_debug",
-    get_properties(chromium = True, reclient_instance = _reclient.instance.DEFAULT_UNTRUSTED),
+    get_properties(
+        chromium = True,
+    ),
 )
 try_and_ci_builders(
     "chromium_mac_debug",
     get_properties(
         chromium = True,
-        reclient_instance = _reclient.instance.DEFAULT_UNTRUSTED,
     ),
     os = MAC_VERSION,
 )
