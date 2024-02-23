@@ -156,6 +156,7 @@ def get_properties(
         A collection of GN properties for the build system.
     """
     properties = {
+        "clang_use_chrome_plugins": False,
         "target_cpu": target_cpu,
         "$depot_tools/bot_update": {
             "apply_patch_on_gclient": True,
