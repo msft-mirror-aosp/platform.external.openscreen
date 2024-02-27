@@ -281,8 +281,6 @@ class ControllerTest : public ::testing::Test {
     response.request_id = request.request_id;
     response.result = msgs::PresentationStartResponse_result::kSuccess;
     response.connection_id = 1;
-    response.has_http_response_code = false;
-    response.http_response_code = 0u;
     SendStartResponse(response);
 
     EXPECT_CALL(mock_request_delegate, OnConnectionMock(_))

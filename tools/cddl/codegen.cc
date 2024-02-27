@@ -27,6 +27,24 @@ std::string ToUnderscoreId(const std::string& x) {
   return result;
 }
 
+// Return default value for each type. The default value is used to
+// avoid undefined behavior when struct is initialized on the stack.
+std::string GetTypeDefaultValue(const std::string& type) {
+  if (type == "uint64_t") {
+    return " = 0ull";
+  } else if (type == "int64_t") {
+    return " = 0ll";
+  } else if (type == "bool") {
+    return " = false";
+  } else if (type == "float") {
+    return " = 0.0f";
+  } else if (type.find("std::array") != std::string::npos) {
+    return "{}";
+  } else {
+    return "";
+  }
+}
+
 // Convert a CDDL identifier to camel case for use as a C typename.  E.g.
 // presentation-connection-message to PresentationConnectionMessage.
 std::string ToCamelCase(const std::string& x) {
@@ -95,7 +113,7 @@ bool WriteEnumEqualityOperatorSwitchCases(int fd,
                                           std::string parent_name) {
   for (const auto& x : parent.enum_type.members) {
     std::string enum_value = "k" + ToCamelCase(x.first);
-    dprintf(fd, "    case %s::%s: return parent == %s::%s;\n",
+    dprintf(fd, "    case %s::%s:\n      return parent == %s::%s;\n",
             child_name.c_str(), enum_value.c_str(), parent_name.c_str(),
             enum_value.c_str());
   }
@@ -115,27 +133,27 @@ bool WriteEnumEqualityOperator(int fd,
   std::string parent_name = ToCamelCase(parent.name);
 
   // Define type == parentType.
-  dprintf(fd, "inline bool operator==(const %s& child, const %s& parent) {\n",
+  dprintf(fd, "\ninline bool operator==(const %s& child, const %s& parent) {\n",
           name.c_str(), parent_name.c_str());
   dprintf(fd, "  switch (child) {\n");
   if (!WriteEnumEqualityOperatorSwitchCases(fd, parent, name, parent_name)) {
     return false;
   }
-  dprintf(fd, "    default: return false;\n");
+  dprintf(fd, "    default:\n      return false;\n");
   dprintf(fd, "  }\n}\n");
 
   // Define parentType == type.
-  dprintf(fd, "inline bool operator==(const %s& parent, const %s& child) {\n",
+  dprintf(fd, "\ninline bool operator==(const %s& parent, const %s& child) {\n",
           parent_name.c_str(), name.c_str());
   dprintf(fd, "  return child == parent;\n}\n");
 
   // Define type != parentType.
-  dprintf(fd, "inline bool operator!=(const %s& child, const %s& parent) {\n",
+  dprintf(fd, "\ninline bool operator!=(const %s& child, const %s& parent) {\n",
           name.c_str(), parent_name.c_str());
   dprintf(fd, "  return !(child == parent);\n}\n");
 
   // Define parentType != type.
-  dprintf(fd, "inline bool operator!=(const %s& parent, const %s& child) {\n",
+  dprintf(fd, "\ninline bool operator!=(const %s& parent, const %s& child) {\n",
           parent_name.c_str(), name.c_str());
   dprintf(fd, "  return !(parent == child);\n}\n");
 
@@ -147,8 +165,8 @@ bool WriteEnumStreamOperatorSwitchCases(int fd,
                                         std::string name) {
   for (const auto& x : type.enum_type.members) {
     std::string enum_value = "k" + ToCamelCase(x.first);
-    dprintf(fd, "    case %s::%s: os << \"%s\"; break;\n", name.c_str(),
-            enum_value.c_str(), enum_value.c_str());
+    dprintf(fd, "    case %s::%s:\n      os << \"%s\";\n      break;\n",
+            name.c_str(), enum_value.c_str(), enum_value.c_str());
   }
 
   return absl::c_all_of(
@@ -168,9 +186,10 @@ bool WriteEnumOperators(int fd, const CppType& type) {
   if (!WriteEnumStreamOperatorSwitchCases(fd, type, name)) {
     return false;
   }
-  dprintf(fd,
-          "    default: os << \"Unknown Value: \" << static_cast<int>(val);"
-          "\n      break;\n    }\n  return os;\n}\n");
+  dprintf(
+      fd,
+      "    default:\n      os << \"Unknown Value: \" << static_cast<int>(val);"
+      "\n      break;\n  }\n  return os;\n}\n");
 
   // Write equality operators.
   return absl::c_all_of(type.enum_type.sub_members,
@@ -285,7 +304,7 @@ bool WriteStructMembers(
       } break;
       case CppType::Which::kOptional: {
         // TODO(btolsch): Make this optional<T> when one lands.
-        dprintf(fd, "  bool has_%s;\n", ToUnderscoreId(x.name).c_str());
+        dprintf(fd, "  bool has_%s = false;\n", ToUnderscoreId(x.name).c_str());
         type_string = CppTypeToString(*x.type->optional_type);
       } break;
       case CppType::Which::kDiscriminatedUnion: {
@@ -325,7 +344,7 @@ bool WriteStructMembers(
           }
         }
         dprintf(fd, "    kUninitialized,\n");
-        dprintf(fd, "  } which;\n");
+        dprintf(fd, "  } which;\n\n");
         dprintf(fd, "  union {\n");
         for (auto* union_member : x.type->discriminated_union.members) {
           switch (union_member->which) {
@@ -363,8 +382,9 @@ bool WriteStructMembers(
     }
     if (type_string.empty())
       return false;
-    dprintf(fd, "  %s %s;\n", type_string.c_str(),
-            ToUnderscoreId(x.name).c_str());
+    dprintf(fd, "  %s %s%s;\n", type_string.c_str(),
+            ToUnderscoreId(x.name).c_str(),
+            GetTypeDefaultValue(type_string).c_str());
   }
   return true;
 }
@@ -387,7 +407,7 @@ bool WriteTypeDefinition(int fd, const CppType& type) {
     case CppType::Which::kEnum: {
       dprintf(fd, "\nenum class %s : uint64_t {\n", name.c_str());
       WriteEnumMembers(fd, type);
-      dprintf(fd, "};\n");
+      dprintf(fd, "};\n\n");
       if (!WriteEnumOperators(fd, type))
         return false;
     } break;
@@ -494,9 +514,9 @@ bool WriteTypeDefinitions(int fd, CppSymbolTable* table) {
   }
 
   dprintf(fd, "\nenum class Type : uint64_t {\n");
-  dprintf(fd, "    kUnknown = 0ull,\n");
+  dprintf(fd, "  kUnknown = 0ull,\n");
   for (CppType* type : table->TypesWithId()) {
-    dprintf(fd, "    k%s = %" PRIu64 "ull,\n", ToCamelCase(type->name).c_str(),
+    dprintf(fd, "  k%s = %" PRIu64 "ull,\n", ToCamelCase(type->name).c_str(),
             type->type_key.value());
   }
   dprintf(fd, "};\n");

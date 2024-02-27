@@ -470,10 +470,10 @@ data-encoding-request = {
 
 video-rotation = &(
   ; Degrees clockwise
-  video-rotation-0
-  video-rotation-90
-  video-rotation-180
-  video-rotation-270
+  video-rotation-0: 0
+  video-rotation-90: 1
+  video-rotation-180: 2
+  video-rotation-270: 3
 )
 
 sender-stats-audio = {

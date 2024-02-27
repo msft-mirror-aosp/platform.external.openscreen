@@ -390,8 +390,6 @@ Error Receiver::OnPresentationStarted(const std::string& presentation_id,
   QueuedResponse& initiation_response = responses.front();
   msgs::PresentationStartResponse response;
   response.request_id = initiation_response.request_id;
-  response.has_http_response_code = false;
-  response.http_response_code = 0u;
   auto protocol_connection =
       GetProtocolConnection(initiation_response.endpoint_id);
   auto* raw_protocol_connection_ptr = protocol_connection.get();
