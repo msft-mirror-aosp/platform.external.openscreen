@@ -76,7 +76,7 @@ deps = {
   # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/main
   'build': {
     'url': Var('chromium_git') + '/chromium/src/build' +
-      '@' + 'bb826aaf00833bb61244a7ab5c4ca8c69c51314a',
+      '@' + '63724e6b5f8e6b25b0b77302a393102996c1ddf3',
     'condition': 'not build_with_chromium',
   },
 
@@ -400,13 +400,6 @@ hooks = [
     'pattern': '.',
     'condition': 'not build_with_chromium and not llvm_force_head_revision',
     'action': ['python3', 'tools/clang/scripts/update.py'],
-  },
-  {
-    # Update prebuilt Rust toolchain.
-    'name': 'rust-toolchain',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': ['python3', 'tools/rust/update_rust.py'],
   },
   {
     # Build the clang toolchain from tip-of-tree.
