@@ -9,6 +9,8 @@ MAC_VERSION = "Mac-13"
 WINDOWS_VERSION = "Windows-10"
 REF = "refs/heads/main"
 
+RECLIENT_PROPERTY = "$build/reclient"
+
 # Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
 lucicfg.enable_experiment("crbug.com/1182002")
 
@@ -128,7 +130,6 @@ def get_properties(
         target_cpu = "x64",
         cast_standalone = False,
         chromium = False,
-        reclient_instance = None,
         is_presubmit = False,
         is_ci = None):
     """Property generator method, used to configure the build system.
@@ -147,8 +148,6 @@ def get_properties(
       cast_standalone: if True, this build should include the cast standalone
         sender and receiver libraries.
       chromium: if True, the build is for use in an embedder, such as Chrome.
-      reclient_instance: a string indicating the GCP project hosting the RBE
-        instance for re-client to use.
       is_presubmit: if True, this is a presubmit run.
       is_ci: If set, it adds is_ci flag to the properties.
 
@@ -187,9 +186,8 @@ def get_properties(
         properties["cast_allow_developer_certificate"] = True
     if chromium:
         properties["builder_group"] = "client.openscreen.chromium"
-    if reclient_instance:
-        properties["$build/reclient"] = {
-            "instance": reclient_instance,
+        properties[RECLIENT_PROPERTY] = {
+            "instance": _reclient.instance.DEFAULT_UNTRUSTED,
             "metrics_project": "chromium-reclient-metrics",
             "scandeps_server": True,
         }
@@ -312,13 +310,14 @@ def try_and_ci_builders(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
       os: the target operating system.
       cpu: the target central processing unit.
     """
-    try_properties = dict(properties)
-    try_properties["reclient_instance"] = _reclient.instance.DEFAULT_UNTRUSTED
-    try_builder(name, try_properties, os, cpu)
+    try_builder(name, properties, os, cpu)
 
     ci_properties = dict(properties)
     ci_properties["is_ci"] = True
-    ci_properties["reclient_instance"] = _reclient.instance.DEFAULT_TRUSTED
+    RECLIENT_PROPERTY = "$build/reclient"
+    if RECLIENT_PROPERTY in ci_properties:
+        ci_properties[RECLIENT_PROPERTY] = dict(ci_properties[RECLIENT_PROPERTY])
+        ci_properties[RECLIENT_PROPERTY]["instance"] = _reclient.instance.DEFAULT_TRUSTED
     ci_builder(name, ci_properties, os, cpu)
 
 # BUILDER CONFIGURATIONS
@@ -351,15 +350,11 @@ try_and_ci_builders(
 try_and_ci_builders("mac_debug", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
     "chromium_linux64_debug",
-    get_properties(
-        chromium = True,
-    ),
+    get_properties(chromium = True),
 )
 try_and_ci_builders(
     "chromium_mac_debug",
-    get_properties(
-        chromium = True,
-    ),
+    get_properties(chromium = True),
     os = MAC_VERSION,
 )
 try_and_ci_builders(
