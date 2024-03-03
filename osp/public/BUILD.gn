@@ -1,11 +1,13 @@
 # Copyright 2018 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import("//build_overrides/build.gni")
+import("../../gni/openscreen.gni")
 
 visibility = [ "./*" ]
 
-source_set("public") {
+openscreen_source_set("public") {
   visibility += [ "*" ]
   public = [
     "message_demuxer.h",
@@ -55,7 +57,7 @@ source_set("public") {
   ]
 }
 
-source_set("test_support") {
+openscreen_source_set("test_support") {
   testonly = true
   visibility += [ "..:unittests" ]
   public = [ "testing/message_demuxer_test_support.h" ]

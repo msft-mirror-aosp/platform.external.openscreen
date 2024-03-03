@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../gni/openscreen.gni")
+
 visibility = [ "./*" ]
 
-source_set("msgs") {
+openscreen_source_set("msgs") {
   visibility += [
     "../..:gn_all",
     "../impl/*",
@@ -19,11 +21,8 @@ source_set("msgs") {
     "../../third_party/tinycbor",
   ]
 
-  configs += [ ":msgs_internal_config" ]
-  public_configs = [
-    ":cddl_gen_config",
-    "../../build_overrides:openscreen_include_dirs",
-  ]
+  configs = [ ":msgs_internal_config" ]
+  public_configs = [ ":cddl_gen_config" ]
 }
 
 config("msgs_internal_config") {
@@ -76,7 +75,7 @@ action("cddl_gen") {
   deps = [ cddl_label ]
 }
 
-source_set("unittests") {
+openscreen_source_set("unittests") {
   testonly = true
   visibility += [ "../..:openscreen_unittests_all" ]
   public = []

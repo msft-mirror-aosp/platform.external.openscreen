@@ -4,6 +4,7 @@
 
 import("//build_overrides/build.gni")
 
+#TODO(jophba): delete once we use the new ../:include_dirs target in Chrome.
 # This config must be set manually in build targets, but can be used both
 # in standalone and embedded builds. Setting default_include_dirs doesn't work
 # in embedded builds, because GN does not allow for multiple BUILDCONFIG.gn
@@ -11,8 +12,6 @@ import("//build_overrides/build.gni")
 # on a single target type (e.g. source_set, static_library)
 config("openscreen_include_dirs") {
   openscreen_root = rebase_path("../", "//")
-
-  defines = [ "OPENSCREEN_TEST_DATA_DIR=\"${openscreen_root}test/data/\"" ]
 
   include_dirs = [
     "//$openscreen_root",

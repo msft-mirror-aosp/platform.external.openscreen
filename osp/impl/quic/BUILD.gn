@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../../gni/openscreen.gni")  #
+
 visibility = [ "./*" ]
 
-source_set("quic") {
+openscreen_source_set("quic") {
   visibility += [ "../*" ]
   public = [ "quic_connection.h" ]
   sources = [
@@ -29,7 +31,7 @@ source_set("quic") {
   ]
 }
 
-source_set("test_support") {
+openscreen_source_set("test_support") {
   visibility += [ "../..:unittests" ]
   testonly = true
   public = []

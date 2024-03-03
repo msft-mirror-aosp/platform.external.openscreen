@@ -2,15 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../gni/openscreen.gni")
+
 visibility = [ "./*" ]
 
-source_set("osp") {
+openscreen_source_set("osp") {
   visibility += [ "../*" ]
   public_deps = [ "public" ]
   deps = [ "impl" ]
 }
 
-source_set("unittests") {
+openscreen_source_set("unittests") {
   testonly = true
   visibility += [ "..:openscreen_unittests_all" ]
   public = []
