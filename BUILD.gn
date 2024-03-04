@@ -47,7 +47,6 @@ group("gn_all") {
     "third_party/jsoncpp",
     "third_party/quiche",
     "third_party/tinycbor",
-    "tools/cddl($host_toolchain)",
     "util",
   ]
 
@@ -65,6 +64,9 @@ group("gn_all") {
       "cast/standalone_sender:cast_sender",
       "third_party/protobuf:protoc($host_toolchain)",
       "third_party/zlib",
+
+      # TODO(issuetracker.google.com/issues/236160471): Make CDDL portable.
+      "tools/cddl($host_toolchain)",
     ]
   }
 }
