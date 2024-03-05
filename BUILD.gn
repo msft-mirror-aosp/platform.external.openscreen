@@ -50,11 +50,13 @@ group("gn_all") {
     "util",
   ]
 
-  # Mac OS X 10.15 is incompatible with the current version of QUIC.
-  if (!is_mac) {
+  # TODO(issuetracker.google.com/169447969): Re-enable OSP builds for Mac.
+  # TODO(issuetracker.google.com/236160471): CDDL does not compile on Windows.
+  if (!is_mac && !is_win) {
     deps += [
       "osp",
       "osp/msgs",
+      "tools/cddl($host_toolchain)",
     ]
   }
 
@@ -64,9 +66,6 @@ group("gn_all") {
       "cast/standalone_sender:cast_sender",
       "third_party/protobuf:protoc($host_toolchain)",
       "third_party/zlib",
-
-      # TODO(issuetracker.google.com/issues/236160471): Make CDDL portable.
-      "tools/cddl($host_toolchain)",
     ]
   }
 }
@@ -93,10 +92,14 @@ openscreen_source_set("openscreen_unittests_all") {
     ]
   }
 
-  public_deps += [
-    "osp:unittests",
-    "osp/msgs:unittests",
-  ]
+  # TODO(issuetracker.google.com/169447969): Re-enable OSP builds for Mac.
+  # TODO(issuetracker.google.com/236160471): CDDL does not compile on Windows.
+  if (!is_mac && !is_win) {
+    public_deps += [
+      "osp:unittests",
+      "osp/msgs:unittests",
+    ]
+  }
 }
 
 if (!build_with_chromium) {
