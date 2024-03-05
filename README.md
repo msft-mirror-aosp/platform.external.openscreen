@@ -103,7 +103,7 @@ the XCode command-line tools only or the full version of XCode.
 xcode-select --install
 ```
 
-TODO(https://issuetracker.google.com/202964797): Switch to use Chromium clang for Mac builds.
+TODO(issuetracker.google.com/202964797): Switch to use Chromium clang for Mac builds.
 
 ##  gcc (optional, Linux only)
 

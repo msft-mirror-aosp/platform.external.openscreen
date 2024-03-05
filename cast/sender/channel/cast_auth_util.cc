@@ -111,7 +111,7 @@ class CastNonce {
 // library client.  If crl_required is set to false, all revocation related
 // errors are ignored.
 //
-// TODO(https://issuetracker.google.com/issues/193164666): It would be simpler
+// TODO(issuetracker.google.com/193164666): It would be simpler
 // to just pass the underlying verification error directly to the client.
 Error MapToOpenscreenError(Error verify_error, bool crl_required) {
   switch (verify_error.code()) {
