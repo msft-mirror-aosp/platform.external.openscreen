@@ -128,7 +128,7 @@ def get_properties(
         use_coverage = False,
         sysroot_platform = None,
         target_cpu = "x64",
-        cast_standalone = False,
+        cast_receiver = False,
         chromium = False,
         is_presubmit = False,
         is_ci = None):
@@ -145,8 +145,8 @@ def get_properties(
         used for cross compilation.
       target_cpu: the target CPU. May differ from current_cpu or host_cpu
         if cross compiling.
-      cast_standalone: if True, this build should include the cast standalone
-        sender and receiver libraries.
+      cast_receiver: if True, this build should include the cast standalone
+        sender and receiver binaries.
       chromium: if True, the build is for use in an embedder, such as Chrome.
       is_presubmit: if True, this is a presubmit run.
       is_ci: If set, it adds is_ci flag to the properties.
@@ -178,7 +178,7 @@ def get_properties(
         properties["use_coverage"] = True
     if sysroot_platform:
         properties["sysroot_platform"] = sysroot_platform
-    if cast_standalone:
+    if cast_receiver:
         properties["have_ffmpeg"] = True
         properties["have_libsdl2"] = True
         properties["have_libopus"] = True
@@ -257,12 +257,13 @@ def builder(builder_type, name, properties, os, cpu):
         # We mark some bots as experimental to not block the build.
         experiment_percentage = None
         if name in [
-            "linux_arm64_debug",
-            "linux_arm64_cast_debug",
-            "linux64_coverage_debug",
-            "linux64_msan",
-            "chromium_win_rel",
-            "win_rel",
+            "linux_arm64",
+            "linux_arm64_cast_receiver",
+            "linux_x64_coverage",
+            "linux_x64_msan_rel",
+            "linux_x64_tsan_rel",
+            "win_x64",
+            "chromium_win_x64",
         ]:
             experiment_percentage = 100
 
@@ -321,49 +322,53 @@ def try_and_ci_builders(name, properties, os = "Ubuntu-20.04", cpu = "x86-64"):
     ci_builder(name, ci_properties, os, cpu)
 
 # BUILDER CONFIGURATIONS
+# Follow the pattern: <platform>_<arch>
+# For builders other than the generic debug config, use <platform>_<arch>_<config>
+# For Chromium builders, use chromium_<platform>_<arch>_<config>
+
 try_builder(
     "openscreen_presubmit",
     get_properties(is_presubmit = True, is_release = True),
 )
 try_and_ci_builders(
-    "linux_arm64_cast_debug",
-    get_properties(cast_standalone = True, target_cpu = "arm64", sysroot_platform = "bullseye"),
+    "linux_arm64_cast_receiver",
+    get_properties(cast_receiver = True, target_cpu = "arm64", sysroot_platform = "bullseye"),
 )
-try_and_ci_builders("linux64_coverage_debug", get_properties(use_coverage = True))
-try_and_ci_builders("linux64_debug", get_properties(is_asan = True))
+try_and_ci_builders("linux_x64_coverage", get_properties(use_coverage = True))
+try_and_ci_builders("linux_x64", get_properties(is_asan = True))
 try_and_ci_builders(
-    "linux64_gcc_debug",
+    "linux_x64_gcc",
     get_properties(is_gcc = True),
 )
 try_and_ci_builders(
-    "linux64_msan",
+    "linux_x64_msan_rel",
     get_properties(is_release = True, is_msan = True),
 )
 try_and_ci_builders(
-    "linux64_tsan",
+    "linux_x64_tsan_rel",
     get_properties(is_release = True, is_tsan = True),
 )
 try_and_ci_builders(
-    "linux_arm64_debug",
+    "linux_arm64",
     get_properties(target_cpu = "arm64", sysroot_platform = "bullseye"),
 )
-try_and_ci_builders("mac_debug", get_properties(), os = MAC_VERSION)
+try_and_ci_builders("mac_x64_debug", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
-    "chromium_linux64_debug",
+    "win_x64",
+    get_properties(),
+    os = WINDOWS_VERSION,
+)
+try_and_ci_builders(
+    "chromium_linux_x64",
     get_properties(chromium = True),
 )
 try_and_ci_builders(
-    "chromium_mac_debug",
+    "chromium_mac_x64",
     get_properties(chromium = True),
     os = MAC_VERSION,
 )
 try_and_ci_builders(
-    "chromium_win_rel",
+    "chromium_win_x64",
     get_properties(chromium = True),
-    os = WINDOWS_VERSION,
-)
-try_and_ci_builders(
-    "win_rel",
-    get_properties(is_release = True),
     os = WINDOWS_VERSION,
 )
