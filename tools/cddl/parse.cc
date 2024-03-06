@@ -475,6 +475,7 @@ AstNode* ParseRangeop(Parser* p) {
 // ABNF rule: ctlop = "." id
 AstNode* ParseCtlop(Parser* p) {
   std::string_view view(p->data);
+  auto* initial_data = p->data;
   if (!absl::StartsWith(view, ".")) {
     return nullptr;
   }
@@ -484,7 +485,7 @@ AstNode* ParseCtlop(Parser* p) {
     return nullptr;
   }
   return AddNode(p, AstNode::Type::kCtlop,
-                 view.substr(0, p->data - view.begin()), id);
+                 view.substr(0, p->data - initial_data), id);
 }
 
 AstNode* ParseType2(Parser* p) {
