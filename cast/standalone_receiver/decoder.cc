@@ -98,7 +98,7 @@ void Decoder::Decode(FrameId frame_id, const Decoder::Buffer& buffer) {
   if (send_packet_result < 0) {
     // The result should not be EAGAIN because this code always pulls out all
     // the decoded frames after feeding-in each AVPacket.
-    OSP_DCHECK_NE(send_packet_result, AVERROR(EAGAIN));
+    OSP_CHECK_NE(send_packet_result, AVERROR(EAGAIN));
     OnError("avcodec_send_packet", send_packet_result, frame_id);
     return;
   }
@@ -183,7 +183,7 @@ bool Decoder::Initialize() {
 
 FrameId Decoder::DidReceiveFrameFromDecoder() {
   const auto it = frames_decoding_.begin();
-  OSP_DCHECK(it != frames_decoding_.end());
+  OSP_CHECK(it != frames_decoding_.end());
   const auto frame_id = *it;
   frames_decoding_.erase(it);
   return frame_id;

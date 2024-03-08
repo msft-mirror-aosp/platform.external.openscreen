@@ -28,13 +28,13 @@ MirroringApplication::MirroringApplication(TaskRunner& task_runner,
       interface_address_(interface_address),
       app_ids_(GetCastStreamingAppIds()),
       agent_(agent) {
-  OSP_DCHECK(agent_);
+  OSP_CHECK(agent_);
   agent_->RegisterApplication(this);
 }
 
 MirroringApplication::~MirroringApplication() {
   agent_->UnregisterApplication(this);  // ApplicationAgent may call Stop().
-  OSP_DCHECK(!current_session_);
+  OSP_CHECK(!current_session_);
 }
 
 const std::vector<std::string>& MirroringApplication::GetAppIds() const {
