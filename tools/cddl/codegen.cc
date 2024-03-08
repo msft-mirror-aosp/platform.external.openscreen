@@ -1745,9 +1745,9 @@ namespace {
 #define CBOR_RETURN_WHAT_ON_ERROR(stmt, what)                           \
   {                                                                     \
     CborError error = stmt;                                             \
-    OSP_DCHECK_NE(error, CborErrorTooFewItems);                         \
-    OSP_DCHECK_NE(error, CborErrorTooManyItems);                        \
-    OSP_DCHECK_NE(error, CborErrorDataTooLarge);                        \
+    OSP_CHECK_NE(error, CborErrorTooFewItems);                         \
+    OSP_CHECK_NE(error, CborErrorTooManyItems);                        \
+    OSP_CHECK_NE(error, CborErrorDataTooLarge);                        \
     if (error != CborNoError && error != CborErrorOutOfMemory)          \
       return what;                                                      \
   }

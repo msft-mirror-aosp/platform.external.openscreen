@@ -70,8 +70,6 @@ UdpSocketPosix::UdpSocketPosix(TaskRunner& task_runner,
       handle_(handle),
       local_endpoint_(local_endpoint),
       platform_client_(platform_client) {
-  OSP_DCHECK(local_endpoint_.address.IsV4() || local_endpoint_.address.IsV6());
-
   if (handle_.fd >= 0) {
     if (platform_client_) {
       platform_client_->udp_socket_reader()->OnCreate(this);
@@ -94,7 +92,7 @@ ErrorOr<std::unique_ptr<UdpSocket>> UdpSocket::Create(
     const IPEndpoint& endpoint) {
   static std::atomic_bool in_create{false};
   const bool in_create_local = in_create.exchange(true);
-  OSP_DCHECK_EQ(in_create_local, false)
+  OSP_CHECK(!in_create_local)
       << "Another UdpSocket::Create call is in progress. Calls to this method "
          "must be seralized.";
 
@@ -142,7 +140,7 @@ IPEndpoint UdpSocketPosix::GetLocalEndpoint() const {
         if (getsockname(handle_.fd,
                         reinterpret_cast<struct sockaddr*>(&address),
                         &address_len) == 0) {
-          OSP_DCHECK_EQ(address.sin_family, AF_INET);
+          OSP_CHECK_EQ(address.sin_family, AF_INET);
           local_endpoint_.address =
               IPAddress(IPAddress::Version::kV4,
                         reinterpret_cast<uint8_t*>(&address.sin_addr.s_addr));
@@ -157,7 +155,7 @@ IPEndpoint UdpSocketPosix::GetLocalEndpoint() const {
         if (getsockname(handle_.fd,
                         reinterpret_cast<struct sockaddr*>(&address),
                         &address_len) == 0) {
-          OSP_DCHECK_EQ(address.sin6_family, AF_INET6);
+          OSP_CHECK_EQ(address.sin6_family, AF_INET6);
           local_endpoint_.address =
               IPAddress(IPAddress::Version::kV6,
                         reinterpret_cast<uint8_t*>(&address.sin6_addr));
@@ -420,7 +418,7 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
     return ChooseError(errno, Error::Code::kSocketReadFailure);
   }
   // We may not populate the entire packet.
-  OSP_DCHECK_LE(static_cast<size_t>(bytes_received), packet.size());
+  OSP_CHECK_LE(static_cast<size_t>(bytes_received), packet.size());
   packet.resize(bytes_received);
 
   IPEndpoint source_endpoint = {.address = GetIPAddressFromSockAddr(sa),
@@ -548,7 +546,7 @@ void UdpSocketPosix::SendMessage(const void* data,
   }
 
   // Sanity-check: UDP datagram sendmsg() is all or nothing.
-  OSP_DCHECK_EQ(static_cast<size_t>(num_bytes_sent), length);
+  OSP_CHECK_EQ(static_cast<size_t>(num_bytes_sent), length);
 }
 
 void UdpSocketPosix::SetDscp(UdpSocket::DscpMode state) {
