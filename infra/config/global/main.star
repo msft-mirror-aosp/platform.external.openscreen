@@ -126,7 +126,6 @@ def get_properties(
         is_tsan = False,
         is_msan = False,
         use_coverage = False,
-        sysroot_platform = None,
         target_cpu = "x64",
         cast_receiver = False,
         chromium = False,
@@ -141,8 +140,6 @@ def get_properties(
       is_msan: if True, this is a memory sanitizer build.
       is_tsan: if True, this is a thread sanitizer build.
       use_coverage: if True, this is a code coverage build.
-      sysroot_platform: if not None, the platform (e.g. "bullseye") to be
-        used for cross compilation.
       target_cpu: the target CPU. May differ from current_cpu or host_cpu
         if cross compiling.
       cast_receiver: if True, this build should include the cast standalone
@@ -176,8 +173,6 @@ def get_properties(
         properties["is_tsan"] = True
     if use_coverage:
         properties["use_coverage"] = True
-    if sysroot_platform:
-        properties["sysroot_platform"] = sysroot_platform
     if cast_receiver:
         properties["have_ffmpeg"] = True
         properties["have_libsdl2"] = True
@@ -332,7 +327,7 @@ try_builder(
 )
 try_and_ci_builders(
     "linux_arm64_cast_receiver",
-    get_properties(cast_receiver = True, target_cpu = "arm64", sysroot_platform = "bullseye"),
+    get_properties(cast_receiver = True, target_cpu = "arm64"),
 )
 try_and_ci_builders("linux_x64_coverage", get_properties(use_coverage = True))
 try_and_ci_builders("linux_x64", get_properties(is_asan = True))
@@ -350,7 +345,7 @@ try_and_ci_builders(
 )
 try_and_ci_builders(
     "linux_arm64",
-    get_properties(target_cpu = "arm64", sysroot_platform = "bullseye"),
+    get_properties(target_cpu = "arm64"),
 )
 try_and_ci_builders("mac_x64_debug", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
