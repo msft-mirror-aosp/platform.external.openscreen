@@ -370,7 +370,7 @@ Controller::ReceiverWatch::~ReceiverWatch() {
 }
 
 Controller::ReceiverWatch& Controller::ReceiverWatch::operator=(
-    Controller::ReceiverWatch other) {
+    Controller::ReceiverWatch&& other) {
   swap(*this, other);
   return *this;
 }
@@ -405,7 +405,7 @@ Controller::ConnectRequest::~ConnectRequest() {
 }
 
 Controller::ConnectRequest& Controller::ConnectRequest::operator=(
-    ConnectRequest other) {
+    ConnectRequest&& other) {
   swap(*this, other);
   return *this;
 }
