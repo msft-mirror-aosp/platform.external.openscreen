@@ -347,7 +347,7 @@ try_and_ci_builders(
     "linux_arm64",
     get_properties(target_cpu = "arm64"),
 )
-try_and_ci_builders("mac_x64_debug", get_properties(), os = MAC_VERSION)
+try_and_ci_builders("mac_x64", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
     "win_x64",
     get_properties(),
