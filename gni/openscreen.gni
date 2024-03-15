@@ -42,7 +42,7 @@ if (is_debug) {
   openscreen_remove_configs +=
       [ "//build/config/compiler:default_optimization" ]
 
-  if (is_posix && !is_android && !using_sanitizer) {
+  if (((is_posix && !is_android) || is_win) && !using_sanitizer) {
     openscreen_add_configs += [ "//build/config/compiler:optimize_speed" ]
   } else {
     openscreen_add_configs += [ "//build/config/compiler:optimize_max" ]
