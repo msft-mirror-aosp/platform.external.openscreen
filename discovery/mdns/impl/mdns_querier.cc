@@ -406,7 +406,6 @@ void MdnsQuerier::StartQuery(const DomainName& name,
                              DnsType dns_type,
                              DnsClass dns_class,
                              MdnsRecordChangedCallback* callback) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_CHECK(callback);
   OSP_CHECK(CanBeQueried(dns_type));
 
@@ -464,7 +463,6 @@ void MdnsQuerier::StopQuery(const DomainName& name,
                             DnsType dns_type,
                             DnsClass dns_class,
                             MdnsRecordChangedCallback* callback) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_CHECK(callback);
 
   if (!CanBeQueried(dns_type)) {
@@ -506,8 +504,6 @@ void MdnsQuerier::StopQuery(const DomainName& name,
 }
 
 void MdnsQuerier::ReinitializeQueries(const DomainName& name) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
-
   // Get the ongoing queries and their callbacks.
   std::vector<CallbackInfo> callbacks;
   auto its = callbacks_.equal_range(name);

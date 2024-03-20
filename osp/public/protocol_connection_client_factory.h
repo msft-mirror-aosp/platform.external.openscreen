@@ -6,6 +6,7 @@
 #define OSP_PUBLIC_PROTOCOL_CONNECTION_CLIENT_FACTORY_H_
 
 #include <memory>
+#include <vector>
 
 #include "osp/public/protocol_connection_client.h"
 
@@ -18,6 +19,7 @@ namespace osp {
 class ProtocolConnectionClientFactory {
  public:
   static std::unique_ptr<ProtocolConnectionClient> Create(
+      const std::vector<IPEndpoint>& endpoints,
       MessageDemuxer* demuxer,
       ProtocolConnectionServiceObserver* observer,
       TaskRunner& task_runner);

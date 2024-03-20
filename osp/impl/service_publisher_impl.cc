@@ -27,7 +27,7 @@ bool IsTransitionValid(ServicePublisher::State from,
     case State::kSuspended:
       return to == State::kRunning || to == State::kStopping;
     default:
-      OSP_DCHECK(false) << "unknown State value: " << static_cast<int>(from);
+      OSP_CHECK(false) << "unknown State value: " << static_cast<int>(from);
       break;
   }
   return false;
@@ -40,7 +40,7 @@ ServicePublisherImpl::Delegate::~Delegate() = default;
 
 void ServicePublisherImpl::Delegate::SetPublisherImpl(
     ServicePublisherImpl* publisher) {
-  OSP_DCHECK(!publisher_);
+  OSP_CHECK(!publisher_);
   publisher_ = publisher;
 }
 
@@ -100,14 +100,14 @@ void ServicePublisherImpl::OnRecoverableError(Error error) {
 }
 
 void ServicePublisherImpl::SetState(State state) {
-  OSP_DCHECK(IsTransitionValid(state_, state));
+  OSP_CHECK(IsTransitionValid(state_, state));
   state_ = state;
   if (observer_)
     MaybeNotifyObserver();
 }
 
 void ServicePublisherImpl::MaybeNotifyObserver() {
-  OSP_DCHECK(observer_);
+  OSP_CHECK(observer_);
   switch (state_) {
     case State::kRunning:
       observer_->OnStarted();

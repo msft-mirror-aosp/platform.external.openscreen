@@ -58,6 +58,10 @@ group("gn_all") {
       "osp/msgs",
       "tools/cddl($host_toolchain)",
     ]
+
+    if (!build_with_chromium) {
+      deps += [ "osp:osp_demo" ]
+    }
   }
 
   if (!build_with_chromium) {

@@ -28,7 +28,7 @@ discovery::DnsSdInstance ServiceConfigToDnsSdInstance(
   discovery::DnsSdTxtRecord txt;
   const bool did_set_everything =
       txt.SetValue(kFriendlyNameTxtKey, config.friendly_name).ok();
-  OSP_DCHECK(did_set_everything);
+  OSP_CHECK(did_set_everything);
 
   // NOTE: Not totally clear how we should be using config.hostname, which in
   // principle is already part of config.service_instance_name.
@@ -69,21 +69,21 @@ void DnsSdPublisherClient::StopPublisher() {
 }
 
 void DnsSdPublisherClient::SuspendPublisher() {
-  OSP_DCHECK(dns_sd_publisher_);
+  OSP_CHECK(dns_sd_publisher_);
   dns_sd_publisher_->DeregisterAll();
   SetState(State::kSuspended);
 }
 
 void DnsSdPublisherClient::ResumePublisher(
     const ServicePublisher::Config& config) {
-  OSP_DCHECK(dns_sd_publisher_);
+  OSP_CHECK(dns_sd_publisher_);
   dns_sd_publisher_->Register(config);
   SetState(State::kRunning);
 }
 
 void DnsSdPublisherClient::StartPublisherInternal(
     const ServicePublisher::Config& config) {
-  OSP_DCHECK(!dns_sd_publisher_);
+  OSP_CHECK(!dns_sd_publisher_);
   if (!dns_sd_service_) {
     dns_sd_service_ = CreateDnsSdServiceInternal(config);
   }

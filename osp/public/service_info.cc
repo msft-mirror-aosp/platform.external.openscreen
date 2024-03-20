@@ -22,20 +22,20 @@ bool ServiceInfo::operator!=(const ServiceInfo& other) const {
   return !(*this == other);
 }
 
-bool ServiceInfo::Update(std::string new_friendly_name,
+bool ServiceInfo::Update(const std::string& new_friendly_name,
                          NetworkInterfaceIndex new_network_interface_index,
                          const IPEndpoint& new_v4_endpoint,
                          const IPEndpoint& new_v6_endpoint) {
-  OSP_DCHECK(!new_v4_endpoint.address ||
-             IPAddress::Version::kV4 == new_v4_endpoint.address.version());
-  OSP_DCHECK(!new_v6_endpoint.address ||
-             IPAddress::Version::kV6 == new_v6_endpoint.address.version());
+  OSP_CHECK(!new_v4_endpoint.address ||
+            IPAddress::Version::kV4 == new_v4_endpoint.address.version());
+  OSP_CHECK(!new_v6_endpoint.address ||
+            IPAddress::Version::kV6 == new_v6_endpoint.address.version());
   const bool changed =
       (friendly_name != new_friendly_name) ||
       (network_interface_index != new_network_interface_index) ||
       (v4_endpoint != new_v4_endpoint) || (v6_endpoint != new_v6_endpoint);
 
-  friendly_name = std::move(new_friendly_name);
+  friendly_name = new_friendly_name;
   network_interface_index = new_network_interface_index;
   v4_endpoint = new_v4_endpoint;
   v6_endpoint = new_v6_endpoint;

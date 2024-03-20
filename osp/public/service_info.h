@@ -21,7 +21,7 @@ struct ServiceInfo {
   bool operator==(const ServiceInfo& other) const;
   bool operator!=(const ServiceInfo& other) const;
 
-  bool Update(std::string friendly_name,
+  bool Update(const std::string& friendly_name,
               NetworkInterfaceIndex network_interface_index,
               const IPEndpoint& v4_endpoint,
               const IPEndpoint& v6_endpoint);

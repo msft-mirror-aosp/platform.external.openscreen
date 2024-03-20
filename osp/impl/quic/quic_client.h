@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -40,7 +41,8 @@ namespace openscreen::osp {
 class QuicClient final : public ProtocolConnectionClient,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
-  QuicClient(MessageDemuxer* demuxer,
+  QuicClient(const std::vector<IPEndpoint>& endpoints,
+             MessageDemuxer* demuxer,
              std::unique_ptr<QuicConnectionFactory> connection_factory,
              ProtocolConnectionServiceObserver* observer,
              ClockNowFunctionPtr now_function,
@@ -60,15 +62,14 @@ class QuicClient final : public ProtocolConnectionClient,
 
   // ServiceConnectionDelegate::ServiceDelegate overrides.
   uint64_t OnCryptoHandshakeComplete(ServiceConnectionDelegate* delegate,
-                                     uint64_t connection_id) override;
+                                     std::string connection_id) override;
   void OnIncomingStream(
       std::unique_ptr<QuicProtocolConnection> connection) override;
   void OnConnectionClosed(uint64_t endpoint_id,
-                          uint64_t connection_id) override;
+                          std::string connection_id) override;
   void OnDataReceived(uint64_t endpoint_id,
-                      uint64_t connection_id,
-                      const uint8_t* data,
-                      size_t data_size) override;
+                      uint64_t protocol_connection_id,
+                      const ByteView& bytes) override;
 
  private:
   struct PendingConnectionData {
@@ -100,6 +101,8 @@ class QuicClient final : public ProtocolConnectionClient,
   void Cleanup();
 
   std::unique_ptr<QuicConnectionFactory> connection_factory_;
+
+  std::vector<IPEndpoint> connection_endpoints_;
 
   // Maps an IPEndpoint to a generated endpoint ID.  This is used to insulate
   // callers from post-handshake changes to a connections actual peer endpoint.

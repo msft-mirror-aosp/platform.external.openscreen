@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "osp/impl/quic/quic_client.h"
 #include "osp/impl/quic/quic_server.h"
@@ -30,8 +31,9 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner& task_runner,
   client_socket_ = std::make_unique<FakeUdpSocket>(fake_client_factory.get());
 
   quic_client = std::make_unique<QuicClient>(
-      controller_demuxer.get(), std::move(fake_client_factory),
-      &mock_client_observer, now_function, task_runner);
+      std::vector<IPEndpoint>{IPEndpoint()}, controller_demuxer.get(),
+      std::move(fake_client_factory), &mock_client_observer, now_function,
+      task_runner);
 
   auto fake_server_factory =
       std::make_unique<FakeServerQuicConnectionFactory>(fake_bridge.get());

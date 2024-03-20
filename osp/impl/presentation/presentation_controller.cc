@@ -513,7 +513,7 @@ Controller::ConnectRequest Controller::ReconnectConnection(
     delegate->OnError(Error::Code::kNoPresentationFound);
     return ConnectRequest();
   }
-  OSP_DCHECK(connection_manager_->GetConnection(connection->connection_id()))
+  OSP_CHECK(connection_manager_->GetConnection(connection->connection_id()))
       << "otherwise valid connection for reconnect is unknown to the "
          "connection manager";
   connection_manager_->RemoveConnection(connection.get());

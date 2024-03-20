@@ -22,8 +22,8 @@
 #include "platform/base/span.h"
 #include "platform/test/fake_task_runner.h"
 #include "platform/test/paths.h"
-#include "testing/util/read_file.h"
 #include "util/json/json_serialization.h"
+#include "util/read_file.h"
 
 namespace openscreen::cast {
 namespace {

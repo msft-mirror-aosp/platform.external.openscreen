@@ -12,6 +12,7 @@
 
 #include "osp/impl/presentation/presentation_common.h"
 #include "osp/public/network_service_manager.h"
+#include "platform/base/span.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
 
@@ -51,7 +52,7 @@ uint64_t GetNextRequestId(const uint64_t endpoint_id) {
 UrlAvailabilityRequester::UrlAvailabilityRequester(
     ClockNowFunctionPtr now_function)
     : now_function_(now_function) {
-  OSP_DCHECK(now_function_);
+  OSP_CHECK(now_function_);
 }
 
 UrlAvailabilityRequester::~UrlAvailabilityRequester() = default;
@@ -231,7 +232,7 @@ ErrorOr<uint64_t> UrlAvailabilityRequester::ReceiverRequester::SendRequest(
   msgs::CborEncodeBuffer buffer;
   if (msgs::EncodePresentationUrlAvailabilityRequest(cbor_request, &buffer)) {
     OSP_VLOG << "writing presentation-url-availability-request";
-    connection_->Write(buffer.data(), buffer.size());
+    connection_->Write(ByteView(buffer.data(), buffer.size()));
     watch_by_id.emplace(
         watch_id, Watch{listener->now_function_() + kWatchDuration, urls});
     if (!event_watch) {

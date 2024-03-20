@@ -344,7 +344,7 @@ void Receiver::Deinit() {
 }
 
 void Receiver::SetReceiverDelegate(ReceiverDelegate* delegate) {
-  OSP_DCHECK(!delegate_ || !delegate);
+  OSP_CHECK(!delegate_ || !delegate);
   delegate_ = delegate;
 
   MessageDemuxer* demuxer = GetServerDemuxer();

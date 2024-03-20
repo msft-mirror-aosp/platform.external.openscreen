@@ -16,6 +16,7 @@
 #include "osp/public/network_service_manager.h"
 #include "osp/public/testing/message_demuxer_test_support.h"
 #include "platform/base/error.h"
+#include "platform/base/span.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 
@@ -92,7 +93,7 @@ class QuicServerTest : public Test {
     message.message.which = decltype(message.message.which)::kString;
     new (&message.message.str) std::string("message from server");
     ASSERT_TRUE(msgs::EncodePresentationConnectionMessage(message, &buffer));
-    connection->Write(buffer.data(), buffer.size());
+    connection->Write(ByteView(buffer.data(), buffer.size()));
     connection->CloseWriteEnd();
 
     ssize_t decode_result = 0;

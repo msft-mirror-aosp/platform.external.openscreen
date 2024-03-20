@@ -95,7 +95,6 @@ PublisherImpl::PublisherImpl(MdnsService* publisher,
 PublisherImpl::~PublisherImpl() = default;
 
 Error PublisherImpl::Register(const DnsSdInstance& instance, Client* client) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
   OSP_CHECK(client);
 
   if (published_instances_.find(instance) != published_instances_.end()) {
@@ -116,8 +115,6 @@ Error PublisherImpl::Register(const DnsSdInstance& instance, Client* client) {
 }
 
 Error PublisherImpl::UpdateRegistration(const DnsSdInstance& instance) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
-
   // Check if the instance is still pending publication.
   auto it = FindKey(&pending_instances_, InstanceKey(instance));
 
@@ -141,8 +138,6 @@ Error PublisherImpl::UpdateRegistration(const DnsSdInstance& instance) {
 
 Error PublisherImpl::UpdatePublishedRegistration(
     const DnsSdInstance& instance) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
-
   auto published_instance_it =
       FindKey(&published_instances_, InstanceKey(instance));
 
@@ -228,8 +223,6 @@ Error PublisherImpl::UpdatePublishedRegistration(
 }
 
 ErrorOr<int> PublisherImpl::DeregisterAll(const std::string& service) {
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
-
   OSP_DVLOG << "Deregistering all instances";
 
   int removed_count = 0;
@@ -264,7 +257,6 @@ ErrorOr<int> PublisherImpl::DeregisterAll(const std::string& service) {
 void PublisherImpl::OnDomainFound(const DomainName& requested_name,
                                   const DomainName& confirmed_name) {
   TRACE_DEFAULT_SCOPED(TraceCategory::kDiscovery);
-  OSP_CHECK(task_runner_.IsRunningOnTaskRunner());
 
   OSP_DVLOG << "Domain successfully claimed: '" << confirmed_name
             << "' based on requested name: '" << requested_name << "'";

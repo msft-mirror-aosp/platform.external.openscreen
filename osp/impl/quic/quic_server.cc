@@ -112,8 +112,8 @@ void QuicServer::OnConnectionDestroyed(QuicProtocolConnection* connection) {
 
 uint64_t QuicServer::OnCryptoHandshakeComplete(
     ServiceConnectionDelegate* delegate,
-    uint64_t connection_id) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
+    std::string connection_id) {
+  OSP_CHECK_EQ(state_, State::kRunning);
   const IPEndpoint& endpoint = delegate->endpoint();
   auto pending_entry = pending_connections_.find(endpoint);
   if (pending_entry == pending_connections_.end())
@@ -128,13 +128,13 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
 
 void QuicServer::OnIncomingStream(
     std::unique_ptr<QuicProtocolConnection> connection) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
+  OSP_CHECK_EQ(state_, State::kRunning);
   observer_->OnIncomingConnection(std::move(connection));
 }
 
 void QuicServer::OnConnectionClosed(uint64_t endpoint_id,
-                                    uint64_t connection_id) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
+                                    std::string connection_id) {
+  OSP_CHECK_EQ(state_, State::kRunning);
   auto connection_entry = connections_.find(endpoint_id);
   if (connection_entry == connections_.end())
     return;
@@ -147,11 +147,11 @@ void QuicServer::OnConnectionClosed(uint64_t endpoint_id,
 }
 
 void QuicServer::OnDataReceived(uint64_t endpoint_id,
-                                uint64_t connection_id,
-                                const uint8_t* data,
-                                size_t data_size) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
-  demuxer_->OnStreamData(endpoint_id, connection_id, data, data_size);
+                                uint64_t protocol_connection_id,
+                                const ByteView& bytes) {
+  OSP_CHECK_EQ(state_, State::kRunning);
+  demuxer_->OnStreamData(endpoint_id, protocol_connection_id, bytes.data(),
+                         bytes.size());
 }
 
 void QuicServer::CloseAllConnections() {
@@ -171,8 +171,8 @@ void QuicServer::CloseAllConnections() {
 
 QuicConnection::Delegate* QuicServer::NextConnectionDelegate(
     const IPEndpoint& source) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
-  OSP_DCHECK(!pending_connection_delegate_);
+  OSP_CHECK_EQ(state_, State::kRunning);
+  OSP_CHECK(!pending_connection_delegate_);
   pending_connection_delegate_ =
       std::make_unique<ServiceConnectionDelegate>(this, source);
   return pending_connection_delegate_.get();
@@ -180,7 +180,7 @@ QuicConnection::Delegate* QuicServer::NextConnectionDelegate(
 
 void QuicServer::OnIncomingConnection(
     std::unique_ptr<QuicConnection> connection) {
-  OSP_DCHECK_EQ(state_, State::kRunning);
+  OSP_CHECK_EQ(state_, State::kRunning);
   const IPEndpoint& endpoint = pending_connection_delegate_->endpoint();
   pending_connections_.emplace(
       endpoint, ServiceConnectionData(std::move(connection),

@@ -16,6 +16,7 @@
 #include "osp/msgs/osp_messages.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/testing/message_demuxer_test_support.h"
+#include "platform/base/span.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/osp_logging.h"
@@ -89,7 +90,7 @@ class UrlAvailabilityRequesterTest : public Test {
               ssize_t request_result_size =
                   msgs::DecodePresentationUrlAvailabilityRequest(
                       buffer, buffer_size, request);
-              OSP_DCHECK_GT(request_result_size, 0);
+              OSP_CHECK_GT(request_result_size, 0);
               return request_result_size;
             }));
   }
@@ -105,7 +106,7 @@ class UrlAvailabilityRequesterTest : public Test {
     ssize_t encode_result =
         msgs::EncodePresentationUrlAvailabilityResponse(response, &buffer);
     ASSERT_GT(encode_result, 0);
-    stream->Write(buffer.data(), buffer.size());
+    stream->Write(ByteView(buffer.data(), buffer.size()));
   }
 
   void SendAvailabilityEvent(
@@ -119,7 +120,7 @@ class UrlAvailabilityRequesterTest : public Test {
     ssize_t encode_result =
         msgs::EncodePresentationUrlAvailabilityEvent(event, &buffer);
     ASSERT_GT(encode_result, 0);
-    stream->Write(buffer.data(), buffer.size());
+    stream->Write(ByteView(buffer.data(), buffer.size()));
   }
 
   FakeClock fake_clock_;

@@ -40,7 +40,7 @@ Connection::~Connection() {
 }
 
 void Connection::OnConnecting() {
-  OSP_DCHECK(!protocol_connection_);
+  OSP_CHECK(!protocol_connection_);
   state_ = State::kConnecting;
 }
 
@@ -156,7 +156,7 @@ void ConnectionManager::AddConnection(Connection* connection) {
   auto emplace_result =
       connections_.emplace(connection->connection_id(), connection);
 
-  OSP_DCHECK(emplace_result.second);
+  OSP_CHECK(emplace_result.second);
 }
 
 void ConnectionManager::RemoveConnection(Connection* connection) {

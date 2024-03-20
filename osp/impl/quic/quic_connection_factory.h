@@ -36,7 +36,8 @@ class QuicConnectionFactory : public UdpSocket::Client {
                                  const std::vector<IPEndpoint>& endpoints) = 0;
 
   virtual std::unique_ptr<QuicConnection> Connect(
-      const IPEndpoint& endpoint,
+      const IPEndpoint& local_endpoint,
+      const IPEndpoint& remote_endpoint,
       QuicConnection::Delegate* connection_delegate) = 0;
 };
 

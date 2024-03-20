@@ -16,6 +16,7 @@
 #include "osp/public/network_service_manager.h"
 #include "osp/public/protocol_connection_server.h"
 #include "osp/public/testing/message_demuxer_test_support.h"
+#include "platform/base/span.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 
@@ -124,7 +125,7 @@ TEST_F(PresentationReceiverTest, QueryAvailability) {
                                                    /* .watch_id = */ 0};
   msgs::CborEncodeBuffer buffer;
   ASSERT_TRUE(msgs::EncodePresentationUrlAvailabilityRequest(request, &buffer));
-  stream->Write(buffer.data(), buffer.size());
+  stream->Write(ByteView(buffer.data(), buffer.size()));
 
   EXPECT_CALL(mock_receiver_delegate_, OnUrlAvailabilityRequest(_, _, _))
       .WillOnce(Invoke([this](uint64_t watch_id, uint64_t watch_duration,
@@ -168,7 +169,7 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
   request.headers = {msgs::HttpHeader{"Accept-Language", "de"}};
   msgs::CborEncodeBuffer buffer;
   ASSERT_TRUE(msgs::EncodePresentationStartRequest(request, &buffer));
-  stream->Write(buffer.data(), buffer.size());
+  stream->Write(ByteView(buffer.data(), buffer.size()));
   Connection::PresentationInfo info;
   EXPECT_CALL(mock_receiver_delegate_, StartPresentation(_, _, request.headers))
       .WillOnce(::testing::DoAll(::testing::SaveArg<0>(&info),

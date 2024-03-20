@@ -15,6 +15,7 @@
 namespace openscreen::osp {
 
 QuicClient::QuicClient(
+    const std::vector<IPEndpoint>& endpoints,
     MessageDemuxer* demuxer,
     std::unique_ptr<QuicConnectionFactory> connection_factory,
     ProtocolConnectionServiceObserver* observer,
@@ -22,6 +23,7 @@ QuicClient::QuicClient(
     TaskRunner& task_runner)
     : ProtocolConnectionClient(demuxer, observer),
       connection_factory_(std::move(connection_factory)),
+      connection_endpoints_(endpoints),
       cleanup_alarm_(now_function, task_runner) {}
 
 QuicClient::~QuicClient() {
@@ -76,7 +78,7 @@ QuicClient::ConnectRequest QuicClient::Connect(
   auto endpoint_entry = endpoint_map_.find(endpoint);
   if (endpoint_entry != endpoint_map_.end()) {
     auto immediate_result = CreateProtocolConnection(endpoint_entry->second);
-    OSP_DCHECK(immediate_result);
+    OSP_CHECK(immediate_result);
     request->OnConnectionOpened(0, std::move(immediate_result));
     return ConnectRequest(this, 0);
   }
@@ -109,7 +111,7 @@ void QuicClient::OnConnectionDestroyed(QuicProtocolConnection* connection) {
 
 uint64_t QuicClient::OnCryptoHandshakeComplete(
     ServiceConnectionDelegate* delegate,
-    uint64_t connection_id) {
+    std::string connection_id) {
   const IPEndpoint& endpoint = delegate->endpoint();
   auto pending_entry = pending_connections_.find(endpoint);
   if (pending_entry == pending_connections_.end())
@@ -142,7 +144,7 @@ void QuicClient::OnIncomingStream(
 }
 
 void QuicClient::OnConnectionClosed(uint64_t endpoint_id,
-                                    uint64_t connection_id) {
+                                    std::string connection_id) {
   // TODO(btolsch): Is this how handshake failure is communicated to the
   // delegate?
   auto connection_entry = connections_.find(endpoint_id);
@@ -157,10 +159,10 @@ void QuicClient::OnConnectionClosed(uint64_t endpoint_id,
 }
 
 void QuicClient::OnDataReceived(uint64_t endpoint_id,
-                                uint64_t connection_id,
-                                const uint8_t* data,
-                                size_t data_size) {
-  demuxer_->OnStreamData(endpoint_id, connection_id, data, data_size);
+                                uint64_t protocol_connection_id,
+                                const ByteView& bytes) {
+  demuxer_->OnStreamData(endpoint_id, protocol_connection_id, bytes.data(),
+                         bytes.size());
 }
 
 QuicClient::PendingConnectionData::PendingConnectionData(
@@ -190,12 +192,12 @@ uint64_t QuicClient::StartConnectionRequest(
     const IPEndpoint& endpoint,
     ConnectionRequestCallback* request) {
   auto delegate = std::make_unique<ServiceConnectionDelegate>(this, endpoint);
-  std::unique_ptr<QuicConnection> connection =
-      connection_factory_->Connect(endpoint, delegate.get());
+  std::unique_ptr<QuicConnection> connection = connection_factory_->Connect(
+      connection_endpoints_[0], endpoint, delegate.get());
   if (!connection) {
     // TODO(btolsch): Need interface/handling for Connect() failures. Or, should
     // request->OnConnectionFailed() be called?
-    OSP_DCHECK(false)
+    OSP_CHECK(false)
         << __func__
         << ": Factory connect failed, but requestor will never know.";
     return 0;
