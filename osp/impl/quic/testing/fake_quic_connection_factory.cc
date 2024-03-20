@@ -131,11 +131,12 @@ void FakeQuicConnectionFactoryBridge::RunTasks(bool is_client) {
   }
 }
 
-std::unique_ptr<QuicConnection> FakeQuicConnectionFactoryBridge::Connect(
+ErrorOr<std::unique_ptr<QuicConnection>>
+FakeQuicConnectionFactoryBridge::Connect(
     const IPEndpoint& endpoint,
     QuicConnection::Delegate* connection_delegate) {
   if (endpoint != receiver_endpoint_) {
-    return nullptr;
+    return Error::Code::kParameterInvalid;
   }
 
   OSP_CHECK(!connections_.controller);
@@ -149,7 +150,8 @@ std::unique_ptr<QuicConnection> FakeQuicConnectionFactoryBridge::Connect(
       *delegate_->NextConnectionDelegate(controller_endpoint_));
   connections_.receiver = receiver_connection.get();
   delegate_->OnIncomingConnection(std::move(receiver_connection));
-  return controller_connection;
+  return ErrorOr<std::unique_ptr<QuicConnection>>(
+      std::move(controller_connection));
 }
 
 FakeClientQuicConnectionFactory::FakeClientQuicConnectionFactory(
@@ -163,7 +165,8 @@ void FakeClientQuicConnectionFactory::SetServerDelegate(
   OSP_CHECK(false) << "don't call SetServerDelegate from QuicClient side";
 }
 
-std::unique_ptr<QuicConnection> FakeClientQuicConnectionFactory::Connect(
+ErrorOr<std::unique_ptr<QuicConnection>>
+FakeClientQuicConnectionFactory::Connect(
     const IPEndpoint& local_endpoint,
     const IPEndpoint& remote_endpoint,
     QuicConnection::Delegate* connection_delegate) {
@@ -201,12 +204,12 @@ void FakeServerQuicConnectionFactory::SetServerDelegate(
                              endpoints.empty() ? IPEndpoint{} : endpoints[0]);
 }
 
-std::unique_ptr<QuicConnection> FakeServerQuicConnectionFactory::Connect(
+ErrorOr<std::unique_ptr<QuicConnection>>
+FakeServerQuicConnectionFactory::Connect(
     const IPEndpoint& local_endpoint,
     const IPEndpoint& remote_endpoint,
     QuicConnection::Delegate* connection_delegate) {
-  OSP_CHECK(false) << "don't call Connect() from QuicServer side";
-  return nullptr;
+  return Error::Code::kOperationInvalid;
 }
 
 void FakeServerQuicConnectionFactory::OnError(UdpSocket* socket, Error error) {

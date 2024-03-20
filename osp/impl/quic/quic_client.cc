@@ -192,19 +192,17 @@ uint64_t QuicClient::StartConnectionRequest(
     const IPEndpoint& endpoint,
     ConnectionRequestCallback* request) {
   auto delegate = std::make_unique<ServiceConnectionDelegate>(this, endpoint);
-  std::unique_ptr<QuicConnection> connection = connection_factory_->Connect(
-      connection_endpoints_[0], endpoint, delegate.get());
+  ErrorOr<std::unique_ptr<QuicConnection>> connection =
+      connection_factory_->Connect(connection_endpoints_[0], endpoint,
+                                   delegate.get());
   if (!connection) {
-    // TODO(btolsch): Need interface/handling for Connect() failures. Or, should
-    // request->OnConnectionFailed() be called?
-    OSP_CHECK(false)
-        << __func__
-        << ": Factory connect failed, but requestor will never know.";
+    request->OnConnectionFailed(0);
+    OSP_LOG_ERROR << "Factory connect failed: " << connection.error();
     return 0;
   }
   auto pending_result = pending_connections_.emplace(
       endpoint, PendingConnectionData(ServiceConnectionData(
-                    std::move(connection), std::move(delegate))));
+                    std::move(connection.value()), std::move(delegate))));
   uint64_t request_id = next_request_id_++;
   pending_result.first->second.callbacks.emplace_back(request_id, request);
   return request_id;

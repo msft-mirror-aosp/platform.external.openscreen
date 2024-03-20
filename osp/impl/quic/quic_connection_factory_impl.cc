@@ -188,16 +188,13 @@ void QuicConnectionFactoryImpl::OnRead(UdpSocket* socket,
   }
 }
 
-std::unique_ptr<QuicConnection> QuicConnectionFactoryImpl::Connect(
+ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryImpl::Connect(
     const IPEndpoint& local_endpoint,
     const IPEndpoint& remote_endpoint,
     QuicConnection::Delegate* connection_delegate) {
   auto create_result = UdpSocket::Create(task_runner_, this, local_endpoint);
   if (!create_result) {
-    OSP_LOG_ERROR << "failed to create socket: "
-                  << create_result.error().message();
-    // TODO(mfoltz): This method should return ErrorOr<uni_ptr<QuicConnection>>.
-    return nullptr;
+    return create_result.error();
   }
   std::unique_ptr<UdpSocket> socket = std::move(create_result.value());
   socket->Bind();
@@ -222,8 +219,7 @@ std::unique_ptr<QuicConnection> QuicConnectionFactoryImpl::Connect(
         proof_verifier->AddFingerprint(quic::CertificateFingerprint{
             quic::CertificateFingerprint::kSha256, kFingerPrint});
     if (!success) {
-      OSP_LOG_ERROR << "Failed to add a certificate fingerprint.";
-      return nullptr;
+      return Error::Code::kSha256HashFailure;
     }
     crypto_client_config_ = std::make_unique<quic::QuicCryptoClientConfig>(
         std::move(proof_verifier), nullptr);
@@ -248,7 +244,7 @@ std::unique_ptr<QuicConnection> QuicConnectionFactoryImpl::Connect(
                        OpenConnection{connection_impl.get(), socket.get()});
   sockets_.emplace_back(std::move(socket));
 
-  return connection_impl;
+  return ErrorOr<std::unique_ptr<QuicConnection>>(std::move(connection_impl));
 }
 
 void QuicConnectionFactoryImpl::OnConnectionClosed(QuicConnection* connection) {

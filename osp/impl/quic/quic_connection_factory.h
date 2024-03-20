@@ -10,6 +10,7 @@
 
 #include "osp/impl/quic/quic_connection.h"
 #include "platform/api/time.h"
+#include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 
 namespace openscreen::osp {
@@ -35,7 +36,7 @@ class QuicConnectionFactory : public UdpSocket::Client {
   virtual void SetServerDelegate(ServerDelegate* delegate,
                                  const std::vector<IPEndpoint>& endpoints) = 0;
 
-  virtual std::unique_ptr<QuicConnection> Connect(
+  virtual ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
       QuicConnection::Delegate* connection_delegate) = 0;

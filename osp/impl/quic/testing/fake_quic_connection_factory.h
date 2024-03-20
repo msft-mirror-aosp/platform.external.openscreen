@@ -29,7 +29,7 @@ class FakeQuicConnectionFactoryBridge {
   void SetServerDelegate(QuicConnectionFactory::ServerDelegate* delegate,
                          const IPEndpoint& endpoint);
   void RunTasks(bool is_client);
-  std::unique_ptr<QuicConnection> Connect(
+  ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& endpoint,
       QuicConnection::Delegate* connection_delegate);
 
@@ -63,7 +63,7 @@ class FakeClientQuicConnectionFactory final : public QuicConnectionFactory {
   // QuicConnectionFactory overrides.
   void SetServerDelegate(ServerDelegate* delegate,
                          const std::vector<IPEndpoint>& endpoints) override;
-  std::unique_ptr<QuicConnection> Connect(
+  ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
       QuicConnection::Delegate* connection_delegate) override;
@@ -91,7 +91,7 @@ class FakeServerQuicConnectionFactory final : public QuicConnectionFactory {
   // QuicConnectionFactory overrides.
   void SetServerDelegate(ServerDelegate* delegate,
                          const std::vector<IPEndpoint>& endpoints) override;
-  std::unique_ptr<QuicConnection> Connect(
+  ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
       QuicConnection::Delegate* connection_delegate) override;

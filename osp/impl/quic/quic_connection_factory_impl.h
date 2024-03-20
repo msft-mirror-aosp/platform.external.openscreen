@@ -43,7 +43,7 @@ class QuicConnectionFactoryImpl final : public QuicConnectionFactory {
   // QuicConnectionFactory overrides.
   void SetServerDelegate(ServerDelegate* delegate,
                          const std::vector<IPEndpoint>& endpoints) override;
-  std::unique_ptr<QuicConnection> Connect(
+  ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
       QuicConnection::Delegate* connection_delegate) override;
