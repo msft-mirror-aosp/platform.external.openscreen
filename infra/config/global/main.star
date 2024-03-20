@@ -255,8 +255,6 @@ def builder(builder_type, name, properties, os, cpu):
             "linux_arm64",
             "linux_arm64_cast_receiver",
             "linux_x64_coverage",
-            "linux_x64_msan_rel",
-            "linux_x64_tsan_rel",
             "win_x64",
             "chromium_win_x64",
         ]:
