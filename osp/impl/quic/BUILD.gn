@@ -4,7 +4,7 @@
 
 import("../../../gni/openscreen.gni")  #
 
-if (!is_win && !is_mac) {
+if (!is_win) {
   visibility = [ "./*" ]
 
   config("quic_internal_config") {
