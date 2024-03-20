@@ -130,6 +130,7 @@ def get_properties(
         cast_receiver = False,
         chromium = False,
         is_presubmit = False,
+        is_component_build = None,
         is_ci = None):
     """Property generator method, used to configure the build system.
 
@@ -146,6 +147,7 @@ def get_properties(
         sender and receiver binaries.
       chromium: if True, the build is for use in an embedder, such as Chrome.
       is_presubmit: if True, this is a presubmit run.
+      is_component_build: if set, enables or disables component builds.
       is_ci: If set, it adds is_ci flag to the properties.
 
     Returns:
@@ -190,6 +192,9 @@ def get_properties(
     if is_presubmit:
         properties["repo_name"] = "openscreen"
         properties["runhooks"] = "true"
+
+    if is_component_build != None:
+        properties["is_component_build"] = is_component_build
 
     if is_ci:
         properties["is_ci"] = is_ci
@@ -325,7 +330,7 @@ try_builder(
 )
 try_and_ci_builders(
     "linux_arm64_cast_receiver",
-    get_properties(cast_receiver = True, target_cpu = "arm64"),
+    get_properties(cast_receiver = True, target_cpu = "arm64", is_component_build = False),
 )
 try_and_ci_builders("linux_x64_coverage", get_properties(use_coverage = True))
 try_and_ci_builders("linux_x64", get_properties(is_asan = True))
@@ -343,7 +348,7 @@ try_and_ci_builders(
 )
 try_and_ci_builders(
     "linux_arm64",
-    get_properties(target_cpu = "arm64"),
+    get_properties(target_cpu = "arm64", is_component_build = False),
 )
 try_and_ci_builders("mac_x64", get_properties(), os = MAC_VERSION)
 try_and_ci_builders(
