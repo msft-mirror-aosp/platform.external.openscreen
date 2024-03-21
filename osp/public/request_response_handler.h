@@ -29,7 +29,6 @@ using MessageDecodingFunction = ssize_t (*)(const uint8_t*, size_t, T&);
 // function, request serializable data member.
 template <typename T>
 struct DefaultRequestCoderTraits {
- public:
   using RequestMsgType = typename T::RequestMsgType;
   static constexpr MessageEncodingFunction<RequestMsgType> kEncoder =
       T::kEncoder;

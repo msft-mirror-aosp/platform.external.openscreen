@@ -527,12 +527,11 @@ void PublisherDemo(std::string_view friendly_name) {
 
   constexpr uint16_t server_port = 6667;
 
-  // TODO(btolsch): aggregate initialization probably better?
-  ServicePublisher::Config publisher_config;
-  publisher_config.friendly_name = std::string(friendly_name);
-  publisher_config.hostname = "turtle-deadbeef";
-  publisher_config.service_instance_name = "deadbeef";
-  publisher_config.connection_server_port = server_port;
+  ServicePublisher::Config publisher_config = {
+      .friendly_name = std::string(friendly_name),
+      .hostname = "turtle-deadbeef",
+      .service_instance_name = "deadbeef",
+      .connection_server_port = server_port};
 
   ServerConfig server_config;
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {

@@ -27,9 +27,6 @@ class ServicePublisher {
   };
 
   struct Metrics {
-    Metrics();
-    ~Metrics();
-
     // The range of time over which the metrics were collected; end_timestamp >
     // start_timestamp
     timestamp_t start_timestamp = 0;
@@ -63,9 +60,6 @@ class ServicePublisher {
   };
 
   struct Config {
-    Config();
-    ~Config();
-
     // The human readable friendly name of the service being published in
     // UTF-8.
     std::string friendly_name;

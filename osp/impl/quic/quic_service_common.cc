@@ -22,7 +22,7 @@ std::unique_ptr<QuicProtocolConnection> QuicProtocolConnection::FromExisting(
   auto pc = std::make_unique<QuicProtocolConnection>(owner, endpoint_id,
                                                      stream->GetStreamId());
   pc->set_stream(stream);
-  delegate->AddStreamPair(ServiceStreamPair(stream, pc.get()));
+  delegate->AddStreamPair(ServiceStreamPair{stream, pc->id(), pc.get()});
   return pc;
 }
 
@@ -54,20 +54,6 @@ void QuicProtocolConnection::OnClose() {
     observer_->OnConnectionClosed(*this);
 }
 
-ServiceStreamPair::ServiceStreamPair(
-    QuicStream* stream,
-    QuicProtocolConnection* protocol_connection)
-    : stream(stream),
-      protocol_connection_id(protocol_connection->id()),
-      protocol_connection(std::move(protocol_connection)) {}
-ServiceStreamPair::~ServiceStreamPair() = default;
-
-ServiceStreamPair::ServiceStreamPair(ServiceStreamPair&& other) noexcept =
-    default;
-
-ServiceStreamPair& ServiceStreamPair::operator=(
-    ServiceStreamPair&& other) noexcept = default;
-
 ServiceConnectionDelegate::ServiceConnectionDelegate(ServiceDelegate* parent,
                                                      const IPEndpoint& endpoint)
     : parent_(parent), endpoint_(endpoint) {}
@@ -77,9 +63,10 @@ ServiceConnectionDelegate::~ServiceConnectionDelegate() {
   OSP_CHECK(streams_.empty());
 }
 
-void ServiceConnectionDelegate::AddStreamPair(ServiceStreamPair&& stream_pair) {
+void ServiceConnectionDelegate::AddStreamPair(
+    const ServiceStreamPair& stream_pair) {
   const uint64_t stream_id = stream_pair.stream->GetStreamId();
-  streams_.emplace(stream_id, std::move(stream_pair));
+  streams_.emplace(stream_id, stream_pair);
 }
 
 void ServiceConnectionDelegate::DropProtocolConnection(
@@ -106,7 +93,8 @@ void ServiceConnectionDelegate::OnIncomingStream(
     QuicStream* stream) {
   OSP_VLOG << "Incoming QUIC stream from endpoint " << endpoint_id_;
   pending_connection_->set_stream(stream);
-  AddStreamPair(ServiceStreamPair(stream, pending_connection_.get()));
+  AddStreamPair(ServiceStreamPair{stream, pending_connection_->id(),
+                                  pending_connection_.get()});
   parent_->OnIncomingStream(std::move(pending_connection_));
 }
 
