@@ -223,11 +223,11 @@ ErrorOr<uint64_t> UrlAvailabilityRequester::ReceiverRequester::SendRequest(
     uint64_t request_id,
     const std::vector<std::string>& urls) {
   uint64_t watch_id = next_watch_id++;
-  msgs::PresentationUrlAvailabilityRequest cbor_request;
-  cbor_request.request_id = request_id;
-  cbor_request.urls = urls;
-  cbor_request.watch_id = watch_id;
-  cbor_request.watch_duration = to_microseconds(kWatchDuration).count();
+  msgs::PresentationUrlAvailabilityRequest cbor_request = {
+      .request_id = request_id,
+      .urls = urls,
+      .watch_duration = to_microseconds(kWatchDuration).count(),
+      .watch_id = watch_id};
 
   msgs::CborEncodeBuffer buffer;
   if (msgs::EncodePresentationUrlAvailabilityRequest(cbor_request, &buffer)) {

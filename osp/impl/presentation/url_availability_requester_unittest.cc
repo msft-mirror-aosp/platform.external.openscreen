@@ -99,9 +99,9 @@ class UrlAvailabilityRequesterTest : public Test {
       const msgs::PresentationUrlAvailabilityRequest& request,
       std::vector<msgs::UrlAvailability>&& availabilities,
       ProtocolConnection* stream) {
-    msgs::PresentationUrlAvailabilityResponse response;
-    response.request_id = request.request_id;
-    response.url_availabilities = std::move(availabilities);
+    msgs::PresentationUrlAvailabilityResponse response = {
+        .request_id = request.request_id,
+        .url_availabilities = std::move(availabilities)};
     msgs::CborEncodeBuffer buffer;
     ssize_t encode_result =
         msgs::EncodePresentationUrlAvailabilityResponse(response, &buffer);
@@ -113,9 +113,8 @@ class UrlAvailabilityRequesterTest : public Test {
       uint64_t watch_id,
       std::vector<msgs::UrlAvailability>&& availabilities,
       ProtocolConnection* stream) {
-    msgs::PresentationUrlAvailabilityEvent event;
-    event.watch_id = watch_id;
-    event.url_availabilities = std::move(availabilities);
+    msgs::PresentationUrlAvailabilityEvent event = {
+        .watch_id = watch_id, .url_availabilities = std::move(availabilities)};
     msgs::CborEncodeBuffer buffer;
     ssize_t encode_result =
         msgs::EncodePresentationUrlAvailabilityEvent(event, &buffer);

@@ -216,17 +216,16 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t endpoint_id,
         return Error::Code::kCborInvalidMessage;
       }
 
-      msgs::PresentationConnectionCloseResponse response;
-      response.request_id = request.request_id;
+      msgs::PresentationConnectionCloseResponse response = {
+          .request_id = request.request_id,
+          .result = msgs::PresentationConnectionCloseResponse_result::
+              kInvalidConnectionId};
 
       Connection* connection = GetConnection(request.connection_id);
       if (connection) {
         response.result =
             msgs::PresentationConnectionCloseResponse_result::kSuccess;
         connection->OnClosedByRemote();
-      } else {
-        response.result = msgs::PresentationConnectionCloseResponse_result::
-            kInvalidConnectionId;
       }
 
       std::unique_ptr<ProtocolConnection> protocol_connection =

@@ -119,10 +119,8 @@ TEST_F(PresentationReceiverTest, QueryAvailability) {
   std::unique_ptr<ProtocolConnection> stream = MakeClientStream();
   ASSERT_TRUE(stream);
 
-  msgs::PresentationUrlAvailabilityRequest request{/* .request_id = */ 0,
-                                                   /* .urls = */ {url1_},
-                                                   /* .watch_duration = */ 0,
-                                                   /* .watch_id = */ 0};
+  msgs::PresentationUrlAvailabilityRequest request = {
+      .request_id = 0, .urls = {url1_}, .watch_duration = 0, .watch_id = 0};
   msgs::CborEncodeBuffer buffer;
   ASSERT_TRUE(msgs::EncodePresentationUrlAvailabilityRequest(request, &buffer));
   stream->Write(ByteView(buffer.data(), buffer.size()));
@@ -162,11 +160,11 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
   ASSERT_TRUE(stream);
 
   const std::string presentation_id = "KMvyNqTCvvSv7v5X";
-  msgs::PresentationStartRequest request;
-  request.request_id = 0;
-  request.presentation_id = presentation_id;
-  request.url = url1_;
-  request.headers = {msgs::HttpHeader{"Accept-Language", "de"}};
+  msgs::PresentationStartRequest request = {
+      .request_id = 0,
+      .presentation_id = presentation_id,
+      .url = url1_,
+      .headers = {msgs::HttpHeader{"Accept-Language", "de"}}};
   msgs::CborEncodeBuffer buffer;
   ASSERT_TRUE(msgs::EncodePresentationStartRequest(request, &buffer));
   stream->Write(ByteView(buffer.data(), buffer.size()));

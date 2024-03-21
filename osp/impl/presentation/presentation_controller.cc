@@ -560,9 +560,9 @@ Error Controller::OnPresentationTerminated(const std::string& presentation_id,
   for (auto* connection : presentation.connections) {
     connection->OnTerminated();
   }
-  TerminationRequest request;
-  request.request.presentation_id = presentation_id;
-  request.request.reason = msgs::PresentationTerminationReason::kUserRequest;
+  TerminationRequest request = {
+      .request = {.presentation_id = presentation_id,
+                  .reason = msgs::PresentationTerminationReason::kUserRequest}};
   group_streams_[presentation.service_id]->SendTerminationRequest(
       std::move(request));
   presentations_.erase(presentation_entry);
