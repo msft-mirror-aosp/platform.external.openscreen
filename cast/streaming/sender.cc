@@ -233,7 +233,12 @@ Sender::EnqueueFrameResult Sender::EnqueueFrame(const EncodedFrame& frame) {
   OSP_CHECK_GE(frame.referenced_frame_id, FrameId::first());
   if (frame.frame_id != FrameId::first()) {
     OSP_CHECK_GT(frame.rtp_timestamp, pending_sender_report_.rtp_timestamp);
-    OSP_CHECK_GT(frame.reference_time, pending_sender_report_.reference_time);
+    if (frame.reference_time <= pending_sender_report_.reference_time) {
+      OSP_DLOG_WARN << "Frame " << frame.frame_id
+                    << " has non-monotonic reference_time: "
+                    << frame.reference_time
+                    << " <= " << pending_sender_report_.reference_time;
+    }
   }
   OSP_CHECK(frame.data.data());
 
@@ -278,8 +283,13 @@ Sender::EnqueueFrameResult Sender::EnqueueFrame(const EncodedFrame& frame) {
     playout_delay_change_at_frame_id_ = slot->frame->frame_id;
   }
 
-  // Update the lip-sync information for the next Sender Report.
-  pending_sender_report_.reference_time = slot->frame->reference_time;
+  // Update the lip-sync information for the next Sender Report, ensuring that
+  // the reference time is monotonically increasing.
+  pending_sender_report_.reference_time =
+      frame.frame_id == FrameId::first()
+          ? slot->frame->reference_time
+          : std::max(slot->frame->reference_time,
+                     pending_sender_report_.reference_time);
   pending_sender_report_.rtp_timestamp = slot->frame->rtp_timestamp;
 
   // If the round trip time hasn't been computed yet, immediately send a RTCP

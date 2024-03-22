@@ -975,6 +975,27 @@ TEST_F(SenderTest, ProvidesSenderReports) {
   EXPECT_EQ(uint32_t{kFrameDataSize}, sender_reports.back().send_octet_count);
 }
 
+TEST_F(SenderTest, ReferenceTimesCanBeNonMonotonic) {
+  // This tests that the sender is robust to encoded frames with non-monotonic
+  // reference times.  This situation does not prevent frames from being
+  // transmitted in correct order; however, lip sync will suffer if reference
+  // times do not correspond to RTP timestamps.
+  EXPECT_CALL(*receiver(), OnRtpPacket(_)).Times(AtLeast(1));
+  EXPECT_CALL(*receiver(), OnSenderReport(_)).Times(AtLeast(1));
+
+  // Send the 10 frames with non-monotonic reference times.
+  Clock::time_point reference_time = FakeClock::now();
+  for (int i = 0; i < 10; ++i) {
+    EncodedFrameWithBuffer frame;
+    PopulateFrameWithDefaults(sender()->GetNextFrameId(), reference_time, 0,
+                              13 /* bytes */, &frame);
+    // OverrideRtpTimestamp(i, &frame, 1000 /* fps */);
+    ASSERT_EQ(Sender::OK, sender()->EnqueueFrame(frame));
+    SimulateExecution(kFrameDuration);
+    reference_time -= microseconds(10);
+  }
+}
+
 // Tests that the Sender provides Kickstart packets whenever the Receiver may
 // not know about new frames.
 TEST_F(SenderTest, ProvidesKickstartPacketsIfReceiverDoesNotACK) {
