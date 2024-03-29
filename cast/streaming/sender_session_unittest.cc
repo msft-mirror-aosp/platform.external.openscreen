@@ -194,7 +194,7 @@ class SenderSessionTest : public ::testing::Test {
     environment_ = MakeEnvironment();
 
     SenderSession::Configuration config{IPAddress::kV4LoopbackAddress(),
-                                        &client_,
+                                        client_,
                                         environment_.get(),
                                         message_port_.get(),
                                         "sender-12345",

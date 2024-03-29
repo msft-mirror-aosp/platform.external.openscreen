@@ -57,7 +57,7 @@ class SDLPlayerBase : public Receiver::Consumer, public Decoder::Client {
   // or "video" (only used when logging).
   SDLPlayerBase(ClockNowFunctionPtr now_function,
                 TaskRunner& task_runner,
-                Receiver* receiver,
+                Receiver& receiver,
                 const std::string& codec_name,
                 std::function<void()> error_callback,
                 const char* media_type);
@@ -126,7 +126,7 @@ class SDLPlayerBase : public Receiver::Consumer, public Decoder::Client {
   void ResumeRendering();
 
   const ClockNowFunctionPtr now_;
-  Receiver* const receiver_;
+  Receiver& receiver_;
   std::function<void()> error_callback_;  // Run once by OnFatalError().
   const char* const media_type_;          // For logging only.
 

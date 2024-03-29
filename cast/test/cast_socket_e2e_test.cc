@@ -46,7 +46,7 @@ constexpr char kLogDecorator[] = "--- ";
 class SenderSocketsClient : public SenderSocketFactory::Client,
                             public VirtualConnectionRouter::SocketErrorHandler {
  public:
-  explicit SenderSocketsClient(VirtualConnectionRouter* router)  // NOLINT
+  explicit SenderSocketsClient(VirtualConnectionRouter& router)  // NOLINT
       : router_(router) {}
   ~SenderSocketsClient() override = default;
 
@@ -60,7 +60,7 @@ class SenderSocketsClient : public SenderSocketFactory::Client,
     OSP_LOG_INFO << kLogDecorator
                  << "Sender connected to endpoint: " << endpoint;
     socket_ = socket.get();
-    router_->TakeSocket(this, std::move(socket));
+    router_.TakeSocket(this, std::move(socket));
   }
 
   void OnError(SenderSocketFactory* factory,
@@ -83,7 +83,7 @@ class SenderSocketsClient : public SenderSocketFactory::Client,
   MOCK_METHOD(void, OnErrorMock, (CastSocket * socket, Error error), ());
 
  private:
-  VirtualConnectionRouter* const router_;
+  VirtualConnectionRouter& router_;
   std::atomic<CastSocket*> socket_{nullptr};
 };
 
@@ -144,9 +144,9 @@ class CastSocketE2ETest : public ::testing::Test {
 
     sender_router_ = MakeSerialDelete<VirtualConnectionRouter>(task_runner_);
     sender_client_ =
-        std::make_unique<StrictMock<SenderSocketsClient>>(sender_router_.get());
+        std::make_unique<StrictMock<SenderSocketsClient>>(*sender_router_);
     sender_factory_ = MakeSerialDelete<SenderSocketFactory>(
-        task_runner_, sender_client_.get(), *task_runner_,
+        task_runner_, *sender_client_, *task_runner_,
         TrustStore::CreateInstanceForTest(credentials_.root_cert_der),
         CastCRLTrustStore::Create());
     sender_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
@@ -156,14 +156,14 @@ class CastSocketE2ETest : public ::testing::Test {
     sender_factory_->set_factory(sender_tls_factory_.get());
 
     auth_handler_ = MakeSerialDelete<DeviceAuthNamespaceHandler>(
-        task_runner_, credentials_.provider.get());
+        task_runner_, *credentials_.provider);
     receiver_router_ = MakeSerialDelete<VirtualConnectionRouter>(task_runner_);
     receiver_router_->AddHandlerForLocalId(kPlatformReceiverId,
                                            auth_handler_.get());
     receiver_client_ = std::make_unique<StrictMock<ReceiverSocketsClient>>(
         receiver_router_.get());
     receiver_factory_ = MakeSerialDelete<ReceiverSocketFactory>(
-        task_runner_, receiver_client_.get(), receiver_router_.get());
+        task_runner_, *receiver_client_, *receiver_router_);
 
     receiver_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
         *task_runner_,

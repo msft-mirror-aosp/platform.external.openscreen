@@ -29,7 +29,7 @@ class SessionMessenger : public MessagePort::Client {
  public:
   using ErrorCallback = std::function<void(Error)>;
 
-  SessionMessenger(MessagePort* message_port,
+  SessionMessenger(MessagePort& message_port,
                    std::string source_id,
                    ErrorCallback cb);
   ~SessionMessenger() override;
@@ -46,7 +46,7 @@ class SessionMessenger : public MessagePort::Client {
   const std::string& source_id() override { return source_id_; }
 
  private:
-  MessagePort* const message_port_;
+  MessagePort& message_port_;
   const std::string source_id_;
   ErrorCallback error_callback_;
 };
@@ -59,7 +59,7 @@ class SenderSessionMessenger final : public SessionMessenger {
  public:
   using ReplyCallback = std::function<void(ErrorOr<ReceiverMessage>)>;
 
-  SenderSessionMessenger(MessagePort* message_port,
+  SenderSessionMessenger(MessagePort& message_port,
                          std::string source_id,
                          std::string receiver_id,
                          ErrorCallback cb,
@@ -112,7 +112,7 @@ class ReceiverSessionMessenger final : public SessionMessenger {
  public:
   using RequestCallback =
       std::function<void(const std::string&, SenderMessage)>;
-  ReceiverSessionMessenger(MessagePort* message_port,
+  ReceiverSessionMessenger(MessagePort& message_port,
                            std::string source_id,
                            ErrorCallback cb);
 

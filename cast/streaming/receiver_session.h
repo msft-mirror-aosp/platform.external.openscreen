@@ -137,9 +137,9 @@ class ReceiverSession final : public Environment::SocketSubscriber {
     virtual ~Client();
   };
 
-  ReceiverSession(Client* const client,
-                  Environment* environment,
-                  MessagePort* message_port,
+  ReceiverSession(Client& client,
+                  Environment& environment,
+                  MessagePort& message_port,
                   ReceiverConstraints constraints);
   ReceiverSession(const ReceiverSession&) = delete;
   ReceiverSession(ReceiverSession&&) noexcept = delete;
@@ -215,8 +215,8 @@ class ReceiverSession final : public Environment::SocketSubscriber {
                             int sequence_number,
                             Error error);
 
-  Client* const client_;
-  Environment* const environment_;
+  Client& client_;
+  Environment& environment_;
   const ReceiverConstraints constraints_;
 
   // The sender_id of this session.

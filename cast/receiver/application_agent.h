@@ -81,7 +81,7 @@ class ApplicationAgent final
 
   ApplicationAgent(
       TaskRunner& task_runner,
-      DeviceAuthNamespaceHandler::CredentialsProvider* credentials_provider);
+      DeviceAuthNamespaceHandler::CredentialsProvider& credentials_provider);
 
   ~ApplicationAgent() final;
 

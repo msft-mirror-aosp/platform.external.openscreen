@@ -46,8 +46,8 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
 
   // |client| and |task_runner| must outlive |this|.  If no trust stores are
   // passed, the default production certificates are used.
-  SenderSocketFactory(Client* client, TaskRunner& task_runner);
-  SenderSocketFactory(Client* client,
+  SenderSocketFactory(Client& client, TaskRunner& task_runner);
+  SenderSocketFactory(Client& client,
                       TaskRunner& task_runner,
                       std::unique_ptr<TrustStore> cast_trust_store,
                       std::unique_ptr<TrustStore> crl_trust_store);
@@ -105,7 +105,7 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
   void OnMessage(CastSocket* socket,
                  ::cast::channel::CastMessage message) override;
 
-  Client* const client_;
+  Client& client_;
   TaskRunner& task_runner_;
   TlsConnectionFactory* factory_ = nullptr;
   std::vector<PendingConnection> pending_connections_;

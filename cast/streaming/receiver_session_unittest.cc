@@ -390,9 +390,8 @@ class ReceiverSessionTest : public ::testing::Test {
     session_.reset();
     message_port_ = std::make_unique<SimpleMessagePort>("sender-12345");
     environment_ = MakeEnvironment();
-    session_ = std::make_unique<ReceiverSession>(&client_, environment_.get(),
-                                                 message_port_.get(),
-                                                 std::move(constraints));
+    session_ = std::make_unique<ReceiverSession>(
+        client_, *environment_, *message_port_, std::move(constraints));
   }
 
  protected:
@@ -470,7 +469,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithDefaultConstraints) {
 
 TEST_F(ReceiverSessionTest, CanNegotiateWithCustomCodecConstraints) {
   ReceiverSession session(
-      &client_, environment_.get(), message_port_.get(),
+      client_, *environment_, *message_port_,
       ReceiverConstraints{{VideoCodec::kVp9}, {AudioCodec::kOpus}});
 
   InSequence s;
@@ -499,8 +498,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithCustomCodecConstraints) {
 TEST_F(ReceiverSessionTest, RejectsStreamWithUnsupportedCodecParameter) {
   ReceiverConstraints constraints({VideoCodec::kHevc}, {AudioCodec::kOpus});
   EXPECT_CALL(client_, SupportsCodecParameter(_)).WillRepeatedly(Return(false));
-  ReceiverSession session(&client_, environment_.get(), message_port_.get(),
-                          constraints);
+  ReceiverSession session(client_, *environment_, *message_port_, constraints);
   InSequence s;
   EXPECT_CALL(client_, OnNegotiated(&session, _))
       .WillOnce([](const ReceiverSession* session_,
@@ -517,7 +515,7 @@ TEST_F(ReceiverSessionTest, AcceptsStreamWithNoCodecParameter) {
                                   {AudioCodec::kOpus});
   EXPECT_CALL(client_, SupportsCodecParameter(_)).WillRepeatedly(Return(false));
 
-  ReceiverSession session(&client_, environment_.get(), message_port_.get(),
+  ReceiverSession session(client_, *environment_, *message_port_,
                           std::move(constraints));
   InSequence s;
   EXPECT_CALL(client_, OnNegotiated(&session, _))
@@ -537,7 +535,7 @@ TEST_F(ReceiverSessionTest, AcceptsStreamWithMatchingParameter) {
       .WillRepeatedly(
           [](const std::string& param) { return param == "hev1.1.6.L150.B0"; });
 
-  ReceiverSession session(&client_, environment_.get(), message_port_.get(),
+  ReceiverSession session(client_, *environment_, *message_port_,
                           std::move(constraints));
   InSequence s;
   EXPECT_CALL(client_, OnNegotiated(&session, _))
@@ -565,7 +563,7 @@ TEST_F(ReceiverSessionTest, CanNegotiateWithLimits) {
   auto display = std::make_unique<Display>(
       Display{{640, 480, {60, 1}}, false /* can scale content */});
 
-  ReceiverSession session(&client_, environment_.get(), message_port_.get(),
+  ReceiverSession session(client_, *environment_, *message_port_,
                           ReceiverConstraints{{VideoCodec::kVp9},
                                               {AudioCodec::kOpus},
                                               std::move(audio_limits),

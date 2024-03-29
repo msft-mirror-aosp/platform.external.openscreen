@@ -104,7 +104,7 @@ class SenderSession final {
     IPAddress remote_address;
 
     // The client for notifying of successful negotiations and errors. Required.
-    Client* const client;
+    Client& client;
 
     // The cast environment used to access operating system resources, such
     // as the UDP socket for RTP/RTCP messaging. Required.

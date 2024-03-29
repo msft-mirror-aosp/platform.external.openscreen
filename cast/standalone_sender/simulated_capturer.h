@@ -46,7 +46,7 @@ class SimulatedCapturer {
                     const char* path,
                     AVMediaType media_type,
                     Clock::time_point start_time,
-                    Observer* observer);
+                    Observer& observer);
 
   virtual ~SimulatedCapturer();
 
@@ -94,7 +94,7 @@ class SimulatedCapturer {
   ClockNowFunctionPtr now_;
   const AVMediaType media_type_;  // Audio or Video.
   const Clock::time_point start_time_;
-  Observer* const observer_;
+  Observer& observer_;
   const AVPacketUniquePtr packet_;        // Decoder input buffer.
   const AVFrameUniquePtr decoded_frame_;  // Decoder output frame.
   int stream_index_ = -1;                 // Selected stream from the file.
@@ -144,7 +144,7 @@ class SimulatedAudioCapturer final : public SimulatedCapturer {
                          int num_channels,
                          int sample_rate,
                          Clock::time_point start_time,
-                         Client* client);
+                         Client& client);
 
   ~SimulatedAudioCapturer() final;
 
@@ -168,7 +168,7 @@ class SimulatedAudioCapturer final : public SimulatedCapturer {
 
   const int num_channels_;  // Output number of channels.
   const int sample_rate_;   // Output sample rate.
-  Client* const client_;
+  Client& client_;
 
   const SwrContextUniquePtr resampler_;
 
@@ -210,7 +210,7 @@ class SimulatedVideoCapturer final : public SimulatedCapturer {
   ~SimulatedVideoCapturer() final;
 
  private:
-  Client* const client_;
+  Client& client_;
 
   // Sets up the decoder to produce I420 format output.
   void SetAdditionalDecoderParameters(AVCodecContext* decoder_context) final;

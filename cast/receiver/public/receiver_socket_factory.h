@@ -29,7 +29,7 @@ class ReceiverSocketFactory final : public TlsConnectionFactory::Client {
 
   // |client| and |socket_client| must outlive |this|.
   // TODO(btolsch): Add TaskRunner argument just for sequence checking.
-  ReceiverSocketFactory(Client* client, CastSocket::Client* socket_client);
+  ReceiverSocketFactory(Client& client, CastSocket::Client& socket_client);
   ~ReceiverSocketFactory();
 
   // TlsConnectionFactory::Client overrides.
@@ -44,8 +44,8 @@ class ReceiverSocketFactory final : public TlsConnectionFactory::Client {
   void OnError(TlsConnectionFactory* factory, Error error) override;
 
  private:
-  Client* const client_;
-  CastSocket::Client* const socket_client_;
+  Client& client_;
+  CastSocket::Client& socket_client_;
 };
 
 }  // namespace openscreen::cast

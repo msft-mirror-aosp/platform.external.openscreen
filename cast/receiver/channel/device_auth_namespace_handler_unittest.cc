@@ -54,7 +54,7 @@ class DeviceAuthNamespaceHandlerTest : public ::testing::Test {
 
   StaticCredentialsProvider creds_;
   VirtualConnectionRouter router_;
-  DeviceAuthNamespaceHandler auth_handler_{&creds_};
+  DeviceAuthNamespaceHandler auth_handler_{creds_};
 };
 
 // The tests in this file use a pre-recorded AuthChallenge as input and a

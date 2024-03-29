@@ -44,11 +44,11 @@ discovery::Config MakeDiscoveryConfig(const InterfaceInfo& interface) {
 CastService::CastService(CastService::Configuration config)
     : local_endpoint_(DetermineEndpoint(config.interface)),
       credentials_(std::move(config.credentials)),
-      agent_(config.task_runner, credentials_.provider.get()),
+      agent_(config.task_runner, *credentials_.provider),
       mirroring_application_(config.task_runner,
                              local_endpoint_.address,
-                             &agent_),
-      socket_factory_(&agent_, agent_.cast_socket_client()),
+                             agent_),
+      socket_factory_(agent_, *agent_.cast_socket_client()),
       connection_factory_(
           TlsConnectionFactory::CreateFactory(socket_factory_,
                                               config.task_runner)),
