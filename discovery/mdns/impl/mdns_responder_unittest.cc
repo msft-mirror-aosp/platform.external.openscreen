@@ -120,7 +120,7 @@ class MdnsResponderTest : public testing::Test {
  public:
   MdnsResponderTest()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         sender_(&socket_),
         receiver_(config_),
         responder_(&record_handler_,

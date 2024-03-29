@@ -99,7 +99,7 @@ class MdnsProbeManagerTests : public testing::Test {
  public:
   MdnsProbeManagerTests()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         sender_(&socket_),
         receiver_(config_),
         manager_(&sender_, &receiver_, &random_, task_runner_, FakeClock::now) {

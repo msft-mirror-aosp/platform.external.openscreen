@@ -173,12 +173,12 @@ class DemoConnectionServerObserver final
  public:
   class ConnectionObserver final : public ProtocolConnection::Observer {
    public:
-    explicit ConnectionObserver(DemoConnectionServerObserver* parent)
+    explicit ConnectionObserver(DemoConnectionServerObserver& parent)
         : parent_(parent) {}
     ~ConnectionObserver() override = default;
 
     void OnConnectionClosed(const ProtocolConnection& connection) override {
-      auto& connections = parent_->connections_;
+      auto& connections = parent_.connections_;
       connections.erase(
           std::remove_if(
               connections.begin(), connections.end(),
@@ -190,7 +190,7 @@ class DemoConnectionServerObserver final
     }
 
    private:
-    DemoConnectionServerObserver* const parent_;
+    DemoConnectionServerObserver& parent_;
   };
 
   ~DemoConnectionServerObserver() override = default;
@@ -204,7 +204,7 @@ class DemoConnectionServerObserver final
 
   void OnIncomingConnection(
       std::unique_ptr<ProtocolConnection> connection) override {
-    auto observer = std::make_unique<ConnectionObserver>(this);
+    auto observer = std::make_unique<ConnectionObserver>(*this);
     connection->SetObserver(observer.get());
     connections_.emplace_back(std::move(observer), std::move(connection));
     connections_.back().second->CloseWriteEnd();
@@ -450,7 +450,7 @@ void ListenerDemo() {
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
-      client_config, &demuxer, &client_observer,
+      client_config, demuxer, client_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =
@@ -556,7 +556,7 @@ void PublisherDemo(std::string_view friendly_name) {
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionServerObserver server_observer;
   auto connection_server = ProtocolConnectionServerFactory::Create(
-      server_config, &demuxer, &server_observer,
+      server_config, demuxer, server_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =

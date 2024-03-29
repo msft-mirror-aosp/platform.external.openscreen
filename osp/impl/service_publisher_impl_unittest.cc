@@ -139,28 +139,28 @@ TEST_F(ServicePublisherImplTest, SuspendAndResume) {
 
 TEST_F(ServicePublisherImplTest, ObserverTransitions) {
   MockObserver observer;
-  auto mock_delegate = std::make_unique<NiceMock<MockMdnsDelegate>>();
-  NiceMock<MockMdnsDelegate>* const mock_delegate_ptr = mock_delegate.get();
+  auto mock_delegate_ptr = std::make_unique<NiceMock<MockMdnsDelegate>>();
+  NiceMock<MockMdnsDelegate>& mock_delegate = *mock_delegate_ptr;
   auto service_publisher = std::make_unique<ServicePublisherImpl>(
-      &observer, std::move(mock_delegate));
+      &observer, std::move(mock_delegate_ptr));
 
   service_publisher->Start();
   Expectation start_from_stopped = EXPECT_CALL(observer, OnStarted());
-  mock_delegate_ptr->SetState(State::kRunning);
+  mock_delegate.SetState(State::kRunning);
 
   service_publisher->Suspend();
   Expectation suspend_from_running =
       EXPECT_CALL(observer, OnSuspended()).After(start_from_stopped);
-  mock_delegate_ptr->SetState(State::kSuspended);
+  mock_delegate.SetState(State::kSuspended);
 
   service_publisher->Resume();
   Expectation resume_from_suspended =
       EXPECT_CALL(observer, OnStarted()).After(suspend_from_running);
-  mock_delegate_ptr->SetState(State::kRunning);
+  mock_delegate.SetState(State::kRunning);
 
   service_publisher->Stop();
   EXPECT_CALL(observer, OnStopped()).After(resume_from_suspended);
-  mock_delegate_ptr->SetState(State::kStopped);
+  mock_delegate.SetState(State::kStopped);
 }
 
 }  // namespace openscreen::osp

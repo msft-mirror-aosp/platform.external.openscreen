@@ -332,7 +332,7 @@ class SenderTest : public testing::Test {
  public:
   SenderTest()
       : fake_clock_(Clock::now()),
-        task_runner_(&fake_clock_),
+        task_runner_(fake_clock_),
         sender_environment_(&FakeClock::now, task_runner_),
         sender_packet_router_(&sender_environment_,
                               kNumPacketsPerBurst,

@@ -20,8 +20,8 @@ class ProtocolConnectionClientFactory {
  public:
   static std::unique_ptr<ProtocolConnectionClient> Create(
       const EndpointConfig& config,
-      MessageDemuxer* demuxer,
-      ProtocolConnectionServiceObserver* observer,
+      MessageDemuxer& demuxer,
+      ProtocolConnectionServiceObserver& observer,
       TaskRunner& task_runner);
 };
 

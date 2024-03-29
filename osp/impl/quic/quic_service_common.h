@@ -30,12 +30,12 @@ class QuicProtocolConnection final : public ProtocolConnection {
   };
 
   static std::unique_ptr<QuicProtocolConnection> FromExisting(
-      Owner* owner,
+      Owner& owner,
       QuicConnection* connection,
       ServiceConnectionDelegate* delegate,
       uint64_t endpoint_id);
 
-  QuicProtocolConnection(Owner* owner,
+  QuicProtocolConnection(Owner& owner,
                          uint64_t endpoint_id,
                          uint64_t connection_id);
   ~QuicProtocolConnection() override;
@@ -50,7 +50,7 @@ class QuicProtocolConnection final : public ProtocolConnection {
   void OnClose();
 
  private:
-  Owner* const owner_;
+  Owner& owner_;
   QuicStream* stream_ = nullptr;
 };
 
@@ -79,7 +79,7 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
                                 const ByteView& bytes) = 0;
   };
 
-  ServiceConnectionDelegate(ServiceDelegate* parent,
+  ServiceConnectionDelegate(ServiceDelegate& parent,
                             const IPEndpoint& endpoint);
   ~ServiceConnectionDelegate() override;
 
@@ -108,7 +108,7 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   void OnClose(uint64_t stream_id) override;
 
  private:
-  ServiceDelegate* const parent_;
+  ServiceDelegate& parent_;
   IPEndpoint endpoint_;
   uint64_t endpoint_id_;
   std::unique_ptr<QuicProtocolConnection> pending_connection_;

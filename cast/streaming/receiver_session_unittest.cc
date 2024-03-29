@@ -371,7 +371,7 @@ MATCHER_P(
 
 class ReceiverSessionTest : public ::testing::Test {
  public:
-  ReceiverSessionTest() : clock_(Clock::time_point{}), task_runner_(&clock_) {}
+  ReceiverSessionTest() : clock_(Clock::time_point{}), task_runner_(clock_) {}
 
   std::unique_ptr<MockEnvironment> MakeEnvironment() {
     auto environment = std::make_unique<NiceMock<MockEnvironment>>(

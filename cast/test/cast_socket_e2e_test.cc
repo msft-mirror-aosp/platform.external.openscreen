@@ -150,9 +150,9 @@ class CastSocketE2ETest : public ::testing::Test {
         TrustStore::CreateInstanceForTest(credentials_.root_cert_der),
         CastCRLTrustStore::Create());
     sender_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
-        *task_runner_, TlsConnectionFactory::CreateFactory(
-                           sender_factory_.get(), *task_runner_)
-                           .release());
+        *task_runner_,
+        TlsConnectionFactory::CreateFactory(*sender_factory_, *task_runner_)
+            .release());
     sender_factory_->set_factory(sender_tls_factory_.get());
 
     auth_handler_ = MakeSerialDelete<DeviceAuthNamespaceHandler>(
@@ -166,9 +166,9 @@ class CastSocketE2ETest : public ::testing::Test {
         task_runner_, receiver_client_.get(), receiver_router_.get());
 
     receiver_tls_factory_ = SerialDeletePtr<TlsConnectionFactory>(
-        *task_runner_, TlsConnectionFactory::CreateFactory(
-                           receiver_factory_.get(), *task_runner_)
-                           .release());
+        *task_runner_,
+        TlsConnectionFactory::CreateFactory(*receiver_factory_, *task_runner_)
+            .release());
   }
 
   void TearDown() override {

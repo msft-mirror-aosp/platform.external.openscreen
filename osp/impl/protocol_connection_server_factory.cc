@@ -18,8 +18,8 @@ namespace openscreen::osp {
 std::unique_ptr<ProtocolConnectionServer>
 ProtocolConnectionServerFactory::Create(
     const EndpointConfig& config,
-    MessageDemuxer* demuxer,
-    ProtocolConnectionServer::Observer* observer,
+    MessageDemuxer& demuxer,
+    ProtocolConnectionServer::Observer& observer,
     TaskRunner& task_runner) {
   return std::make_unique<QuicServer>(
       config, demuxer, std::make_unique<QuicConnectionFactoryImpl>(task_runner),

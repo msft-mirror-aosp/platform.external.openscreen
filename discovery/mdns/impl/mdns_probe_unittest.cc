@@ -43,7 +43,7 @@ class MdnsProbeTests : public testing::Test {
  public:
   MdnsProbeTests()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         sender_(&socket_),
         receiver_(config_) {
     EXPECT_EQ(task_runner_.delayed_task_count(), 0);

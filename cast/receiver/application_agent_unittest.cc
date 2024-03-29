@@ -242,7 +242,7 @@ class ApplicationAgentTest : public ::testing::Test {
   }
 
   FakeClock clock_{Clock::time_point() + std::chrono::hours(1)};
-  FakeTaskRunner task_runner_{&clock_};
+  FakeTaskRunner task_runner_{clock_};
   FakeCastSocketPair socket_pair_;
   StrictMock<FakeApplication> idle_app_{"E8C28D3C", "Backdrop"};
   TestCredentialsProvider creds_;

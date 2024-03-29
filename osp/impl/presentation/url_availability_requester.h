@@ -77,7 +77,7 @@ class UrlAvailabilityRequester {
       : public ProtocolConnectionClient::ConnectionRequestCallback,
         public MessageDemuxer::MessageCallback {
    public:
-    ReceiverRequester(UrlAvailabilityRequester* listener,
+    ReceiverRequester(UrlAvailabilityRequester& listener,
                       const std::string& service_id,
                       const IPEndpoint& endpoint);
     ~ReceiverRequester() override;
@@ -125,7 +125,7 @@ class UrlAvailabilityRequester {
       std::vector<std::string> urls;
     };
 
-    UrlAvailabilityRequester* const listener_;
+    UrlAvailabilityRequester& listener_;
 
     uint64_t next_watch_id_ = 1;
 

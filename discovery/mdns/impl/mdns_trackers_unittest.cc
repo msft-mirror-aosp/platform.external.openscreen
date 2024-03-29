@@ -70,7 +70,7 @@ class MdnsTrackerTest : public testing::Test {
  public:
   MdnsTrackerTest()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         sender_(&socket_),
         a_question_(DomainName{"testing", "local"},
                     DnsType::kANY,

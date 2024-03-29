@@ -70,7 +70,7 @@ class ProtocolConnectionServer {
   virtual std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t endpoint_id) = 0;
 
-  MessageDemuxer* message_demuxer() const { return demuxer_; }
+  MessageDemuxer* message_demuxer() const { return &demuxer_; }
 
   EndpointRequestIds* endpoint_request_ids() { return &endpoint_request_ids_; }
 
@@ -81,14 +81,13 @@ class ProtocolConnectionServer {
   const Error& last_error() const { return last_error_; }
 
  protected:
-  explicit ProtocolConnectionServer(MessageDemuxer* demuxer,
-                                    Observer* observer);
+  ProtocolConnectionServer(MessageDemuxer& demuxer, Observer& observer);
 
   State state_ = State::kStopped;
   Error last_error_;
-  MessageDemuxer* const demuxer_;
+  MessageDemuxer& demuxer_;
   EndpointRequestIds endpoint_request_ids_;
-  Observer* const observer_;
+  Observer& observer_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ProtocolConnectionServer);
 };

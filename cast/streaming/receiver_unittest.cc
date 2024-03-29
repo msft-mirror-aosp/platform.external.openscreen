@@ -265,7 +265,7 @@ class ReceiverTest : public testing::Test {
  public:
   ReceiverTest()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         env_(&FakeClock::now, task_runner_),
         packet_router_(&env_),
         receiver_(&env_,

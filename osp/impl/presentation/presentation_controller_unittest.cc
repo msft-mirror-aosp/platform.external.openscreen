@@ -77,7 +77,7 @@ class ControllerTest : public ::testing::Test {
  public:
   ControllerTest()
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(11111))),
-        task_runner_(&fake_clock_),
+        task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
     receiver_info1 = {
         "service-id1", "lucas-auer", 1, quic_bridge_.kReceiverEndpoint, {}};

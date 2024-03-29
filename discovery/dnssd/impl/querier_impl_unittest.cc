@@ -95,7 +95,7 @@ class QuerierImplTesting : public QuerierImpl {
                     &reporting_client_,
                     &network_config_),
         clock_(Clock::now()),
-        task_runner_(&clock_) {}
+        task_runner_(clock_) {}
 
   StrictMock<MockMdnsService>& service() { return mock_service_; }
 

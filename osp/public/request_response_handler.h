@@ -67,17 +67,17 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     virtual ~Delegate() = default;
   };
 
-  explicit RequestResponseHandler(Delegate* delegate) : delegate_(delegate) {}
+  explicit RequestResponseHandler(Delegate& delegate) : delegate_(delegate) {}
   ~RequestResponseHandler() { Reset(); }
 
   void Reset() {
     connection_ = nullptr;
     for (auto& message : to_send_) {
-      delegate_->OnError(&message.request, Error::Code::kRequestCancelled);
+      delegate_.OnError(&message.request, Error::Code::kRequestCancelled);
     }
     to_send_.clear();
     for (auto& message : sent_) {
-      delegate_->OnError(&message.request, Error::Code::kRequestCancelled);
+      delegate_.OnError(&message.request, Error::Code::kRequestCancelled);
     }
     sent_.clear();
     response_watch_ = MessageDemuxer::MessageWatch();
@@ -147,7 +147,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
       if (result.ok()) {
         sent_.emplace_back(std::move(message));
       } else {
-        delegate_->OnError(&message.request, result);
+        delegate_.OnError(&message.request, result);
       }
     }
     if (!to_send_.empty()) {
@@ -178,8 +178,8 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
                  response.request_id;
         });
     if (it != sent_.end()) {
-      delegate_->OnMatchedResponse(&it->request, &response,
-                                   connection_->endpoint_id());
+      delegate_.OnMatchedResponse(&it->request, &response,
+                                  connection_->endpoint_id());
       sent_.erase(it);
       if (sent_.empty()) {
         response_watch_ = MessageDemuxer::MessageWatch();
@@ -215,7 +215,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   }
 
   ProtocolConnection* connection_ = nullptr;
-  Delegate* const delegate_;
+  Delegate& delegate_;
   std::vector<RequestWithId> to_send_;
   std::vector<RequestWithId> sent_;
   MessageDemuxer::MessageWatch response_watch_;

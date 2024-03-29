@@ -85,7 +85,7 @@ class SessionMessengerTest : public ::testing::Test {
  public:
   SessionMessengerTest()
       : clock_{Clock::now()},
-        task_runner_(&clock_),
+        task_runner_(clock_),
         message_store_(),
         pipe_(kSenderId, kReceiverId),
         receiver_messenger_(std::make_unique<ReceiverSessionMessenger>(

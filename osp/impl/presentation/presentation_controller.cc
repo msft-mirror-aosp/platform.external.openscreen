@@ -132,10 +132,10 @@ Controller::MessageGroupStreams::MessageGroupStreams(
     const std::string& service_id)
     : controller_(controller),
       service_id_(service_id),
-      initiation_handler_(this),
-      connection_open_handler_(this),
-      connection_close_handler_(this),
-      termination_handler_(this) {}
+      initiation_handler_(*this),
+      connection_open_handler_(*this),
+      connection_close_handler_(*this),
+      termination_handler_(*this) {}
 
 Controller::MessageGroupStreams::~MessageGroupStreams() = default;
 

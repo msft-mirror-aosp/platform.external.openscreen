@@ -54,7 +54,7 @@ class MdnsQuerierTest : public testing::Test {
  public:
   MdnsQuerierTest()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         sender_(&socket_),
         receiver_(config_),
         record0_created_(DomainName{"testing", "local"},

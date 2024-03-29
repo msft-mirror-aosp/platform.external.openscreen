@@ -15,9 +15,9 @@ namespace openscreen::osp {
 
 QuicServer::QuicServer(
     const EndpointConfig& config,
-    MessageDemuxer* demuxer,
+    MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactory> connection_factory,
-    ProtocolConnectionServer::Observer* observer,
+    ProtocolConnectionServer::Observer& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)
     : ProtocolConnectionServer(demuxer, observer),
@@ -35,7 +35,7 @@ bool QuicServer::Start() {
   state_ = State::kRunning;
   connection_factory_->SetServerDelegate(this, connection_endpoints_);
   Cleanup();  // Start periodic clean-ups.
-  observer_->OnRunning();
+  observer_.OnRunning();
   return true;
 }
 
@@ -46,7 +46,7 @@ bool QuicServer::Stop() {
   CloseAllConnections();
   state_ = State::kStopped;
   Cleanup();  // Final clean-up.
-  observer_->OnStopped();
+  observer_.OnStopped();
   return true;
 }
 
@@ -55,7 +55,7 @@ bool QuicServer::Suspend() {
   if (state_ != State::kRunning)
     return false;
   state_ = State::kSuspended;
-  observer_->OnSuspended();
+  observer_.OnSuspended();
   return true;
 }
 
@@ -63,7 +63,7 @@ bool QuicServer::Resume() {
   if (state_ != State::kSuspended)
     return false;
   state_ = State::kRunning;
-  observer_->OnRunning();
+  observer_.OnRunning();
   return true;
 }
 
@@ -95,7 +95,7 @@ std::unique_ptr<ProtocolConnection> QuicServer::CreateProtocolConnection(
     return nullptr;
   }
   return QuicProtocolConnection::FromExisting(
-      this, connection_entry->second.connection.get(),
+      *this, connection_entry->second.connection.get(),
       connection_entry->second.delegate.get(), endpoint_id);
 }
 
@@ -129,7 +129,7 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
 void QuicServer::OnIncomingStream(
     std::unique_ptr<QuicProtocolConnection> connection) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  observer_->OnIncomingConnection(std::move(connection));
+  observer_.OnIncomingConnection(std::move(connection));
 }
 
 void QuicServer::OnConnectionClosed(uint64_t endpoint_id,
@@ -150,8 +150,8 @@ void QuicServer::OnDataReceived(uint64_t endpoint_id,
                                 uint64_t protocol_connection_id,
                                 const ByteView& bytes) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  demuxer_->OnStreamData(endpoint_id, protocol_connection_id, bytes.data(),
-                         bytes.size());
+  demuxer_.OnStreamData(endpoint_id, protocol_connection_id, bytes.data(),
+                        bytes.size());
 }
 
 void QuicServer::CloseAllConnections() {
@@ -174,7 +174,7 @@ QuicConnection::Delegate* QuicServer::NextConnectionDelegate(
   OSP_CHECK_EQ(state_, State::kRunning);
   OSP_CHECK(!pending_connection_delegate_);
   pending_connection_delegate_ =
-      std::make_unique<ServiceConnectionDelegate>(this, source);
+      std::make_unique<ServiceConnectionDelegate>(*this, source);
   return pending_connection_delegate_.get();
 }
 

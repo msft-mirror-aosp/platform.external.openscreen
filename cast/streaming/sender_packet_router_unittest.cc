@@ -152,7 +152,7 @@ class SenderPacketRouterTest : public testing::Test {
  public:
   SenderPacketRouterTest()
       : clock_(Clock::now()),
-        task_runner_(&clock_),
+        task_runner_(clock_),
         env_(&FakeClock::now, task_runner_),
         router_(&env_, kMaxPacketsPerBurst, kBurstInterval) {
     env_.SetSocketSubscriber(&socket_subscriber_);

@@ -13,7 +13,7 @@ namespace openscreen::osp {
 
 // static
 std::unique_ptr<QuicProtocolConnection> QuicProtocolConnection::FromExisting(
-    Owner* owner,
+    Owner& owner,
     QuicConnection* connection,
     ServiceConnectionDelegate* delegate,
     uint64_t endpoint_id) {
@@ -26,7 +26,7 @@ std::unique_ptr<QuicProtocolConnection> QuicProtocolConnection::FromExisting(
   return pc;
 }
 
-QuicProtocolConnection::QuicProtocolConnection(Owner* owner,
+QuicProtocolConnection::QuicProtocolConnection(Owner& owner,
                                                uint64_t endpoint_id,
                                                uint64_t connection_id)
     : ProtocolConnection(endpoint_id, connection_id), owner_(owner) {}
@@ -34,7 +34,7 @@ QuicProtocolConnection::QuicProtocolConnection(Owner* owner,
 QuicProtocolConnection::~QuicProtocolConnection() {
   if (stream_) {
     stream_->CloseWriteEnd();
-    owner_->OnConnectionDestroyed(this);
+    owner_.OnConnectionDestroyed(this);
     stream_ = nullptr;
   }
 }
@@ -54,7 +54,7 @@ void QuicProtocolConnection::OnClose() {
     observer_->OnConnectionClosed(*this);
 }
 
-ServiceConnectionDelegate::ServiceConnectionDelegate(ServiceDelegate* parent,
+ServiceConnectionDelegate::ServiceConnectionDelegate(ServiceDelegate& parent,
                                                      const IPEndpoint& endpoint)
     : parent_(parent), endpoint_(endpoint) {}
 
@@ -83,7 +83,7 @@ void ServiceConnectionDelegate::DestroyClosedStreams() {
 
 void ServiceConnectionDelegate::OnCryptoHandshakeComplete(
     const std::string& connection_id) {
-  endpoint_id_ = parent_->OnCryptoHandshakeComplete(this, connection_id);
+  endpoint_id_ = parent_.OnCryptoHandshakeComplete(this, connection_id);
   OSP_VLOG << "QUIC connection handshake complete for endpoint "
            << endpoint_id_;
 }
@@ -95,13 +95,13 @@ void ServiceConnectionDelegate::OnIncomingStream(
   pending_connection_->set_stream(stream);
   AddStreamPair(ServiceStreamPair{stream, pending_connection_->id(),
                                   pending_connection_.get()});
-  parent_->OnIncomingStream(std::move(pending_connection_));
+  parent_.OnIncomingStream(std::move(pending_connection_));
 }
 
 void ServiceConnectionDelegate::OnConnectionClosed(
     const std::string& connection_id) {
   OSP_VLOG << "QUIC connection closed for endpoint " << endpoint_id_;
-  parent_->OnConnectionClosed(endpoint_id_, connection_id);
+  parent_.OnConnectionClosed(endpoint_id_, connection_id);
 }
 
 QuicStream::Delegate& ServiceConnectionDelegate::NextStreamDelegate(
@@ -119,8 +119,8 @@ void ServiceConnectionDelegate::OnReceived(QuicStream* stream,
   if (stream_entry == streams_.end())
     return;
   ServiceStreamPair& stream_pair = stream_entry->second;
-  parent_->OnDataReceived(endpoint_id_, stream_pair.protocol_connection_id,
-                          bytes);
+  parent_.OnDataReceived(endpoint_id_, stream_pair.protocol_connection_id,
+                         bytes);
 }
 
 void ServiceConnectionDelegate::OnClose(uint64_t stream_id) {
@@ -129,8 +129,8 @@ void ServiceConnectionDelegate::OnClose(uint64_t stream_id) {
   if (stream_entry == streams_.end())
     return;
   ServiceStreamPair& stream_pair = stream_entry->second;
-  parent_->OnDataReceived(endpoint_id_, stream_pair.protocol_connection_id,
-                          ByteView());
+  parent_.OnDataReceived(endpoint_id_, stream_pair.protocol_connection_id,
+                         ByteView());
   if (stream_pair.protocol_connection) {
     stream_pair.protocol_connection->set_stream(nullptr);
     stream_pair.protocol_connection->OnClose();
