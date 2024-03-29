@@ -13,7 +13,6 @@
 #include "osp/public/endpoint_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
-#include "osp/public/server_config.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 #include "platform/base/macros.h"

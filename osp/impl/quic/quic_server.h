@@ -14,6 +14,7 @@
 
 #include "osp/impl/quic/quic_connection_factory.h"
 #include "osp/impl/quic/quic_service_common.h"
+#include "osp/public/endpoint_config.h"
 #include "osp/public/protocol_connection_server.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
@@ -35,7 +36,7 @@ class QuicServer final : public ProtocolConnectionServer,
                          public QuicConnectionFactory::ServerDelegate,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
-  QuicServer(const ServerConfig& config,
+  QuicServer(const EndpointConfig& config,
              MessageDemuxer* demuxer,
              std::unique_ptr<QuicConnectionFactory> connection_factory,
              ProtocolConnectionServer::Observer* observer,

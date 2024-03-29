@@ -17,14 +17,13 @@ namespace openscreen::osp {
 // static
 std::unique_ptr<ProtocolConnectionClient>
 ProtocolConnectionClientFactory::Create(
-    const std::vector<IPEndpoint>& endpoints,
+    const EndpointConfig& config,
     MessageDemuxer* demuxer,
     ProtocolConnectionServiceObserver* observer,
     TaskRunner& task_runner) {
   return std::make_unique<QuicClient>(
-      endpoints, demuxer,
-      std::make_unique<QuicConnectionFactoryImpl>(task_runner), observer,
-      &Clock::now, task_runner);
+      config, demuxer, std::make_unique<QuicConnectionFactoryImpl>(task_runner),
+      observer, &Clock::now, task_runner);
 }
 
 }  // namespace openscreen::osp

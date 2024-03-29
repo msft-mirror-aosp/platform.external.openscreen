@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "osp/msgs/osp_messages.h"
+#include "osp/public/endpoint_config.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/presentation/presentation_controller.h"
@@ -428,13 +429,14 @@ void ListenerDemo() {
   SignalThings();
 
   ServiceListener::Config listener_config;
-  std::vector<IPEndpoint> client_endpoints;
+  EndpointConfig client_config;
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
     OSP_VLOG << "Found interface: " << interface;
     if (!interface.addresses.empty() &&
         interface.type != InterfaceInfo::Type::kLoopback) {
       listener_config.network_interfaces.push_back(interface);
-      client_endpoints.push_back({interface.addresses[0].address, 0});
+      client_config.connection_endpoints.push_back(
+          {interface.addresses[0].address, 0});
     }
   }
   OSP_LOG_IF(WARN, listener_config.network_interfaces.empty())
@@ -448,7 +450,7 @@ void ListenerDemo() {
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
-      client_endpoints, &demuxer, &client_observer,
+      client_config, &demuxer, &client_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
   auto* network_service =
@@ -533,7 +535,7 @@ void PublisherDemo(std::string_view friendly_name) {
       .service_instance_name = "deadbeef",
       .connection_server_port = server_port};
 
-  ServerConfig server_config;
+  EndpointConfig server_config;
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
     OSP_VLOG << "Found interface: " << interface;
     if (!interface.addresses.empty() &&
@@ -543,7 +545,7 @@ void PublisherDemo(std::string_view friendly_name) {
       publisher_config.network_interfaces.push_back(interface);
     }
   }
-  OSP_LOG_IF(WARN, server_config.connection_endpoints.empty())
+  OSP_LOG_IF(WARN, publisher_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS publishing.";
 
   DemoPublisherObserver publisher_observer;

@@ -14,7 +14,7 @@
 namespace openscreen::osp {
 
 QuicServer::QuicServer(
-    const ServerConfig& config,
+    const EndpointConfig& config,
     MessageDemuxer* demuxer,
     std::unique_ptr<QuicConnectionFactory> connection_factory,
     ProtocolConnectionServer::Observer* observer,

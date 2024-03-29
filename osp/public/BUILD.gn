@@ -10,6 +10,7 @@ if (!is_win) {
   openscreen_source_set("public") {
     visibility += [ "*" ]
     public = [
+      "endpoint_config.h",
       "message_demuxer.h",
       "network_metrics.h",
       "network_service_manager.h",
@@ -29,13 +30,11 @@ if (!is_win) {
       "service_publisher_factory.h",
     ]
     sources = [
-      "client_config.h",
       "endpoint_request_ids.cc",
       "endpoint_request_ids.h",
       "protocol_connection.cc",
       "protocol_connection_client.cc",
       "protocol_connection_server.cc",
-      "server_config.h",
       "service_info.cc",
       "service_listener.cc",
       "service_publisher.cc",

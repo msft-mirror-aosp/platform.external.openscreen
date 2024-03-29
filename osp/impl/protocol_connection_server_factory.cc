@@ -17,7 +17,7 @@ namespace openscreen::osp {
 // static
 std::unique_ptr<ProtocolConnectionServer>
 ProtocolConnectionServerFactory::Create(
-    const ServerConfig& config,
+    const EndpointConfig& config,
     MessageDemuxer* demuxer,
     ProtocolConnectionServer::Observer* observer,
     TaskRunner& task_runner) {
