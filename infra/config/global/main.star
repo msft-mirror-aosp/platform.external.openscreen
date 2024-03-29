@@ -180,7 +180,6 @@ def get_properties(
         properties["have_libsdl2"] = True
         properties["have_libopus"] = True
         properties["have_libvpx"] = True
-        properties["cast_allow_developer_certificate"] = True
     if chromium:
         properties["builder_group"] = "client.openscreen.chromium"
         properties[RECLIENT_PROPERTY] = {
