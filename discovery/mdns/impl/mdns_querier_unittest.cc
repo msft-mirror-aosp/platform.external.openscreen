@@ -55,7 +55,7 @@ class MdnsQuerierTest : public testing::Test {
   MdnsQuerierTest()
       : clock_(Clock::now()),
         task_runner_(clock_),
-        sender_(&socket_),
+        sender_(socket_),
         receiver_(config_),
         record0_created_(DomainName{"testing", "local"},
                          DnsType::kA,
@@ -104,9 +104,9 @@ class MdnsQuerierTest : public testing::Test {
   }
 
   std::unique_ptr<MdnsQuerier> CreateQuerier() {
-    return std::make_unique<MdnsQuerier>(&sender_, &receiver_, task_runner_,
-                                         &FakeClock::now, &random_,
-                                         &reporting_client_, config_);
+    return std::make_unique<MdnsQuerier>(sender_, receiver_, task_runner_,
+                                         &FakeClock::now, random_,
+                                         reporting_client_, config_);
   }
 
  protected:

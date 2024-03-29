@@ -37,20 +37,16 @@ DomainName CreateRetryDomainName(const DomainName& name, int attempt) {
 
 MdnsProbeManager::~MdnsProbeManager() = default;
 
-MdnsProbeManagerImpl::MdnsProbeManagerImpl(MdnsSender* sender,
-                                           MdnsReceiver* receiver,
-                                           MdnsRandom* random_delay,
+MdnsProbeManagerImpl::MdnsProbeManagerImpl(MdnsSender& sender,
+                                           MdnsReceiver& receiver,
+                                           MdnsRandom& random_delay,
                                            TaskRunner& task_runner,
                                            ClockNowFunctionPtr now_function)
     : sender_(sender),
       receiver_(receiver),
       random_delay_(random_delay),
       task_runner_(task_runner),
-      now_function_(now_function) {
-  OSP_CHECK(sender_);
-  OSP_CHECK(receiver_);
-  OSP_CHECK(random_delay_);
-}
+      now_function_(now_function) {}
 
 MdnsProbeManagerImpl::~MdnsProbeManagerImpl() = default;
 
@@ -112,7 +108,7 @@ void MdnsProbeManagerImpl::RespondToProbeQuery(const MdnsMessage& message,
   }
 
   if (!send_message.answers().empty()) {
-    sender_->SendMessage(send_message, src);
+    sender_.SendMessage(send_message, src);
   } else {
     // If the name isn't already claimed, check to see if a probe is ongoing. If
     // so, compare the address record for that probe with the one in the

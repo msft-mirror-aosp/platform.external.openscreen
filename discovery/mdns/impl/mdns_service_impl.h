@@ -38,7 +38,7 @@ class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
   // of this instance's life.
   MdnsServiceImpl(TaskRunner& task_runner,
                   ClockNowFunctionPtr now_function,
-                  ReportingClient* reporting_client,
+                  ReportingClient& reporting_client,
                   const Config& config,
                   const InterfaceInfo& network_info);
   ~MdnsServiceImpl() override;
@@ -71,7 +71,7 @@ class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
  private:
   TaskRunner& task_runner_;
   ClockNowFunctionPtr now_function_;
-  ReportingClient* const reporting_client_;
+  ReportingClient& reporting_client_;
 
   MdnsRandom random_delay_;
   MdnsReceiver receiver_;

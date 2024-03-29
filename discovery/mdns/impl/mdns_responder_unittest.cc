@@ -102,7 +102,7 @@ class MockRecordHandler : public MdnsResponder::RecordHandler {
 
 class MockMdnsSender : public MdnsSender {
  public:
-  explicit MockMdnsSender(UdpSocket* socket) : MdnsSender(socket) {}
+  explicit MockMdnsSender(UdpSocket& socket) : MdnsSender(socket) {}
 
   MOCK_METHOD1(SendMulticast, Error(const MdnsMessage& message));
   MOCK_METHOD2(SendMessage,
@@ -121,15 +121,15 @@ class MdnsResponderTest : public testing::Test {
   MdnsResponderTest()
       : clock_(Clock::now()),
         task_runner_(clock_),
-        sender_(&socket_),
+        sender_(socket_),
         receiver_(config_),
-        responder_(&record_handler_,
-                   &probe_manager_,
-                   &sender_,
-                   &receiver_,
+        responder_(record_handler_,
+                   probe_manager_,
+                   sender_,
+                   receiver_,
                    task_runner_,
                    FakeClock::now,
-                   &random_,
+                   random_,
                    config_) {}
 
  protected:

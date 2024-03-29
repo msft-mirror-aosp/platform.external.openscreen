@@ -110,7 +110,7 @@ DnsSdPublisherClient::CreateDnsSdServiceInternal(
   // discovery::DnsSdService, e.g. through a ref-counting handle, so that the
   // OSP publisher and the OSP listener don't have to coordinate through an
   // additional object.
-  return CreateDnsSdService(task_runner_, publisher_, dns_sd_config);
+  return CreateDnsSdService(task_runner_, *publisher_, dns_sd_config);
 }
 
 }  // namespace openscreen::osp

@@ -156,8 +156,8 @@ class DiscoveryE2ETest : public testing::Test {
     OSP_CHECK(!dnssd_service_);
     std::atomic_bool done{false};
     task_runner_->PostTask([this, &config, &done]() {
-      dnssd_service_ = discovery::CreateDnsSdService(
-          *task_runner_, &reporting_client_, config);
+      dnssd_service_ = discovery::CreateDnsSdService(*task_runner_,
+                                                     reporting_client_, config);
       receiver_ = std::make_unique<ServiceReceiver>(dnssd_service_.get());
       publisher_ = std::make_unique<Publisher>(dnssd_service_.get());
       done = true;

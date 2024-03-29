@@ -58,10 +58,10 @@ class PublisherImplTest : public testing::Test {
   PublisherImplTest()
       : clock_(Clock::now()),
         task_runner_(clock_),
-        publisher_(&mock_service_,
-                   &reporting_client_,
+        publisher_(mock_service_,
+                   reporting_client_,
                    task_runner_,
-                   &network_config_) {}
+                   network_config_) {}
 
   // Calls PublisherImpl::OnDomainFound() through the public interface it
   // implements.
