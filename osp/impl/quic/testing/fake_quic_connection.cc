@@ -68,16 +68,9 @@ FakeQuicStream* FakeQuicConnection::MakeIncomingStream() {
   return stream_ptr;
 }
 
-void FakeQuicConnection::OnRead(UdpSocket* socket, ErrorOr<UdpPacket> data) {
+void FakeQuicConnection::OnPacketReceived(const UdpPacket& packet) {
   OSP_NOTREACHED();
 }
-
-void FakeQuicConnection::OnSendError(UdpSocket* socket, Error error) {
-  OSP_NOTREACHED();
-}
-
-void FakeQuicConnection::OnError(UdpSocket* socket,
-                                 Error error){OSP_NOTREACHED()}
 
 QuicStream* FakeQuicConnection::MakeOutgoingStream(
     QuicStream::Delegate* delegate) {

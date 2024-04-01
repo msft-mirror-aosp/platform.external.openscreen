@@ -39,6 +39,7 @@ if (!is_win) {
       "../third_party/abseil",
       "../third_party/googletest:gmock",
       "../third_party/googletest:gtest",
+      "../third_party/quiche",
       "../third_party/tinycbor",
       "../util",
       "impl",

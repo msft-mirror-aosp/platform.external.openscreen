@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include "osp/impl/quic/quic_connection_factory_impl.h"
+#include "osp/impl/quic/quic_connection_factory_server.h"
 #include "quiche/quic/core/quic_dispatcher.h"
 
 namespace openscreen::osp {
@@ -23,7 +23,7 @@ class QuicDispatcherImpl : public quic::QuicDispatcher {
       std::unique_ptr<quic::QuicAlarmFactory> alarm_factory,
       uint8_t expected_server_connection_id_length,
       quic::ConnectionIdGeneratorInterface& generator,
-      QuicConnectionFactoryImpl& parent_factory);
+      QuicConnectionFactoryServer& parent_factory);
   ~QuicDispatcherImpl() override;
 
  protected:
@@ -38,7 +38,7 @@ class QuicDispatcherImpl : public quic::QuicDispatcher {
 
  private:
   std::unique_ptr<quic::QuicVersionManager> version_manager_;
-  QuicConnectionFactoryImpl& parent_factory_;
+  QuicConnectionFactoryServer& parent_factory_;
 };
 
 }  // namespace openscreen::osp

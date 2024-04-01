@@ -26,7 +26,7 @@ QuicDispatcherImpl::QuicDispatcherImpl(
     std::unique_ptr<quic::QuicAlarmFactory> alarm_factory,
     uint8_t expected_server_connection_id_length,
     quic::ConnectionIdGeneratorInterface& generator,
-    QuicConnectionFactoryImpl& parent_factory)
+    QuicConnectionFactoryServer& parent_factory)
     : QuicDispatcher(config,
                      crypto_server_config,
                      version_manager.get(),
@@ -71,7 +71,7 @@ std::unique_ptr<quic::QuicSession> QuicDispatcherImpl::CreateQuicSession(
 
   parent_factory_.connection().emplace(
       ToIPEndpoint(peer_address),
-      QuicConnectionFactoryImpl::OpenConnection{
+      QuicConnectionFactoryBase::OpenConnection{
           connection_impl.get(),
           static_cast<PacketWriterImpl*>(writer())->socket()});
   parent_factory_.server_delegate()->OnIncomingConnection(

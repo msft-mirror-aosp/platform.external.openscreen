@@ -17,7 +17,7 @@ namespace openscreen::osp {
 QuicClient::QuicClient(
     const EndpointConfig& config,
     MessageDemuxer& demuxer,
-    std::unique_ptr<QuicConnectionFactory> connection_factory,
+    std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)

@@ -4,7 +4,7 @@
 
 #include "osp/impl/quic/quic_connection_impl.h"
 
-#include "osp/impl/quic/quic_connection_factory_impl.h"
+#include "osp/impl/quic/quic_connection_factory_base.h"
 #include "osp/impl/quic/quic_utils.h"
 #include "quiche/quic/core/quic_packets.h"
 #include "util/osp_logging.h"
@@ -13,7 +13,7 @@
 namespace openscreen::osp {
 
 QuicConnectionImpl::QuicConnectionImpl(
-    QuicConnectionFactoryImpl& parent_factory,
+    QuicConnectionFactoryBase& parent_factory,
     QuicConnection::Delegate& delegate,
     const quic::QuicClock& clock)
     : QuicConnection(delegate), parent_factory_(parent_factory), clock_(clock) {
@@ -29,29 +29,13 @@ QuicConnectionImpl::~QuicConnectionImpl() {
 // Passes a received UDP packet to the QUIC implementation.  If this contains
 // any stream data, it will be passed automatically to the relevant
 // QuicStreamImpl objects.
-void QuicConnectionImpl::OnRead(UdpSocket* socket, ErrorOr<UdpPacket> packet) {
-  TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnRead");
-  if (packet.is_error()) {
-    TRACE_SET_RESULT(packet.error());
-    return;
-  }
-
+void QuicConnectionImpl::OnPacketReceived(const UdpPacket& packet) {
+  TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnPacketReceived");
   quic::QuicReceivedPacket quic_packet(
-      reinterpret_cast<const char*>(packet.value().data()),
-      packet.value().size(), clock_.Now());
-  session_->ProcessUdpPacket(ToQuicSocketAddress(socket->GetLocalEndpoint()),
-                             ToQuicSocketAddress(packet.value().source()),
-                             quic_packet);
-}
-
-void QuicConnectionImpl::OnSendError(UdpSocket* socket, Error error) {
-  // TODO(crbug.com/openscreen/67): Implement this method.
-  OSP_UNIMPLEMENTED();
-}
-
-void QuicConnectionImpl::OnError(UdpSocket* socket, Error error) {
-  // TODO(crbug.com/openscreen/67): Implement this method.
-  OSP_UNIMPLEMENTED();
+      reinterpret_cast<const char*>(packet.data()), packet.size(),
+      clock_.Now());
+  session_->ProcessUdpPacket(ToQuicSocketAddress(packet.destination()),
+                             ToQuicSocketAddress(packet.source()), quic_packet);
 }
 
 QuicStream* QuicConnectionImpl::MakeOutgoingStream(

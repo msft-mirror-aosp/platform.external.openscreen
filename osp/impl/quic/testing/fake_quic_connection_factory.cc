@@ -46,7 +46,7 @@ void FakeQuicConnectionFactoryBridge::OnOutgoingStream(
 }
 
 void FakeQuicConnectionFactoryBridge::SetServerDelegate(
-    QuicConnectionFactory::ServerDelegate* delegate,
+    QuicConnectionFactoryServer::ServerDelegate* delegate,
     const IPEndpoint& endpoint) {
   OSP_CHECK(!delegate_ || !delegate);
   delegate_ = delegate;
@@ -155,15 +155,10 @@ FakeQuicConnectionFactoryBridge::Connect(
 }
 
 FakeClientQuicConnectionFactory::FakeClientQuicConnectionFactory(
+    TaskRunner& task_runner,
     FakeQuicConnectionFactoryBridge* bridge)
-    : bridge_(bridge) {}
+    : QuicConnectionFactoryClient(task_runner), bridge_(bridge) {}
 FakeClientQuicConnectionFactory::~FakeClientQuicConnectionFactory() = default;
-
-void FakeClientQuicConnectionFactory::SetServerDelegate(
-    ServerDelegate* delegate,
-    const std::vector<IPEndpoint>& endpoints) {
-  OSP_CHECK(false) << "don't call SetServerDelegate from QuicClient side";
-}
 
 ErrorOr<std::unique_ptr<QuicConnection>>
 FakeClientQuicConnectionFactory::Connect(
@@ -189,8 +184,9 @@ void FakeClientQuicConnectionFactory::OnRead(UdpSocket* socket,
 }
 
 FakeServerQuicConnectionFactory::FakeServerQuicConnectionFactory(
+    TaskRunner& task_runner,
     FakeQuicConnectionFactoryBridge* bridge)
-    : bridge_(bridge) {}
+    : QuicConnectionFactoryServer(task_runner), bridge_(bridge) {}
 FakeServerQuicConnectionFactory::~FakeServerQuicConnectionFactory() = default;
 
 void FakeServerQuicConnectionFactory::SetServerDelegate(
@@ -202,14 +198,6 @@ void FakeServerQuicConnectionFactory::SetServerDelegate(
   }
   bridge_->SetServerDelegate(delegate,
                              endpoints.empty() ? IPEndpoint{} : endpoints[0]);
-}
-
-ErrorOr<std::unique_ptr<QuicConnection>>
-FakeServerQuicConnectionFactory::Connect(
-    const IPEndpoint& local_endpoint,
-    const IPEndpoint& remote_endpoint,
-    QuicConnection::Delegate* connection_delegate) {
-  return Error::Code::kOperationInvalid;
 }
 
 void FakeServerQuicConnectionFactory::OnError(UdpSocket* socket, Error error) {

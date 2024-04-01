@@ -8,11 +8,11 @@
 #include <string>
 
 #include "osp/impl/quic/quic_stream.h"
-#include "platform/api/udp_socket.h"
+#include "platform/base/udp_packet.h"
 
 namespace openscreen::osp {
 
-class QuicConnection : public UdpSocket::Client {
+class QuicConnection {
  public:
   class Delegate {
    public:
@@ -46,6 +46,7 @@ class QuicConnection : public UdpSocket::Client {
   explicit QuicConnection(Delegate& delegate) : delegate_(delegate) {}
   virtual ~QuicConnection() = default;
 
+  virtual void OnPacketReceived(const UdpPacket& packet) = 0;
   virtual QuicStream* MakeOutgoingStream(QuicStream::Delegate* delegate) = 0;
   virtual void Close() = 0;
 

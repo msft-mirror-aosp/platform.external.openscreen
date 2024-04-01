@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "osp/impl/quic/quic_connection_factory.h"
+#include "osp/impl/quic/quic_connection_factory_server.h"
 #include "osp/impl/quic/quic_service_common.h"
 #include "osp/public/endpoint_config.h"
 #include "osp/public/protocol_connection_server.h"
@@ -26,19 +26,19 @@ namespace openscreen::osp {
 // This class is the default implementation of ProtocolConnectionServer for the
 // library.  It manages connections to other endpoints as well as the lifetime
 // of each incoming and outgoing stream.  It works in conjunction with a
-// QuicConnectionFactory implementation and MessageDemuxer.
-// QuicConnectionFactory provides the ability to make a new QUIC
+// QuicConnectionFactoryServer and MessageDemuxer.
+// QuicConnectionFactoryServer provides the ability to make a new QUIC
 // connection from packets received on its server sockets.  Incoming data is
 // given to the QuicServer by the underlying QUIC implementation (through
-// QuicConnectionFactory) and this is in turn handed to MessageDemuxer for
+// QuicConnectionFactoryServer) and this is in turn handed to MessageDemuxer for
 // routing CBOR messages.
 class QuicServer final : public ProtocolConnectionServer,
-                         public QuicConnectionFactory::ServerDelegate,
+                         public QuicConnectionFactoryServer::ServerDelegate,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
   QuicServer(const EndpointConfig& config,
              MessageDemuxer& demuxer,
-             std::unique_ptr<QuicConnectionFactory> connection_factory,
+             std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
              ProtocolConnectionServer::Observer& observer,
              ClockNowFunctionPtr now_function,
              TaskRunner& task_runner);
@@ -69,7 +69,7 @@ class QuicServer final : public ProtocolConnectionServer,
  private:
   void CloseAllConnections();
 
-  // QuicConnectionFactory::ServerDelegate overrides.
+  // QuicConnectionFactoryServer::ServerDelegate overrides.
   QuicConnection::Delegate* NextConnectionDelegate(
       const IPEndpoint& source) override;
   void OnIncomingConnection(
@@ -80,7 +80,7 @@ class QuicServer final : public ProtocolConnectionServer,
   void Cleanup();
 
   const std::vector<IPEndpoint> connection_endpoints_;
-  std::unique_ptr<QuicConnectionFactory> connection_factory_;
+  std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
 
   std::unique_ptr<ServiceConnectionDelegate> pending_connection_delegate_;
 

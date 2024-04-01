@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "osp/impl/quic/quic_client.h"
-#include "osp/impl/quic/quic_connection_factory_impl.h"
+#include "osp/impl/quic/quic_connection_factory_client.h"
 #include "osp/public/network_service_manager.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
@@ -22,8 +22,9 @@ ProtocolConnectionClientFactory::Create(
     ProtocolConnectionServiceObserver& observer,
     TaskRunner& task_runner) {
   return std::make_unique<QuicClient>(
-      config, demuxer, std::make_unique<QuicConnectionFactoryImpl>(task_runner),
-      observer, &Clock::now, task_runner);
+      config, demuxer,
+      std::make_unique<QuicConnectionFactoryClient>(task_runner), observer,
+      &Clock::now, task_runner);
 }
 
 }  // namespace openscreen::osp

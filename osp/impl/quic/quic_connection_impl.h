@@ -19,24 +19,20 @@
 
 namespace openscreen::osp {
 
-class QuicConnectionFactoryImpl;
+class QuicConnectionFactoryBase;
 
 class QuicConnectionImpl final : public QuicConnection,
                                  public OpenScreenSessionBase::Visitor {
  public:
-  QuicConnectionImpl(QuicConnectionFactoryImpl& parent_factory,
+  QuicConnectionImpl(QuicConnectionFactoryBase& parent_factory,
                      QuicConnection::Delegate& delegate,
                      const quic::QuicClock& clock);
   QuicConnectionImpl(const QuicConnectionImpl&) = delete;
   QuicConnectionImpl& operator=(const QuicConnectionImpl&) = delete;
   ~QuicConnectionImpl() override;
 
-  // UdpSocket::Client overrides.
-  void OnRead(UdpSocket* socket, ErrorOr<UdpPacket> packet) override;
-  void OnError(UdpSocket* socket, Error error) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
-
   // QuicConnection overrides.
+  void OnPacketReceived(const UdpPacket& packet) override;
   QuicStream* MakeOutgoingStream(QuicStream::Delegate* delegate) override;
   void Close() override;
 
@@ -72,7 +68,7 @@ class QuicConnectionImpl final : public QuicConnection,
   }
 
  private:
-  QuicConnectionFactoryImpl& parent_factory_;
+  QuicConnectionFactoryBase& parent_factory_;
   const quic::QuicClock& clock_;  // Not owned.
   // `dispatcher_` is only needed for QuicServer side.
   QuicDispatcherImpl* dispatcher_;

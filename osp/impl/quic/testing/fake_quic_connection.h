@@ -62,12 +62,8 @@ class FakeQuicConnection final : public QuicConnection {
 
   FakeQuicStream* MakeIncomingStream();
 
-  // UdpSocket::Client overrides.
-  void OnRead(UdpSocket* socket, ErrorOr<UdpPacket> data) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
-  void OnError(UdpSocket* socket, Error error) override;
-
   // QuicConnection overrides.
+  void OnPacketReceived(const UdpPacket& packet) override;
   QuicStream* MakeOutgoingStream(QuicStream::Delegate* delegate) override;
   void Close() override;
 
