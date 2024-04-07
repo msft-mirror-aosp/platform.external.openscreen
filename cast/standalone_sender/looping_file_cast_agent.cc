@@ -40,7 +40,7 @@ LoopingFileCastAgent::LoopingFileCastAgent(
                       std::move(cast_trust_store),
                       CastCRLTrustStore::Create()),
       connection_factory_(
-          TlsConnectionFactory::CreateFactory(&socket_factory_, task_runner_)),
+          TlsConnectionFactory::CreateFactory(socket_factory_, task_runner_)),
       message_port_(&router_) {
   router_.AddHandlerForLocalId(kPlatformSenderId, this);
   socket_factory_.set_factory(connection_factory_.get());

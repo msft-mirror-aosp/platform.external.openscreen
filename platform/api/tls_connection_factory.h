@@ -57,10 +57,6 @@ class TlsConnectionFactory {
   static std::unique_ptr<TlsConnectionFactory> CreateFactory(
       Client& client,
       TaskRunner& task_runner);
-  // Keep this overloaded version temporarily for migrating callers in Chromium.
-  static std::unique_ptr<TlsConnectionFactory> CreateFactory(
-      Client* client,
-      TaskRunner& task_runner);
 
   virtual ~TlsConnectionFactory();
 
