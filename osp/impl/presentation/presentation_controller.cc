@@ -438,12 +438,12 @@ Controller::Controller(ClockNowFunctionPtr now_function) {
   }
   // TODO(btolsch): This is for |receiver_endpoints_|, but this should really be
   // tracked elsewhere so it's available to other protocols as well.
-  NetworkServiceManager::Get()->GetServiceListener()->AddObserver(this);
+  NetworkServiceManager::Get()->GetServiceListener()->AddObserver(*this);
 }
 
 Controller::~Controller() {
   connection_manager_.reset();
-  NetworkServiceManager::Get()->GetServiceListener()->RemoveObserver(this);
+  NetworkServiceManager::Get()->GetServiceListener()->RemoveObserver(*this);
 }
 
 Controller::ReceiverWatch Controller::RegisterReceiverWatch(

@@ -190,15 +190,14 @@ bool ServiceListenerImpl::SearchNow() {
   return true;
 }
 
-void ServiceListenerImpl::AddObserver(Observer* observer) {
-  OSP_CHECK(observer);
-  observers_.push_back(observer);
+void ServiceListenerImpl::AddObserver(Observer& observer) {
+  observers_.push_back(&observer);
 }
 
-void ServiceListenerImpl::RemoveObserver(Observer* observer) {
+void ServiceListenerImpl::RemoveObserver(Observer& observer) {
   // TODO(btolsch): Consider writing an ObserverList in base/ for things like
   // CHECK()ing that the list is empty on destruction.
-  observers_.erase(std::remove(observers_.begin(), observers_.end(), observer),
+  observers_.erase(std::remove(observers_.begin(), observers_.end(), &observer),
                    observers_.end());
 }
 
@@ -217,13 +216,10 @@ void ServiceListenerImpl::OnRecoverableError(Error error) {
 void ServiceListenerImpl::SetState(State state) {
   OSP_CHECK(IsTransitionValid(state_, state));
   state_ = state;
-  if (!observers_.empty()) {
-    MaybeNotifyObservers();
-  }
+  MaybeNotifyObservers();
 }
 
 void ServiceListenerImpl::MaybeNotifyObservers() {
-  OSP_CHECK(!observers_.empty());
   switch (state_) {
     case State::kRunning:
       for (auto* observer : observers_) {

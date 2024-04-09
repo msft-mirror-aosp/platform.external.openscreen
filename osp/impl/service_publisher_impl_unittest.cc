@@ -52,8 +52,8 @@ class ServicePublisherImplTest : public ::testing::Test {
   void SetUp() override {
     auto mock_delegate = std::make_unique<NiceMock<MockMdnsDelegate>>();
     mock_delegate_ = mock_delegate.get();
-    service_publisher_ = std::make_unique<ServicePublisherImpl>(
-        nullptr, std::move(mock_delegate));
+    service_publisher_ =
+        std::make_unique<ServicePublisherImpl>(std::move(mock_delegate));
     service_publisher_->SetConfig(config);
   }
 
@@ -141,8 +141,9 @@ TEST_F(ServicePublisherImplTest, ObserverTransitions) {
   MockObserver observer;
   auto mock_delegate_ptr = std::make_unique<NiceMock<MockMdnsDelegate>>();
   NiceMock<MockMdnsDelegate>& mock_delegate = *mock_delegate_ptr;
-  auto service_publisher = std::make_unique<ServicePublisherImpl>(
-      &observer, std::move(mock_delegate_ptr));
+  auto service_publisher =
+      std::make_unique<ServicePublisherImpl>(std::move(mock_delegate_ptr));
+  service_publisher->AddObserver(observer);
 
   service_publisher->Start();
   Expectation start_from_stopped = EXPECT_CALL(observer, OnStarted());

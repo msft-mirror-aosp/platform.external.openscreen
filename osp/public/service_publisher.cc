@@ -17,7 +17,6 @@ void ServicePublisher::SetConfig(const Config& config) {
   config_ = config;
 }
 
-ServicePublisher::ServicePublisher(Observer* observer)
-    : state_(State::kStopped), observer_(observer) {}
+ServicePublisher::ServicePublisher() : state_(State::kStopped) {}
 
 }  // namespace openscreen::osp

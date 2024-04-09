@@ -117,18 +117,21 @@ class ServicePublisher {
   // Resumes publishing.  Returns true if state() == kSuspended.
   virtual bool Resume() = 0;
 
+  virtual void AddObserver(Observer& observer) = 0;
+  virtual void RemoveObserver(Observer& observer) = 0;
+
   // Returns the current state of the publisher.
   State state() const { return state_; }
 
   // Returns the last error reported by this publisher.
-  Error last_error() const { return last_error_; }
+  const Error& last_error() const { return last_error_; }
 
  protected:
-  explicit ServicePublisher(Observer* observer);
+  ServicePublisher();
 
   State state_;
   Error last_error_;
-  Observer* observer_;
+  std::vector<Observer*> observers_;
   Config config_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ServicePublisher);

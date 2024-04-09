@@ -60,10 +60,8 @@ class ServiceListenerImpl final : public ServiceListener,
   bool Suspend() override;
   bool Resume() override;
   bool SearchNow() override;
-
-  void AddObserver(Observer* observer) override;
-  void RemoveObserver(Observer* observer) override;
-
+  void AddObserver(Observer& observer) override;
+  void RemoveObserver(Observer& observer) override;
   const std::vector<ServiceInfo>& GetReceivers() const override;
 
  private:

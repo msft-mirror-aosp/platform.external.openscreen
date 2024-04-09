@@ -39,11 +39,12 @@ class ServicePublisherImpl final
     ServicePublisherImpl* publisher_ = nullptr;
   };
 
-  // |observer| is optional.  If it is provided, it will receive appropriate
-  // notifications about this ServicePublisher.  |delegate| is required and
-  // is used to implement state transitions.
-  ServicePublisherImpl(Observer* observer, std::unique_ptr<Delegate> delegate);
+  // |delegate| is required and is used to implement state transitions.
+  explicit ServicePublisherImpl(std::unique_ptr<Delegate> delegate);
   ~ServicePublisherImpl() override;
+
+  // Called by |delegate_| when an internal error occurs.
+  void OnError(Error error);
 
   // ServicePublisher overrides.
   bool Start() override;
@@ -51,6 +52,8 @@ class ServicePublisherImpl final
   bool Stop() override;
   bool Suspend() override;
   bool Resume() override;
+  void AddObserver(Observer& observer) override;
+  void RemoveObserver(Observer& observer) override;
 
  private:
   // openscreen::discovery::ReportingClient overrides.
@@ -61,8 +64,8 @@ class ServicePublisherImpl final
   // kStopping which are done automatically).
   void SetState(State state);
 
-  // Notifies |observer_| if the transition to |state_| is one that is watched
-  // by the observer interface.
+  // Notifies each observer in |observers_| if the transition to |state_| is one
+  // that is watched by the observer interface.
   void MaybeNotifyObserver();
 
   std::unique_ptr<Delegate> delegate_;

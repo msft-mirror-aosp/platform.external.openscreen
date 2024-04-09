@@ -125,8 +125,8 @@ class ServiceListener {
   // (kRunning|kSuspended).
   virtual bool SearchNow() = 0;
 
-  virtual void AddObserver(Observer* observer) = 0;
-  virtual void RemoveObserver(Observer* observer) = 0;
+  virtual void AddObserver(Observer& observer) = 0;
+  virtual void RemoveObserver(Observer& observer) = 0;
 
   // Returns the current state of the listener.
   State state() const { return state_; }

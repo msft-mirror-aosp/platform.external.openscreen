@@ -44,13 +44,19 @@ void ServicePublisherImpl::Delegate::SetPublisherImpl(
   publisher_ = publisher;
 }
 
-ServicePublisherImpl::ServicePublisherImpl(Observer* observer,
-                                           std::unique_ptr<Delegate> delegate)
-    : ServicePublisher(observer), delegate_(std::move(delegate)) {
+ServicePublisherImpl::ServicePublisherImpl(std::unique_ptr<Delegate> delegate)
+    : delegate_(std::move(delegate)) {
   delegate_->SetPublisherImpl(this);
 }
 
 ServicePublisherImpl::~ServicePublisherImpl() = default;
+
+void ServicePublisherImpl::OnError(Error error) {
+  last_error_ = error;
+  for (auto* observer : observers_) {
+    observer->OnError(error);
+  }
+}
 
 bool ServicePublisherImpl::Start() {
   if (state_ != State::kStopped)
@@ -89,34 +95,45 @@ bool ServicePublisherImpl::Resume() {
   return true;
 }
 
+void ServicePublisherImpl::AddObserver(Observer& observer) {
+  observers_.push_back(&observer);
+}
+
+void ServicePublisherImpl::RemoveObserver(Observer& observer) {
+  observers_.erase(std::remove(observers_.begin(), observers_.end(), &observer),
+                   observers_.end());
+}
+
 void ServicePublisherImpl::OnFatalError(Error error) {
-  last_error_ = error;
-  observer_->OnError(error);
+  OnError(error);
 }
 
 void ServicePublisherImpl::OnRecoverableError(Error error) {
-  last_error_ = error;
-  observer_->OnError(error);
+  OnError(error);
 }
 
 void ServicePublisherImpl::SetState(State state) {
   OSP_CHECK(IsTransitionValid(state_, state));
   state_ = state;
-  if (observer_)
-    MaybeNotifyObserver();
+  MaybeNotifyObserver();
 }
 
 void ServicePublisherImpl::MaybeNotifyObserver() {
-  OSP_CHECK(observer_);
   switch (state_) {
     case State::kRunning:
-      observer_->OnStarted();
+      for (auto* observer : observers_) {
+        observer->OnStarted();
+      }
       break;
     case State::kStopped:
-      observer_->OnStopped();
+      for (auto* observer : observers_) {
+        observer->OnStopped();
+      }
       break;
     case State::kSuspended:
-      observer_->OnSuspended();
+      for (auto* observer : observers_) {
+        observer->OnSuspended();
+      }
       break;
     default:
       break;
