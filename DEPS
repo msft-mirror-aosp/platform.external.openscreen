@@ -172,7 +172,7 @@ deps = {
   # To roll forward, use quiche_revision from chromium/src/DEPS.
   'third_party/quiche/src': {
     'url': Var('quiche_git') + '/quiche.git' +
-      '@' + '45374cbe5557a6d3da7aa1a43c969314f7b1894e',  # 2023-11-23
+      '@' + 'acbdda4e4aa43e72a19aa72115b71e8eba57babb',  # 2024-04-08
     'condition': 'not build_with_chromium',
   },
 
@@ -192,7 +192,7 @@ deps = {
   'third_party/abseil/src': {
     'url': Var('chromium_git') +
       '/external/github.com/abseil/abseil-cpp.git' + '@' +
-      'a39d71a80fbdf0ee2f00222943c1ca08361cec20',  # lts_2023_01_25
+      '53e6dae02bf0d9a5a1d304a3d637c083376b86a1',  # 2024-03-06
     'condition': 'not build_with_chromium',
   },
 
