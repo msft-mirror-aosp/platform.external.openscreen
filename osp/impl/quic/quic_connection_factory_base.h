@@ -46,7 +46,7 @@ class QuicConnectionFactoryBase : public UdpSocket::Client {
   quic::ParsedQuicVersionVector supported_versions_{
       quic::ParsedQuicVersion::RFCv1()};
   quic::DeterministicConnectionIdGenerator connection_id_generator_{
-      quic::kQuicDefaultConnectionIdLength};
+      /*expected_connection_id_length=*/0u};
   quic::QuicConfig config_;
 
   std::map<IPEndpoint, OpenConnection> connections_;

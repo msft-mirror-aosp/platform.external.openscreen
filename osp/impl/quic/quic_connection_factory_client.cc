@@ -11,7 +11,6 @@
 #include "osp/impl/quic/quic_packet_writer_impl.h"
 #include "osp/impl/quic/quic_utils.h"
 #include "quiche/quic/core/crypto/web_transport_fingerprint_proof_verifier.h"
-#include "quiche/quic/core/quic_utils.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 #include "util/trace_logging.h"
@@ -69,16 +68,12 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
   socket->Bind();
 
   quic::QuicPacketWriter* writer = new PacketWriterImpl(socket.get());
-  quic::QuicConnectionId server_connection_id =
-      quic::QuicUtils::CreateRandomConnectionId(helper_->GetRandomGenerator());
   auto connection = std::make_unique<quic::QuicConnection>(
-      server_connection_id, ToQuicSocketAddress(local_endpoint),
-      ToQuicSocketAddress(remote_endpoint), helper_.get(), alarm_factory_.get(),
-      writer, /* owns_writer */ true, quic::Perspective::IS_CLIENT,
-      supported_versions_, connection_id_generator_);
-  quic::QuicConnectionId client_connection_id =
-      quic::QuicUtils::CreateRandomConnectionId(helper_->GetRandomGenerator());
-  connection->set_client_connection_id(client_connection_id);
+      /*server_connection_id=*/quic::EmptyQuicConnectionId(),
+      ToQuicSocketAddress(local_endpoint), ToQuicSocketAddress(remote_endpoint),
+      helper_.get(), alarm_factory_.get(), writer, /*owns_writer=*/true,
+      quic::Perspective::IS_CLIENT, supported_versions_,
+      connection_id_generator_);
 
   if (!crypto_client_config_) {
     auto proof_verifier =
@@ -103,7 +98,7 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
       quic::QuicServerId(ToQuicIpAddress(remote_endpoint.address).ToString(),
                          remote_endpoint.port),
       supported_versions_);
-  connection_impl->set_session(session, /*owns_session*/ true);
+  connection_impl->set_session(session, /*owns_session=*/true);
 
   // TODO(btolsch): This presents a problem for multihomed receivers, which may
   // register as a different endpoint in their response.  I think QUIC is

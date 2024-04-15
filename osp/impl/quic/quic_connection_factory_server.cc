@@ -92,7 +92,8 @@ void QuicConnectionFactoryServer::SetServerDelegate(
         std::make_unique<OpenScreenCryptoServerStreamHelper>(),
         std::make_unique<QuicAlarmFactoryImpl>(task_runner_,
                                                quic::QuicDefaultClock::Get()),
-        quic::kQuicDefaultConnectionIdLength, connection_id_generator_, *this);
+        /*expected_server_connection_id_length=*/0u, connection_id_generator_,
+        *this);
     quic::QuicPacketWriter* writer = new PacketWriterImpl(server_socket.get());
     dispatcher->InitializeWithWriter(writer);
     dispatcher->ProcessBufferedChlos(kMaxConnectionsToCreate);
