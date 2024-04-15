@@ -75,7 +75,7 @@ void CastSocketMessagePort::PostMessage(
   const Error send_error = router_.Send(
       std::move(connection), MakeSimpleUTF8Message(message_namespace, message));
   if (!send_error.ok()) {
-    client_->OnError(std::move(send_error));
+    client_->OnError(send_error);
   }
 }
 

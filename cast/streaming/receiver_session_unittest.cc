@@ -325,7 +325,10 @@ class FakeClient : public ReceiverSession::Client {
               OnReceiversDestroying,
               (const ReceiverSession*, ReceiversDestroyingReason),
               (override));
-  MOCK_METHOD(void, OnError, (const ReceiverSession*, Error error), (override));
+  MOCK_METHOD(void,
+              OnError,
+              (const ReceiverSession*, const Error& error),
+              (override));
   MOCK_METHOD(bool,
               SupportsCodecParameter,
               (const std::string& parameter),

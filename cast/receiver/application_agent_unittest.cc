@@ -93,7 +93,7 @@ class FakeApplication : public ApplicationAgent::Application,
                const std::string& message_namespace,
                const std::string& message),
               (override));
-  MOCK_METHOD(void, OnError, (Error error), (override));
+  MOCK_METHOD(void, OnError, (const Error& error), (override));
   const std::string& source_id() override { return GetStringifiedSessionId(); }
 
   const std::vector<std::string>& GetAppIds() const override {

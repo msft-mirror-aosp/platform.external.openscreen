@@ -91,7 +91,7 @@ void LoopingFileCastAgent::OnConnected(SenderSocketFactory* factory,
 
 void LoopingFileCastAgent::OnError(SenderSocketFactory* factory,
                                    const IPEndpoint& endpoint,
-                                   Error error) {
+                                   const Error& error) {
   OSP_LOG_ERROR << "Cast agent received socket factory error: " << error;
   Shutdown();
 }
@@ -101,7 +101,7 @@ void LoopingFileCastAgent::OnClose(CastSocket* cast_socket) {
   Shutdown();
 }
 
-void LoopingFileCastAgent::OnError(CastSocket* socket, Error error) {
+void LoopingFileCastAgent::OnError(CastSocket* socket, const Error& error) {
   OSP_LOG_ERROR << "Cast agent received socket error: " << error;
   Shutdown();
 }
@@ -340,7 +340,8 @@ void LoopingFileCastAgent::OnNegotiated(
   }
 }
 
-void LoopingFileCastAgent::OnError(const SenderSession* session, Error error) {
+void LoopingFileCastAgent::OnError(const SenderSession* session,
+                                   const Error& error) {
   OSP_LOG_ERROR << "SenderSession fatal error: " << error;
   Shutdown();
 }

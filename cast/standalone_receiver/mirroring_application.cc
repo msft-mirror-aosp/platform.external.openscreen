@@ -88,7 +88,7 @@ void MirroringApplication::Stop() {
 }
 
 void MirroringApplication::OnPlaybackError(StreamingPlaybackController*,
-                                           Error error) {
+                                           const Error& error) {
   OSP_LOG_ERROR << "[MirroringApplication] " << error;
   agent_.StopApplicationIfRunning(this);  // ApplicationAgent calls Stop().
 }

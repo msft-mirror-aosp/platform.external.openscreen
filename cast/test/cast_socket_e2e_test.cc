@@ -65,7 +65,7 @@ class SenderSocketsClient : public SenderSocketFactory::Client,
 
   void OnError(SenderSocketFactory* factory,
                const IPEndpoint& endpoint,
-               Error error) override {
+               const Error& error) override {
     OSP_LOG_FATAL << error;
   }
 
@@ -74,13 +74,13 @@ class SenderSocketsClient : public SenderSocketFactory::Client,
     socket_ = nullptr;
     OnCloseMock(socket);
   }
-  void OnError(CastSocket* socket, Error error) override {
+  void OnError(CastSocket* socket, const Error& error) override {
     socket_ = nullptr;
-    OnErrorMock(socket, std::move(error));
+    OnErrorMock(socket, error);
   }
 
   MOCK_METHOD(void, OnCloseMock, (CastSocket * socket), ());
-  MOCK_METHOD(void, OnErrorMock, (CastSocket * socket, Error error), ());
+  MOCK_METHOD(void, OnErrorMock, (CastSocket * socket, const Error& error), ());
 
  private:
   VirtualConnectionRouter& router_;
@@ -110,7 +110,7 @@ class ReceiverSocketsClient
     router_->TakeSocket(this, std::move(socket));
   }
 
-  void OnError(ReceiverSocketFactory* factory, Error error) override {
+  void OnError(ReceiverSocketFactory* factory, const Error& error) override {
     OSP_LOG_FATAL << error;
   }
 
@@ -119,13 +119,13 @@ class ReceiverSocketsClient
     socket_ = nullptr;
     OnCloseMock(socket);
   }
-  void OnError(CastSocket* socket, Error error) override {
+  void OnError(CastSocket* socket, const Error& error) override {
     socket_ = nullptr;
-    OnErrorMock(socket, std::move(error));
+    OnErrorMock(socket, error);
   }
 
   MOCK_METHOD(void, OnCloseMock, (CastSocket * socket), ());
-  MOCK_METHOD(void, OnErrorMock, (CastSocket * socket, Error error), ());
+  MOCK_METHOD(void, OnErrorMock, (CastSocket * socket, const Error& error), ());
 
  private:
   VirtualConnectionRouter* router_;
@@ -234,7 +234,7 @@ class CastSocketE2ETest : public ::testing::Test {
     // OnClose check.
     EXPECT_CALL(*client, OnCloseMock(client->socket()));
     EXPECT_CALL(*peer_client, OnErrorMock(peer_client->socket(), _))
-        .WillOnce([](CastSocket* socket, Error error) {
+        .WillOnce([](CastSocket* socket, const Error& error) {
           EXPECT_EQ(error.code(), Error::Code::kSocketClosedFailure);
         });
     int32_t id = client->socket()->socket_id();

@@ -51,7 +51,7 @@ ServicePublisherImpl::ServicePublisherImpl(std::unique_ptr<Delegate> delegate)
 
 ServicePublisherImpl::~ServicePublisherImpl() = default;
 
-void ServicePublisherImpl::OnError(Error error) {
+void ServicePublisherImpl::OnError(const Error& error) {
   last_error_ = error;
   for (auto* observer : observers_) {
     observer->OnError(error);
@@ -104,11 +104,11 @@ void ServicePublisherImpl::RemoveObserver(Observer& observer) {
                    observers_.end());
 }
 
-void ServicePublisherImpl::OnFatalError(Error error) {
+void ServicePublisherImpl::OnFatalError(const Error& error) {
   OnError(error);
 }
 
-void ServicePublisherImpl::OnRecoverableError(Error error) {
+void ServicePublisherImpl::OnRecoverableError(const Error& error) {
   OnError(error);
 }
 

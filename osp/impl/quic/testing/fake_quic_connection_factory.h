@@ -59,8 +59,8 @@ class FakeClientQuicConnectionFactory final
   ~FakeClientQuicConnectionFactory() override;
 
   // UdpSocket::Client overrides.
-  void OnError(UdpSocket* socket, Error error) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
+  void OnError(UdpSocket* socket, const Error& error) override;
+  void OnSendError(UdpSocket* socket, const Error& error) override;
   void OnRead(UdpSocket* socket, ErrorOr<UdpPacket> packet) override;
 
   // QuicConnectionFactoryClient overrides.
@@ -86,8 +86,8 @@ class FakeServerQuicConnectionFactory final
   ~FakeServerQuicConnectionFactory() override;
 
   // UdpSocket::Client overrides.
-  void OnError(UdpSocket* socket, Error error) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
+  void OnError(UdpSocket* socket, const Error& error) override;
+  void OnSendError(UdpSocket* socket, const Error& error) override;
   void OnRead(UdpSocket* socket, ErrorOr<UdpPacket> packet) override;
 
   // QuicConnectionFactoryServer overrides.

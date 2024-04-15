@@ -58,7 +58,7 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
 
   // SimulatedCapturer::Client overrides.
   void OnEndOfFile(SimulatedCapturer* capturer) final;
-  void OnError(SimulatedCapturer* capturer, std::string message) final;
+  void OnError(SimulatedCapturer* capturer, const std::string& message) final;
 
   const char* ToTrackName(SimulatedCapturer* capturer) const;
 

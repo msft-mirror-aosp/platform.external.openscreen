@@ -91,7 +91,7 @@ void StreamingPlaybackController::OnReceiversDestroying(
 }
 
 void StreamingPlaybackController::OnError(const ReceiverSession* session,
-                                          Error error) {
+                                          const Error& error) {
   client_->OnPlaybackError(this, error);
 }
 

@@ -39,7 +39,7 @@ Error MdnsSender::SendMessage(const MdnsMessage& message,
   return Error::Code::kNone;
 }
 
-void MdnsSender::OnSendError(UdpSocket* socket, Error error) {
+void MdnsSender::OnSendError(UdpSocket* socket, const Error& error) {
   OSP_LOG_ERROR << "Error sending packet " << error;
 }
 

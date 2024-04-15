@@ -41,7 +41,7 @@ class SessionMessenger : public MessagePort::Client {
                                   const Json::Value& message_root);
 
   // Used to report errors in subclasses.
-  void ReportError(Error error);
+  void ReportError(const Error& error);
 
   const std::string& source_id() override { return source_id_; }
 
@@ -86,7 +86,7 @@ class SenderSessionMessenger final : public SessionMessenger {
   void OnMessage(const std::string& source_id,
                  const std::string& message_namespace,
                  const std::string& message) override;
-  void OnError(Error error) override;
+  void OnError(const Error& error) override;
 
  private:
   TaskRunner& task_runner_;
@@ -128,7 +128,7 @@ class ReceiverSessionMessenger final : public SessionMessenger {
   void OnMessage(const std::string& source_id,
                  const std::string& message_namespace,
                  const std::string& message) override;
-  void OnError(Error error) override;
+  void OnError(const Error& error) override;
 
  private:
   FlatMap<SenderMessage::Type, RequestCallback> callbacks_;

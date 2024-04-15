@@ -135,11 +135,11 @@ Error MdnsServiceImpl::UnregisterRecord(const MdnsRecord& record) {
   return publisher_->UnregisterRecord(record);
 }
 
-void MdnsServiceImpl::OnError(UdpSocket* socket, Error error) {
+void MdnsServiceImpl::OnError(UdpSocket* socket, const Error& error) {
   reporting_client_.OnFatalError(error);
 }
 
-void MdnsServiceImpl::OnSendError(UdpSocket* socket, Error error) {
+void MdnsServiceImpl::OnSendError(UdpSocket* socket, const Error& error) {
   sender_->OnSendError(socket, error);
 }
 

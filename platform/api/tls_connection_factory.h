@@ -45,7 +45,7 @@ class TlsConnectionFactory {
                                     const IPEndpoint& remote_address) = 0;
 
     // Called when a non-recoverable error occurs.
-    virtual void OnError(TlsConnectionFactory* factory, Error error) = 0;
+    virtual void OnError(TlsConnectionFactory* factory, const Error& error) = 0;
 
    protected:
     virtual ~Client();

@@ -41,7 +41,7 @@ void ReceiverSocketFactory::OnConnectionFailed(
 }
 
 void ReceiverSocketFactory::OnError(TlsConnectionFactory* factory,
-                                    Error error) {
+                                    const Error& error) {
   client_.OnError(this, error);
 }
 

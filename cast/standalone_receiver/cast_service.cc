@@ -88,7 +88,7 @@ CastService::CastService(CastService::Configuration config)
     info.capabilities = kHasVideoOutput | kHasAudioOutput;
     const Error error = discovery_publisher_->Register(info);
     if (!error.ok()) {
-      OnFatalError(std::move(error));
+      OnFatalError(error);
     }
   }
 }
@@ -99,11 +99,11 @@ CastService::~CastService() {
   }
 }
 
-void CastService::OnFatalError(Error error) {
+void CastService::OnFatalError(const Error& error) {
   OSP_LOG_FATAL << "Encountered fatal discovery error: " << error;
 }
 
-void CastService::OnRecoverableError(Error error) {
+void CastService::OnRecoverableError(const Error& error) {
   OSP_LOG_ERROR << "Encountered recoverable discovery error: " << error;
 }
 

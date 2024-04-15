@@ -95,7 +95,7 @@ class DemoListenerObserver final : public ServiceListener::Observer {
     OSP_LOG_INFO << "removed! " << info.friendly_name;
   }
   void OnAllReceiversRemoved() override { OSP_LOG_INFO << "all removed!"; }
-  void OnError(Error) override {}
+  void OnError(const Error&) override {}
   void OnMetrics(ServiceListener::Metrics) override {}
 };
 
@@ -151,7 +151,7 @@ class DemoPublisherObserver final : public ServicePublisher::Observer {
   void OnStopped() override { OSP_LOG_INFO << "publisher stopped!"; }
   void OnSuspended() override { OSP_LOG_INFO << "publisher suspended!"; }
 
-  void OnError(Error error) override {
+  void OnError(const Error& error) override {
     OSP_LOG_ERROR << "publisher error: " << error;
   }
   void OnMetrics(ServicePublisher::Metrics) override {}

@@ -21,7 +21,8 @@ class ReceiverSocketFactory final : public TlsConnectionFactory::Client {
     virtual void OnConnected(ReceiverSocketFactory* factory,
                              const IPEndpoint& endpoint,
                              std::unique_ptr<CastSocket> socket) = 0;
-    virtual void OnError(ReceiverSocketFactory* factory, Error error) = 0;
+    virtual void OnError(ReceiverSocketFactory* factory,
+                         const Error& error) = 0;
 
    protected:
     virtual ~Client();
@@ -41,7 +42,7 @@ class ReceiverSocketFactory final : public TlsConnectionFactory::Client {
                    std::unique_ptr<TlsConnection> connection) override;
   void OnConnectionFailed(TlsConnectionFactory* factory,
                           const IPEndpoint& remote_address) override;
-  void OnError(TlsConnectionFactory* factory, Error error) override;
+  void OnError(TlsConnectionFactory* factory, const Error& error) override;
 
  private:
   Client& client_;

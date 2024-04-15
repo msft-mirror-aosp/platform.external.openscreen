@@ -49,7 +49,7 @@ class MirroringApplication final : public ApplicationAgent::Application,
 
   // StreamingPlaybackController::Client overrides
   void OnPlaybackError(StreamingPlaybackController* controller,
-                       Error error) final;
+                       const Error& error) final;
 
  private:
   TaskRunner& task_runner_;

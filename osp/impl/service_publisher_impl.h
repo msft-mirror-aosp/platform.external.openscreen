@@ -44,7 +44,7 @@ class ServicePublisherImpl final
   ~ServicePublisherImpl() override;
 
   // Called by |delegate_| when an internal error occurs.
-  void OnError(Error error);
+  void OnError(const Error& error);
 
   // ServicePublisher overrides.
   bool Start() override;
@@ -57,8 +57,8 @@ class ServicePublisherImpl final
 
  private:
   // openscreen::discovery::ReportingClient overrides.
-  void OnFatalError(Error) override;
-  void OnRecoverableError(Error) override;
+  void OnFatalError(const Error&) override;
+  void OnRecoverableError(const Error&) override;
 
   // Called by |delegate_| to transition the state machine (except kStarting and
   // kStopping which are done automatically).

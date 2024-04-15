@@ -44,9 +44,9 @@ SDLPlayerBase::~SDLPlayerBase() {
   decoder_.set_client(nullptr);
 }
 
-void SDLPlayerBase::OnFatalError(std::string message) {
+void SDLPlayerBase::OnFatalError(const std::string& message) {
   state_ = kError;
-  error_status_ = Error(Error::Code::kUnknownError, std::move(message));
+  error_status_ = Error(Error::Code::kUnknownError, message);
 
   // Halt decoding and clear the rendering queue.
   receiver_.SetConsumer(nullptr);
@@ -126,7 +126,8 @@ void SDLPlayerBase::OnFrameDecoded(FrameId frame_id, const AVFrame& frame) {
   ResumeRendering();
 }
 
-void SDLPlayerBase::OnDecodeError(FrameId frame_id, std::string message) {
+void SDLPlayerBase::OnDecodeError(FrameId frame_id,
+                                  const std::string& message) {
   const auto it = frames_to_render_.find(frame_id);
   if (it != frames_to_render_.end()) {
     frames_to_render_.erase(it);

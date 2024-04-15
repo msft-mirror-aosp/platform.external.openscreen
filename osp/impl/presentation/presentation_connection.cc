@@ -68,7 +68,7 @@ bool Connection::OnClosed() {
   return true;
 }
 
-void Connection::OnClosedByError(Error cause) {
+void Connection::OnClosedByError(const Error& cause) {
   if (OnClosed()) {
     std::ostringstream stream;
     stream << cause;

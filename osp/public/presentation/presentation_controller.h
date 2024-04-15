@@ -205,7 +205,7 @@ class Controller final : public ServiceListener::Observer,
   void OnReceiverChanged(const ServiceInfo& info) override;
   void OnReceiverRemoved(const ServiceInfo& info) override;
   void OnAllReceiversRemoved() override;
-  void OnError(Error) override;
+  void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
   std::map<std::string, uint64_t> next_connection_id_;

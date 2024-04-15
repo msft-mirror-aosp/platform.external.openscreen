@@ -37,7 +37,7 @@ class MockObserver final : public ServiceListener::Observer {
   MOCK_METHOD1(OnReceiverRemoved, void(const ServiceInfo& info));
   MOCK_METHOD0(OnAllReceiversRemoved, void());
 
-  MOCK_METHOD1(OnError, void(Error));
+  MOCK_METHOD1(OnError, void(const Error& error));
 
   MOCK_METHOD1(OnMetrics, void(ServiceListener::Metrics));
 };

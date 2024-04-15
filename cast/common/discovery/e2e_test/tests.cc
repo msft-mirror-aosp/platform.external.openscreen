@@ -106,12 +106,12 @@ class ServiceReceiver : public discovery::DnsSdServiceWatcher<ReceiverInfo> {
 };
 
 class FailOnErrorReporting : public discovery::ReportingClient {
-  void OnFatalError(Error error) override {
+  void OnFatalError(const Error& error) override {
     OSP_LOG_FATAL << "Fatal error received: '" << error << "'";
     OSP_NOTREACHED();
   }
 
-  void OnRecoverableError(Error error) override {
+  void OnRecoverableError(const Error& error) override {
     // Pending resolution of openscreen:105, logging recoverable errors is
     // disabled, as this will end up polluting the output with logs related to
     // mDNS messages received from non-loopback network interfaces over which

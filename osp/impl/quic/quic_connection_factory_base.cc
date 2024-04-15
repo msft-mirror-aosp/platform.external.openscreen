@@ -25,7 +25,7 @@ QuicConnectionFactoryBase::~QuicConnectionFactoryBase() {
   }
 }
 
-void QuicConnectionFactoryBase::OnError(UdpSocket* socket, Error error) {
+void QuicConnectionFactoryBase::OnError(UdpSocket* socket, const Error& error) {
   // Close all related connections and the UpdSocket will be closed because none
   // of the remaining |connections_| reference the socket.
   for (auto& it : connections_) {
@@ -35,8 +35,9 @@ void QuicConnectionFactoryBase::OnError(UdpSocket* socket, Error error) {
   }
 }
 
-void QuicConnectionFactoryBase::OnSendError(UdpSocket* socket, Error error) {
-  OnError(socket, std::move(error));
+void QuicConnectionFactoryBase::OnSendError(UdpSocket* socket,
+                                            const Error& error) {
+  OnError(socket, error);
 }
 
 }  // namespace openscreen::osp

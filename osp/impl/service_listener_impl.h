@@ -51,7 +51,7 @@ class ServiceListenerImpl final : public ServiceListener,
   void OnReceiverUpdated(const std::vector<ServiceInfo>& new_receivers);
 
   // Called by |delegate_| when an internal error occurs.
-  void OnError(Error error);
+  void OnError(const Error& error);
 
   // ServiceListener overrides.
   bool Start() override;
@@ -66,8 +66,8 @@ class ServiceListenerImpl final : public ServiceListener,
 
  private:
   // openscreen::discovery::ReportingClient overrides.
-  void OnFatalError(Error) override;
-  void OnRecoverableError(Error) override;
+  void OnFatalError(const Error&) override;
+  void OnRecoverableError(const Error&) override;
 
   // Called by OnReceiverUpdated according to different situations, repectively.
   void OnReceiverAdded(const ServiceInfo& info);

@@ -53,7 +53,7 @@ class ServicePublisher {
     virtual void OnSuspended() = 0;
 
     // Reports an error.
-    virtual void OnError(Error) = 0;
+    virtual void OnError(const Error&) = 0;
 
     // Reports metrics.
     virtual void OnMetrics(Metrics) = 0;

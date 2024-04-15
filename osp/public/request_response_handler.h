@@ -61,7 +61,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     virtual void OnMatchedResponse(RequestT* request,
                                    typename RequestT::ResponseMsgType* response,
                                    uint64_t endpoint_id) = 0;
-    virtual void OnError(RequestT* request, Error error) = 0;
+    virtual void OnError(RequestT* request, const Error& error) = 0;
 
    protected:
     virtual ~Delegate() = default;

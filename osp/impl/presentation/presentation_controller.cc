@@ -75,26 +75,26 @@ class Controller::MessageGroupStreams final
   void OnMatchedResponse(StartRequest* request,
                          msgs::PresentationStartResponse* response,
                          uint64_t endpoint_id) override;
-  void OnError(StartRequest* request, Error error) override;
+  void OnError(StartRequest* request, const Error& error) override;
 
   uint64_t SendConnectionOpenRequest(ConnectionOpenRequest request);
   void CancelConnectionOpenRequest(uint64_t request_id);
   void OnMatchedResponse(ConnectionOpenRequest* request,
                          msgs::PresentationConnectionOpenResponse* response,
                          uint64_t endpoint_id) override;
-  void OnError(ConnectionOpenRequest* request, Error error) override;
+  void OnError(ConnectionOpenRequest* request, const Error& error) override;
 
   void SendConnectionCloseRequest(ConnectionCloseRequest request);
   void OnMatchedResponse(ConnectionCloseRequest* request,
                          msgs::PresentationConnectionCloseResponse* response,
                          uint64_t endpoint_id) override;
-  void OnError(ConnectionCloseRequest* request, Error error) override;
+  void OnError(ConnectionCloseRequest* request, const Error& error) override;
 
   void SendTerminationRequest(TerminationRequest request);
   void OnMatchedResponse(TerminationRequest* request,
                          msgs::PresentationTerminationResponse* response,
                          uint64_t endpoint_id) override;
-  void OnError(TerminationRequest* request, Error error) override;
+  void OnError(TerminationRequest* request, const Error& error) override;
 
   // ProtocolConnectionClient::ConnectionRequestCallback overrides.
   void OnConnectionOpened(
@@ -169,7 +169,7 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
        << " failed: " << static_cast<int>(response->result);
     Error error(Error::Code::kUnknownStartError, ss.str());
     OSP_LOG_INFO << error.message();
-    request->delegate->OnError(std::move(error));
+    request->delegate->OnError(error);
     return;
   }
   OSP_LOG_INFO << "presentation started for " << request->request.url;
@@ -189,8 +189,8 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
 }
 
 void Controller::MessageGroupStreams::OnError(StartRequest* request,
-                                              Error error) {
-  request->delegate->OnError(std::move(error));
+                                              const Error& error) {
+  request->delegate->OnError(error);
 }
 
 uint64_t Controller::MessageGroupStreams::SendConnectionOpenRequest(
@@ -223,7 +223,7 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
        << " failed: " << static_cast<int>(response->result);
     Error error(Error::Code::kUnknownStartError, ss.str());
     OSP_LOG_INFO << error.message();
-    request->delegate->OnError(std::move(error));
+    request->delegate->OnError(error);
     return;
   }
   OSP_LOG_INFO << "presentation connection opened to "
@@ -245,8 +245,8 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
 }
 
 void Controller::MessageGroupStreams::OnError(ConnectionOpenRequest* request,
-                                              Error error) {
-  request->delegate->OnError(std::move(error));
+                                              const Error& error) {
+  request->delegate->OnError(error);
 }
 
 void Controller::MessageGroupStreams::SendConnectionCloseRequest(
@@ -273,7 +273,7 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
 }
 
 void Controller::MessageGroupStreams::OnError(ConnectionCloseRequest* request,
-                                              Error error) {
+                                              const Error& error) {
   OSP_LOG_INFO << "got error when closing connection "
                << request->request.connection_id << ": " << error;
 }
@@ -299,7 +299,7 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
 }
 
 void Controller::MessageGroupStreams::OnError(TerminationRequest* request,
-                                              Error error) {}
+                                              const Error& error) {}
 
 void Controller::MessageGroupStreams::OnConnectionOpened(
     uint64_t request_id,
@@ -602,7 +602,7 @@ ProtocolConnection* Controller::GetConnectionRequestGroupStream(
   return nullptr;
 }
 
-void Controller::OnError(Error) {}
+void Controller::OnError(const Error&) {}
 void Controller::OnMetrics(ServiceListener::Metrics) {}
 
 class Controller::TerminationListener final

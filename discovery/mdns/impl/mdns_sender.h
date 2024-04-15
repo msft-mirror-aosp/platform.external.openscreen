@@ -29,7 +29,7 @@ class MdnsSender {
   virtual Error SendMessage(const MdnsMessage& message,
                             const IPEndpoint& endpoint);
 
-  void OnSendError(UdpSocket* socket, Error error);
+  void OnSendError(UdpSocket* socket, const Error& error);
 
  private:
   UdpSocket& socket_;

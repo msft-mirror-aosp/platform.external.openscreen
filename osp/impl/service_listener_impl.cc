@@ -133,7 +133,7 @@ void ServiceListenerImpl::OnAllReceiversRemoved() {
   }
 }
 
-void ServiceListenerImpl::OnError(Error error) {
+void ServiceListenerImpl::OnError(const Error& error) {
   last_error_ = error;
   for (auto* observer : observers_) {
     observer->OnError(error);
@@ -205,11 +205,11 @@ const std::vector<ServiceInfo>& ServiceListenerImpl::GetReceivers() const {
   return receiver_list_.receivers();
 }
 
-void ServiceListenerImpl::OnFatalError(Error error) {
+void ServiceListenerImpl::OnFatalError(const Error& error) {
   OnError(error);
 }
 
-void ServiceListenerImpl::OnRecoverableError(Error error) {
+void ServiceListenerImpl::OnRecoverableError(const Error& error) {
   OnError(error);
 }
 

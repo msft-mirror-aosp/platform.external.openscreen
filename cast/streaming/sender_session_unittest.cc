@@ -167,7 +167,10 @@ class FakeClient : public SenderSession::Client {
               OnCapabilitiesDetermined,
               (const SenderSession*, RemotingCapabilities),
               (override));
-  MOCK_METHOD(void, OnError, (const SenderSession*, Error error), (override));
+  MOCK_METHOD(void,
+              OnError,
+              (const SenderSession*, const Error& error),
+              (override));
 };
 
 MATCHER_P(CodeEquals, code, "Checks error codes but not messages.") {

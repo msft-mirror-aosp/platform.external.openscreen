@@ -63,8 +63,8 @@ class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
   Error UnregisterRecord(const MdnsRecord& record) override;
 
   // UdpSocket::Client overrides.
-  void OnError(UdpSocket* socket, Error error) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
+  void OnError(UdpSocket* socket, const Error& error) override;
+  void OnSendError(UdpSocket* socket, const Error& error) override;
   void OnRead(UdpSocket* socket, ErrorOr<UdpPacket> packet) override;
   void OnBound(UdpSocket* socket) override;
 

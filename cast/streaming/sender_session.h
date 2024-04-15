@@ -90,7 +90,7 @@ class SenderSession final {
     //   trying to get capabilities.
     // * kRemotingNotSupported: the receiver does not support remoting, or
     //   uses a version that is too new for us.
-    virtual void OnError(const SenderSession* session, Error error) = 0;
+    virtual void OnError(const SenderSession* session, const Error& error) = 0;
 
    protected:
     virtual ~Client();

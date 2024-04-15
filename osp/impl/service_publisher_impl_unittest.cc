@@ -27,7 +27,7 @@ class MockObserver final : public ServicePublisher::Observer {
   MOCK_METHOD0(OnStopped, void());
   MOCK_METHOD0(OnSuspended, void());
 
-  MOCK_METHOD1(OnError, void(Error));
+  MOCK_METHOD1(OnError, void(const Error& error));
 
   MOCK_METHOD1(OnMetrics, void(ServicePublisher::Metrics));
 };

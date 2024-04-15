@@ -33,8 +33,8 @@ class QuicConnectionFactoryBase : public UdpSocket::Client {
   virtual ~QuicConnectionFactoryBase();
 
   // UdpSocket::Client overrides.
-  void OnError(UdpSocket* socket, Error error) override;
-  void OnSendError(UdpSocket* socket, Error error) override;
+  void OnError(UdpSocket* socket, const Error& error) override;
+  void OnSendError(UdpSocket* socket, const Error& error) override;
 
   virtual void OnConnectionClosed(QuicConnection* connection) = 0;
 

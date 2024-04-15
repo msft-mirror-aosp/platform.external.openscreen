@@ -130,7 +130,7 @@ void ReceiverSession::OnSocketReady() {
   }
 }
 
-void ReceiverSession::OnSocketInvalid(Error error) {
+void ReceiverSession::OnSocketInvalid(const Error& error) {
   if (pending_offer_) {
     SendErrorAnswerReply(pending_offer_->sender_id,
                          pending_offer_->sequence_number, error);
@@ -248,7 +248,7 @@ void ReceiverSession::OnCapabilitiesRequest(const std::string& sender_id,
   // capabilities before making an OFFER.
   const Error result = messenger_.SendMessage(sender_id, std::move(response));
   if (!result.ok()) {
-    client_.OnError(this, std::move(result));
+    client_.OnError(this, result);
   }
 }
 
@@ -347,7 +347,7 @@ void ReceiverSession::InitializeSession(const PendingOffer& properties) {
                       properties.sequence_number, true /* valid */,
                       std::move(answer)});
   if (!result.ok()) {
-    client_.OnError(this, std::move(result));
+    client_.OnError(this, result);
   }
 }
 
@@ -495,14 +495,14 @@ ReceiverCapability ReceiverSession::CreateRemotingCapabilityV2() {
 
 void ReceiverSession::SendErrorAnswerReply(const std::string& sender_id,
                                            int sequence_number,
-                                           Error error) {
+                                           const Error& error) {
   OSP_DLOG_WARN << error;
   const Error result = messenger_.SendMessage(
       sender_id,
       ReceiverMessage{ReceiverMessage::Type::kAnswer, sequence_number,
                       false /* valid */, ReceiverError(error)});
   if (!result.ok()) {
-    client_.OnError(this, std::move(result));
+    client_.OnError(this, result);
   }
 }
 

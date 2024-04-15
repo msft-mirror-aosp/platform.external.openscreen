@@ -168,12 +168,13 @@ FakeClientQuicConnectionFactory::Connect(
   return bridge_->Connect(remote_endpoint, connection_delegate);
 }
 
-void FakeClientQuicConnectionFactory::OnError(UdpSocket* socket, Error error) {
+void FakeClientQuicConnectionFactory::OnError(UdpSocket* socket,
+                                              const Error& error) {
   OSP_UNIMPLEMENTED();
 }
 
 void FakeClientQuicConnectionFactory::OnSendError(UdpSocket* socket,
-                                                  Error error) {
+                                                  const Error& error) {
   OSP_UNIMPLEMENTED();
 }
 
@@ -200,12 +201,13 @@ void FakeServerQuicConnectionFactory::SetServerDelegate(
                              endpoints.empty() ? IPEndpoint{} : endpoints[0]);
 }
 
-void FakeServerQuicConnectionFactory::OnError(UdpSocket* socket, Error error) {
+void FakeServerQuicConnectionFactory::OnError(UdpSocket* socket,
+                                              const Error& error) {
   OSP_UNIMPLEMENTED();
 }
 
 void FakeServerQuicConnectionFactory::OnSendError(UdpSocket* socket,
-                                                  Error error) {
+                                                  const Error& error) {
   OSP_UNIMPLEMENTED();
 }
 

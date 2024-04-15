@@ -77,8 +77,8 @@ Error SessionMessenger::SendMessage(const std::string& destination_id,
   return Error::None();
 }
 
-void SessionMessenger::ReportError(Error error) {
-  error_callback_(std::move(error));
+void SessionMessenger::ReportError(const Error& error) {
+  error_callback_(error);
 }
 
 SenderSessionMessenger::SenderSessionMessenger(MessagePort& message_port,
@@ -208,7 +208,7 @@ void SenderSessionMessenger::OnMessage(const std::string& source_id,
   }
 }
 
-void SenderSessionMessenger::OnError(Error error) {
+void SenderSessionMessenger::OnError(const Error& error) {
   OSP_DLOG_WARN << "Received an error in the session messenger: " << error;
   ReportError(error);
 }
@@ -290,7 +290,7 @@ void ReceiverSessionMessenger::OnMessage(const std::string& source_id,
   it->second(source_id, sender_message.value());
 }
 
-void ReceiverSessionMessenger::OnError(Error error) {
+void ReceiverSessionMessenger::OnError(const Error& error) {
   OSP_DLOG_WARN << "Received an error in the session messenger: " << error;
   ReportError(error);
 }

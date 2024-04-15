@@ -127,7 +127,8 @@ void SenderSocketFactory::OnConnectionFailed(TlsConnectionFactory* factory,
   client_.OnError(this, remote_address, Error::Code::kConnectionFailed);
 }
 
-void SenderSocketFactory::OnError(TlsConnectionFactory* factory, Error error) {
+void SenderSocketFactory::OnError(TlsConnectionFactory* factory,
+                                  const Error& error) {
   std::vector<PendingConnection> connections;
   pending_connections_.swap(connections);
   for (const PendingConnection& pending : connections) {
@@ -143,7 +144,7 @@ SenderSocketFactory::FindPendingConnection(const IPEndpoint& endpoint) {
                       });
 }
 
-void SenderSocketFactory::OnError(CastSocket* socket, Error error) {
+void SenderSocketFactory::OnError(CastSocket* socket, const Error& error) {
   auto it = std::find_if(pending_auth_.begin(), pending_auth_.end(),
                          [id = socket->socket_id()](
                              const std::unique_ptr<PendingAuth>& pending_auth) {

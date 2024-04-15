@@ -33,7 +33,8 @@ class SimulatedCapturer {
     virtual void OnEndOfFile(SimulatedCapturer* capturer) = 0;
 
     // Called if a non-recoverable error occurs and the `capturer` has halted.
-    virtual void OnError(SimulatedCapturer* capturer, std::string message) = 0;
+    virtual void OnError(SimulatedCapturer* capturer,
+                         const std::string& message) = 0;
 
    protected:
     virtual ~Observer();

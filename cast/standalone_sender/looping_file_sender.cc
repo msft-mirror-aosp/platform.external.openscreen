@@ -197,7 +197,7 @@ void LoopingFileSender::OnEndOfFile(SimulatedCapturer* capturer) {
 }
 
 void LoopingFileSender::OnError(SimulatedCapturer* capturer,
-                                std::string message) {
+                                const std::string& message) {
   OSP_LOG_ERROR << "The " << ToTrackName(capturer)
                 << " has failed: " << message;
   --num_capturers_running_;
