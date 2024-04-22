@@ -44,8 +44,6 @@ if (!is_win) {
       "service_listener_impl.h",
       "service_publisher_impl.cc",
       "service_publisher_impl.h",
-      "with_destruction_callback.cc",
-      "with_destruction_callback.h",
     ]
     configs = [ ":impl_internal_config" ]
     public_deps = [

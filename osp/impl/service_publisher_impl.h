@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "discovery/common/reporting_client.h"
-#include "osp/impl/with_destruction_callback.h"
 #include "osp/public/service_publisher.h"
 #include "platform/base/macros.h"
 
@@ -16,8 +15,7 @@ namespace openscreen::osp {
 
 class ServicePublisherImpl final
     : public ServicePublisher,
-      public openscreen::discovery::ReportingClient,
-      public WithDestructionCallback {
+      public openscreen::discovery::ReportingClient {
  public:
   class Delegate {
    public:

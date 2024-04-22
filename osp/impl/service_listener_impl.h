@@ -10,16 +10,15 @@
 
 #include "discovery/common/reporting_client.h"
 #include "osp/impl/receiver_list.h"
-#include "osp/impl/with_destruction_callback.h"
 #include "osp/public/service_info.h"
 #include "osp/public/service_listener.h"
 #include "platform/base/macros.h"
 
 namespace openscreen::osp {
 
-class ServiceListenerImpl final : public ServiceListener,
-                                  public openscreen::discovery::ReportingClient,
-                                  public WithDestructionCallback {
+class ServiceListenerImpl final
+    : public ServiceListener,
+      public openscreen::discovery::ReportingClient {
  public:
   class Delegate {
    public:
