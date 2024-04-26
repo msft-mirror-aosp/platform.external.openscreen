@@ -188,9 +188,7 @@ void MdnsProbeManagerImpl::OnProbeFailure(MdnsProbe* probe) {
     return;
   }
 
-  OSP_DVLOG << "Probe for domain '"
-            << CreateRetryDomainName(ongoing_it->requested_name,
-                                     ongoing_it->num_probes_failed)
+  OSP_DVLOG << "Probe for domain '" << probe->target_name()
             << "' failed. Trying new domain...";
 
   // Create a new probe with a modified domain name.

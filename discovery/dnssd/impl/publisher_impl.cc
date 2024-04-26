@@ -23,8 +23,8 @@ namespace openscreen::discovery {
 namespace {
 
 DnsSdInstanceEndpoint CreateEndpoint(
-    DnsSdInstance instance,
-    InstanceKey key,
+    const DnsSdInstance& instance,
+    const InstanceKey& key,
     const NetworkInterfaceConfig& network_config) {
   std::vector<IPEndpoint> endpoints;
   if (network_config.HasAddressV4()) {
@@ -40,16 +40,15 @@ DnsSdInstanceEndpoint CreateEndpoint(
 
 DnsSdInstanceEndpoint UpdateDomain(
     const DomainName& name,
-    DnsSdInstance instance,
+    const DnsSdInstance& instance,
     const NetworkInterfaceConfig& network_config) {
-  return CreateEndpoint(std::move(instance), InstanceKey(name), network_config);
+  return CreateEndpoint(instance, InstanceKey(name), network_config);
 }
 
 DnsSdInstanceEndpoint CreateEndpoint(
-    DnsSdInstance instance,
+    const DnsSdInstance& instance,
     const NetworkInterfaceConfig& network_config) {
-  InstanceKey key(instance);
-  return CreateEndpoint(std::move(instance), std::move(key), network_config);
+  return CreateEndpoint(instance, InstanceKey(instance), network_config);
 }
 
 template <typename T>
@@ -100,14 +99,14 @@ Error PublisherImpl::Register(const DnsSdInstance& instance, Client* client) {
     return Error::Code::kOperationInProgress;
   }
 
-  InstanceKey key(instance);
   const IPAddress& address = network_config_.GetAddress();
   OSP_CHECK(address);
-  pending_instances_.emplace(CreateEndpoint(instance, network_config_), client);
+  pending_instances_.emplace(instance, client);
 
   OSP_DVLOG << "Registering instance '" << instance.instance_id() << "'";
 
-  return mdns_publisher_.StartProbe(this, GetDomainName(key), address);
+  return mdns_publisher_.StartProbe(this, GetDomainName(InstanceKey(instance)),
+                                    address);
 }
 
 Error PublisherImpl::UpdateRegistration(const DnsSdInstance& instance) {
@@ -124,8 +123,7 @@ Error PublisherImpl::UpdateRegistration(const DnsSdInstance& instance) {
     // modified.
     Client* const client = it->second;
     pending_instances_.erase(it);
-    pending_instances_.emplace(CreateEndpoint(instance, network_config_),
-                               client);
+    pending_instances_.emplace(instance, client);
     return Error::None();
   } else {
     return UpdatePublishedRegistration(instance);
@@ -270,8 +268,6 @@ void PublisherImpl::OnDomainFound(const DomainName& requested_name,
       CreateEndpoint(requested_instance, network_config_);
   Client* const client = it->second;
   pending_instances_.erase(it);
-
-  InstanceKey requested_key(requested_instance);
 
   if (requested_name != confirmed_name) {
     OSP_DCHECK(HasValidDnsRecordAddress(confirmed_name));
