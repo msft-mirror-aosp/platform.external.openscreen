@@ -32,8 +32,6 @@ if (build_with_chromium) {
     ]
 
     cflags = [ "-w" ]  # Disable all warnings.
-
-    defines += [ "_XOPEN_SOURCE=700" ]
   }
 
   config("no_asm_config") {
