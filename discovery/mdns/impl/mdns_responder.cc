@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 
-#include "discovery/common/config.h"
 #include "discovery/mdns/impl/mdns_probe_manager.h"
 #include "discovery/mdns/impl/mdns_publisher.h"
 #include "discovery/mdns/impl/mdns_querier.h"

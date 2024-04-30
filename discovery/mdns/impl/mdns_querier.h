@@ -33,7 +33,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
               ClockNowFunctionPtr now_function,
               MdnsRandom& random_delay,
               ReportingClient& reporting_client,
-              Config config);
+              const Config& config);
   MdnsQuerier(const MdnsQuerier& other) = delete;
   MdnsQuerier(MdnsQuerier&& other) noexcept = delete;
   MdnsQuerier& operator=(const MdnsQuerier& other) = delete;
@@ -136,7 +136,7 @@ class MdnsQuerier : public MdnsReceiver::ResponseClient {
     TaskRunner& task_runner_;
     ClockNowFunctionPtr now_function_;
     ReportingClient& reporting_client_;
-    const Config& config_;
+    Config config_;
 
     // List of RecordTracker instances used by this instance where the least
     // recently updated element (or next to be deleted element) appears at the

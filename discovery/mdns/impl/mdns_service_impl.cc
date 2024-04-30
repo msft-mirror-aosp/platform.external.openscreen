@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "discovery/common/config.h"
 #include "discovery/common/reporting_client.h"
 #include "discovery/mdns/public/mdns_constants.h"
 #include "discovery/mdns/public/mdns_records.h"

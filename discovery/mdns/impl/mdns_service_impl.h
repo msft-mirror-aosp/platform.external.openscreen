@@ -7,7 +7,6 @@
 
 #include <memory>
 
-#include "discovery/common/config.h"
 #include "discovery/mdns/impl/mdns_probe_manager.h"
 #include "discovery/mdns/impl/mdns_publisher.h"
 #include "discovery/mdns/impl/mdns_querier.h"
@@ -29,13 +28,14 @@ class TaskRunner;
 
 namespace discovery {
 
+struct config;
 class NetworkConfig;
 class ReportingClient;
 
 class MdnsServiceImpl : public MdnsService, public UdpSocket::Client {
  public:
-  // |task_runner|, |reporting_client|, and |config| must exist for the duration
-  // of this instance's life.
+  // |task_runner| and |reporting_client| must exist for the duration of this
+  // instance's life.
   MdnsServiceImpl(TaskRunner& task_runner,
                   ClockNowFunctionPtr now_function,
                   ReportingClient& reporting_client,

@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "discovery/common/config.h"
 #include "discovery/mdns/public/mdns_records.h"
 #include "platform/api/time.h"
 #include "platform/base/macros.h"
@@ -21,7 +22,6 @@ class TaskRunner;
 
 namespace discovery {
 
-struct Config;
 class MdnsMessage;
 class MdnsProbeManager;
 class MdnsRandom;
@@ -161,7 +161,7 @@ class MdnsResponder {
   TaskRunner& task_runner_;
   const ClockNowFunctionPtr now_function_;
   MdnsRandom& random_delay_;
-  const Config& config_;
+  Config config_;
 
   friend class MdnsResponderTest;
 };
