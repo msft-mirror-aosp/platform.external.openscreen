@@ -13,9 +13,9 @@
 #include "osp/impl/quic/quic_dispatcher_impl.h"
 #include "osp/impl/quic/quic_packet_writer_impl.h"
 #include "osp/impl/quic/quic_utils.h"
+#include "osp/impl/quic/quic_version_manager.h"
 #include "quiche/quic/core/crypto/proof_source_x509.h"
 #include "quiche/quic/core/quic_default_connection_helper.h"
-#include "quiche/quic/core/quic_version_manager.h"
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
 #include "util/read_file.h"
@@ -85,9 +85,10 @@ void QuicConnectionFactoryServer::SetServerDelegate(
     std::unique_ptr<UdpSocket> server_socket = std::move(create_result.value());
     server_socket->Bind();
 
+    auto version_manager =
+        std::make_unique<QuicVersionManager>(supported_versions_);
     auto dispatcher = std::make_unique<QuicDispatcherImpl>(
-        &config_, crypto_server_config_.get(),
-        std::make_unique<quic::QuicVersionManager>(supported_versions_),
+        &config_, crypto_server_config_.get(), std::move(version_manager),
         std::make_unique<quic::QuicDefaultConnectionHelper>(),
         std::make_unique<OpenScreenCryptoServerStreamHelper>(),
         std::make_unique<QuicAlarmFactoryImpl>(task_runner_,
