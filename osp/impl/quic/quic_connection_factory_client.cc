@@ -11,6 +11,7 @@
 #include "osp/impl/quic/quic_packet_writer_impl.h"
 #include "osp/impl/quic/quic_utils.h"
 #include "quiche/quic/core/crypto/web_transport_fingerprint_proof_verifier.h"
+#include "quiche/quic/core/quic_utils.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 #include "util/trace_logging.h"
@@ -69,7 +70,7 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
 
   quic::QuicPacketWriter* writer = new PacketWriterImpl(socket.get());
   auto connection = std::make_unique<quic::QuicConnection>(
-      /*server_connection_id=*/quic::EmptyQuicConnectionId(),
+      /*server_connection_id=*/quic::QuicUtils::CreateRandomConnectionId(),
       ToQuicSocketAddress(local_endpoint), ToQuicSocketAddress(remote_endpoint),
       helper_.get(), alarm_factory_.get(), writer, /*owns_writer=*/true,
       quic::Perspective::IS_CLIENT, supported_versions_,
