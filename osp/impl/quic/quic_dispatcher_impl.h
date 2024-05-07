@@ -36,6 +36,10 @@ class QuicDispatcherImpl : public quic::QuicDispatcher {
       const quic::ParsedClientHello& parsed_chlo,
       quic::ConnectionIdGeneratorInterface& connection_id_generator) override;
 
+  quic::QuicDispatcher::QuicPacketFate ValidityChecksOnFullChlo(
+      const quic::ReceivedPacketInfo& packet_info,
+      const quic::ParsedClientHello& parsed_chlo) const override;
+
  private:
   std::unique_ptr<quic::QuicVersionManager> version_manager_;
   QuicConnectionFactoryServer& parent_factory_;

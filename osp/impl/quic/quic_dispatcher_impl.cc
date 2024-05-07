@@ -5,6 +5,7 @@
 #include "osp/impl/quic/quic_dispatcher_impl.h"
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "osp/impl/quic/open_screen_server_session.h"
@@ -78,6 +79,19 @@ std::unique_ptr<quic::QuicSession> QuicDispatcherImpl::CreateQuicSession(
       std::move(connection_impl));
 
   return session;
+}
+
+quic::QuicDispatcher::QuicPacketFate
+QuicDispatcherImpl::ValidityChecksOnFullChlo(
+    const quic::ReceivedPacketInfo& /*packet_info*/,
+    const quic::ParsedClientHello& parsed_chlo) const {
+  std::string sni = parent_factory_.GetFingerprint() + "._openscreen.udp";
+  sni.erase(std::remove(sni.begin(), sni.end(), ':'), sni.end());
+  if (sni != parsed_chlo.sni) {
+    return kFateDrop;
+  }
+
+  return kFateProcess;
 }
 
 }  // namespace openscreen::osp
