@@ -28,7 +28,7 @@ struct ServiceInfo {
   std::string ToString() const;
 
   // Identifier uniquely identifying the Open Screen service.
-  std::string service_id;
+  std::string instance_id;
 
   // User visible name of the Open Screen service in UTF-8.
   std::string friendly_name;

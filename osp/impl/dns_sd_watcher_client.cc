@@ -48,7 +48,7 @@ ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
             "Missing agent fingerprint in record."};
   }
 
-  ServiceInfo service_info{endpoint.service_id(), std::move(friendly_name),
+  ServiceInfo service_info{endpoint.instance_id(), std::move(friendly_name),
                            std::move(fingerprint),
                            endpoint.network_interface()};
   for (const IPEndpoint& record : endpoint.endpoints()) {

@@ -49,7 +49,7 @@ class UrlAvailabilityRequesterTest : public Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(1298424))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
-    info1_ = {service_id_, friendly_name_, quic_bridge_.kFingerprint, 1,
+    info1_ = {instance_id_, friendly_name_, quic_bridge_.kFingerprint, 1,
               quic_bridge_.kReceiverEndpoint};
   }
 
@@ -132,7 +132,7 @@ class UrlAvailabilityRequesterTest : public Test {
 
   std::string url1_{"https://example.com/foo.html"};
   std::string url2_{"https://example.com/bar.html"};
-  std::string service_id_{"asdf"};
+  std::string instance_id_{"asdf"};
   std::string friendly_name_{"turtle"};
   ServiceInfo info1_;
 };
@@ -155,8 +155,8 @@ TEST_F(UrlAvailabilityRequesterTest, AvailableObserverFirst) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
 }
@@ -179,8 +179,8 @@ TEST_F(UrlAvailabilityRequesterTest, AvailableReceiverFirst) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
 }
@@ -203,8 +203,8 @@ TEST_F(UrlAvailabilityRequesterTest, Unavailable) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer, OnReceiverAvailable(url1_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 }
 
@@ -226,13 +226,15 @@ TEST_F(UrlAvailabilityRequesterTest, AvailabilityIsCached) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_));
   listener_.AddObserver({url1_}, &mock_observer2);
 }
 
@@ -254,14 +256,16 @@ TEST_F(UrlAvailabilityRequesterTest, AvailabilityCacheIsTransient) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 
   listener_.RemoveObserverUrls({url1_}, &mock_observer1);
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   listener_.AddObserver({url1_}, &mock_observer2);
 }
@@ -284,13 +288,15 @@ TEST_F(UrlAvailabilityRequesterTest, PartiallyCachedAnswer) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_));
   listener_.AddObserver({url1_, url2_}, &mock_observer2);
 
   ExpectStreamMessage(&mock_callback_, request);
@@ -302,8 +308,9 @@ TEST_F(UrlAvailabilityRequesterTest, PartiallyCachedAnswer) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url2_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url2_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 }
 
@@ -325,13 +332,13 @@ TEST_F(UrlAvailabilityRequesterTest, MultipleOverlappingObservers) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_));
   listener_.AddObserver({url1_, url2_}, &mock_observer2);
   ExpectStreamMessage(&mock_callback_, request);
   quic_bridge_.RunTasksUntilIdle();
@@ -342,9 +349,9 @@ TEST_F(UrlAvailabilityRequesterTest, MultipleOverlappingObservers) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 }
 
@@ -366,14 +373,14 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserverUrls) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_));
   listener_.AddObserver({url1_, url2_}, &mock_observer2);
 
   ExpectStreamMessage(&mock_callback_, request);
@@ -388,8 +395,8 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserverUrls) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
   Mock::VerifyAndClearExpectations(&mock_observer2);
@@ -399,9 +406,9 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserverUrls) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
   Mock::VerifyAndClearExpectations(&mock_observer2);
@@ -427,14 +434,14 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserver) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_));
   listener_.AddObserver({url1_, url2_}, &mock_observer2);
 
   ExpectStreamMessage(&mock_callback_, request);
@@ -450,8 +457,8 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserver) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url2_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
   Mock::VerifyAndClearExpectations(&mock_observer2);
@@ -461,9 +468,9 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserver) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
   Mock::VerifyAndClearExpectations(&mock_observer2);
@@ -480,8 +487,8 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserver) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(_, service_id_)).Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, instance_id_)).Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(_, instance_id_)).Times(0);
   quic_bridge_.RunTasksUntilIdle();
   Mock::VerifyAndClearExpectations(&mock_observer1);
   Mock::VerifyAndClearExpectations(&mock_observer2);
@@ -506,9 +513,9 @@ TEST_F(UrlAvailabilityRequesterTest, EventUpdate) {
                                          msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url2_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, service_id_)).Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url2_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, instance_id_)).Times(0);
   quic_bridge_.RunTasksUntilIdle();
 
   EXPECT_CALL(mock_callback_, OnStreamMessage(_, _, _, _, _, _)).Times(0);
@@ -518,7 +525,7 @@ TEST_F(UrlAvailabilityRequesterTest, EventUpdate) {
                                          msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url2_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url2_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 }
 
@@ -540,8 +547,8 @@ TEST_F(UrlAvailabilityRequesterTest, RefreshWatches) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, service_id_)).Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(_, instance_id_)).Times(0);
   quic_bridge_.RunTasksUntilIdle();
 
   fake_clock_.Advance(std::chrono::seconds(60));
@@ -556,7 +563,7 @@ TEST_F(UrlAvailabilityRequesterTest, RefreshWatches) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_));
   quic_bridge_.RunTasksUntilIdle();
 }
 
@@ -579,14 +586,16 @@ TEST_F(UrlAvailabilityRequesterTest, ResponseAfterRemoveObserver) {
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
 
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   listener_.AddObserver({url1_}, &mock_observer2);
 }
@@ -610,16 +619,17 @@ TEST_F(UrlAvailabilityRequesterTest,
       std::vector<msgs::UrlAvailability>{msgs::UrlAvailability::kAvailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_));
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_));
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   quic_bridge_.RunTasksUntilIdle();
 
   listener_.RemoveObserverUrls({url1_}, &mock_observer1);
   listener_.RemoveReceiver(info1_);
   MockReceiverObserver mock_observer2;
-  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer2, OnReceiverAvailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer2, OnReceiverUnavailable(url1_, instance_id_))
       .Times(0);
   listener_.AddObserver({url1_}, &mock_observer2);
 }
@@ -650,11 +660,13 @@ TEST_F(UrlAvailabilityRequesterTest, RemoveObserverInSteps) {
                                          msgs::UrlAvailability::kUnavailable},
       stream.get());
 
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url1_, instance_id_))
       .Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url2_, service_id_)).Times(0);
-  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url2_, service_id_))
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url1_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverAvailable(url2_, instance_id_))
+      .Times(0);
+  EXPECT_CALL(mock_observer1, OnReceiverUnavailable(url2_, instance_id_))
       .Times(0);
 
   // NOTE: This message was generated between the two RemoveObserverUrls calls

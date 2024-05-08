@@ -62,7 +62,7 @@ void UrlAvailabilityRequester::AddObserver(const std::vector<std::string>& urls,
   for (const auto& url : urls) {
     observers_by_url_[url].push_back(observer);
   }
-  for (auto& entry : receiver_by_service_id_) {
+  for (auto& entry : receiver_by_instance_id_) {
     auto& receiver = entry.second;
     receiver->GetOrRequestAvailabilities(urls, observer);
   }
@@ -82,14 +82,14 @@ void UrlAvailabilityRequester::RemoveObserverUrls(
     if (observers.empty()) {
       unobserved_urls.emplace(std::move(observer_entry->first));
       observers_by_url_.erase(observer_entry);
-      for (auto& entry : receiver_by_service_id_) {
+      for (auto& entry : receiver_by_instance_id_) {
         auto& receiver = entry.second;
         receiver->known_availability_by_url().erase(url);
       }
     }
   }
 
-  for (auto& entry : receiver_by_service_id_) {
+  for (auto& entry : receiver_by_instance_id_) {
     auto& receiver = entry.second;
     receiver->RemoveUnobservedRequests(unobserved_urls);
     receiver->RemoveUnobservedWatches(unobserved_urls);
@@ -108,7 +108,7 @@ void UrlAvailabilityRequester::RemoveObserver(ReceiverObserver* observer) {
     }
   }
 
-  for (auto& entry : receiver_by_service_id_) {
+  for (auto& entry : receiver_by_instance_id_) {
     auto& receiver = entry.second;
     receiver->RemoveUnobservedRequests(unobserved_urls);
     receiver->RemoveUnobservedWatches(unobserved_urls);
@@ -116,10 +116,10 @@ void UrlAvailabilityRequester::RemoveObserver(ReceiverObserver* observer) {
 }
 
 void UrlAvailabilityRequester::AddReceiver(const ServiceInfo& info) {
-  auto result = receiver_by_service_id_.emplace(
-      info.service_id,
+  auto result = receiver_by_instance_id_.emplace(
+      info.instance_id,
       std::make_unique<ReceiverRequester>(
-          *this, info.service_id,
+          *this, info.instance_id,
           info.v4_endpoint.address ? info.v4_endpoint : info.v6_endpoint));
   std::unique_ptr<ReceiverRequester>& receiver = result.first->second;
   std::vector<std::string> urls;
@@ -132,26 +132,26 @@ void UrlAvailabilityRequester::AddReceiver(const ServiceInfo& info) {
 void UrlAvailabilityRequester::ChangeReceiver(const ServiceInfo& info) {}
 
 void UrlAvailabilityRequester::RemoveReceiver(const ServiceInfo& info) {
-  auto receiver_entry = receiver_by_service_id_.find(info.service_id);
-  if (receiver_entry != receiver_by_service_id_.end()) {
+  auto receiver_entry = receiver_by_instance_id_.find(info.instance_id);
+  if (receiver_entry != receiver_by_instance_id_.end()) {
     auto& receiver = receiver_entry->second;
     receiver->RemoveReceiver();
-    receiver_by_service_id_.erase(receiver_entry);
+    receiver_by_instance_id_.erase(receiver_entry);
   }
 }
 
 void UrlAvailabilityRequester::RemoveAllReceivers() {
-  for (auto& entry : receiver_by_service_id_) {
+  for (auto& entry : receiver_by_instance_id_) {
     auto& receiver = entry.second;
     receiver->RemoveReceiver();
   }
-  receiver_by_service_id_.clear();
+  receiver_by_instance_id_.clear();
 }
 
 Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
   const Clock::time_point now = now_function_();
   Clock::time_point minimum_schedule_time = now + kWatchDuration;
-  for (auto& entry : receiver_by_service_id_) {
+  for (auto& entry : receiver_by_instance_id_) {
     auto& receiver = entry.second;
     const Clock::time_point requested_schedule_time =
         receiver->RefreshWatches(now);
@@ -163,10 +163,10 @@ Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
 
 UrlAvailabilityRequester::ReceiverRequester::ReceiverRequester(
     UrlAvailabilityRequester& listener,
-    const std::string& service_id,
+    const std::string& instance_id,
     const IPEndpoint& endpoint)
     : listener_(listener),
-      service_id_(service_id),
+      instance_id_(instance_id),
       connect_request_(
           NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
               endpoint,
@@ -189,11 +189,11 @@ void UrlAvailabilityRequester::ReceiverRequester::GetOrRequestAvailabilities(
     if (observer) {
       switch (availability) {
         case msgs::UrlAvailability::kAvailable:
-          observer->OnReceiverAvailable(url, service_id_);
+          observer->OnReceiverAvailable(url, instance_id_);
           break;
         case msgs::UrlAvailability::kUnavailable:
         case msgs::UrlAvailability::kInvalid:
-          observer->OnReceiverUnavailable(url, service_id_);
+          observer->OnReceiverUnavailable(url, instance_id_);
           break;
       }
     }
@@ -215,7 +215,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RequestUrlAvailabilities(
   } else {
     for (const auto& url : urls)
       for (auto& observer : listener_.observers_by_url_[url])
-        observer->OnRequestFailed(url, service_id_);
+        observer->OnRequestFailed(url, instance_id_);
   }
 }
 
@@ -294,12 +294,12 @@ Error::Code UrlAvailabilityRequester::ReceiverRequester::UpdateAvailabilities(
       switch (*availability_it) {
         case msgs::UrlAvailability::kAvailable:
           for (auto* observer : observers)
-            observer->OnReceiverAvailable(url, service_id_);
+            observer->OnReceiverAvailable(url, instance_id_);
           break;
         case msgs::UrlAvailability::kUnavailable:
         case msgs::UrlAvailability::kInvalid:
           for (auto* observer : observers)
-            observer->OnReceiverUnavailable(url, service_id_);
+            observer->OnReceiverUnavailable(url, instance_id_);
           break;
         default:
           break;
@@ -338,7 +338,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveUnobservedRequests(
     } else {
       for (const auto& url : urls)
         for (auto& observer : listener_.observers_by_url_[url])
-          observer->OnRequestFailed(url, service_id_);
+          observer->OnRequestFailed(url, instance_id_);
     }
   }
 
@@ -379,7 +379,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveReceiver() {
     if (availability.second == msgs::UrlAvailability::kAvailable) {
       const std::string& url = availability.first;
       for (auto& observer : listener_.observers_by_url_[url])
-        observer->OnReceiverUnavailable(url, service_id_);
+        observer->OnReceiverUnavailable(url, instance_id_);
     }
   }
 }
@@ -416,10 +416,10 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionFailed(
   }
   for (const auto& url : waiting_urls)
     for (auto& observer : listener_.observers_by_url_[url])
-      observer->OnRequestFailed(url, service_id_);
+      observer->OnRequestFailed(url, instance_id_);
 
-  std::string id = std::move(service_id_);
-  listener_.receiver_by_service_id_.erase(id);
+  std::string id = std::move(instance_id_);
+  listener_.receiver_by_instance_id_.erase(id);
 }
 
 ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(

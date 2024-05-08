@@ -78,7 +78,7 @@ class UrlAvailabilityRequester {
         public MessageDemuxer::MessageCallback {
    public:
     ReceiverRequester(UrlAvailabilityRequester& listener,
-                      const std::string& service_id,
+                      const std::string& instance_id,
                       const IPEndpoint& endpoint);
     ~ReceiverRequester() override;
 
@@ -129,7 +129,7 @@ class UrlAvailabilityRequester {
 
     uint64_t next_watch_id_ = 1;
 
-    const std::string service_id_;
+    const std::string instance_id_;
     uint64_t endpoint_id_{0};
 
     ProtocolConnectionClient::ConnectRequest connect_request_;
@@ -149,7 +149,7 @@ class UrlAvailabilityRequester {
   std::map<std::string, std::vector<ReceiverObserver*>> observers_by_url_;
 
   std::map<std::string, std::unique_ptr<ReceiverRequester>>
-      receiver_by_service_id_;
+      receiver_by_instance_id_;
 };
 
 }  // namespace openscreen::osp

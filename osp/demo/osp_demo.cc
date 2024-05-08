@@ -99,14 +99,14 @@ class DemoListenerObserver final : public ServiceListener::Observer {
   void OnMetrics(ServiceListener::Metrics) override {}
 };
 
-std::string SanitizeServiceId(std::string_view service_id) {
-  std::string safe_service_id(service_id);
-  for (auto& c : safe_service_id) {
+std::string SanitizeInstanceId(std::string_view instance_id) {
+  std::string safe_instance_id(instance_id);
+  for (auto& c : safe_instance_id) {
     if (c < ' ' || c > '~') {
       c = '.';
     }
   }
-  return safe_service_id;
+  return safe_instance_id;
 }
 
 class DemoReceiverObserver final : public ReceiverObserver {
@@ -114,33 +114,33 @@ class DemoReceiverObserver final : public ReceiverObserver {
   ~DemoReceiverObserver() override = default;
 
   void OnRequestFailed(const std::string& presentation_url,
-                       const std::string& service_id) override {
-    std::string safe_service_id = SanitizeServiceId(service_id);
+                       const std::string& instance_id) override {
+    std::string safe_instance_id = SanitizeInstanceId(instance_id);
     OSP_LOG_WARN << "request failed: (" << presentation_url << ", "
-                 << safe_service_id << ")";
+                 << safe_instance_id << ")";
   }
   void OnReceiverAvailable(const std::string& presentation_url,
-                           const std::string& service_id) override {
-    std::string safe_service_id = SanitizeServiceId(service_id);
-    safe_service_ids_.emplace(safe_service_id, service_id);
-    OSP_LOG_INFO << "available! " << safe_service_id;
+                           const std::string& instance_id) override {
+    std::string safe_instance_id = SanitizeInstanceId(instance_id);
+    safe_instance_ids_.emplace(safe_instance_id, instance_id);
+    OSP_LOG_INFO << "available! " << safe_instance_id;
   }
   void OnReceiverUnavailable(const std::string& presentation_url,
-                             const std::string& service_id) override {
-    std::string safe_service_id = SanitizeServiceId(service_id);
-    safe_service_ids_.erase(safe_service_id);
-    OSP_LOG_INFO << "unavailable! " << safe_service_id;
+                             const std::string& instance_id) override {
+    std::string safe_instance_id = SanitizeInstanceId(instance_id);
+    safe_instance_ids_.erase(safe_instance_id);
+    OSP_LOG_INFO << "unavailable! " << safe_instance_id;
   }
 
-  const std::string& GetServiceId(const std::string& safe_service_id) {
-    OSP_CHECK(safe_service_ids_.find(safe_service_id) !=
-              safe_service_ids_.end())
-        << safe_service_id << " not found in map";
-    return safe_service_ids_[safe_service_id];
+  const std::string& GetInstanceId(const std::string& safe_instance_id) {
+    OSP_CHECK(safe_instance_ids_.find(safe_instance_id) !=
+              safe_instance_ids_.end())
+        << safe_instance_id << " not found in map";
+    return safe_instance_ids_[safe_instance_id];
   }
 
  private:
-  std::map<std::string, std::string> safe_service_ids_;
+  std::map<std::string, std::string> safe_instance_ids_;
 };
 
 class DemoPublisherObserver final : public ServicePublisher::Observer {
@@ -401,12 +401,12 @@ void RunControllerPollLoop(Controller* controller) {
       const std::string_view& argument_tail =
           command_result.command_line.argument_tail;
       size_t next_split = argument_tail.find_first_of(' ');
-      const std::string& service_id = receiver_observer.GetServiceId(
+      const std::string& instance_id = receiver_observer.GetInstanceId(
           std::string(argument_tail.substr(next_split + 1)));
       const std::string url =
           static_cast<std::string>(argument_tail.substr(0, next_split));
       connect_request = controller->StartPresentation(
-          url, service_id, &request_delegate, &connection_delegate);
+          url, instance_id, &request_delegate, &connection_delegate);
     } else if (command_result.command_line.command == "msg") {
       request_delegate.connection_->SendString(
           command_result.command_line.argument_tail);

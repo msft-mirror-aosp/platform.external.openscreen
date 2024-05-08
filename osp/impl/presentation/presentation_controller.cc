@@ -67,7 +67,7 @@ class Controller::MessageGroupStreams final
       public RequestResponseHandler<ConnectionCloseRequest>::Delegate,
       public RequestResponseHandler<TerminationRequest>::Delegate {
  public:
-  MessageGroupStreams(Controller* controller, const std::string& service_id);
+  MessageGroupStreams(Controller* controller, const std::string& instance_id);
   ~MessageGroupStreams();
 
   uint64_t SendStartRequest(StartRequest request);
@@ -109,7 +109,7 @@ class Controller::MessageGroupStreams final
   uint64_t GetNextInternalRequestId();
 
   Controller* const controller_;
-  const std::string service_id_;
+  const std::string instance_id_;
 
   uint64_t next_internal_request_id_ = 1;
   ProtocolConnectionClient::ConnectRequest initiation_connect_request_;
@@ -129,9 +129,9 @@ class Controller::MessageGroupStreams final
 
 Controller::MessageGroupStreams::MessageGroupStreams(
     Controller* controller,
-    const std::string& service_id)
+    const std::string& instance_id)
     : controller_(controller),
-      service_id_(service_id),
+      instance_id_(instance_id),
       initiation_handler_(*this),
       connection_open_handler_(*this),
       connection_close_handler_(*this),
@@ -146,7 +146,7 @@ uint64_t Controller::MessageGroupStreams::SendStartRequest(
     initiation_connect_request_stack_ = true;
     initiation_connect_request_ =
         NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            controller_->receiver_endpoints_[service_id_], this);
+            controller_->receiver_endpoints_[instance_id_], this);
     initiation_connect_request_stack_ = false;
   }
   initiation_handler_.WriteMessage(request_id, std::move(request));
@@ -175,14 +175,15 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
   OSP_LOG_INFO << "presentation started for " << request->request.url;
   Controller::ControlledPresentation& presentation =
       controller_->presentations_[request->request.presentation_id];
-  presentation.service_id = service_id_;
+  presentation.instance_id = instance_id_;
   presentation.url = request->request.url;
   auto connection = std::make_unique<Connection>(
       Connection::PresentationInfo{request->request.presentation_id,
                                    request->request.url},
       request->presentation_connection_delegate, controller_);
-  controller_->OpenConnection(response->connection_id, endpoint_id, service_id_,
-                              request->delegate, std::move(connection),
+  controller_->OpenConnection(response->connection_id, endpoint_id,
+                              instance_id_, request->delegate,
+                              std::move(connection),
                               NetworkServiceManager::Get()
                                   ->GetProtocolConnectionClient()
                                   ->CreateProtocolConnection(endpoint_id));
@@ -200,7 +201,7 @@ uint64_t Controller::MessageGroupStreams::SendConnectionOpenRequest(
     connection_connect_request_stack_ = true;
     connection_connect_request_ =
         NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            controller_->receiver_endpoints_[service_id_], this);
+            controller_->receiver_endpoints_[instance_id_], this);
     connection_connect_request_stack_ = false;
   }
   connection_open_handler_.WriteMessage(request_id, std::move(request));
@@ -255,7 +256,7 @@ void Controller::MessageGroupStreams::SendConnectionCloseRequest(
     connection_connect_request_stack_ = true;
     connection_connect_request_ =
         NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            controller_->receiver_endpoints_[service_id_], this);
+            controller_->receiver_endpoints_[instance_id_], this);
     connection_connect_request_stack_ = false;
   }
   connection_close_handler_.WriteMessage(std::move(request));
@@ -283,7 +284,7 @@ void Controller::MessageGroupStreams::SendTerminationRequest(
   if (!initiation_protocol_connection_ && !initiation_connect_request_) {
     initiation_connect_request_ =
         NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            controller_->receiver_endpoints_[service_id_], this);
+            controller_->receiver_endpoints_[instance_id_], this);
   }
   termination_handler_.WriteMessage(std::move(request));
 }
@@ -384,10 +385,10 @@ void swap(Controller::ReceiverWatch& a, Controller::ReceiverWatch& b) {
 
 Controller::ConnectRequest::ConnectRequest() = default;
 Controller::ConnectRequest::ConnectRequest(Controller* controller,
-                                           const std::string& service_id,
+                                           const std::string& instance_id,
                                            bool is_reconnect,
                                            std::optional<uint64_t> request_id)
-    : service_id_(service_id),
+    : instance_id_(instance_id),
       is_reconnect_(is_reconnect),
       request_id_(request_id),
       controller_(controller) {}
@@ -398,7 +399,7 @@ Controller::ConnectRequest::ConnectRequest(ConnectRequest&& other) noexcept {
 
 Controller::ConnectRequest::~ConnectRequest() {
   if (request_id_) {
-    controller_->CancelConnectRequest(service_id_, is_reconnect_,
+    controller_->CancelConnectRequest(instance_id_, is_reconnect_,
                                       request_id_.value());
   }
   request_id_ = 0;
@@ -412,7 +413,7 @@ Controller::ConnectRequest& Controller::ConnectRequest::operator=(
 
 void swap(Controller::ConnectRequest& a, Controller::ConnectRequest& b) {
   using std::swap;
-  swap(a.service_id_, b.service_id_);
+  swap(a.instance_id_, b.instance_id_);
   swap(a.is_reconnect_, b.is_reconnect_);
   swap(a.request_id_, b.request_id_);
   swap(a.controller_, b.controller_);
@@ -428,12 +429,11 @@ Controller::Controller(ClockNowFunctionPtr now_function) {
   const std::vector<ServiceInfo>& receivers =
       NetworkServiceManager::Get()->GetServiceListener()->GetReceivers();
   for (const auto& info : receivers) {
-    // TODO(crbug.com/openscreen/33): Replace service_id with endpoint_id when
-    // endpoint_id is more than just an IPEndpoint counter and actually relates
-    // to a device's identity.
-    receiver_endpoints_.emplace(info.service_id, info.v4_endpoint.port
-                                                     ? info.v4_endpoint
-                                                     : info.v6_endpoint);
+    // TODO(issuetracker.google.com/155337369): Need a consistent way of
+    // referring to an endpoint that is tied to authentication.
+    receiver_endpoints_.emplace(info.instance_id, info.v4_endpoint.port
+                                                      ? info.v4_endpoint
+                                                      : info.v6_endpoint);
     availability_requester_->AddReceiver(info);
   }
   // TODO(btolsch): This is for |receiver_endpoints_|, but this should really be
@@ -455,24 +455,24 @@ Controller::ReceiverWatch Controller::RegisterReceiverWatch(
 
 Controller::ConnectRequest Controller::StartPresentation(
     const std::string& url,
-    const std::string& service_id,
+    const std::string& instance_id,
     RequestDelegate* delegate,
     Connection::Delegate* conn_delegate) {
   StartRequest request;
   request.request.url = url;
-  request.request.presentation_id = MakePresentationId(url, service_id);
+  request.request.presentation_id = MakePresentationId(url, instance_id);
   request.delegate = delegate;
   request.presentation_connection_delegate = conn_delegate;
   uint64_t request_id =
-      group_streams_[service_id]->SendStartRequest(std::move(request));
+      group_streams_[instance_id]->SendStartRequest(std::move(request));
   constexpr bool is_reconnect = false;
-  return ConnectRequest(this, service_id, is_reconnect, request_id);
+  return ConnectRequest(this, instance_id, is_reconnect, request_id);
 }
 
 Controller::ConnectRequest Controller::ReconnectPresentation(
     const std::vector<std::string>& urls,
     const std::string& presentation_id,
-    const std::string& service_id,
+    const std::string& instance_id,
     RequestDelegate* delegate,
     Connection::Delegate* conn_delegate) {
   auto presentation_entry = presentations_.find(presentation_id);
@@ -490,10 +490,10 @@ Controller::ConnectRequest Controller::ReconnectPresentation(
   request.delegate = delegate;
   request.presentation_connection_delegate = conn_delegate;
   request.connection = nullptr;
-  uint64_t request_id =
-      group_streams_[service_id]->SendConnectionOpenRequest(std::move(request));
+  uint64_t request_id = group_streams_[instance_id]->SendConnectionOpenRequest(
+      std::move(request));
   constexpr bool is_reconnect = true;
-  return ConnectRequest(this, service_id, is_reconnect, request_id);
+  return ConnectRequest(this, instance_id, is_reconnect, request_id);
 }
 
 Controller::ConnectRequest Controller::ReconnectConnection(
@@ -524,11 +524,11 @@ Controller::ConnectRequest Controller::ReconnectConnection(
   request.delegate = delegate;
   request.presentation_connection_delegate = nullptr;
   request.connection = std::move(connection);
-  const std::string& service_id = presentation_entry->second.service_id;
-  uint64_t request_id =
-      group_streams_[service_id]->SendConnectionOpenRequest(std::move(request));
+  const std::string& instance_id = presentation_entry->second.instance_id;
+  uint64_t request_id = group_streams_[instance_id]->SendConnectionOpenRequest(
+      std::move(request));
   constexpr bool is_reconnect = true;
-  return ConnectRequest(this, service_id, is_reconnect, request_id);
+  return ConnectRequest(this, instance_id, is_reconnect, request_id);
 }
 
 Error Controller::CloseConnection(Connection* connection,
@@ -544,7 +544,7 @@ Error Controller::CloseConnection(Connection* connection,
   }
   ConnectionCloseRequest request;
   request.request.connection_id = connection->connection_id();
-  group_streams_[presentation_entry->second.service_id]
+  group_streams_[presentation_entry->second.instance_id]
       ->SendConnectionCloseRequest(std::move(request));
   return Error::None();
 }
@@ -563,7 +563,7 @@ Error Controller::OnPresentationTerminated(const std::string& presentation_id,
   TerminationRequest request = {
       .request = {.presentation_id = presentation_id,
                   .reason = msgs::PresentationTerminationReason::kUserRequest}};
-  group_streams_[presentation.service_id]->SendTerminationRequest(
+  group_streams_[presentation.instance_id]->SendTerminationRequest(
       std::move(request));
   presentations_.erase(presentation_entry);
   termination_listener_by_id_.erase(presentation_id);
@@ -593,11 +593,11 @@ std::string Controller::GetServiceIdForPresentationId(
   if (presentation_entry == presentations_.end()) {
     return "";
   }
-  return presentation_entry->second.service_id;
+  return presentation_entry->second.instance_id;
 }
 
 ProtocolConnection* Controller::GetConnectionRequestGroupStream(
-    const std::string& service_id) {
+    const std::string& instance_id) {
   OSP_UNIMPLEMENTED();
   return nullptr;
 }
@@ -676,10 +676,10 @@ ErrorOr<size_t> Controller::TerminationListener::OnStreamMessage(
 
 // static
 std::string Controller::MakePresentationId(const std::string& url,
-                                           const std::string& service_id) {
+                                           const std::string& instance_id) {
   // TODO(btolsch): This is just a placeholder for the demo. It should
   // eventually become a GUID/unguessable token routine.
-  std::string safe_id = service_id;
+  std::string safe_id = instance_id;
   for (auto& c : safe_id)
     if (c < ' ' || c > '~')
       c = '.';
@@ -693,7 +693,7 @@ void Controller::AddConnection(Connection* connection) {
 void Controller::OpenConnection(
     uint64_t connection_id,
     uint64_t endpoint_id,
-    const std::string& service_id,
+    const std::string& instance_id,
     RequestDelegate* request_delegate,
     std::unique_ptr<Connection>&& connection,
     std::unique_ptr<ProtocolConnection>&& protocol_connection) {
@@ -705,7 +705,7 @@ void Controller::OpenConnection(
     auto emplace_entry = presentations_.emplace(
         presentation_id,
         ControlledPresentation{
-            service_id, connection->presentation_info().url, {}});
+            instance_id, connection->presentation_info().url, {}});
     presentation_entry = emplace_entry.first;
   }
   ControlledPresentation& presentation = presentation_entry->second;
@@ -736,10 +736,10 @@ void Controller::CancelReceiverWatch(const std::vector<std::string>& urls,
   availability_requester_->RemoveObserverUrls(urls, observer);
 }
 
-void Controller::CancelConnectRequest(const std::string& service_id,
+void Controller::CancelConnectRequest(const std::string& instance_id,
                                       bool is_reconnect,
                                       uint64_t request_id) {
-  auto group_streams_entry = group_streams_.find(service_id);
+  auto group_streams_entry = group_streams_.find(instance_id);
   if (group_streams_entry == group_streams_.end())
     return;
   if (is_reconnect) {
@@ -755,24 +755,24 @@ void Controller::OnSuspended() {}
 void Controller::OnSearching() {}
 
 void Controller::OnReceiverAdded(const ServiceInfo& info) {
-  receiver_endpoints_.emplace(info.service_id, info.v4_endpoint.port
-                                                   ? info.v4_endpoint
-                                                   : info.v6_endpoint);
+  receiver_endpoints_.emplace(info.instance_id, info.v4_endpoint.port
+                                                    ? info.v4_endpoint
+                                                    : info.v6_endpoint);
   auto group_streams =
-      std::make_unique<MessageGroupStreams>(this, info.service_id);
-  group_streams_[info.service_id] = std::move(group_streams);
+      std::make_unique<MessageGroupStreams>(this, info.instance_id);
+  group_streams_[info.instance_id] = std::move(group_streams);
   availability_requester_->AddReceiver(info);
 }
 
 void Controller::OnReceiverChanged(const ServiceInfo& info) {
-  receiver_endpoints_[info.service_id] =
+  receiver_endpoints_[info.instance_id] =
       info.v4_endpoint.port ? info.v4_endpoint : info.v6_endpoint;
   availability_requester_->ChangeReceiver(info);
 }
 
 void Controller::OnReceiverRemoved(const ServiceInfo& info) {
-  receiver_endpoints_.erase(info.service_id);
-  group_streams_.erase(info.service_id);
+  receiver_endpoints_.erase(info.instance_id);
+  group_streams_.erase(info.instance_id);
   availability_requester_->RemoveReceiver(info);
 }
 

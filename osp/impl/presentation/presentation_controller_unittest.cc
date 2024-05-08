@@ -50,13 +50,13 @@ class MockReceiverObserver final : public ReceiverObserver {
 
   MOCK_METHOD2(OnRequestFailed,
                void(const std::string& presentation_url,
-                    const std::string& service_id));
+                    const std::string& instance_id));
   MOCK_METHOD2(OnReceiverAvailable,
                void(const std::string& presentation_url,
-                    const std::string& service_id));
+                    const std::string& instance_id));
   MOCK_METHOD2(OnReceiverUnavailable,
                void(const std::string& presentation_url,
-                    const std::string& service_id));
+                    const std::string& instance_id));
 };
 
 class MockRequestDelegate final : public RequestDelegate {
@@ -276,7 +276,7 @@ class ControllerTest : public ::testing::Test {
           return result;
         }));
     Controller::ConnectRequest connect_request = controller_->StartPresentation(
-        "https://example.com/receiver.html", receiver_info1.service_id,
+        "https://example.com/receiver.html", receiver_info1.instance_id,
         &mock_request_delegate, mock_connection_delegate);
     ASSERT_TRUE(connect_request);
     quic_bridge_.RunTasksUntilIdle();
@@ -327,10 +327,10 @@ TEST_F(ControllerTest, ReceiverWatchMoves) {
 }
 
 TEST_F(ControllerTest, ConnectRequestMoves) {
-  std::string service_id{"service-id1"};
+  std::string instance_id{"instance-id1"};
   uint64_t request_id = 7;
 
-  Controller::ConnectRequest request1(controller_.get(), service_id, false,
+  Controller::ConnectRequest request1(controller_.get(), instance_id, false,
                                       request_id);
   EXPECT_TRUE(request1);
   Controller::ConnectRequest request2;
