@@ -67,6 +67,10 @@ bool QuicServer::Resume() {
   return true;
 }
 
+std::string QuicServer::GetFingerprint() {
+  return connection_factory_->GetFingerprint();
+}
+
 void QuicServer::Cleanup() {
   for (auto& entry : connections_)
     entry.second.delegate->DestroyClosedStreams();

@@ -10,6 +10,7 @@
 #include "discovery/dnssd/public/dns_sd_instance.h"
 #include "discovery/dnssd/public/dns_sd_txt_record.h"
 #include "discovery/public/dns_sd_service_factory.h"
+#include "osp/impl/osp_constants.h"
 #include "osp/public/service_info.h"
 #include "platform/base/macros.h"
 #include "util/osp_logging.h"
@@ -20,14 +21,12 @@ using State = ServicePublisher::State;
 
 namespace {
 
-constexpr char kFriendlyNameTxtKey[] = "fn";
-constexpr char kDnsSdDomainId[] = "local";
-
 discovery::DnsSdInstance ServiceConfigToDnsSdInstance(
     const ServicePublisher::Config& config) {
   discovery::DnsSdTxtRecord txt;
   const bool did_set_everything =
-      txt.SetValue(kFriendlyNameTxtKey, config.friendly_name).ok();
+      txt.SetValue(kFriendlyNameTxtKey, config.friendly_name).ok() &&
+      txt.SetValue(kFingerprint, config.fingerprint).ok();
   OSP_CHECK(did_set_everything);
 
   // NOTE: Not totally clear how we should be using config.hostname, which in

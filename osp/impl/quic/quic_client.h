@@ -39,6 +39,9 @@ namespace openscreen::osp {
 // endpoint, Connect will start a connection attempt and store the callback for
 // when the connection completes.  CreateProtocolConnection simply returns
 // nullptr if there's no existing connection.
+//
+// TODO(issuetracker.google.com/155337369): Need a consistent way of referring
+// to an endpoint that is tied to authentication.
 class QuicClient final : public ProtocolConnectionClient,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
@@ -72,6 +75,8 @@ class QuicClient final : public ProtocolConnectionClient,
                       uint64_t protocol_connection_id,
                       const ByteView& bytes) override;
 
+  std::map<IPEndpoint, std::string>& fingerprints() { return fingerprints_; }
+
  private:
   struct PendingConnectionData {
     explicit PendingConnectionData(ServiceConnectionData&& data);
@@ -84,6 +89,18 @@ class QuicClient final : public ProtocolConnectionClient,
     // Pairs of request IDs and the associated connection callback.
     std::vector<std::pair<uint64_t, ConnectionRequestCallback*>> callbacks;
   };
+
+  // ServiceListener::Observer overrides.
+  void OnStarted() override;
+  void OnStopped() override;
+  void OnSuspended() override;
+  void OnSearching() override;
+  void OnReceiverAdded(const ServiceInfo& info) override;
+  void OnReceiverChanged(const ServiceInfo& info) override;
+  void OnReceiverRemoved(const ServiceInfo& info) override;
+  void OnAllReceiversRemoved() override;
+  void OnError(const Error& error) override;
+  void OnMetrics(ServiceListener::Metrics) override;
 
   ConnectRequest CreatePendingConnection(const IPEndpoint& endpoint,
                                          ConnectionRequestCallback* request);
@@ -128,6 +145,8 @@ class QuicClient final : public ProtocolConnectionClient,
   // Maps endpoint IDs to data about connections that have successfully
   // completed the QUIC handshake.
   std::map<uint64_t, ServiceConnectionData> connections_;
+
+  std::map<IPEndpoint, std::string> fingerprints_;
 
   // Connections (endpoint IDs) that need to be destroyed, but have to wait for
   // the next event loop due to the underlying QUIC implementation's way of

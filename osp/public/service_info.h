@@ -13,8 +13,6 @@
 
 namespace openscreen::osp {
 
-constexpr char kOpenScreenServiceName[] = "_openscreen._udp";
-
 // This contains canonical information about a specific Open Screen service
 // found on the network via our discovery mechanism (mDNS).
 struct ServiceInfo {
@@ -22,6 +20,7 @@ struct ServiceInfo {
   bool operator!=(const ServiceInfo& other) const;
 
   bool Update(const std::string& friendly_name,
+              const std::string& fingerprint,
               NetworkInterfaceIndex network_interface_index,
               const IPEndpoint& v4_endpoint,
               const IPEndpoint& v6_endpoint);
@@ -33,6 +32,9 @@ struct ServiceInfo {
 
   // User visible name of the Open Screen service in UTF-8.
   std::string friendly_name;
+
+  // Agent fingerprint.
+  std::string fingerprint;
 
   // The index of the network interface that the screen was discovered on.
   NetworkInterfaceIndex network_interface_index = kInvalidNetworkInterfaceIndex;

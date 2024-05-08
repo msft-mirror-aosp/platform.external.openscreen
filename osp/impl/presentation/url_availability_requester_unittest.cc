@@ -49,7 +49,8 @@ class UrlAvailabilityRequesterTest : public Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(1298424))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
-    info1_ = {service_id_, friendly_name_, 1, quic_bridge_.kReceiverEndpoint};
+    info1_ = {service_id_, friendly_name_, quic_bridge_.kFingerprint, 1,
+              quic_bridge_.kReceiverEndpoint};
   }
 
   void SetUp() override {

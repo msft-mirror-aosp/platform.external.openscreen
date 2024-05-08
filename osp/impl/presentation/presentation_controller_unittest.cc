@@ -79,8 +79,12 @@ class ControllerTest : public ::testing::Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(11111))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
-    receiver_info1 = {
-        "service-id1", "lucas-auer", 1, quic_bridge_.kReceiverEndpoint, {}};
+    receiver_info1 = {"service-id1",
+                      "lucas-auer",
+                      quic_bridge_.kFingerprint,
+                      1,
+                      quic_bridge_.kReceiverEndpoint,
+                      {}};
   }
 
  protected:
@@ -90,6 +94,7 @@ class ControllerTest : public ::testing::Test {
     mock_listener_delegate_ = mock_listener_delegate.get();
     auto service_listener = std::make_unique<ServiceListenerImpl>(
         std::move(mock_listener_delegate));
+    service_listener->AddObserver(*quic_bridge_.quic_client);
     NetworkServiceManager::Create(std::move(service_listener), nullptr,
                                   std::move(quic_bridge_.quic_client),
                                   std::move(quic_bridge_.quic_server));

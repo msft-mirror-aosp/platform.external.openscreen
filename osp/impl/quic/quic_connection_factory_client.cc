@@ -18,14 +18,6 @@
 
 namespace openscreen::osp {
 
-namespace {
-
-constexpr char kFingerPrint[] =
-    "50:87:8D:CA:1B:9B:67:76:CB:87:88:1C:43:20:82:7A:91:F5:9B:74:4D:85:95:D0:"
-    "76:E6:0B:50:7F:D3:29:D9";
-
-}  // namespace
-
 QuicConnectionFactoryClient::QuicConnectionFactoryClient(
     TaskRunner& task_runner)
     : QuicConnectionFactoryBase(task_runner) {}
@@ -60,6 +52,7 @@ void QuicConnectionFactoryClient::OnRead(UdpSocket* socket,
 ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
     const IPEndpoint& local_endpoint,
     const IPEndpoint& remote_endpoint,
+    const std::string& fingerprint,
     QuicConnection::Delegate* connection_delegate) {
   auto create_result = UdpSocket::Create(task_runner_, this, local_endpoint);
   if (!create_result) {
@@ -82,7 +75,7 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
             helper_->GetClock(), /*max_validity_days=*/3650);
     const bool success =
         proof_verifier->AddFingerprint(quic::CertificateFingerprint{
-            quic::CertificateFingerprint::kSha256, kFingerPrint});
+            quic::CertificateFingerprint::kSha256, fingerprint});
     if (!success) {
       return Error::Code::kSha256HashFailure;
     }

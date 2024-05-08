@@ -31,6 +31,9 @@ constexpr size_t kMaxConnectionsToCreate = 256;
 constexpr char kCertificatesPath[] =
     "osp/impl/quic/certificates/openscreen.pem";
 constexpr char kPrivateKeyPath[] = "osp/impl/quic/certificates/openscreen.key";
+constexpr char kFingerPrint[] =
+    "50:87:8D:CA:1B:9B:67:76:CB:87:88:1C:43:20:82:7A:91:F5:9B:74:4D:85:95:D0:"
+    "76:E6:0B:50:7F:D3:29:D9";
 
 // TODO(issuetracker.google.com/300236996): Replace with OSP certificate
 // generation.
@@ -168,6 +171,12 @@ void QuicConnectionFactoryServer::OnConnectionClosed(
     OSP_CHECK(socket_it != dispatchers_.end());
     dispatchers_.erase(socket_it);
   }
+}
+
+// TODO(issuetracker.google.com/300236996): Replace with OSP certificate
+// generation.
+std::string QuicConnectionFactoryServer::GetFingerprint() {
+  return kFingerPrint;
 }
 
 }  // namespace openscreen::osp

@@ -177,7 +177,7 @@ void MdnsProbeManagerImpl::OnProbeSuccess(MdnsProbe* probe) {
     DomainName requested = std::move(it->requested_name);
     MdnsDomainConfirmedProvider* callback = it->callback;
     ongoing_probes_.erase(it);
-    callback->OnDomainFound(std::move(requested), std::move(target_name));
+    callback->OnDomainFound(requested, target_name);
   }
 }
 

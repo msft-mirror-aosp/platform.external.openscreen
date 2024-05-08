@@ -442,16 +442,17 @@ void ListenerDemo() {
   OSP_LOG_IF(WARN, listener_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS Listening.";
 
-  DemoListenerObserver listener_observer;
-  auto service_listener = ServiceListenerFactory::Create(
-      listener_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
-  service_listener->AddObserver(listener_observer);
-
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
       client_config, demuxer, client_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
+
+  DemoListenerObserver listener_observer;
+  auto service_listener = ServiceListenerFactory::Create(
+      listener_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
+  service_listener->AddObserver(listener_observer);
+  service_listener->AddObserver(*connection_client);
 
   auto* network_service =
       NetworkServiceManager::Create(std::move(service_listener), nullptr,
@@ -548,16 +549,19 @@ void PublisherDemo(std::string_view friendly_name) {
   OSP_LOG_IF(WARN, publisher_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS publishing.";
 
-  DemoPublisherObserver publisher_observer;
-  auto service_publisher = ServicePublisherFactory::Create(
-      publisher_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
-  service_publisher->AddObserver(publisher_observer);
-
   MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionServerObserver server_observer;
   auto connection_server = ProtocolConnectionServerFactory::Create(
       server_config, demuxer, server_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
+
+  publisher_config.fingerprint = connection_server->GetFingerprint();
+  OSP_CHECK(!publisher_config.fingerprint.empty());
+
+  DemoPublisherObserver publisher_observer;
+  auto service_publisher = ServicePublisherFactory::Create(
+      publisher_config, PlatformClientPosix::GetInstance()->GetTaskRunner());
+  service_publisher->AddObserver(publisher_observer);
 
   auto* network_service =
       NetworkServiceManager::Create(nullptr, std::move(service_publisher),

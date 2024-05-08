@@ -12,6 +12,7 @@
 #include "osp/public/endpoint_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
+#include "osp/public/service_listener.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 #include "platform/base/macros.h"
@@ -24,7 +25,7 @@ namespace openscreen::osp {
 // NOTE: This API closely resembles that for the ProtocolConnectionServer; the
 // client currently lacks Suspend(). Consider factoring out a common
 // ProtocolConnectionEndpoint when the two APIs are finalized.
-class ProtocolConnectionClient {
+class ProtocolConnectionClient : public ServiceListener::Observer {
  public:
   enum class State { kStopped = 0, kStarting, kRunning, kStopping };
 

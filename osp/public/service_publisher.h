@@ -74,6 +74,10 @@ class ServicePublisher {
     // leave it as an arbitrary name until the spec is finalized.
     std::string service_instance_name;
 
+    // The fingerprint of the server's certificate and it is included in DNS TXT
+    // records.
+    std::string fingerprint;
+
     // The port where openscreen connections are accepted.
     // Normally this should not be set, and must be identical to the port
     // configured in the ProtocolConnectionServer.

@@ -12,6 +12,7 @@
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 #include "discovery/dnssd/public/dns_sd_txt_record.h"
 #include "discovery/public/dns_sd_service_factory.h"
+#include "osp/impl/osp_constants.h"
 #include "platform/base/error.h"
 #include "platform/base/interface_info.h"
 #include "util/osp_logging.h"
@@ -21,8 +22,6 @@ namespace openscreen::osp {
 using State = ServiceListener::State;
 
 namespace {
-
-constexpr char kFriendlyNameTxtKey[] = "fn";
 
 ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
     const discovery::DnsSdInstanceEndpoint& endpoint) {
@@ -38,8 +37,19 @@ ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
     return {Error::Code::kParameterInvalid,
             "Missing receiver friendly name in record."};
   }
+  // TODO(Wei): Add additional validation to check and discard records with
+  // invalid fingerprints early. There's a specific format for the fingerprint
+  // defined by the spec:
+  // https://w3c.github.io/openscreenprotocol/#agent-fingerprint
+  std::string fingerprint =
+      endpoint.txt().GetStringValue(kFingerprint).value("");
+  if (fingerprint.empty()) {
+    return {Error::Code::kParameterInvalid,
+            "Missing agent fingerprint in record."};
+  }
 
-  ServiceInfo service_info{endpoint.service_id(), friendly_name,
+  ServiceInfo service_info{endpoint.service_id(), std::move(friendly_name),
+                           std::move(fingerprint),
                            endpoint.network_interface()};
   for (const IPEndpoint& record : endpoint.endpoints()) {
     if (!service_info.v4_endpoint && record.address.IsV4()) {

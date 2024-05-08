@@ -6,6 +6,7 @@
 #define OSP_IMPL_QUIC_QUIC_CONNECTION_FACTORY_CLIENT_H_
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "osp/impl/quic/quic_connection_factory_base.h"
@@ -28,6 +29,7 @@ class QuicConnectionFactoryClient : public QuicConnectionFactoryBase {
   virtual ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
+      const std::string& fingerprint,
       QuicConnection::Delegate* connection_delegate);
 
  private:
