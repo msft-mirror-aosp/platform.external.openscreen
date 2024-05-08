@@ -64,10 +64,6 @@ class ServicePublisher {
     // UTF-8.
     std::string friendly_name;
 
-    // The DNS hostname (as a single label) that should be used to advertise the
-    // host's interface addresses.
-    std::string hostname;
-
     // The DNS domain name label that should be used to identify this service
     // within the openscreen service type.
     // TODO(btolsch): This could be derived from |friendly_name| but we will
