@@ -29,6 +29,7 @@ openscreen_source_set("streaming_configs") {
     "resolution.h",
   ]
   sources = [
+    "constants.cc",
     "message_fields.cc",
     "resolution.cc",
   ]

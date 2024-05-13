@@ -107,10 +107,10 @@ void LoopingFileSender::SendFileAgain() {
   num_capturers_running_ = 2;
   capture_begin_time_ = latest_frame_time_ = env_.now() + seconds(1);
   audio_capturer_.emplace(
-      &env_, settings_.path_to_file.c_str(), audio_encoder_.num_channels(),
-      audio_encoder_.sample_rate(), capture_begin_time_, this);
-  video_capturer_.emplace(&env_, settings_.path_to_file.c_str(),
-                          capture_begin_time_, this);
+      env_, settings_.path_to_file.c_str(), audio_encoder_.num_channels(),
+      audio_encoder_.sample_rate(), capture_begin_time_, *this);
+  video_capturer_.emplace(env_, settings_.path_to_file.c_str(),
+                          capture_begin_time_, *this);
 
   next_task_.ScheduleFromNow([this] { ControlForNetworkCongestion(); },
                              kCongestionCheckInterval);

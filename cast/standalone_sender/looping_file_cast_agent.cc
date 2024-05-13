@@ -34,14 +34,14 @@ LoopingFileCastAgent::LoopingFileCastAgent(
     ShutdownCallback shutdown_callback)
     : task_runner_(task_runner),
       shutdown_callback_(std::move(shutdown_callback)),
-      connection_handler_(&router_, this),
-      socket_factory_(this,
+      connection_handler_(router_, *this),
+      socket_factory_(*this,
                       task_runner_,
                       std::move(cast_trust_store),
                       CastCRLTrustStore::Create()),
       connection_factory_(
           TlsConnectionFactory::CreateFactory(socket_factory_, task_runner_)),
-      message_port_(&router_) {
+      message_port_(router_) {
   router_.AddHandlerForLocalId(kPlatformSenderId, this);
   socket_factory_.set_factory(connection_factory_.get());
 }
@@ -283,7 +283,7 @@ void LoopingFileCastAgent::CreateAndStartSession() {
 
   SenderSession::Configuration config{
       connection_settings_->receiver_endpoint.address,
-      this,
+      *this,
       environment_.get(),
       &message_port_,
       remote_connection_->local_id,
@@ -371,7 +371,7 @@ void LoopingFileCastAgent::OnPlaybackRateChange(double rate) {
 void LoopingFileCastAgent::StartFileSender() {
   OSP_CHECK(current_negotiation_);
   file_sender_ = std::make_unique<LoopingFileSender>(
-      environment_.get(), connection_settings_.value(), current_session_.get(),
+      *environment_, connection_settings_.value(), current_session_.get(),
       std::move(*current_negotiation_), [this]() { shutdown_callback_(); });
   current_negotiation_.reset();
   is_ready_for_remoting_ = false;
