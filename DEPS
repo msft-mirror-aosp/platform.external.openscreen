@@ -47,10 +47,14 @@ vars = {
 
   # GN CIPD package version.
   'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
+  'clang_format_revision': 'e435ad79c17b1888b34df88d6a30a094936e3836',
 
   # 'magic' text to tell depot_tools that git submodules should be accepted
   # but parity with DEPS file is expected.
   'SUBMODULE_MIGRATION': 'True',
+
+  # The path of the sysroots.json file.
+  'sysroots_json_path': 'build/linux/sysroot_scripts/sysroots.json',
 
   # This can be overridden, e.g. with custom_vars, to build clang from HEAD
   # instead of downloading the prebuilt pinned revision.
@@ -76,6 +80,12 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
+  'third_party/clang-format/script': {
+    'url': Var('chromium_git') +
+      '/external/github.com/llvm/llvm-project/clang/tools/clang-format.git' +
+      '@' + Var('clang_format_revision'),
+    'condition': 'not build_with_chromium',
+  },
   'buildtools/linux64': {
     'packages': [
       {
@@ -250,6 +260,41 @@ hooks = [
                '--package=coverage_tools'],
   },
   {
+    'name': 'clang_format_linux64',
+    'pattern': '.',
+    'action': [ 'download_from_google_storage.py', '--no_resume', '--no_auth',
+                '--bucket', 'chromium-clang-format',
+                '-s', 'buildtools/linux64/clang-format.sha1' ],
+    'condition': 'host_os == "linux" and not build_with_chromium',
+  },
+  {
+    'name': 'clang_format_mac_x64',
+    'pattern': '.',
+    'action': [ 'download_from_google_storage.py', '--no_resume', '--no_auth',
+                '--bucket', 'chromium-clang-format',
+                '-s', 'buildtools/mac/clang-format.x64.sha1' ],
+    'condition': 'host_os == "mac" and host_cpu == "x64" and not build_with_chromium',
+  },
+  {
+    'name': 'clang_format_mac_arm64',
+    'pattern': '.',
+    'action': [ 'download_from_google_storage.py', '--no_resume', '--no_auth',
+                '--bucket', 'chromium-clang-format',
+                '-s', 'buildtools/mac/clang-format.arm64.sha1' ],
+    'condition': 'host_os == "mac" and host_cpu == "arm64" and not build_with_chromium',
+  },
+  {
+    'name': 'clang_format_win',
+    'pattern': '.',
+    'action': [ 'download_from_google_storage.py',
+                '--no_resume',
+                '--no_auth',
+                '--bucket', 'chromium-clang-format',
+                '-s', 'buildtools/win/clang-format.exe.sha1',
+    ],
+    'condition': 'host_os == "win" and not build_with_chromium',
+  },
+  {
     'name': 'msan_chained_origins_focal',
     'pattern': '.',
     'condition': 'checkout_instrumented_libraries and not build_with_chromium',
@@ -272,6 +317,54 @@ hooks = [
                 '--bucket', 'chromium-instrumented-libraries',
                 '-s', 'third_party/instrumented_libraries/binaries/msan-no-origins-focal.tgz.sha1',
               ],
+  },
+ {
+    'name': 'sysroot_arm',
+    'pattern': '.',
+    'condition': 'checkout_linux and checkout_arm and not build_with_chromium',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=arm'],
+  },
+  {
+    'name': 'sysroot_arm64',
+    'pattern': '.',
+    'condition': 'not build_with_chromium and checkout_linux and checkout_arm64',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=arm64'],
+  },
+  {
+    'name': 'sysroot_x86',
+    'pattern': '.',
+    'condition': 'not build_with_chromium and checkout_linux and (checkout_x86 or checkout_x64)',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=x86'],
+  },
+  {
+    'name': 'sysroot_mips',
+    'pattern': '.',
+    'condition': 'not build_with_chromium and checkout_linux and checkout_mips',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=mips'],
+  },
+  {
+    'name': 'sysroot_mips64',
+    'pattern': '.',
+    'condition': 'not build_with_chromium and checkout_linux and checkout_mips64',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=mips64el'],
+  },
+  {
+    'name': 'sysroot_x64',
+    'pattern': '.',
+    'condition': 'not build_with_chromium and checkout_linux and checkout_x64',
+    'action': ['python3', 'build/linux/sysroot_scripts/install-sysroot.py',
+               '--sysroots-json-path=' + Var('sysroots_json_path'),
+               '--arch=x64'],
   },
   {
     # Case-insensitivity for the Win SDK. Must run before win_toolchain below.
@@ -344,14 +437,6 @@ hooks = [
     'action': ['python3', 'build/util/lastchange.py',
                '-o', 'build/util/LASTCHANGE'],
   },
-]
-
-# This exists to allow Google Cloud Storage blobs in these DEPS to be fetched.
-# Do not add any additional recursedeps entries without consulting
-# mfoltz@chromium.org!
-recursedeps = [
-  'build/',
-  'buildtools/'
 ]
 
 include_rules = [
