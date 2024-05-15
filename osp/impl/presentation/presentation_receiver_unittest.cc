@@ -72,8 +72,9 @@ class PresentationReceiverTest : public ::testing::Test {
  protected:
   std::unique_ptr<ProtocolConnection> MakeClientStream() {
     MockConnectRequest mock_connect_request;
-    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        quic_bridge_.kReceiverEndpoint, &mock_connect_request);
+    connect_request_ =
+        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+            quic_bridge_.kReceiverEndpoint, &mock_connect_request);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request, OnConnectionOpened(_, _))
         .WillOnce([&stream](uint64_t request_id,
@@ -93,11 +94,13 @@ class PresentationReceiverTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    connect_request_.MarkComplete();
     receiver_.SetReceiverDelegate(nullptr);
     receiver_.Deinit();
     NetworkServiceManager::Dispose();
   }
 
+  QuicClient::ConnectRequest connect_request_;
   Receiver receiver_;
   FakeClock fake_clock_;
   FakeTaskRunner task_runner_;

@@ -124,11 +124,9 @@ uint64_t QuicClient::OnCryptoHandshakeComplete(
   connections_.emplace(endpoint_id, std::move(connection_data));
 
   for (auto& request : pending_entry->second.callbacks) {
-    request_map_.erase(request.first);
     std::unique_ptr<QuicProtocolConnection> pc =
         QuicProtocolConnection::FromExisting(*this, connection, delegate,
                                              endpoint_id);
-    request_map_.erase(request.first);
     request.second->OnConnectionOpened(request.first, std::move(pc));
   }
   pending_connections_.erase(pending_entry);
@@ -245,31 +243,29 @@ uint64_t QuicClient::StartConnectionRequest(
 }
 
 void QuicClient::CloseAllConnections() {
-  for (auto& conn : pending_connections_)
+  for (auto& conn : pending_connections_) {
     conn.second.data.connection->Close();
-
+    for (auto& item : conn.second.callbacks) {
+      item.second->OnConnectionFailed(item.first);
+    }
+  }
   pending_connections_.clear();
-  for (auto& conn : connections_)
-    conn.second.connection->Close();
 
+  for (auto& conn : connections_) {
+    conn.second.connection->Close();
+  }
   connections_.clear();
+
   endpoint_map_.clear();
   next_endpoint_id_ = 0;
   endpoint_request_ids_.Reset();
-  for (auto& request : request_map_) {
-    request.second.second->OnConnectionFailed(request.first);
-  }
-  request_map_.clear();
 }
 
 void QuicClient::CancelConnectRequest(uint64_t request_id) {
-  auto request_entry = request_map_.find(request_id);
-  if (request_entry == request_map_.end())
-    return;
-
-  auto pending_entry = pending_connections_.find(request_entry->second.first);
-  if (pending_entry != pending_connections_.end()) {
-    auto& callbacks = pending_entry->second.callbacks;
+  for (auto it = pending_connections_.begin(); it != pending_connections_.end();
+       ++it) {
+    auto& callbacks = it->second.callbacks;
+    auto size_before_delete = callbacks.size();
     callbacks.erase(
         std::remove_if(
             callbacks.begin(), callbacks.end(),
@@ -278,10 +274,18 @@ void QuicClient::CancelConnectRequest(uint64_t request_id) {
               return request_id == callback.first;
             }),
         callbacks.end());
-    if (callbacks.empty())
-      pending_connections_.erase(pending_entry);
+
+    if (callbacks.empty()) {
+      pending_connections_.erase(it);
+      return;
+    }
+
+    // If the size of the callbacks vector has changed, we have found the entry
+    // and can break out of the loop.
+    if (size_before_delete > callbacks.size()) {
+      return;
+    }
   }
-  request_map_.erase(request_entry);
 }
 
 }  // namespace openscreen::osp

@@ -58,8 +58,9 @@ class QuicServerTest : public Test {
  protected:
   std::unique_ptr<ProtocolConnection> ExpectIncomingConnection() {
     MockConnectRequest mock_connect_request;
-    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        quic_bridge_.kReceiverEndpoint, &mock_connect_request);
+    connect_request_ =
+        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+            quic_bridge_.kReceiverEndpoint, &mock_connect_request);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request, OnConnectionOpenedMock());
     EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
@@ -78,7 +79,10 @@ class QuicServerTest : public Test {
                                   std::move(quic_bridge_.quic_server));
   }
 
-  void TearDown() override { NetworkServiceManager::Dispose(); }
+  void TearDown() override {
+    connect_request_.MarkComplete();
+    NetworkServiceManager::Dispose();
+  }
 
   void SendTestMessage(ProtocolConnection* connection) {
     MockMessageCallback mock_message_callback;
@@ -121,6 +125,7 @@ class QuicServerTest : public Test {
     EXPECT_EQ(received_message.message.str, message.message.str);
   }
 
+  QuicClient::ConnectRequest connect_request_;
   FakeClock fake_clock_;
   FakeTaskRunner task_runner_;
   FakeQuicBridge quic_bridge_;

@@ -129,12 +129,6 @@ class QuicClient final : public ProtocolConnectionClient,
   // Value that will be used for the next new endpoint in a Connect call.
   uint64_t next_endpoint_id_ = 0;
 
-  // Maps request IDs to their callbacks.  The callback is paired with the
-  // IPEndpoint it originally requested to connect to so cancelling the request
-  // can also remove a pending connection.
-  std::map<uint64_t, std::pair<IPEndpoint, ConnectionRequestCallback*>>
-      request_map_;
-
   // Value that will be used for the next new connection request.
   uint64_t next_request_id_ = 1;
 

@@ -36,10 +36,10 @@ class MockParentDelegate : public Connection::ParentDelegate {
   MOCK_METHOD1(OnConnectionDestroyed, void(Connection*));
 };
 
-class MockConnectRequest final
+class MockConnectRequestCallback final
     : public ProtocolConnectionClient::ConnectionRequestCallback {
  public:
-  ~MockConnectRequest() override = default;
+  ~MockConnectRequestCallback() override = default;
 
   void OnConnectionOpened(
       uint64_t request_id,
@@ -135,12 +135,13 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   EXPECT_EQ(Connection::State::kConnecting, controller.state());
   EXPECT_EQ(Connection::State::kConnecting, receiver.state());
 
-  MockConnectRequest mock_connect_request;
+  MockConnectRequestCallback mock_connect_request_callback;
   std::unique_ptr<ProtocolConnection> controller_stream;
   std::unique_ptr<ProtocolConnection> receiver_stream;
-  NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-      quic_bridge_.kReceiverEndpoint, &mock_connect_request);
-  EXPECT_CALL(mock_connect_request, OnConnectionOpenedMock(_, _))
+  auto connect_request =
+      NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+          quic_bridge_.kReceiverEndpoint, &mock_connect_request_callback);
+  EXPECT_CALL(mock_connect_request_callback, OnConnectionOpenedMock(_, _))
       .WillOnce(Invoke([&controller_stream](uint64_t request_id,
                                             ProtocolConnection* stream) {
         controller_stream.reset(stream);
