@@ -37,7 +37,10 @@ void QuicStreamImpl::Write(const ByteView& bytes) {
 
 void QuicStreamImpl::CloseWriteEnd() {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicStreamImpl::CloseWriteEnd");
-  CloseWriteSide();
+  if (!write_side_closed()) {
+    Reset(quic::QUIC_STREAM_CANCELLED);
+    CloseWriteSide();
+  }
 }
 
 void QuicStreamImpl::OnDataAvailable() {

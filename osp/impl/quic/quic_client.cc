@@ -137,7 +137,6 @@ void QuicClient::OnIncomingStream(
     std::unique_ptr<QuicProtocolConnection> connection) {
   // TODO(jophba): Change to just use OnIncomingConnection when the observer
   // is properly set up.
-  connection->CloseWriteEnd();
   connection.reset();
 }
 

@@ -207,7 +207,6 @@ class DemoConnectionServerObserver final
     auto observer = std::make_unique<ConnectionObserver>(*this);
     connection->SetObserver(observer.get());
     connections_.emplace_back(std::move(observer), std::move(connection));
-    connections_.back().second->CloseWriteEnd();
   }
 
  private:

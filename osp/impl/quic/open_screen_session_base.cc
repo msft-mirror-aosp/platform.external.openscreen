@@ -66,8 +66,8 @@ QuicStream* OpenScreenSessionBase::CreateOutgoingStream(
   OSP_CHECK(IsEncryptionEstablished());
 
   auto stream = std::make_unique<QuicStreamImpl>(
-      *delegate, GetNextOutgoingBidirectionalStreamId(), this,
-      quic::BIDIRECTIONAL);
+      *delegate, GetNextOutgoingUnidirectionalStreamId(), this,
+      quic::WRITE_UNIDIRECTIONAL);
   QuicStreamImpl* stream_ptr = stream.get();
   ActivateStream(std::move(stream));
   return stream_ptr;
@@ -88,7 +88,7 @@ quic::QuicStream* OpenScreenSessionBase::CreateIncomingStream(
   auto stream = std::make_unique<QuicStreamImpl>(
       visitor_.GetConnectionDelegate().NextStreamDelegate(
           connection_id().ToString(), id),
-      id, this, quic::BIDIRECTIONAL);
+      id, this, quic::READ_UNIDIRECTIONAL);
   auto* stream_ptr = stream.get();
   ActivateStream(std::move(stream));
   visitor_.OnIncomingStream(stream_ptr);
