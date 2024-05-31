@@ -166,9 +166,9 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
-  'third_party/instrumented_libraries': {
-    'url': Var('chromium_git') + '/chromium/src/third_party/instrumented_libraries.git' +
-      '@' + '0011c28c8d35fc5093bb29631d05428932cd1206',
+  'third_party/instrumented_libs': {
+    'url': Var('chromium_git') + '/chromium/third_party/instrumented_libraries.git' +
+      '@' + '16e39713f0282c10a62bda40d49c41fb0bd0419b',
     'condition': 'not build_with_chromium',
   },
 
@@ -250,30 +250,6 @@ hooks = [
                '--package=coverage_tools'],
   },
   {
-    'name': 'msan_chained_origins_focal',
-    'pattern': '.',
-    'condition': 'checkout_instrumented_libraries and not build_with_chromium',
-    'action': [
-                'download_from_google_storage.py',
-                '--no_resume',
-                '--no_auth',
-                '--bucket', 'chromium-instrumented-libraries',
-                '-s', 'third_party/instrumented_libraries/binaries/msan-chained-origins-focal.tgz.sha1',
-              ],
-  },
-  {
-    'name': 'msan_no_origins_focal',
-    'pattern': '.',
-    'condition': 'checkout_instrumented_libraries and not build_with_chromium',
-    'action': [
-                'download_from_google_storage.py',
-                '--no_resume',
-                '--no_auth',
-                '--bucket', 'chromium-instrumented-libraries',
-                '-s', 'third_party/instrumented_libraries/binaries/msan-no-origins-focal.tgz.sha1',
-              ],
-  },
-  {
     # Case-insensitivity for the Win SDK. Must run before win_toolchain below.
     'name': 'ciopfs_linux',
     'pattern': '.',
@@ -351,7 +327,8 @@ hooks = [
 # mfoltz@chromium.org!
 recursedeps = [
   'build',
-  'buildtools'
+  'buildtools',
+  'third_party/instrumented_libs',
 ]
 
 include_rules = [
