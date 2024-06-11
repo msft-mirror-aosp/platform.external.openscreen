@@ -5,6 +5,10 @@
 	path = build
 	url = https://chromium.googlesource.com/chromium/src/build
 	gclient-condition = not build_with_chromium
+[submodule "third_party/clang-format/script"]
+	path = third_party/clang-format/script
+	url = https://chromium.googlesource.com/external/github.com/llvm/llvm-project/clang/tools/clang-format
+	gclient-condition = not build_with_chromium
 [submodule "third_party/libprotobuf-mutator/src"]
 	path = third_party/libprotobuf-mutator/src
 	url = https://chromium.googlesource.com/external/github.com/google/libprotobuf-mutator

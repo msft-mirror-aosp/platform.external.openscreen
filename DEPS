@@ -47,6 +47,7 @@ vars = {
 
   # GN CIPD package version.
   'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
+  'clang_format_revision': 'e435ad79c17b1888b34df88d6a30a094936e3836',
 
   # 'magic' text to tell depot_tools that git submodules should be accepted
   # but parity with DEPS file is expected.
@@ -76,6 +77,12 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
+  'third_party/clang-format/script': {
+    'url': Var('chromium_git') +
+      '/external/github.com/llvm/llvm-project/clang/tools/clang-format.git' +
+      '@' + Var('clang_format_revision'),
+    'condition': 'not build_with_chromium',
+  },
   'buildtools/linux64': {
     'packages': [
       {
@@ -248,77 +255,6 @@ hooks = [
     'condition': 'not build_with_chromium and checkout_clang_coverage_tools',
     'action': ['python3', 'tools/clang/scripts/update.py',
                '--package=coverage_tools'],
-  },
-  {
-    # Case-insensitivity for the Win SDK. Must run before win_toolchain below.
-    'name': 'ciopfs_linux',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and checkout_win and host_os == "linux"',
-    'action': [ 'python3',
-                'third_party/depot_tools/download_from_google_storage.py',
-                '--no_resume',
-                '--no_auth',
-                '--bucket', 'chromium-browser-clang/ciopfs',
-                '-s', 'build/ciopfs.sha1',
-    ]
-  },
-  {
-    # Update the Windows toolchain if necessary.  Must run before 'clang' below.
-    'name': 'win_toolchain',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and checkout_win',
-    'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
-  },
-  {
-    # Update the Mac toolchain if necessary.
-    'name': 'mac_toolchain',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and (checkout_mac or checkout_ios)',
-    'action': ['python3', 'build/mac_toolchain.py'],
-  },
-  {
-    # Update the prebuilt clang toolchain.
-    # Note: On Win, this should run after win_toolchain, as it may use it.
-    'name': 'clang',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and not llvm_force_head_revision',
-    'action': ['python3', 'tools/clang/scripts/update.py'],
-  },
-  {
-    # Build the clang toolchain from tip-of-tree.
-    # Note: On Win, this should run after win_toolchain, as it may use it.
-    'name': 'clang_tot',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and llvm_force_head_revision',
-    'action': ['python3', 'tools/clang/scripts/build.py',
-               '--llvm-force-head-revision'
-               ],
-  },
-  {
-    # This is also supposed to support the same set of platforms as 'clang'
-    # above. LLVM ToT support isn't provided at the moment.
-    'name': 'clang_tidy',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and checkout_clang_tidy',
-    'action': ['python3', 'tools/clang/scripts/update.py',
-               '--package=clang-tidy'],
-  },
-  {
-    # This is also supposed to support the same set of platforms as 'clang'
-    # above. LLVM ToT support isn't provided at the moment.
-    'name': 'clangd',
-    'pattern': '.',
-    'condition': 'not build_with_chromium and checkout_clangd',
-    'action': ['python3', 'tools/clang/scripts/update.py',
-               '--package=clangd'],
-  },
-  {
-    # Update LASTCHANGE.
-    'name': 'lastchange',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': ['python3', 'build/util/lastchange.py',
-               '-o', 'build/util/LASTCHANGE'],
   },
 ]
 
