@@ -14,8 +14,8 @@
 
 namespace openscreen::cast {
 
-using ::cast::channel::CastMessage;
 using message_serialization::DeserializeResult;
+using proto::CastMessage;
 
 CastSocket::Client::~Client() = default;
 

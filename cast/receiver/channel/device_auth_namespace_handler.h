@@ -47,7 +47,7 @@ class DeviceAuthNamespaceHandler final : public CastMessageHandler {
   // CastMessageHandler overrides.
   void OnMessage(VirtualConnectionRouter* router,
                  CastSocket* socket,
-                 ::cast::channel::CastMessage message) override;
+                 proto::CastMessage message) override;
 
  private:
   CredentialsProvider& creds_provider_;

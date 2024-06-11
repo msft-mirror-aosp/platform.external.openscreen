@@ -12,7 +12,7 @@
 
 namespace openscreen::cast {
 
-using ::cast::channel::CastMessage;
+using proto::CastMessage;
 
 namespace {
 

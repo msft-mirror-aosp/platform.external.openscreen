@@ -19,7 +19,7 @@
 namespace openscreen::cast {
 namespace {
 
-using ::cast::channel::CastMessage;
+using proto::CastMessage;
 
 // The value used for "sdkType" in a virtual CONNECT request. Historically, this
 // value was used in Chrome's C++ impl even though "2" refers to the Media
@@ -104,7 +104,7 @@ CastMessage MakeSimpleUTF8Message(const std::string& namespace_,
   CastMessage message;
   message.set_protocol_version(kDefaultOutgoingMessageVersion);
   message.set_namespace_(namespace_);
-  message.set_payload_type(::cast::channel::CastMessage_PayloadType_STRING);
+  message.set_payload_type(proto::CastMessage_PayloadType_STRING);
   message.set_payload_utf8(std::move(payload));
   return message;
 }
@@ -113,8 +113,7 @@ CastMessage MakeConnectMessage(const std::string& source_id,
                                const std::string& destination_id) {
   CastMessage connect_message =
       MakeConnectionMessage(source_id, destination_id);
-  connect_message.set_payload_type(
-      ::cast::channel::CastMessage_PayloadType_STRING);
+  connect_message.set_payload_type(proto::CastMessage_PayloadType_STRING);
 
   // Historically, the CONNECT message was meant to come from a Chrome browser.
   // However, this library could be embedded in any app. So, properties like
@@ -125,7 +124,7 @@ CastMessage MakeConnectMessage(const std::string& source_id,
   message[kMessageKeyType] = CastMessageTypeToString(CastMessageType::kConnect);
   for (int i = 0; i <= 3; ++i) {
     message[kMessageKeyProtocolVersionList][i] =
-        ::cast::channel::CastMessage_ProtocolVersion_CASTV2_1_0 + i;
+        proto::CastMessage_ProtocolVersion_CASTV2_1_0 + i;
   }
   message[kMessageKeyUserAgent] = kUnknownVersion;
   message[kMessageKeyConnType] =
@@ -147,8 +146,7 @@ CastMessage MakeConnectMessage(const std::string& source_id,
 CastMessage MakeCloseMessage(const std::string& source_id,
                              const std::string& destination_id) {
   CastMessage close_message = MakeConnectionMessage(source_id, destination_id);
-  close_message.set_payload_type(
-      ::cast::channel::CastMessage_PayloadType_STRING);
+  close_message.set_payload_type(proto::CastMessage_PayloadType_STRING);
   close_message.set_payload_utf8(R"!({"type": "CLOSE"})!");
   return close_message;
 }
@@ -184,7 +182,7 @@ const std::string& GetPayload(const CastMessage& message) {
   // populate either the utf8 or the binary field with the message contents.
   // TODO(https://crbug.com/1429410): CastSocket's CastMessage results have
   // wrong payload field filled out.
-  OSP_CHECK_EQ(message.payload_type(), ::cast::channel::CastMessage::STRING);
+  OSP_CHECK_EQ(message.payload_type(), proto::CastMessage::STRING);
   return !message.payload_utf8().empty() ? message.payload_utf8()
                                          : message.payload_binary();
 }

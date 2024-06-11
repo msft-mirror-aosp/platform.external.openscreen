@@ -113,7 +113,7 @@ bool LoopingFileCastAgent::IsConnectionAllowed(
 
 void LoopingFileCastAgent::OnMessage(VirtualConnectionRouter* router,
                                      CastSocket* socket,
-                                     ::cast::channel::CastMessage message) {
+                                     proto::CastMessage message) {
   if (message_port_.GetSocketId() == ToCastSocketId(socket) &&
       !message_port_.source_id().empty() &&
       message_port_.source_id() == message.destination_id()) {
@@ -129,7 +129,7 @@ void LoopingFileCastAgent::OnMessage(VirtualConnectionRouter* router,
 
   if (message.namespace_() == kReceiverNamespace &&
       message_port_.GetSocketId() == ToCastSocketId(socket)) {
-    if (message.payload_type() != ::cast::channel::CastMessage::STRING) {
+    if (message.payload_type() != proto::CastMessage::STRING) {
       OSP_DLOG_WARN << ": received an unsupported BINARY type message.";
     }
 
