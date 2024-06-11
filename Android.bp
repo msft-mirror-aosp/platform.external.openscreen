@@ -68,8 +68,6 @@ cc_defaults {
     header_libs: [
         "libopenscreen_absl_headers",
     ],
-
-//    cpp_std: "c++17",
 }
 
 osp_discovery_srcs = [
