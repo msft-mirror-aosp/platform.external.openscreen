@@ -494,9 +494,7 @@ void UdpSocketPosix::ReceiveMessage() {
   });
 }
 
-void UdpSocketPosix::SendMessage(const void* data,
-                                 size_t length,
-                                 const IPEndpoint& dest) {
+void UdpSocketPosix::SendMessage(ByteView data, const IPEndpoint& dest) {
   if (is_closed()) {
     if (client_) {
       client_->OnSendError(this, Error::Code::kSocketClosedFailure);
@@ -504,7 +502,8 @@ void UdpSocketPosix::SendMessage(const void* data,
     return;
   }
 
-  struct iovec iov = {const_cast<void*>(data), length};
+  struct iovec iov = {
+      reinterpret_cast<void*>(const_cast<uint8_t*>(data.data())), data.size()};
   struct msghdr msg;
   msg.msg_iov = &iov;
   msg.msg_iovlen = 1;
@@ -546,7 +545,7 @@ void UdpSocketPosix::SendMessage(const void* data,
   }
 
   // Sanity-check: UDP datagram sendmsg() is all or nothing.
-  OSP_CHECK_EQ(static_cast<size_t>(num_bytes_sent), length);
+  OSP_CHECK_EQ(static_cast<size_t>(num_bytes_sent), data.size());
 }
 
 void UdpSocketPosix::SetDscp(UdpSocket::DscpMode state) {

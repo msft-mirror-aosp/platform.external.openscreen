@@ -44,7 +44,7 @@ Error CastSocket::Send(const CastMessage& message) {
     return out.error();
   }
 
-  if (!connection_->Send(out.value().data(), out.value().size())) {
+  if (!connection_->Send(out.value())) {
     return Error::Code::kAgain;
   }
   return Error::Code::kNone;

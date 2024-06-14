@@ -9,6 +9,16 @@ namespace openscreen {
 TlsConnection::TlsConnection() = default;
 TlsConnection::~TlsConnection() = default;
 
+// TODO(crbug.com/344896902): Remove these once clients have migrated.
+[[nodiscard]] bool TlsConnection::Send(const void* data, size_t len) {
+  // Must be overridden by subclasses.
+  assert(false);
+}
+
+[[nodiscard]] bool TlsConnection::Send(ByteView data) {
+  return Send(data.data(), data.size());
+}
+
 TlsConnection::Client::~Client() = default;
 
 }  // namespace openscreen

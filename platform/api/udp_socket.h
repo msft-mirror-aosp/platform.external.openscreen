@@ -13,6 +13,7 @@
 #include "platform/api/network_interface.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 #include "platform/base/udp_packet.h"
 
 namespace openscreen {
@@ -107,12 +108,15 @@ class UdpSocket {
   virtual void JoinMulticastGroup(const IPAddress& address,
                                   NetworkInterfaceIndex ifindex) = 0;
 
+  // DEPRECATED.  Use the overload that takes a ByteView.
+  virtual void SendMessage(const void* data,
+                           size_t length,
+                           const IPEndpoint& dest);
+
   // Sends a message. If the message is not sent, Client::OnSendError() will be
   // called to indicate this. Error::Code::kAgain indicates the operation would
   // block, which can be expected during normal operation.
-  virtual void SendMessage(const void* data,
-                           size_t length,
-                           const IPEndpoint& dest) = 0;
+  virtual void SendMessage(ByteView data, const IPEndpoint& dest);
 
   // Sets the DSCP value to use for all messages sent from this socket.
   virtual void SetDscp(DscpMode state) = 0;

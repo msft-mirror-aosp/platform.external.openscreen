@@ -232,6 +232,7 @@ std::unique_ptr<StreamingVideoEncoder> LoopingFileSender::CreateVideoEncoder(
 #else
       OSP_LOG_FATAL << "AV1 codec selected, but could not be used because "
                        "LibAOM not installed.";
+      return nullptr;
 #endif
     default:
       // Since we only support VP8, VP9, and AV1, any other codec value here

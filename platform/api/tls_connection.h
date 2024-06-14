@@ -10,6 +10,7 @@
 
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 
 namespace openscreen {
 
@@ -37,8 +38,11 @@ class TlsConnection {
   // the Client.
   virtual void SetClient(Client* client) = 0;
 
+  // DEPRECATED.  Use the overload that takes a ByteView.
+  [[nodiscard]] virtual bool Send(const void* data, size_t len);
+
   // Sends a message. Returns true iff the message will be sent.
-  [[nodiscard]] virtual bool Send(const void* data, size_t len) = 0;
+  [[nodiscard]] virtual bool Send(ByteView data);
 
   // Get the connected remote address.
   virtual IPEndpoint GetRemoteEndpoint() const = 0;
