@@ -57,10 +57,9 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
  public:
   class Delegate {
    public:
-
     virtual void OnMatchedResponse(RequestT* request,
                                    typename RequestT::ResponseMsgType* response,
-                                   uint64_t endpoint_id) = 0;
+                                   uint64_t instance_number) = 0;
     virtual void OnError(RequestT* request, const Error& error) = 0;
 
    protected:
@@ -95,7 +94,8 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   WriteMessage(std::optional<uint64_t> id, RequestTRval&& message) {
     auto* request_msg = RequestCoderTraits::serial_request(message);
     if (connection_) {
-      request_msg->request_id = GetNextRequestId(connection_->endpoint_id());
+      request_msg->request_id =
+          GetNextRequestId(connection_->instance_number());
       Error result =
           connection_->WriteMessage(*request_msg, RequestCoderTraits::kEncoder);
       if (!result.ok()) {
@@ -141,7 +141,8 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     connection_ = connection;
     for (auto& message : to_send_) {
       auto* request_msg = RequestCoderTraits::serial_request(message.request);
-      request_msg->request_id = GetNextRequestId(connection_->endpoint_id());
+      request_msg->request_id =
+          GetNextRequestId(connection_->instance_number());
       Error result =
           connection_->WriteMessage(*request_msg, RequestCoderTraits::kEncoder);
       if (result.ok()) {
@@ -157,7 +158,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   }
 
   // MessageDemuxer::MessageCallback overrides.
-  ErrorOr<size_t> OnStreamMessage(uint64_t endpoint_id,
+  ErrorOr<size_t> OnStreamMessage(uint64_t instance_number,
                                   uint64_t connection_id,
                                   msgs::Type message_type,
                                   const uint8_t* buffer,
@@ -179,7 +180,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
         });
     if (it != sent_.end()) {
       delegate_.OnMatchedResponse(&it->request, &response,
-                                  connection_->endpoint_id());
+                                  connection_->instance_number());
       sent_.erase(it);
       if (sent_.empty()) {
         response_watch_ = MessageDemuxer::MessageWatch();
@@ -202,16 +203,16 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
       response_watch_ = NetworkServiceManager::Get()
                             ->GetProtocolConnectionClient()
                             ->message_demuxer()
-                            ->WatchMessageType(connection_->endpoint_id(),
+                            ->WatchMessageType(connection_->instance_number(),
                                                RequestT::kResponseType, this);
     }
   }
 
-  uint64_t GetNextRequestId(uint64_t endpoint_id) {
+  uint64_t GetNextRequestId(uint64_t instance_number) {
     return NetworkServiceManager::Get()
         ->GetProtocolConnectionClient()
-        ->endpoint_request_ids()
-        ->GetNextRequestId(endpoint_id);
+        ->instance_request_ids()
+        ->GetNextRequestId(instance_number);
   }
 
   ProtocolConnection* connection_ = nullptr;

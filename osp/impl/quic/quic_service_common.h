@@ -33,10 +33,10 @@ class QuicProtocolConnection final : public ProtocolConnection {
       Owner& owner,
       QuicConnection* connection,
       ServiceConnectionDelegate* delegate,
-      uint64_t endpoint_id);
+      uint64_t instance_number);
 
   QuicProtocolConnection(Owner& owner,
-                         uint64_t endpoint_id,
+                         uint64_t instance_number,
                          uint64_t connection_id);
   ~QuicProtocolConnection() override;
 
@@ -72,15 +72,15 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
         std::string connection_id) = 0;
     virtual void OnIncomingStream(
         std::unique_ptr<QuicProtocolConnection> connection) = 0;
-    virtual void OnConnectionClosed(uint64_t endpoint_id,
+    virtual void OnConnectionClosed(uint64_t instance_number,
                                     std::string connection_id) = 0;
-    virtual void OnDataReceived(uint64_t endpoint_id,
+    virtual void OnDataReceived(uint64_t instance_number,
                                 uint64_t protocol_connection_id,
                                 const ByteView& bytes) = 0;
   };
 
   ServiceConnectionDelegate(ServiceDelegate& parent,
-                            const IPEndpoint& endpoint);
+                            const std::string& instance_id);
   ~ServiceConnectionDelegate() override;
 
   void AddStreamPair(const ServiceStreamPair& stream_pair);
@@ -91,7 +91,7 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   // destroyed properly.
   void DestroyClosedStreams();
 
-  const IPEndpoint& endpoint() const { return endpoint_; }
+  const std::string& instance_id() const { return instance_id_; }
 
   bool has_streams() const { return !streams_.empty(); }
 
@@ -109,8 +109,8 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
 
  private:
   ServiceDelegate& parent_;
-  IPEndpoint endpoint_;
-  uint64_t endpoint_id_;
+  std::string instance_id_;
+  uint64_t instance_number_ = 0u;
   std::unique_ptr<QuicProtocolConnection> pending_connection_;
   std::map<uint64_t, ServiceStreamPair> streams_;
   std::vector<ServiceStreamPair> closed_streams_;

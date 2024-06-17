@@ -79,12 +79,9 @@ class ControllerTest : public ::testing::Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(11111))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
-    receiver_info1 = {"service-id1",
-                      "lucas-auer",
-                      quic_bridge_.kFingerprint,
-                      1,
-                      quic_bridge_.kReceiverEndpoint,
-                      {}};
+    receiver_info1 = {quic_bridge_.kInstanceID,       "lucas-auer",
+                      quic_bridge_.kFingerprint,      1,
+                      quic_bridge_.kReceiverEndpoint, {}};
   }
 
  protected:
@@ -102,7 +99,7 @@ class ControllerTest : public ::testing::Test {
     ON_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
         .WillByDefault(
             Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
-              controller_endpoint_id_ = connection->endpoint_id();
+              controller_instance_number_ = connection->instance_number();
             }));
 
     availability_watch_ =
@@ -122,7 +119,7 @@ class ControllerTest : public ::testing::Test {
     msgs::Type msg_type;
     EXPECT_CALL(mock_callback_, OnStreamMessage(_, _, _, _, _, _))
         .WillOnce(Invoke([&request, &msg_type, &decode_result](
-                             uint64_t endpoint_id, uint64_t cid,
+                             uint64_t instance_number, uint64_t cid,
                              msgs::Type message_type, const uint8_t* buffer,
                              size_t buffer_size, Clock::time_point now) {
           msg_type = message_type;
@@ -140,7 +137,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> controller_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(controller_connection);
     ASSERT_EQ(Error::Code::kNone,
               controller_connection
@@ -153,7 +150,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> protocol_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -167,7 +164,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> controller_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(controller_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -181,7 +178,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> protocol_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection
@@ -194,7 +191,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> protocol_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -210,7 +207,7 @@ class ControllerTest : public ::testing::Test {
     msgs::Type msg_type;
     EXPECT_CALL(*mock_callback, OnStreamMessage(_, _, _, _, _, _))
         .WillOnce(Invoke([&request, &msg_type, &decode_result](
-                             uint64_t endpoint_id, uint64_t cid,
+                             uint64_t instance_number, uint64_t cid,
                              msgs::Type message_type, const uint8_t* buffer,
                              size_t buffer_size, Clock::time_point now) {
           msg_type = message_type;
@@ -230,7 +227,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> protocol_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection
@@ -244,7 +241,7 @@ class ControllerTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> protocol_connection =
         NetworkServiceManager::Get()
             ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_endpoint_id_);
+            ->CreateProtocolConnection(controller_instance_number_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection
@@ -267,7 +264,7 @@ class ControllerTest : public ::testing::Test {
     msgs::Type msg_type;
     EXPECT_CALL(*mock_callback, OnStreamMessage(_, _, _, _, _, _))
         .WillOnce(Invoke([&request, &msg_type](
-                             uint64_t endpoint_id, uint64_t cid,
+                             uint64_t instance_number, uint64_t cid,
                              msgs::Type message_type, const uint8_t* buffer,
                              size_t buffer_size, Clock::time_point now) {
           msg_type = message_type;
@@ -307,7 +304,7 @@ class ControllerTest : public ::testing::Test {
   std::unique_ptr<Controller> controller_;
   ServiceInfo receiver_info1;
   MockReceiverObserver mock_receiver_observer_;
-  uint64_t controller_endpoint_id_{0};
+  uint64_t controller_instance_number_{0};
 };
 
 TEST_F(ControllerTest, ReceiverWatchMoves) {
@@ -415,7 +412,7 @@ TEST_F(ControllerTest, TerminatePresentationFromController) {
   msgs::Type msg_type;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
       .WillOnce(Invoke([&termination_request, &msg_type](
-                           uint64_t endpoint_id, uint64_t cid,
+                           uint64_t instance_number, uint64_t cid,
                            msgs::Type message_type, const uint8_t* buffer,
                            size_t buffer_size, Clock::time_point now) {
         msg_type = message_type;
@@ -504,7 +501,7 @@ TEST_F(ControllerTest, Reconnect) {
   msgs::Type msg_type;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
       .WillOnce(Invoke([&open_request, &msg_type, &decode_result](
-                           uint64_t endpoint_id, uint64_t cid,
+                           uint64_t instance_number, uint64_t cid,
                            msgs::Type message_type, const uint8_t* buffer,
                            size_t buffer_size, Clock::time_point now) {
         msg_type = message_type;

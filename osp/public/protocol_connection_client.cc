@@ -39,7 +39,7 @@ ProtocolConnectionClient::ProtocolConnectionClient(
     MessageDemuxer& demuxer,
     ProtocolConnectionServiceObserver& observer)
     : demuxer_(demuxer),
-      endpoint_request_ids_(EndpointRequestIds::Role::kClient),
+      instance_request_ids_(InstanceRequestIds::Role::kClient),
       observer_(observer) {}
 
 ProtocolConnectionClient::~ProtocolConnectionClient() = default;

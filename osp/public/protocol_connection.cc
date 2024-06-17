@@ -6,8 +6,8 @@
 
 namespace openscreen::osp {
 
-ProtocolConnection::ProtocolConnection(uint64_t endpoint_id, uint64_t id)
-    : endpoint_id_(endpoint_id), id_(id) {}
+ProtocolConnection::ProtocolConnection(uint64_t instance_number, uint64_t id)
+    : instance_number_(instance_number), id_(id) {}
 
 void ProtocolConnection::SetObserver(Observer* observer) {
   OSP_CHECK(!observer_ || !observer);

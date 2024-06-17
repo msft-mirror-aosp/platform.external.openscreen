@@ -30,8 +30,8 @@ if (!is_win) {
       "service_publisher_factory.h",
     ]
     sources = [
-      "endpoint_request_ids.cc",
-      "endpoint_request_ids.h",
+      "instance_request_ids.cc",
+      "instance_request_ids.h",
       "protocol_connection.cc",
       "protocol_connection_client.cc",
       "protocol_connection_server.cc",

@@ -75,8 +75,8 @@ void QuicServer::Cleanup() {
   for (auto& entry : connections_)
     entry.second.delegate->DestroyClosedStreams();
 
-  for (uint64_t endpoint_id : delete_connections_) {
-    auto it = connections_.find(endpoint_id);
+  for (uint64_t instance_number : delete_connections_) {
+    auto it = connections_.find(instance_number);
     if (it != connections_.end()) {
       connections_.erase(it);
     }
@@ -90,24 +90,24 @@ void QuicServer::Cleanup() {
 }
 
 std::unique_ptr<ProtocolConnection> QuicServer::CreateProtocolConnection(
-    uint64_t endpoint_id) {
+    uint64_t instance_number) {
   if (state_ != State::kRunning) {
     return nullptr;
   }
-  auto connection_entry = connections_.find(endpoint_id);
+  auto connection_entry = connections_.find(instance_number);
   if (connection_entry == connections_.end()) {
     return nullptr;
   }
   return QuicProtocolConnection::FromExisting(
       *this, connection_entry->second.connection.get(),
-      connection_entry->second.delegate.get(), endpoint_id);
+      connection_entry->second.delegate.get(), instance_number);
 }
 
 void QuicServer::OnConnectionDestroyed(QuicProtocolConnection* connection) {
   if (!connection->stream())
     return;
 
-  auto connection_entry = connections_.find(connection->endpoint_id());
+  auto connection_entry = connections_.find(connection->instance_number());
   if (connection_entry == connections_.end())
     return;
 
@@ -118,16 +118,16 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
     ServiceConnectionDelegate* delegate,
     std::string connection_id) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  const IPEndpoint& endpoint = delegate->endpoint();
-  auto pending_entry = pending_connections_.find(endpoint);
+  const std::string& instance_id = delegate->instance_id();
+  auto pending_entry = pending_connections_.find(instance_id);
   if (pending_entry == pending_connections_.end())
     return 0;
   ServiceConnectionData connection_data = std::move(pending_entry->second);
   pending_connections_.erase(pending_entry);
-  uint64_t endpoint_id = next_endpoint_id_++;
-  endpoint_map_[endpoint] = endpoint_id;
-  connections_.emplace(endpoint_id, std::move(connection_data));
-  return endpoint_id;
+  uint64_t instance_number = next_instance_number_++;
+  instance_map_[instance_id] = instance_number;
+  connections_.emplace(instance_number, std::move(connection_data));
+  return instance_number;
 }
 
 void QuicServer::OnIncomingStream(
@@ -136,59 +136,60 @@ void QuicServer::OnIncomingStream(
   observer_.OnIncomingConnection(std::move(connection));
 }
 
-void QuicServer::OnConnectionClosed(uint64_t endpoint_id,
+void QuicServer::OnConnectionClosed(uint64_t instance_number,
                                     std::string connection_id) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  auto connection_entry = connections_.find(endpoint_id);
+  auto connection_entry = connections_.find(instance_number);
   if (connection_entry == connections_.end())
     return;
-  delete_connections_.push_back(endpoint_id);
+  delete_connections_.push_back(instance_number);
 
-  // TODO(crbug.com/openscreen/42): If we reset request IDs when a connection is
-  // closed, we might end up re-using request IDs when a new connection is
-  // created to the same endpoint.
-  endpoint_request_ids_.ResetRequestId(endpoint_id);
+  instance_request_ids_.ResetRequestId(instance_number);
 }
 
-void QuicServer::OnDataReceived(uint64_t endpoint_id,
+void QuicServer::OnDataReceived(uint64_t instance_number,
                                 uint64_t protocol_connection_id,
                                 const ByteView& bytes) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  demuxer_.OnStreamData(endpoint_id, protocol_connection_id, bytes.data(),
+  demuxer_.OnStreamData(instance_number, protocol_connection_id, bytes.data(),
                         bytes.size());
 }
 
 void QuicServer::CloseAllConnections() {
-  for (auto& conn : pending_connections_)
+  for (auto& conn : pending_connections_) {
     conn.second.connection->Close();
-
+  }
   pending_connections_.clear();
 
-  for (auto& conn : connections_)
+  for (auto& conn : connections_) {
     conn.second.connection->Close();
-
+  }
   connections_.clear();
-  endpoint_map_.clear();
-  next_endpoint_id_ = 0;
-  endpoint_request_ids_.Reset();
+
+  instance_map_.clear();
+  next_instance_number_ = 1u;
+  instance_request_ids_.Reset();
 }
 
 QuicConnection::Delegate* QuicServer::NextConnectionDelegate(
     const IPEndpoint& source) {
   OSP_CHECK_EQ(state_, State::kRunning);
   OSP_CHECK(!pending_connection_delegate_);
+  // NOTE: There is no corresponding instance ID for IPEndpoint on the client
+  // side. So IPEndpoint is converted into a string and used as instance ID.
   pending_connection_delegate_ =
-      std::make_unique<ServiceConnectionDelegate>(*this, source);
+      std::make_unique<ServiceConnectionDelegate>(*this, source.ToString());
   return pending_connection_delegate_.get();
 }
 
 void QuicServer::OnIncomingConnection(
     std::unique_ptr<QuicConnection> connection) {
   OSP_CHECK_EQ(state_, State::kRunning);
-  const IPEndpoint& endpoint = pending_connection_delegate_->endpoint();
+  const std::string& instance_id = pending_connection_delegate_->instance_id();
   pending_connections_.emplace(
-      endpoint, ServiceConnectionData(std::move(connection),
-                                      std::move(pending_connection_delegate_)));
+      instance_id,
+      ServiceConnectionData(std::move(connection),
+                            std::move(pending_connection_delegate_)));
 }
 
 }  // namespace openscreen::osp

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "osp/public/endpoint_request_ids.h"
+#include "osp/public/instance_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
 #include "platform/base/error.h"
@@ -69,15 +69,15 @@ class ProtocolConnectionServer {
   // verify server's certificate.
   virtual std::string GetFingerprint() = 0;
 
-  // Synchronously open a new connection to an endpoint identified by
-  // |endpoint_id|.  Returns nullptr if it can't be completed synchronously
-  // (e.g. there are no existing open connections to that endpoint).
+  // Synchronously open a new connection to an instance identified by
+  // |instance_number|.  Returns nullptr if it can't be completed synchronously
+  // (e.g. there are no existing open connections to that instance).
   virtual std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t endpoint_id) = 0;
+      uint64_t instance_number) = 0;
 
   MessageDemuxer* message_demuxer() const { return &demuxer_; }
 
-  EndpointRequestIds* endpoint_request_ids() { return &endpoint_request_ids_; }
+  InstanceRequestIds* instance_request_ids() { return &instance_request_ids_; }
 
   // Returns the current state of the listener.
   State state() const { return state_; }
@@ -91,7 +91,7 @@ class ProtocolConnectionServer {
   State state_ = State::kStopped;
   Error last_error_;
   MessageDemuxer& demuxer_;
-  EndpointRequestIds endpoint_request_ids_;
+  InstanceRequestIds instance_request_ids_;
   Observer& observer_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ProtocolConnectionServer);

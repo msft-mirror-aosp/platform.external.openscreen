@@ -1,17 +1,18 @@
-// Copyright 2019 The Chromium Authors
+// Copyright 2024 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "osp/public/endpoint_request_ids.h"
+#include "osp/public/instance_request_ids.h"
 
 #include "gtest/gtest.h"
 
 namespace openscreen::osp {
 
-// These tests validate RequestId generation for two endpoints with IDs 3 and 7.
+// These tests validate RequestId generation for two instances with numbers 3
+// and 7.
 
-TEST(EndpointRequestIdsTest, StrictlyIncreasingRequestIdSequence) {
-  EndpointRequestIds request_ids_client(EndpointRequestIds::Role::kClient);
+TEST(InstanceRequestIdsTest, StrictlyIncreasingRequestIdSequence) {
+  InstanceRequestIds request_ids_client(InstanceRequestIds::Role::kClient);
 
   EXPECT_EQ(0u, request_ids_client.GetNextRequestId(7));
   EXPECT_EQ(2u, request_ids_client.GetNextRequestId(7));
@@ -20,7 +21,7 @@ TEST(EndpointRequestIdsTest, StrictlyIncreasingRequestIdSequence) {
   EXPECT_EQ(6u, request_ids_client.GetNextRequestId(7));
   EXPECT_EQ(2u, request_ids_client.GetNextRequestId(3));
 
-  EndpointRequestIds request_ids_server(EndpointRequestIds::Role::kServer);
+  InstanceRequestIds request_ids_server(InstanceRequestIds::Role::kServer);
   EXPECT_EQ(1u, request_ids_server.GetNextRequestId(7));
   EXPECT_EQ(3u, request_ids_server.GetNextRequestId(7));
   EXPECT_EQ(5u, request_ids_server.GetNextRequestId(7));
@@ -29,8 +30,8 @@ TEST(EndpointRequestIdsTest, StrictlyIncreasingRequestIdSequence) {
   EXPECT_EQ(3u, request_ids_server.GetNextRequestId(3));
 }
 
-TEST(EndpointRequestIdsTest, ResetRequestId) {
-  EndpointRequestIds request_ids_client(EndpointRequestIds::Role::kClient);
+TEST(InstanceRequestIdsTest, ResetRequestId) {
+  InstanceRequestIds request_ids_client(InstanceRequestIds::Role::kClient);
 
   EXPECT_EQ(0u, request_ids_client.GetNextRequestId(7));
   EXPECT_EQ(2u, request_ids_client.GetNextRequestId(7));
@@ -45,7 +46,7 @@ TEST(EndpointRequestIdsTest, ResetRequestId) {
   EXPECT_EQ(4u, request_ids_client.GetNextRequestId(3));
   EXPECT_EQ(6u, request_ids_client.GetNextRequestId(3));
 
-  EndpointRequestIds request_ids_server(EndpointRequestIds::Role::kServer);
+  InstanceRequestIds request_ids_server(InstanceRequestIds::Role::kServer);
 
   EXPECT_EQ(1u, request_ids_server.GetNextRequestId(7));
   EXPECT_EQ(3u, request_ids_server.GetNextRequestId(7));
@@ -61,8 +62,8 @@ TEST(EndpointRequestIdsTest, ResetRequestId) {
   EXPECT_EQ(7u, request_ids_server.GetNextRequestId(3));
 }
 
-TEST(EndpointRequestIdsTest, ResetAll) {
-  EndpointRequestIds request_ids_client(EndpointRequestIds::Role::kClient);
+TEST(InstanceRequestIdsTest, ResetAll) {
+  InstanceRequestIds request_ids_client(InstanceRequestIds::Role::kClient);
 
   EXPECT_EQ(0u, request_ids_client.GetNextRequestId(7));
   EXPECT_EQ(2u, request_ids_client.GetNextRequestId(7));
@@ -72,7 +73,7 @@ TEST(EndpointRequestIdsTest, ResetAll) {
   EXPECT_EQ(0u, request_ids_client.GetNextRequestId(7));
   EXPECT_EQ(0u, request_ids_client.GetNextRequestId(3));
 
-  EndpointRequestIds request_ids_server(EndpointRequestIds::Role::kServer);
+  InstanceRequestIds request_ids_server(InstanceRequestIds::Role::kServer);
 
   EXPECT_EQ(1u, request_ids_server.GetNextRequestId(7));
   EXPECT_EQ(3u, request_ids_server.GetNextRequestId(7));

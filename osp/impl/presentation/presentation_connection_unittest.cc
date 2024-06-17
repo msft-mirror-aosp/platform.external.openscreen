@@ -140,7 +140,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   std::unique_ptr<ProtocolConnection> receiver_stream;
   auto connect_request =
       NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-          quic_bridge_.kReceiverEndpoint, &mock_connect_request_callback);
+          quic_bridge_.kInstanceID, &mock_connect_request_callback);
   EXPECT_CALL(mock_connect_request_callback, OnConnectionOpenedMock(_, _))
       .WillOnce(Invoke([&controller_stream](uint64_t request_id,
                                             ProtocolConnection* stream) {
@@ -159,11 +159,11 @@ TEST_F(ConnectionTest, ConnectAndSend) {
 
   EXPECT_CALL(mock_controller_delegate, OnConnected());
   EXPECT_CALL(mock_receiver_delegate, OnConnected());
-  uint64_t controller_endpoint_id = receiver_stream->endpoint_id();
-  uint64_t receiver_endpoint_id = controller_stream->endpoint_id();
-  controller.OnConnected(connection_id, receiver_endpoint_id,
+  uint64_t controller_instance_number = receiver_stream->instance_number();
+  uint64_t receiver_instance_number = controller_stream->instance_number();
+  controller.OnConnected(connection_id, receiver_instance_number,
                          std::move(controller_stream));
-  receiver.OnConnected(connection_id, controller_endpoint_id,
+  receiver.OnConnected(connection_id, controller_instance_number,
                        std::move(receiver_stream));
   controller_connection_manager_.AddConnection(&controller);
   receiver_connection_manager_.AddConnection(&receiver);

@@ -132,7 +132,7 @@ class UrlAvailabilityRequesterTest : public Test {
 
   std::string url1_{"https://example.com/foo.html"};
   std::string url2_{"https://example.com/bar.html"};
-  std::string instance_id_{"asdf"};
+  std::string instance_id_{quic_bridge_.kInstanceID};
   std::string friendly_name_{"turtle"};
   ServiceInfo info1_;
 };

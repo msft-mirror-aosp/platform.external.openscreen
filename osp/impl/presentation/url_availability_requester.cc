@@ -40,11 +40,11 @@ void MoveVectorSegment(std::vector<std::string>::iterator first,
     target->emplace(std::move(*it));
 }
 
-uint64_t GetNextRequestId(const uint64_t endpoint_id) {
+uint64_t GetNextRequestId(const uint64_t instance_number) {
   return NetworkServiceManager::Get()
       ->GetProtocolConnectionClient()
-      ->endpoint_request_ids()
-      ->GetNextRequestId(endpoint_id);
+      ->instance_request_ids()
+      ->GetNextRequestId(instance_number);
 }
 
 }  // namespace
@@ -118,9 +118,7 @@ void UrlAvailabilityRequester::RemoveObserver(ReceiverObserver* observer) {
 void UrlAvailabilityRequester::AddReceiver(const ServiceInfo& info) {
   auto result = receiver_by_instance_id_.emplace(
       info.instance_id,
-      std::make_unique<ReceiverRequester>(
-          *this, info.instance_id,
-          info.v4_endpoint.address ? info.v4_endpoint : info.v6_endpoint));
+      std::make_unique<ReceiverRequester>(*this, info.instance_id));
   std::unique_ptr<ReceiverRequester>& receiver = result.first->second;
   std::vector<std::string> urls;
   urls.reserve(observers_by_url_.size());
@@ -163,13 +161,12 @@ Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
 
 UrlAvailabilityRequester::ReceiverRequester::ReceiverRequester(
     UrlAvailabilityRequester& listener,
-    const std::string& instance_id,
-    const IPEndpoint& endpoint)
+    const std::string& instance_id)
     : listener_(listener),
       instance_id_(instance_id),
       connect_request_(
           NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-              endpoint,
+              instance_id,
               this)) {}
 
 UrlAvailabilityRequester::ReceiverRequester::~ReceiverRequester() = default;
@@ -207,7 +204,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RequestUrlAvailabilities(
     std::vector<std::string> urls) {
   if (urls.empty())
     return;
-  const uint64_t request_id = GetNextRequestId(endpoint_id_);
+  const uint64_t request_id = GetNextRequestId(instance_number_);
   ErrorOr<uint64_t> watch_id_or_error(0);
   if (!connection_ || (watch_id_or_error = SendRequest(request_id, urls))) {
     request_by_id_.emplace(request_id,
@@ -237,11 +234,13 @@ ErrorOr<uint64_t> UrlAvailabilityRequester::ReceiverRequester::SendRequest(
         watch_id, Watch{listener_.now_function_() + kWatchDuration, urls});
     if (!event_watch_) {
       event_watch_ = GetClientDemuxer()->WatchMessageType(
-          endpoint_id_, msgs::Type::kPresentationUrlAvailabilityEvent, this);
+          instance_number_, msgs::Type::kPresentationUrlAvailabilityEvent,
+          this);
     }
     if (!response_watch_) {
       response_watch_ = GetClientDemuxer()->WatchMessageType(
-          endpoint_id_, msgs::Type::kPresentationUrlAvailabilityResponse, this);
+          instance_number_, msgs::Type::kPresentationUrlAvailabilityResponse,
+          this);
     }
     return watch_id;
   }
@@ -325,7 +324,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveUnobservedRequests(
       watch_by_id_.erase(request.watch_id);
   }
   if (!still_observed_urls.empty()) {
-    const uint64_t new_request_id = GetNextRequestId(endpoint_id_);
+    const uint64_t new_request_id = GetNextRequestId(instance_number_);
     ErrorOr<uint64_t> watch_id_or_error(0);
     std::vector<std::string> urls;
     urls.reserve(still_observed_urls.size());
@@ -390,7 +389,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
   connect_request_.MarkComplete();
   // TODO(btolsch): This is one place where we need to make sure the QUIC
   // connection stays alive, even without constant traffic.
-  endpoint_id_ = connection->endpoint_id();
+  instance_number_ = connection->instance_number();
   connection_ = std::move(connection);
   ErrorOr<uint64_t> watch_id_or_error(0);
   for (auto entry = request_by_id_.begin(); entry != request_by_id_.end();) {
@@ -423,7 +422,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionFailed(
 }
 
 ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(
-    uint64_t endpoint_id,
+    uint64_t instance_number,
     uint64_t connection_id,
     msgs::Type message_type,
     const uint8_t* buffer,

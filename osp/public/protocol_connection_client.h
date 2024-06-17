@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-#include "osp/public/endpoint_request_ids.h"
+#include "osp/public/instance_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
 #include "osp/public/service_listener.h"
@@ -77,21 +77,23 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
   // Returns true if state() != (kStopped|kStopping).
   virtual bool Stop() = 0;
 
-  // Open a new connection to |endpoint|.  This may succeed synchronously if
-  // there are already connections open to |endpoint|, otherwise it will be
+  // Open a new connection to `instance_id`.  This may succeed synchronously if
+  // there are already connections open to `instance_id`, otherwise it will be
   // asynchronous.
-  virtual ConnectRequest Connect(const IPEndpoint& endpoint,
+  //
+  // TODO(crbug.com/347197917): Improve this API.
+  virtual ConnectRequest Connect(const std::string& instance_id,
                                  ConnectionRequestCallback* request) = 0;
 
-  // Synchronously open a new connection to an endpoint identified by
-  // |endpoint_id|.  Returns nullptr if it can't be completed synchronously
-  // (e.g. there are no existing open connections to that endpoint).
+  // Synchronously open a new connection to an instance identified by
+  // `instance_number`.  Returns nullptr if it can't be completed synchronously
+  // (e.g. there are no existing open connections to that instance).
   virtual std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t endpoint_id) = 0;
+      uint64_t instance_number) = 0;
 
   MessageDemuxer* message_demuxer() const { return &demuxer_; }
 
-  EndpointRequestIds* endpoint_request_ids() { return &endpoint_request_ids_; }
+  InstanceRequestIds* instance_request_ids() { return &instance_request_ids_; }
 
   // Returns the current state of the listener.
   State state() const { return state_; }
@@ -108,7 +110,7 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
   State state_ = State::kStopped;
   Error last_error_;
   MessageDemuxer& demuxer_;
-  EndpointRequestIds endpoint_request_ids_;
+  InstanceRequestIds instance_request_ids_;
   ProtocolConnectionServiceObserver& observer_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ProtocolConnectionClient);

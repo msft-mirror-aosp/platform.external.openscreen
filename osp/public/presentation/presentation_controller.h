@@ -172,7 +172,7 @@ class Controller final : public ServiceListener::Observer,
 
   void AddConnection(Connection* connection);
   void OpenConnection(uint64_t connection_id,
-                      uint64_t endpoint_id,
+                      uint64_t instance_number,
                       const std::string& instance_id,
                       RequestDelegate* request_delegate,
                       std::unique_ptr<Connection>&& connection,
@@ -203,16 +203,13 @@ class Controller final : public ServiceListener::Observer,
   void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
-  std::map<std::string, uint64_t> next_connection_id_;
-
-  std::map<std::string, ControlledPresentation> presentations_;
-
   std::unique_ptr<ConnectionManager> connection_manager_;
-
   std::unique_ptr<UrlAvailabilityRequester> availability_requester_;
-  std::map<std::string, IPEndpoint> receiver_endpoints_;
 
-  std::map<std::string, std::unique_ptr<MessageGroupStreams>> group_streams_;
+  std::map<std::string, ControlledPresentation> presentations_by_id_;
+  // TODO(crbug.com/347268871): Replace instance_id as an agent identifier
+  std::map<std::string, std::unique_ptr<MessageGroupStreams>>
+      group_streams_by_instance_id_;
   std::map<std::string, std::unique_ptr<TerminationListener>>
       termination_listener_by_id_;
 };
