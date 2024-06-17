@@ -68,7 +68,7 @@ class Receiver final : public MessageDemuxer::MessageCallback,
   void Deinit();
 
   // Sets the object to call when a new receiver connection is available.
-  // |delegate| must either outlive PresentationReceiver or live until a new
+  // `delegate` must either outlive PresentationReceiver or live until a new
   // delegate (possibly nullptr) is set.  Setting the delegate to nullptr will
   // automatically ignore all future receiver requests.
   void SetReceiverDelegate(ReceiverDelegate* delegate);
@@ -93,7 +93,7 @@ class Receiver final : public MessageDemuxer::MessageCallback,
   void OnConnectionDestroyed(Connection* connection) override;
 
   // MessageDemuxer::MessageCallback overrides.
-  ErrorOr<size_t> OnStreamMessage(uint64_t instance_number,
+  ErrorOr<size_t> OnStreamMessage(uint64_t instance_id,
                                   uint64_t connection_id,
                                   msgs::Type message_type,
                                   const uint8_t* buffer,
@@ -107,11 +107,11 @@ class Receiver final : public MessageDemuxer::MessageCallback,
     Type type;
     uint64_t request_id = 0u;
     uint64_t connection_id = 0u;
-    uint64_t instance_number = 0u;
+    uint64_t instance_id = 0u;
   };
 
   struct Presentation {
-    uint64_t instance_number = 0u;
+    uint64_t instance_id = 0u;
     MessageDemuxer::MessageWatch terminate_watch;
     uint64_t terminate_request_id = 0u;
     std::vector<Connection*> connections;

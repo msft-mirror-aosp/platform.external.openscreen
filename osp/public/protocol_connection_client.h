@@ -81,21 +81,20 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
   // Returns true if state() != (kStopped|kStopping).
   virtual bool Stop() = 0;
 
-  // Open a new connection to `instance_id`.  This may succeed synchronously if
-  // there are already connections open to `instance_id`, otherwise it will be
-  // asynchronous.
-  // Returns true if succeed synchronously or asynchronously, false otherwise.
-  // `request` is overwritten with the result of a successful connection
-  // attempt.
-  virtual bool Connect(const std::string& instance_id,
+  // Open a new connection to `instance_name`.  This may succeed synchronously
+  // if there are already connections open to `instance_name`, otherwise it will
+  // be asynchronous. Returns true if succeed synchronously or asynchronously,
+  // false otherwise. `request` is overwritten with the result of a successful
+  // connection attempt.
+  virtual bool Connect(const std::string& instance_name,
                        ConnectRequest& request,
                        ConnectionRequestCallback* request_callback) = 0;
 
   // Synchronously open a new connection to an instance identified by
-  // `instance_number`.  Returns nullptr if it can't be completed synchronously
+  // `instance_id`.  Returns nullptr if it can't be completed synchronously
   // (e.g. there are no existing open connections to that instance).
   virtual std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t instance_number) = 0;
+      uint64_t instance_id) = 0;
 
   MessageDemuxer* message_demuxer() const { return &demuxer_; }
 

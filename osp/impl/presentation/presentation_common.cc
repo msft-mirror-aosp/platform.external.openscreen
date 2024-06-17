@@ -11,10 +11,10 @@
 namespace openscreen::osp {
 
 std::unique_ptr<ProtocolConnection> GetProtocolConnection(
-    uint64_t instance_number) {
+    uint64_t instance_id) {
   return NetworkServiceManager::Get()
       ->GetProtocolConnectionServer()
-      ->CreateProtocolConnection(instance_number);
+      ->CreateProtocolConnection(instance_id);
 }
 
 MessageDemuxer* GetServerDemuxer() {

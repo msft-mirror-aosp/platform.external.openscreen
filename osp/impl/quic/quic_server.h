@@ -51,7 +51,7 @@ class QuicServer final : public ProtocolConnectionServer,
   bool Resume() override;
   std::string GetFingerprint() override;
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t instance_number) override;
+      uint64_t instance_id) override;
 
   // QuicProtocolConnection::Owner overrides.
   void OnConnectionDestroyed(QuicProtocolConnection* connection) override;
@@ -61,9 +61,9 @@ class QuicServer final : public ProtocolConnectionServer,
                                      std::string connection_id) override;
   void OnIncomingStream(
       std::unique_ptr<QuicProtocolConnection> connection) override;
-  void OnConnectionClosed(uint64_t instance_number,
+  void OnConnectionClosed(uint64_t instance_id,
                           std::string connection_id) override;
-  void OnDataReceived(uint64_t instance_number,
+  void OnDataReceived(uint64_t instance_id,
                       uint64_t protocol_connection_id,
                       const ByteView& bytes) override;
 
@@ -86,27 +86,27 @@ class QuicServer final : public ProtocolConnectionServer,
   std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
   std::unique_ptr<ServiceConnectionDelegate> pending_connection_delegate_;
 
-  // Maps an instance ID to a generated instance number. An instance is
-  // identified by instance ID before connection is built and is identified by
-  // instance number for simplicity after then. See OnCryptoHandshakeComplete
-  // method.  This is used to insulate callers from post-handshake changes to a
-  // connections actual peer instance.
+  // Maps an instance name to a generated instance ID. An instance is identified
+  // by instance name before connection is built and is identified by instance
+  // ID for simplicity after then. See OnCryptoHandshakeComplete method. This is
+  // used to insulate callers from post-handshake changes to a connections
+  // actual peer instance.
   //
-  // TODO(crbug.com/347268871): Replace instance_id as an agent identifier.
+  // TODO(crbug.com/347268871): Replace instance_name as an agent identifier.
   std::map<std::string, uint64_t> instance_map_;
 
   // Value that will be used for the next new instance in a Connect call.
-  uint64_t next_instance_number_ = 1u;
+  uint64_t next_instance_id_ = 1u;
 
-  // Maps an instance ID to data about connections that haven't successfully
+  // Maps an instance name to data about connections that haven't successfully
   // completed the QUIC handshake.
   std::map<std::string, ServiceConnectionData> pending_connections_;
 
-  // Maps an instance number to data about connections that have successfully
+  // Maps an instance ID to data about connections that have successfully
   // completed the QUIC handshake.
   std::map<uint64_t, ServiceConnectionData> connections_;
 
-  // Connections (instance numbers) that need to be destroyed, but have to wait
+  // Connections (instance IDs) that need to be destroyed, but have to wait
   // for the next event loop due to the underlying QUIC implementation's way of
   // referencing them.
   std::vector<uint64_t> delete_connections_;

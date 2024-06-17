@@ -40,11 +40,11 @@ void MoveVectorSegment(std::vector<std::string>::iterator first,
     target->emplace(std::move(*it));
 }
 
-uint64_t GetNextRequestId(const uint64_t instance_number) {
+uint64_t GetNextRequestId(const uint64_t instance_id) {
   return NetworkServiceManager::Get()
       ->GetProtocolConnectionClient()
       ->instance_request_ids()
-      ->GetNextRequestId(instance_number);
+      ->GetNextRequestId(instance_id);
 }
 
 }  // namespace
@@ -62,7 +62,7 @@ void UrlAvailabilityRequester::AddObserver(const std::vector<std::string>& urls,
   for (const auto& url : urls) {
     observers_by_url_[url].push_back(observer);
   }
-  for (auto& entry : receiver_by_instance_id_) {
+  for (auto& entry : receiver_by_instance_name_) {
     auto& receiver = entry.second;
     receiver->GetOrRequestAvailabilities(urls, observer);
   }
@@ -82,14 +82,14 @@ void UrlAvailabilityRequester::RemoveObserverUrls(
     if (observers.empty()) {
       unobserved_urls.emplace(std::move(observer_entry->first));
       observers_by_url_.erase(observer_entry);
-      for (auto& entry : receiver_by_instance_id_) {
+      for (auto& entry : receiver_by_instance_name_) {
         auto& receiver = entry.second;
         receiver->known_availability_by_url().erase(url);
       }
     }
   }
 
-  for (auto& entry : receiver_by_instance_id_) {
+  for (auto& entry : receiver_by_instance_name_) {
     auto& receiver = entry.second;
     receiver->RemoveUnobservedRequests(unobserved_urls);
     receiver->RemoveUnobservedWatches(unobserved_urls);
@@ -108,7 +108,7 @@ void UrlAvailabilityRequester::RemoveObserver(ReceiverObserver* observer) {
     }
   }
 
-  for (auto& entry : receiver_by_instance_id_) {
+  for (auto& entry : receiver_by_instance_name_) {
     auto& receiver = entry.second;
     receiver->RemoveUnobservedRequests(unobserved_urls);
     receiver->RemoveUnobservedWatches(unobserved_urls);
@@ -116,9 +116,9 @@ void UrlAvailabilityRequester::RemoveObserver(ReceiverObserver* observer) {
 }
 
 void UrlAvailabilityRequester::AddReceiver(const ServiceInfo& info) {
-  auto result = receiver_by_instance_id_.emplace(
-      info.instance_id,
-      std::make_unique<ReceiverRequester>(*this, info.instance_id));
+  auto result = receiver_by_instance_name_.emplace(
+      info.instance_name,
+      std::make_unique<ReceiverRequester>(*this, info.instance_name));
   std::unique_ptr<ReceiverRequester>& receiver = result.first->second;
   std::vector<std::string> urls;
   urls.reserve(observers_by_url_.size());
@@ -130,26 +130,26 @@ void UrlAvailabilityRequester::AddReceiver(const ServiceInfo& info) {
 void UrlAvailabilityRequester::ChangeReceiver(const ServiceInfo& info) {}
 
 void UrlAvailabilityRequester::RemoveReceiver(const ServiceInfo& info) {
-  auto receiver_entry = receiver_by_instance_id_.find(info.instance_id);
-  if (receiver_entry != receiver_by_instance_id_.end()) {
+  auto receiver_entry = receiver_by_instance_name_.find(info.instance_name);
+  if (receiver_entry != receiver_by_instance_name_.end()) {
     auto& receiver = receiver_entry->second;
     receiver->RemoveReceiver();
-    receiver_by_instance_id_.erase(receiver_entry);
+    receiver_by_instance_name_.erase(receiver_entry);
   }
 }
 
 void UrlAvailabilityRequester::RemoveAllReceivers() {
-  for (auto& entry : receiver_by_instance_id_) {
+  for (auto& entry : receiver_by_instance_name_) {
     auto& receiver = entry.second;
     receiver->RemoveReceiver();
   }
-  receiver_by_instance_id_.clear();
+  receiver_by_instance_name_.clear();
 }
 
 Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
   const Clock::time_point now = now_function_();
   Clock::time_point minimum_schedule_time = now + kWatchDuration;
-  for (auto& entry : receiver_by_instance_id_) {
+  for (auto& entry : receiver_by_instance_name_) {
     auto& receiver = entry.second;
     const Clock::time_point requested_schedule_time =
         receiver->RefreshWatches(now);
@@ -161,10 +161,10 @@ Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
 
 UrlAvailabilityRequester::ReceiverRequester::ReceiverRequester(
     UrlAvailabilityRequester& listener,
-    const std::string& instance_id)
-    : listener_(listener), instance_id_(instance_id) {
+    const std::string& instance_name)
+    : listener_(listener), instance_name_(instance_name) {
   NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-      instance_id, connect_request_, this);
+      instance_name, connect_request_, this);
 }
 
 UrlAvailabilityRequester::ReceiverRequester::~ReceiverRequester() = default;
@@ -184,11 +184,11 @@ void UrlAvailabilityRequester::ReceiverRequester::GetOrRequestAvailabilities(
     if (observer) {
       switch (availability) {
         case msgs::UrlAvailability::kAvailable:
-          observer->OnReceiverAvailable(url, instance_id_);
+          observer->OnReceiverAvailable(url, instance_name_);
           break;
         case msgs::UrlAvailability::kUnavailable:
         case msgs::UrlAvailability::kInvalid:
-          observer->OnReceiverUnavailable(url, instance_id_);
+          observer->OnReceiverUnavailable(url, instance_name_);
           break;
       }
     }
@@ -202,7 +202,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RequestUrlAvailabilities(
     std::vector<std::string> urls) {
   if (urls.empty())
     return;
-  const uint64_t request_id = GetNextRequestId(instance_number_);
+  const uint64_t request_id = GetNextRequestId(instance_id_);
   ErrorOr<uint64_t> watch_id_or_error(0);
   if (!connection_ || (watch_id_or_error = SendRequest(request_id, urls))) {
     request_by_id_.emplace(request_id,
@@ -210,7 +210,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RequestUrlAvailabilities(
   } else {
     for (const auto& url : urls)
       for (auto& observer : listener_.observers_by_url_[url])
-        observer->OnRequestFailed(url, instance_id_);
+        observer->OnRequestFailed(url, instance_name_);
   }
 }
 
@@ -232,13 +232,11 @@ ErrorOr<uint64_t> UrlAvailabilityRequester::ReceiverRequester::SendRequest(
         watch_id, Watch{listener_.now_function_() + kWatchDuration, urls});
     if (!event_watch_) {
       event_watch_ = GetClientDemuxer()->WatchMessageType(
-          instance_number_, msgs::Type::kPresentationUrlAvailabilityEvent,
-          this);
+          instance_id_, msgs::Type::kPresentationUrlAvailabilityEvent, this);
     }
     if (!response_watch_) {
       response_watch_ = GetClientDemuxer()->WatchMessageType(
-          instance_number_, msgs::Type::kPresentationUrlAvailabilityResponse,
-          this);
+          instance_id_, msgs::Type::kPresentationUrlAvailabilityResponse, this);
     }
     return watch_id;
   }
@@ -291,12 +289,12 @@ Error::Code UrlAvailabilityRequester::ReceiverRequester::UpdateAvailabilities(
       switch (*availability_it) {
         case msgs::UrlAvailability::kAvailable:
           for (auto* observer : observers)
-            observer->OnReceiverAvailable(url, instance_id_);
+            observer->OnReceiverAvailable(url, instance_name_);
           break;
         case msgs::UrlAvailability::kUnavailable:
         case msgs::UrlAvailability::kInvalid:
           for (auto* observer : observers)
-            observer->OnReceiverUnavailable(url, instance_id_);
+            observer->OnReceiverUnavailable(url, instance_name_);
           break;
         default:
           break;
@@ -322,7 +320,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveUnobservedRequests(
       watch_by_id_.erase(request.watch_id);
   }
   if (!still_observed_urls.empty()) {
-    const uint64_t new_request_id = GetNextRequestId(instance_number_);
+    const uint64_t new_request_id = GetNextRequestId(instance_id_);
     ErrorOr<uint64_t> watch_id_or_error(0);
     std::vector<std::string> urls;
     urls.reserve(still_observed_urls.size());
@@ -335,7 +333,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveUnobservedRequests(
     } else {
       for (const auto& url : urls)
         for (auto& observer : listener_.observers_by_url_[url])
-          observer->OnRequestFailed(url, instance_id_);
+          observer->OnRequestFailed(url, instance_name_);
     }
   }
 
@@ -376,7 +374,7 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveReceiver() {
     if (availability.second == msgs::UrlAvailability::kAvailable) {
       const std::string& url = availability.first;
       for (auto& observer : listener_.observers_by_url_[url])
-        observer->OnReceiverUnavailable(url, instance_id_);
+        observer->OnReceiverUnavailable(url, instance_name_);
     }
   }
 }
@@ -389,7 +387,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
 
   // TODO(btolsch): This is one place where we need to make sure the QUIC
   // connection stays alive, even without constant traffic.
-  instance_number_ = connection->instance_number();
+  instance_id_ = connection->instance_id();
   connection_ = std::move(connection);
   ErrorOr<uint64_t> watch_id_or_error(0);
   for (auto entry = request_by_id_.begin(); entry != request_by_id_.end();) {
@@ -416,14 +414,14 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionFailed(
   }
   for (const auto& url : waiting_urls)
     for (auto& observer : listener_.observers_by_url_[url])
-      observer->OnRequestFailed(url, instance_id_);
+      observer->OnRequestFailed(url, instance_name_);
 
-  std::string id = std::move(instance_id_);
-  listener_.receiver_by_instance_id_.erase(id);
+  std::string name = std::move(instance_name_);
+  listener_.receiver_by_instance_name_.erase(name);
 }
 
 ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(
-    uint64_t instance_number,
+    uint64_t instance_id,
     uint64_t connection_id,
     msgs::Type message_type,
     const uint8_t* buffer,

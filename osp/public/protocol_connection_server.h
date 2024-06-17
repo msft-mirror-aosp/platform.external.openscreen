@@ -70,10 +70,10 @@ class ProtocolConnectionServer {
   virtual std::string GetFingerprint() = 0;
 
   // Synchronously open a new connection to an instance identified by
-  // |instance_number|.  Returns nullptr if it can't be completed synchronously
+  // `instance_id`.  Returns nullptr if it can't be completed synchronously
   // (e.g. there are no existing open connections to that instance).
   virtual std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t instance_number) = 0;
+      uint64_t instance_id) = 0;
 
   MessageDemuxer* message_demuxer() const { return &demuxer_; }
 

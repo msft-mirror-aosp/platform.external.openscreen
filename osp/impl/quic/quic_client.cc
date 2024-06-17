@@ -56,8 +56,8 @@ void QuicClient::Cleanup() {
       entry.second.connection->Close();
   }
 
-  for (uint64_t instance_number : delete_connections_) {
-    auto it = connections_.find(instance_number);
+  for (uint64_t instance_id : delete_connections_) {
+    auto it = connections_.find(instance_id);
     if (it != connections_.end()) {
       connections_.erase(it);
     }
@@ -70,7 +70,7 @@ void QuicClient::Cleanup() {
   }
 }
 
-bool QuicClient::Connect(const std::string& instance_id,
+bool QuicClient::Connect(const std::string& instance_name,
                          ConnectRequest& request,
                          ConnectionRequestCallback* request_callback) {
   if (state_ != State::kRunning) {
@@ -78,7 +78,7 @@ bool QuicClient::Connect(const std::string& instance_id,
     OSP_LOG_ERROR << "QuicClient connect failed: QuicClient is not running.";
     return false;
   }
-  auto instance_entry = instance_map_.find(instance_id);
+  auto instance_entry = instance_map_.find(instance_name);
   if (instance_entry != instance_map_.end()) {
     auto immediate_result = CreateProtocolConnection(instance_entry->second);
     OSP_CHECK(immediate_result);
@@ -89,26 +89,26 @@ bool QuicClient::Connect(const std::string& instance_id,
     return true;
   }
 
-  return CreatePendingConnection(instance_id, request, request_callback);
+  return CreatePendingConnection(instance_name, request, request_callback);
 }
 
 std::unique_ptr<ProtocolConnection> QuicClient::CreateProtocolConnection(
-    uint64_t instance_number) {
+    uint64_t instance_id) {
   if (state_ != State::kRunning)
     return nullptr;
-  auto connection_entry = connections_.find(instance_number);
+  auto connection_entry = connections_.find(instance_id);
   if (connection_entry == connections_.end())
     return nullptr;
   return QuicProtocolConnection::FromExisting(
       *this, connection_entry->second.connection.get(),
-      connection_entry->second.delegate.get(), instance_number);
+      connection_entry->second.delegate.get(), instance_id);
 }
 
 void QuicClient::OnConnectionDestroyed(QuicProtocolConnection* connection) {
   if (!connection->stream())
     return;
 
-  auto connection_entry = connections_.find(connection->instance_number());
+  auto connection_entry = connections_.find(connection->instance_id());
   if (connection_entry == connections_.end())
     return;
 
@@ -118,25 +118,25 @@ void QuicClient::OnConnectionDestroyed(QuicProtocolConnection* connection) {
 uint64_t QuicClient::OnCryptoHandshakeComplete(
     ServiceConnectionDelegate* delegate,
     std::string connection_id) {
-  const std::string& instance_id = delegate->instance_id();
-  auto pending_entry = pending_connections_.find(instance_id);
+  const std::string& instance_name = delegate->instance_name();
+  auto pending_entry = pending_connections_.find(instance_name);
   if (pending_entry == pending_connections_.end())
     return 0;
 
   ServiceConnectionData connection_data = std::move(pending_entry->second.data);
   auto* connection = connection_data.connection.get();
-  uint64_t instance_number = next_instance_number_++;
-  instance_map_[instance_id] = instance_number;
-  connections_.emplace(instance_number, std::move(connection_data));
+  uint64_t instance_id = next_instance_id_++;
+  instance_map_[instance_name] = instance_id;
+  connections_.emplace(instance_id, std::move(connection_data));
 
   for (auto& request : pending_entry->second.callbacks) {
     std::unique_ptr<QuicProtocolConnection> pc =
         QuicProtocolConnection::FromExisting(*this, connection, delegate,
-                                             instance_number);
+                                             instance_id);
     request.second->OnConnectionOpened(request.first, std::move(pc));
   }
   pending_connections_.erase(pending_entry);
-  return instance_number;
+  return instance_id;
 }
 
 void QuicClient::OnIncomingStream(
@@ -146,22 +146,22 @@ void QuicClient::OnIncomingStream(
   connection.reset();
 }
 
-void QuicClient::OnConnectionClosed(uint64_t instance_number,
+void QuicClient::OnConnectionClosed(uint64_t instance_id,
                                     std::string connection_id) {
   // TODO(btolsch): Is this how handshake failure is communicated to the
   // delegate?
-  auto connection_entry = connections_.find(instance_number);
+  auto connection_entry = connections_.find(instance_id);
   if (connection_entry == connections_.end())
     return;
-  delete_connections_.push_back(instance_number);
+  delete_connections_.push_back(instance_id);
 
-  instance_request_ids_.ResetRequestId(instance_number);
+  instance_request_ids_.ResetRequestId(instance_id);
 }
 
-void QuicClient::OnDataReceived(uint64_t instance_number,
+void QuicClient::OnDataReceived(uint64_t instance_id,
                                 uint64_t protocol_connection_id,
                                 const ByteView& bytes) {
-  demuxer_.OnStreamData(instance_number, protocol_connection_id, bytes.data(),
+  demuxer_.OnStreamData(instance_id, protocol_connection_id, bytes.data(),
                         bytes.size());
 }
 
@@ -181,17 +181,17 @@ void QuicClient::OnSearching() {}
 
 void QuicClient::OnReceiverAdded(const ServiceInfo& info) {
   instance_infos_.insert(std::make_pair(
-      info.instance_id,
+      info.instance_name,
       InstanceInfo{info.fingerprint, info.v4_endpoint, info.v6_endpoint}));
 }
 
 void QuicClient::OnReceiverChanged(const ServiceInfo& info) {
-  instance_infos_[info.instance_id] =
+  instance_infos_[info.instance_name] =
       InstanceInfo{info.fingerprint, info.v4_endpoint, info.v6_endpoint};
 }
 
 void QuicClient::OnReceiverRemoved(const ServiceInfo& info) {
-  instance_infos_.erase(info.instance_id);
+  instance_infos_.erase(info.instance_name);
 }
 
 void QuicClient::OnAllReceiversRemoved() {
@@ -202,12 +202,13 @@ void QuicClient::OnError(const Error&) {}
 void QuicClient::OnMetrics(ServiceListener::Metrics) {}
 
 bool QuicClient::CreatePendingConnection(
-    const std::string& instance_id,
+    const std::string& instance_name,
     ConnectRequest& request,
     ConnectionRequestCallback* request_callback) {
-  auto pending_entry = pending_connections_.find(instance_id);
+  auto pending_entry = pending_connections_.find(instance_name);
   if (pending_entry == pending_connections_.end()) {
-    uint64_t request_id = StartConnectionRequest(instance_id, request_callback);
+    uint64_t request_id =
+        StartConnectionRequest(instance_name, request_callback);
     if (request_id) {
       request = ConnectRequest(this, request_id);
       return true;
@@ -223,18 +224,18 @@ bool QuicClient::CreatePendingConnection(
 }
 
 uint64_t QuicClient::StartConnectionRequest(
-    const std::string& instance_id,
+    const std::string& instance_name,
     ConnectionRequestCallback* request_callback) {
-  auto instance_entry = instance_infos_.find(instance_id);
+  auto instance_entry = instance_infos_.find(instance_name);
   if (instance_entry == instance_infos_.end()) {
     request_callback->OnConnectionFailed(0);
     OSP_LOG_ERROR << "QuicClient connect failed: can't find information for "
-                  << instance_id;
+                  << instance_name;
     return 0;
   }
 
   auto delegate =
-      std::make_unique<ServiceConnectionDelegate>(*this, instance_id);
+      std::make_unique<ServiceConnectionDelegate>(*this, instance_name);
   IPEndpoint endpoint = instance_entry->second.v4_endpoint
                             ? instance_entry->second.v4_endpoint
                             : instance_entry->second.v6_endpoint;
@@ -248,8 +249,8 @@ uint64_t QuicClient::StartConnectionRequest(
     return 0;
   }
   auto pending_result = pending_connections_.emplace(
-      instance_id, PendingConnectionData(ServiceConnectionData(
-                       std::move(connection.value()), std::move(delegate))));
+      instance_name, PendingConnectionData(ServiceConnectionData(
+                         std::move(connection.value()), std::move(delegate))));
   uint64_t request_id = next_request_id_++;
   pending_result.first->second.callbacks.emplace_back(request_id,
                                                       request_callback);
@@ -271,7 +272,7 @@ void QuicClient::CloseAllConnections() {
   connections_.clear();
 
   instance_map_.clear();
-  next_instance_number_ = 1;
+  next_instance_id_ = 1;
   instance_request_ids_.Reset();
 }
 

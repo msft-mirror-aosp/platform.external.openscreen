@@ -531,7 +531,7 @@ void PublisherDemo(std::string_view friendly_name) {
 
   ServicePublisher::Config publisher_config = {
       .friendly_name = std::string(friendly_name),
-      .service_instance_name = "deadbeef",
+      .instance_name = "deadbeef",
       .connection_server_port = server_port};
 
   EndpointConfig server_config;

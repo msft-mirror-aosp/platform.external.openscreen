@@ -48,7 +48,7 @@ class ProtocolConnection {
     virtual void OnConnectionClosed(const ProtocolConnection& connection) = 0;
   };
 
-  ProtocolConnection(uint64_t instance_number, uint64_t connection_id);
+  ProtocolConnection(uint64_t instance_id, uint64_t connection_id);
   virtual ~ProtocolConnection() = default;
 
   // TODO(mfoltz): Define extension API exposed to embedders.  This would be
@@ -79,14 +79,14 @@ class ProtocolConnection {
 
   // TODO(btolsch): This should be derived from the handshake auth identifier
   // when that is finalized and implemented.
-  uint64_t instance_number() const { return instance_number_; }
+  uint64_t instance_id() const { return instance_id_; }
   uint64_t id() const { return id_; }
 
   virtual void Write(const ByteView& bytes) = 0;
   virtual void CloseWriteEnd() = 0;
 
  protected:
-  uint64_t instance_number_ = 0u;
+  uint64_t instance_id_ = 0u;
   uint64_t id_ = 0u;
   Observer* observer_ = nullptr;
 };

@@ -73,7 +73,7 @@ class PresentationReceiverTest : public ::testing::Test {
   std::unique_ptr<ProtocolConnection> MakeClientStream() {
     MockConnectRequest mock_connect_request;
     NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        quic_bridge_.kInstanceID, connect_request_, &mock_connect_request);
+        quic_bridge_.kInstanceName, connect_request_, &mock_connect_request);
     EXPECT_TRUE(connect_request_);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request, OnConnectionOpened(_, _))
@@ -139,7 +139,7 @@ TEST_F(PresentationReceiverTest, QueryAvailability) {
 
   msgs::PresentationUrlAvailabilityResponse response;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
-      .WillOnce(Invoke([&response](uint64_t instance_number, uint64_t cid,
+      .WillOnce(Invoke([&response](uint64_t instance_id, uint64_t cid,
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buffer_size, Clock::time_point now) {
         ssize_t result = msgs::DecodePresentationUrlAvailabilityResponse(
@@ -186,7 +186,7 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
                                   ResponseResult::kSuccess);
   msgs::PresentationStartResponse response;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
-      .WillOnce(Invoke([&response](uint64_t instance_number, uint64_t cid,
+      .WillOnce(Invoke([&response](uint64_t instance_id, uint64_t cid,
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buf_size, Clock::time_point now) {
         ssize_t result =

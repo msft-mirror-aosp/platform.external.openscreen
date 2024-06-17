@@ -46,13 +46,13 @@ void Connection::OnConnecting() {
 
 void Connection::OnConnected(
     uint64_t connection_id,
-    uint64_t instance_number,
+    uint64_t instance_id,
     std::unique_ptr<ProtocolConnection> protocol_connection) {
   if (state_ != State::kConnecting) {
     return;
   }
   connection_id_ = connection_id;
-  instance_number_ = instance_number;
+  instance_id_ = instance_id;
   protocol_connection_ = std::move(protocol_connection);
   state_ = State::kConnected;
   delegate_->OnConnected();
@@ -170,7 +170,7 @@ void ConnectionManager::RemoveConnection(Connection* connection) {
 // TODO(jophba): refine the RegisterWatch/OnStreamMessage API. We
 // should add a layer between the message logic and the parse/dispatch
 // logic, and remove the CBOR information from ConnectionManager.
-ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_number,
+ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_id,
                                                    uint64_t connection_id,
                                                    msgs::Type message_type,
                                                    const uint8_t* buffer,
@@ -231,7 +231,7 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_number,
       std::unique_ptr<ProtocolConnection> protocol_connection =
           NetworkServiceManager::Get()
               ->GetProtocolConnectionServer()
-              ->CreateProtocolConnection(instance_number);
+              ->CreateProtocolConnection(instance_id);
       if (protocol_connection) {
         protocol_connection->WriteMessage(
             response, &msgs::EncodePresentationConnectionCloseResponse);

@@ -23,8 +23,7 @@ namespace openscreen::osp {
 // Typically, the same QuicConnection and ServiceConnectionDelegate
 // are reused (see QuicProtocolConnection::FromExisting) for the new
 // ProtocolConnection instance.
-std::unique_ptr<ProtocolConnection> GetProtocolConnection(
-    uint64_t instance_number);
+std::unique_ptr<ProtocolConnection> GetProtocolConnection(uint64_t instance_id);
 
 // These methods retrieve the server and client demuxers, respectively. These
 // are retrieved from the protocol connection server and client. The lifetime of
