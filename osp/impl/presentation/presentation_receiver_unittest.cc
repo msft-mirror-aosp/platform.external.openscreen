@@ -72,9 +72,9 @@ class PresentationReceiverTest : public ::testing::Test {
  protected:
   std::unique_ptr<ProtocolConnection> MakeClientStream() {
     MockConnectRequest mock_connect_request;
-    connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            quic_bridge_.kInstanceID, &mock_connect_request);
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        quic_bridge_.kInstanceID, connect_request_, &mock_connect_request);
+    EXPECT_TRUE(connect_request_);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request, OnConnectionOpened(_, _))
         .WillOnce([&stream](uint64_t request_id,

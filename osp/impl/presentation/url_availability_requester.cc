@@ -162,12 +162,10 @@ Clock::time_point UrlAvailabilityRequester::RefreshWatches() {
 UrlAvailabilityRequester::ReceiverRequester::ReceiverRequester(
     UrlAvailabilityRequester& listener,
     const std::string& instance_id)
-    : listener_(listener),
-      instance_id_(instance_id),
-      connect_request_(
-          NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-              instance_id,
-              this)) {}
+    : listener_(listener), instance_id_(instance_id) {
+  NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+      instance_id, connect_request_, this);
+}
 
 UrlAvailabilityRequester::ReceiverRequester::~ReceiverRequester() = default;
 
@@ -386,7 +384,9 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveReceiver() {
 void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
     uint64_t request_id,
     std::unique_ptr<ProtocolConnection> connection) {
+  OSP_CHECK_EQ(request_id, connect_request_.request_id());
   connect_request_.MarkComplete();
+
   // TODO(btolsch): This is one place where we need to make sure the QUIC
   // connection stays alive, even without constant traffic.
   instance_number_ = connection->instance_number();
@@ -404,6 +404,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
 
 void UrlAvailabilityRequester::ReceiverRequester::OnConnectionFailed(
     uint64_t request_id) {
+  OSP_CHECK_EQ(request_id, connect_request_.request_id());
   connect_request_.MarkComplete();
 
   std::set<std::string> waiting_urls;

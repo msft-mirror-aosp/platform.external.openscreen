@@ -53,8 +53,9 @@ class QuicClient final : public ProtocolConnectionClient,
   // ProtocolConnectionClient overrides.
   bool Start() override;
   bool Stop() override;
-  ConnectRequest Connect(const std::string& instance_id,
-                         ConnectionRequestCallback* request) override;
+  bool Connect(const std::string& instance_id,
+               ConnectRequest& request,
+               ConnectionRequestCallback* request_callback) override;
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t instance_number) override;
 
@@ -114,10 +115,11 @@ class QuicClient final : public ProtocolConnectionClient,
   void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
-  ConnectRequest CreatePendingConnection(const std::string& instance_id,
-                                         ConnectionRequestCallback* request);
+  bool CreatePendingConnection(const std::string& instance_id,
+                               ConnectRequest& request,
+                               ConnectionRequestCallback* request_callback);
   uint64_t StartConnectionRequest(const std::string& instance_id,
-                                  ConnectionRequestCallback* request);
+                                  ConnectionRequestCallback* request_callback);
   void CloseAllConnections();
   std::unique_ptr<QuicProtocolConnection> MakeProtocolConnection(
       QuicConnection* connection,

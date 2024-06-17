@@ -117,10 +117,6 @@ class Controller::MessageGroupStreams final
   ProtocolConnectionClient::ConnectRequest connection_connect_request_;
   std::unique_ptr<ProtocolConnection> connection_protocol_connection_;
 
-  // TODO(btolsch): Improve the ergo of QuicClient::Connect because this is bad.
-  bool initiation_connect_request_stack_{false};
-  bool connection_connect_request_stack_{false};
-
   RequestResponseHandler<StartRequest> initiation_handler_;
   RequestResponseHandler<ConnectionOpenRequest> connection_open_handler_;
   RequestResponseHandler<ConnectionCloseRequest> connection_close_handler_;
@@ -143,11 +139,8 @@ uint64_t Controller::MessageGroupStreams::SendStartRequest(
     StartRequest request) {
   uint64_t request_id = GetNextInternalRequestId();
   if (!initiation_protocol_connection_ && !initiation_connect_request_) {
-    initiation_connect_request_stack_ = true;
-    initiation_connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            instance_id_, this);
-    initiation_connect_request_stack_ = false;
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        instance_id_, initiation_connect_request_, this);
   }
   initiation_handler_.WriteMessage(request_id, std::move(request));
   return request_id;
@@ -198,11 +191,8 @@ uint64_t Controller::MessageGroupStreams::SendConnectionOpenRequest(
     ConnectionOpenRequest request) {
   uint64_t request_id = GetNextInternalRequestId();
   if (!connection_protocol_connection_ && !connection_connect_request_) {
-    connection_connect_request_stack_ = true;
-    connection_connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            instance_id_, this);
-    connection_connect_request_stack_ = false;
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        instance_id_, connection_connect_request_, this);
   }
   connection_open_handler_.WriteMessage(request_id, std::move(request));
   return request_id;
@@ -253,11 +243,8 @@ void Controller::MessageGroupStreams::OnError(ConnectionOpenRequest* request,
 void Controller::MessageGroupStreams::SendConnectionCloseRequest(
     ConnectionCloseRequest request) {
   if (!connection_protocol_connection_ && !connection_connect_request_) {
-    connection_connect_request_stack_ = true;
-    connection_connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            instance_id_, this);
-    connection_connect_request_stack_ = false;
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        instance_id_, connection_connect_request_, this);
   }
   connection_close_handler_.WriteMessage(std::move(request));
 }
@@ -282,9 +269,8 @@ void Controller::MessageGroupStreams::OnError(ConnectionCloseRequest* request,
 void Controller::MessageGroupStreams::SendTerminationRequest(
     TerminationRequest request) {
   if (!initiation_protocol_connection_ && !initiation_connect_request_) {
-    initiation_connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            instance_id_, this);
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        instance_id_, initiation_connect_request_, this);
   }
   termination_handler_.WriteMessage(std::move(request));
 }
@@ -306,16 +292,14 @@ void Controller::MessageGroupStreams::OnConnectionOpened(
     uint64_t request_id,
     std::unique_ptr<ProtocolConnection> connection) {
   if ((initiation_connect_request_ &&
-       initiation_connect_request_.request_id() == request_id) ||
-      initiation_connect_request_stack_) {
+       initiation_connect_request_.request_id() == request_id)) {
     initiation_protocol_connection_ = std::move(connection);
     initiation_protocol_connection_->SetObserver(this);
     initiation_connect_request_.MarkComplete();
     initiation_handler_.SetConnection(initiation_protocol_connection_.get());
     termination_handler_.SetConnection(initiation_protocol_connection_.get());
   } else if ((connection_connect_request_ &&
-              connection_connect_request_.request_id() == request_id) ||
-             connection_connect_request_stack_) {
+              connection_connect_request_.request_id() == request_id)) {
     connection_protocol_connection_ = std::move(connection);
     connection_protocol_connection_->SetObserver(this);
     connection_connect_request_.MarkComplete();

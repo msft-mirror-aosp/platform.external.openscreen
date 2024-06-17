@@ -136,11 +136,12 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   EXPECT_EQ(Connection::State::kConnecting, receiver.state());
 
   MockConnectRequestCallback mock_connect_request_callback;
+  QuicClient::ConnectRequest request;
   std::unique_ptr<ProtocolConnection> controller_stream;
   std::unique_ptr<ProtocolConnection> receiver_stream;
-  auto connect_request =
-      NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-          quic_bridge_.kInstanceID, &mock_connect_request_callback);
+  NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+      quic_bridge_.kInstanceID, request, &mock_connect_request_callback);
+  EXPECT_TRUE(request);
   EXPECT_CALL(mock_connect_request_callback, OnConnectionOpenedMock(_, _))
       .WillOnce(Invoke([&controller_stream](uint64_t request_id,
                                             ProtocolConnection* stream) {

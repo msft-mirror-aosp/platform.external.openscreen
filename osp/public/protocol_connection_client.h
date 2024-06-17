@@ -48,6 +48,9 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
     ~ConnectRequest();
     ConnectRequest& operator=(ConnectRequest&& other) noexcept;
 
+    // This returns true for a valid and in progress ConnectRequest.
+    // MarkComplete is called and this returns false when the request
+    // completes.
     explicit operator bool() const { return request_id_; }
 
     uint64_t request_id() const { return request_id_; }
@@ -58,6 +61,7 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
 
    private:
     ProtocolConnectionClient* parent_ = nullptr;
+    // The |request_id_| of a valid ConnectRequest should be greater than 0.
     uint64_t request_id_ = 0;
   };
 
@@ -80,10 +84,12 @@ class ProtocolConnectionClient : public ServiceListener::Observer {
   // Open a new connection to `instance_id`.  This may succeed synchronously if
   // there are already connections open to `instance_id`, otherwise it will be
   // asynchronous.
-  //
-  // TODO(crbug.com/347197917): Improve this API.
-  virtual ConnectRequest Connect(const std::string& instance_id,
-                                 ConnectionRequestCallback* request) = 0;
+  // Returns true if succeed synchronously or asynchronously, false otherwise.
+  // `request` is overwritten with the result of a successful connection
+  // attempt.
+  virtual bool Connect(const std::string& instance_id,
+                       ConnectRequest& request,
+                       ConnectionRequestCallback* request_callback) = 0;
 
   // Synchronously open a new connection to an instance identified by
   // `instance_number`.  Returns nullptr if it can't be completed synchronously

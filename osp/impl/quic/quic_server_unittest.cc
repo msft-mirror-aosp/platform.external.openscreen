@@ -58,9 +58,8 @@ class QuicServerTest : public Test {
  protected:
   std::unique_ptr<ProtocolConnection> ExpectIncomingConnection() {
     MockConnectRequest mock_connect_request;
-    connect_request_ =
-        NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-            quic_bridge_.kInstanceID, &mock_connect_request);
+    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
+        quic_bridge_.kInstanceID, connect_request_, &mock_connect_request);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request, OnConnectionOpenedMock());
     EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
