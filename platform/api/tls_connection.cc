@@ -13,6 +13,7 @@ TlsConnection::~TlsConnection() = default;
 [[nodiscard]] bool TlsConnection::Send(const void* data, size_t len) {
   // Must be overridden by subclasses.
   assert(false);
+  return false;
 }
 
 [[nodiscard]] bool TlsConnection::Send(ByteView data) {
