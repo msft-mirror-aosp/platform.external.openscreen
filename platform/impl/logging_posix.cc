@@ -85,7 +85,7 @@ LogLevel GetLogLevel() {
   return g_log_level;
 }
 
-bool IsLoggingOn(LogLevel level, const char* file) {
+bool IsLoggingOn(LogLevel level, const std::string_view file) {
   // Possible future enhancement: Use glob patterns passed on the command-line
   // to use a different logging level for certain files, like in Chromium.
   return level >= g_log_level;
