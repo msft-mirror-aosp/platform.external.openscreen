@@ -16,6 +16,7 @@
 #include "osp/public/network_metrics.h"
 #include "osp/public/protocol_connection_client.h"
 #include "osp/public/protocol_connection_server.h"
+#include "osp/public/protocol_connection_service_observer.h"
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
 #include "platform/base/ip_address.h"
@@ -31,20 +32,10 @@ class MockServiceObserver : public ProtocolConnectionServiceObserver {
 
   MOCK_METHOD0(OnRunning, void());
   MOCK_METHOD0(OnStopped, void());
-  MOCK_METHOD1(OnMetrics, void(const NetworkMetrics& metrics));
-  MOCK_METHOD1(OnError, void(const Error& error));
-};
-
-class MockServerObserver : public ProtocolConnectionServer::Observer {
- public:
-  ~MockServerObserver() override = default;
-
-  MOCK_METHOD0(OnRunning, void());
-  MOCK_METHOD0(OnStopped, void());
-  MOCK_METHOD1(OnMetrics, void(const NetworkMetrics& metrics));
-  MOCK_METHOD1(OnError, void(const Error& error));
-
   MOCK_METHOD0(OnSuspended, void());
+
+  MOCK_METHOD1(OnMetrics, void(const NetworkMetrics& metrics));
+  MOCK_METHOD1(OnError, void(const Error& error));
 
   void OnIncomingConnection(
       std::unique_ptr<ProtocolConnection> connection) override {
@@ -70,7 +61,7 @@ class FakeQuicBridge {
   std::unique_ptr<QuicServer> quic_server;
   std::unique_ptr<FakeQuicConnectionFactoryBridge> fake_bridge;
   ::testing::NiceMock<MockServiceObserver> mock_client_observer;
-  ::testing::NiceMock<MockServerObserver> mock_server_observer;
+  ::testing::NiceMock<MockServiceObserver> mock_server_observer;
 
   void RunTasksUntilIdle();
 

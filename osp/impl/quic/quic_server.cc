@@ -17,7 +17,7 @@ QuicServer::QuicServer(
     const EndpointConfig& config,
     MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
-    ProtocolConnectionServer::Observer& observer,
+    ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)
     : ProtocolConnectionServer(demuxer, observer),

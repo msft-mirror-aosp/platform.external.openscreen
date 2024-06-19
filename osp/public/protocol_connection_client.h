@@ -12,6 +12,7 @@
 #include "osp/public/instance_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
+#include "osp/public/protocol_connection_service_observer.h"
 #include "osp/public/service_listener.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"

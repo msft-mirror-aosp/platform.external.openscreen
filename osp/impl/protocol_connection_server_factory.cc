@@ -19,7 +19,7 @@ std::unique_ptr<ProtocolConnectionServer>
 ProtocolConnectionServerFactory::Create(
     const EndpointConfig& config,
     MessageDemuxer& demuxer,
-    ProtocolConnectionServer::Observer& observer,
+    ProtocolConnectionServiceObserver& observer,
     TaskRunner& task_runner) {
   return std::make_unique<QuicServer>(
       config, demuxer,

@@ -14,11 +14,7 @@
 #include "platform/base/span.h"
 #include "util/osp_logging.h"
 
-namespace openscreen {
-
-class Error;
-
-namespace osp {
+namespace openscreen::osp {
 
 template <typename T>
 using MessageEncodingFunction =
@@ -91,23 +87,6 @@ class ProtocolConnection {
   Observer* observer_ = nullptr;
 };
 
-class ProtocolConnectionServiceObserver {
- public:
-  // Called when the state becomes kRunning.
-  virtual void OnRunning() = 0;
-  // Called when the state becomes kStopped.
-  virtual void OnStopped() = 0;
-
-  // Called when metrics have been collected by the service.
-  virtual void OnMetrics(const NetworkMetrics& metrics) = 0;
-  // Called when an error has occurred.
-  virtual void OnError(const Error& error) = 0;
-
- protected:
-  virtual ~ProtocolConnectionServiceObserver() = default;
-};
-
-}  // namespace osp
-}  // namespace openscreen
+}  // namespace openscreen::osp
 
 #endif  // OSP_PUBLIC_PROTOCOL_CONNECTION_H_

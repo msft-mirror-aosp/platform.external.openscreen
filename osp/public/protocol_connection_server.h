@@ -13,6 +13,7 @@
 #include "osp/public/instance_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection.h"
+#include "osp/public/protocol_connection_service_observer.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 #include "platform/base/macros.h"
@@ -27,17 +28,6 @@ class ProtocolConnectionServer {
     kRunning,
     kStopping,
     kSuspended,
-  };
-
-  class Observer : public ProtocolConnectionServiceObserver {
-   public:
-    virtual ~Observer() = default;
-
-    // Called when the state becomes kSuspended.
-    virtual void OnSuspended() = 0;
-
-    virtual void OnIncomingConnection(
-        std::unique_ptr<ProtocolConnection> connection) = 0;
   };
 
   virtual ~ProtocolConnectionServer();
@@ -86,13 +76,14 @@ class ProtocolConnectionServer {
   const Error& last_error() const { return last_error_; }
 
  protected:
-  ProtocolConnectionServer(MessageDemuxer& demuxer, Observer& observer);
+  ProtocolConnectionServer(MessageDemuxer& demuxer,
+                           ProtocolConnectionServiceObserver& observer);
 
   State state_ = State::kStopped;
   Error last_error_;
   MessageDemuxer& demuxer_;
   InstanceRequestIds instance_request_ids_;
-  Observer& observer_;
+  ProtocolConnectionServiceObserver& observer_;
 
   OSP_DISALLOW_COPY_AND_ASSIGN(ProtocolConnectionServer);
 };

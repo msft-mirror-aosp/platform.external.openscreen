@@ -141,9 +141,8 @@ uint64_t QuicClient::OnCryptoHandshakeComplete(
 
 void QuicClient::OnIncomingStream(
     std::unique_ptr<QuicProtocolConnection> connection) {
-  // TODO(jophba): Change to just use OnIncomingConnection when the observer
-  // is properly set up.
-  connection.reset();
+  OSP_CHECK_EQ(state_, State::kRunning);
+  observer_.OnIncomingConnection(std::move(connection));
 }
 
 void QuicClient::OnConnectionClosed(uint64_t instance_id,
