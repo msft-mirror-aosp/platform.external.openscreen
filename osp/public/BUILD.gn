@@ -35,6 +35,8 @@ if (!is_win) {
       "instance_request_ids.h",
       "protocol_connection.cc",
       "protocol_connection_client.cc",
+      "protocol_connection_endpoint.cc",
+      "protocol_connection_endpoint.h",
       "protocol_connection_server.cc",
       "service_info.cc",
       "service_listener.cc",

@@ -6,7 +6,15 @@
 
 #include <utility>
 
+#include "util/osp_logging.h"
+
 namespace openscreen::osp {
+
+ProtocolConnectionClient::ConnectionRequestCallback::
+    ConnectionRequestCallback() = default;
+
+ProtocolConnectionClient::ConnectionRequestCallback::
+    ~ConnectionRequestCallback() = default;
 
 ProtocolConnectionClient::ConnectRequest::ConnectRequest() = default;
 
@@ -21,11 +29,6 @@ ProtocolConnectionClient::ConnectRequest::ConnectRequest(
   other.request_id_ = 0;
 }
 
-ProtocolConnectionClient::ConnectRequest::~ConnectRequest() {
-  if (request_id_)
-    parent_->CancelConnectRequest(request_id_);
-}
-
 ProtocolConnectionClient::ConnectRequest&
 ProtocolConnectionClient::ConnectRequest::operator=(
     ConnectRequest&& other) noexcept {
@@ -35,29 +38,26 @@ ProtocolConnectionClient::ConnectRequest::operator=(
   return *this;
 }
 
+ProtocolConnectionClient::ConnectRequest::~ConnectRequest() {
+  if (request_id_)
+    parent_->CancelConnectRequest(request_id_);
+}
+
 ProtocolConnectionClient::ProtocolConnectionClient(
     MessageDemuxer& demuxer,
     ProtocolConnectionServiceObserver& observer)
-    : demuxer_(demuxer),
-      instance_request_ids_(InstanceRequestIds::Role::kClient),
-      observer_(observer) {}
+    : ProtocolConnectionEndpoint(demuxer,
+                                 InstanceRequestIds::Role::kClient,
+                                 observer) {}
 
 ProtocolConnectionClient::~ProtocolConnectionClient() = default;
 
-std::ostream& operator<<(std::ostream& os,
-                         ProtocolConnectionClient::State state) {
-  switch (state) {
-    case ProtocolConnectionClient::State::kStopped:
-      return os << "STOPPED";
-    case ProtocolConnectionClient::State::kStarting:
-      return os << "STARTING";
-    case ProtocolConnectionClient::State::kRunning:
-      return os << "RUNNING";
-    case ProtocolConnectionClient::State::kStopping:
-      return os << "STOPPING";
-    default:
-      return os << "UNKNOWN";
-  }
+bool ProtocolConnectionClient::Suspend() {
+  OSP_NOTREACHED()
+}
+
+bool ProtocolConnectionClient::Resume() {
+  OSP_NOTREACHED()
 }
 
 }  // namespace openscreen::osp
