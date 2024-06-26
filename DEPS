@@ -175,7 +175,7 @@ deps = {
 
   'third_party/instrumented_libs': {
     'url': Var('chromium_git') + '/chromium/third_party/instrumented_libraries.git' +
-      '@' + '16e39713f0282c10a62bda40d49c41fb0bd0419b',
+      '@' + 'bb6dbcf2df7a9beb34c3773ef4df161800e3aed9',
     'condition': 'not build_with_chromium',
   },
 
