@@ -157,8 +157,8 @@ std::vector<InterfaceInfo> GetLinkInfo() {
     struct sockaddr_nl peer = {};
     peer.nl_family = AF_NETLINK;
     struct {
-      struct nlmsghdr header;
-      struct ifinfomsg msg;
+      struct nlmsghdr header {};
+      struct ifinfomsg msg {};
     } request;
 
     request.header.nlmsg_len = sizeof(request);
@@ -261,8 +261,8 @@ void PopulateSubnetsOrClearList(std::vector<InterfaceInfo>* info_list) {
     struct sockaddr_nl peer = {};
     peer.nl_family = AF_NETLINK;
     struct {
-      struct nlmsghdr header;
-      struct ifaddrmsg msg;
+      struct nlmsghdr header {};
+      struct ifaddrmsg msg {};
     } request;
 
     request.header.nlmsg_len = sizeof(request);
