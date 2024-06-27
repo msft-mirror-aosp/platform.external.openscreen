@@ -164,7 +164,7 @@ ErrorOr<std::unique_ptr<QuicConnection>>
 FakeClientQuicConnectionFactory::Connect(
     const IPEndpoint& local_endpoint,
     const IPEndpoint& remote_endpoint,
-    const std::string& fingerprint,
+    const ConnectData& connect_data,
     QuicConnection::Delegate* connection_delegate) {
   return bridge_->Connect(remote_endpoint, connection_delegate);
 }

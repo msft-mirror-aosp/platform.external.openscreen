@@ -15,7 +15,7 @@
 namespace openscreen::osp {
 
 QuicClient::QuicClient(
-    const EndpointConfig& config,
+    const ServiceConfig& config,
     MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
     ProtocolConnectionServiceObserver& observer,
@@ -238,10 +238,12 @@ uint64_t QuicClient::StartConnectionRequest(
   IPEndpoint endpoint = instance_entry->second.v4_endpoint
                             ? instance_entry->second.v4_endpoint
                             : instance_entry->second.v6_endpoint;
+  QuicConnectionFactoryClient::ConnectData connect_data = {
+      .instance_name = instance_name,
+      .fingerprint = instance_entry->second.fingerprint};
   ErrorOr<std::unique_ptr<QuicConnection>> connection =
       connection_factory_->Connect(connection_endpoints_[0], endpoint,
-                                   instance_entry->second.fingerprint,
-                                   delegate.get());
+                                   connect_data, delegate.get());
   if (!connection) {
     request_callback->OnConnectionFailed(0);
     OSP_LOG_ERROR << "Factory connect failed: " << connection.error();

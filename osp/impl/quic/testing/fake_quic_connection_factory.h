@@ -68,7 +68,7 @@ class FakeClientQuicConnectionFactory final
   ErrorOr<std::unique_ptr<QuicConnection>> Connect(
       const IPEndpoint& local_endpoint,
       const IPEndpoint& remote_endpoint,
-      const std::string& fingerprint,
+      const ConnectData& connect_data,
       QuicConnection::Delegate* connection_delegate) override;
 
   bool idle() const { return idle_; }

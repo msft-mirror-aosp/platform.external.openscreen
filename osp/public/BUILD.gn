@@ -11,7 +11,6 @@ if (!is_win) {
     visibility += [ "*" ]
     public = [
       "agent_certificate.h",
-      "endpoint_config.h",
       "message_demuxer.h",
       "network_metrics.h",
       "network_service_manager.h",
@@ -25,6 +24,7 @@ if (!is_win) {
       "protocol_connection_server_factory.h",
       "protocol_connection_service_observer.h",
       "request_response_handler.h",
+      "service_config.h",
       "service_info.h",
       "service_listener.h",
       "service_listener_factory.h",

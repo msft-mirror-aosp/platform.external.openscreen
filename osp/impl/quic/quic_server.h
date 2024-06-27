@@ -15,8 +15,8 @@
 #include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_server.h"
 #include "osp/impl/quic/quic_service_common.h"
-#include "osp/public/endpoint_config.h"
 #include "osp/public/protocol_connection_server.h"
+#include "osp/public/service_config.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
 #include "platform/base/ip_address.h"
@@ -39,7 +39,7 @@ class QuicServer final : public ProtocolConnectionServer,
  public:
   static QuicAgentCertificate& GetAgentCertificate();
 
-  QuicServer(const EndpointConfig& config,
+  QuicServer(const ServiceConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
              ProtocolConnectionServiceObserver& observer,
@@ -70,6 +70,8 @@ class QuicServer final : public ProtocolConnectionServer,
                       uint64_t protocol_connection_id,
                       const ByteView& bytes) override;
 
+  const std::string& instance_name() const { return instance_name_; }
+
  private:
   void CloseAllConnections();
 
@@ -85,6 +87,8 @@ class QuicServer final : public ProtocolConnectionServer,
 
   // IPEndpoints used by this server to build connection.
   const std::vector<IPEndpoint> connection_endpoints_;
+  // This is used for server name indication check.
+  const std::string instance_name_;
 
   std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
   std::unique_ptr<ServiceConnectionDelegate> pending_connection_delegate_;

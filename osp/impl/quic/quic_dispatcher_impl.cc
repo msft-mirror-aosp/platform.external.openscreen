@@ -86,9 +86,12 @@ quic::QuicDispatcher::QuicPacketFate
 QuicDispatcherImpl::ValidityChecksOnFullChlo(
     const quic::ReceivedPacketInfo& /*packet_info*/,
     const quic::ParsedClientHello& parsed_chlo) const {
-  std::string sni = QuicServer::GetAgentCertificate().GetAgentFingerprint() +
-                    "._openscreen.udp";
-  sni.erase(std::remove(sni.begin(), sni.end(), ':'), sni.end());
+  QuicServer* server =
+      static_cast<QuicServer*>(parent_factory_.server_delegate());
+  // NOTE: Use instance name + domain temporarily to prevent blocking the
+  // project. There is an ongoing discussion about this, see blow link：
+  // https://github.com/w3c/openscreenprotocol/issues/275
+  std::string sni = server->instance_name() + ".local";
   if (sni != parsed_chlo.sni) {
     return kFateDrop;
   }

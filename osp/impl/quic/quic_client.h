@@ -14,8 +14,8 @@
 
 #include "osp/impl/quic/quic_connection_factory_client.h"
 #include "osp/impl/quic/quic_service_common.h"
-#include "osp/public/endpoint_config.h"
 #include "osp/public/protocol_connection_client.h"
+#include "osp/public/service_config.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
 #include "platform/base/ip_address.h"
@@ -42,7 +42,7 @@ namespace openscreen::osp {
 class QuicClient final : public ProtocolConnectionClient,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
-  QuicClient(const EndpointConfig& config,
+  QuicClient(const ServiceConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
              ProtocolConnectionServiceObserver& observer,

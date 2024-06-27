@@ -10,8 +10,8 @@
 
 #include "osp/impl/quic/quic_client.h"
 #include "osp/impl/quic/quic_server.h"
-#include "osp/public/endpoint_config.h"
 #include "osp/public/network_service_manager.h"
+#include "osp/public/service_config.h"
 #include "platform/test/fake_task_runner.h"
 
 namespace openscreen::osp {
@@ -30,7 +30,7 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner& task_runner,
   auto fake_client_factory = std::make_unique<FakeClientQuicConnectionFactory>(
       task_runner, fake_bridge.get());
   client_socket_ = std::make_unique<FakeUdpSocket>(fake_client_factory.get());
-  EndpointConfig client_config = {.connection_endpoints = {IPEndpoint()}};
+  ServiceConfig client_config = {.connection_endpoints = {kControllerEndpoint}};
   quic_client = std::make_unique<QuicClient>(
       client_config, *controller_demuxer, std::move(fake_client_factory),
       mock_client_observer, now_function, task_runner);
@@ -40,7 +40,8 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner& task_runner,
   auto fake_server_factory = std::make_unique<FakeServerQuicConnectionFactory>(
       task_runner, fake_bridge.get());
   server_socket_ = std::make_unique<FakeUdpSocket>(fake_server_factory.get());
-  EndpointConfig server_config = {.connection_endpoints = {kReceiverEndpoint}};
+  ServiceConfig server_config = {.connection_endpoints = {kReceiverEndpoint},
+                                 .instance_name = {kInstanceName}};
   quic_server = std::make_unique<QuicServer>(
       server_config, *receiver_demuxer, std::move(fake_server_factory),
       mock_server_observer, now_function, task_runner);

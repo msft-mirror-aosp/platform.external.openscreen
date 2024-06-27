@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "osp/msgs/osp_messages.h"
-#include "osp/public/endpoint_config.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/presentation/presentation_controller.h"
@@ -24,6 +23,7 @@
 #include "osp/public/protocol_connection_client_factory.h"
 #include "osp/public/protocol_connection_server.h"
 #include "osp/public/protocol_connection_server_factory.h"
+#include "osp/public/service_config.h"
 #include "osp/public/service_listener.h"
 #include "osp/public/service_listener_factory.h"
 #include "osp/public/service_publisher.h"
@@ -463,7 +463,7 @@ void ListenerDemo() {
   SignalThings();
 
   ServiceListener::Config listener_config;
-  EndpointConfig client_config;
+  ServiceConfig client_config;
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
     OSP_VLOG << "Found interface: " << interface;
     if (!interface.addresses.empty() &&
@@ -569,7 +569,8 @@ void PublisherDemo(std::string_view friendly_name) {
       .instance_name = "deadbeef",
       .connection_server_port = server_port};
 
-  EndpointConfig server_config;
+  ServiceConfig server_config = {.instance_name =
+                                     publisher_config.instance_name};
   for (const InterfaceInfo& interface : GetNetworkInterfaces()) {
     OSP_VLOG << "Found interface: " << interface;
     if (!interface.addresses.empty() &&
