@@ -11,6 +11,7 @@
 #include "osp/impl/quic/open_screen_server_session.h"
 #include "osp/impl/quic/quic_connection_impl.h"
 #include "osp/impl/quic/quic_packet_writer_impl.h"
+#include "osp/impl/quic/quic_server.h"
 #include "osp/impl/quic/quic_utils.h"
 #include "quiche/quic/core/crypto/quic_compressed_certs_cache.h"
 #include "quiche/quic/core/crypto/quic_crypto_server_config.h"
@@ -85,7 +86,8 @@ quic::QuicDispatcher::QuicPacketFate
 QuicDispatcherImpl::ValidityChecksOnFullChlo(
     const quic::ReceivedPacketInfo& /*packet_info*/,
     const quic::ParsedClientHello& parsed_chlo) const {
-  std::string sni = parent_factory_.GetFingerprint() + "._openscreen.udp";
+  std::string sni = QuicServer::GetAgentCertificate().GetAgentFingerprint() +
+                    "._openscreen.udp";
   sni.erase(std::remove(sni.begin(), sni.end(), ':'), sni.end());
   if (sni != parsed_chlo.sni) {
     return kFateDrop;

@@ -29,6 +29,8 @@ if (!is_win) {
       "quic_stream.h",
     ]
     sources = [
+      "certificates/quic_agent_certificate.cc",
+      "certificates/quic_agent_certificate.h",
       "open_screen_client_session.cc",
       "open_screen_client_session.h",
       "open_screen_server_session.cc",

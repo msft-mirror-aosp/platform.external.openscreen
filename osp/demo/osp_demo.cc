@@ -588,7 +588,7 @@ void PublisherDemo(std::string_view friendly_name) {
       server_config, demuxer, server_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner());
 
-  publisher_config.fingerprint = connection_server->GetFingerprint();
+  publisher_config.fingerprint = connection_server->GetAgentFingerprint();
   OSP_CHECK(!publisher_config.fingerprint.empty());
 
   DemoPublisherObserver publisher_observer;

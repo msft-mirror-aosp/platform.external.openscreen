@@ -25,7 +25,7 @@ class ProtocolConnectionServer : public ProtocolConnectionEndpoint {
   // Returns the fingerprint of the server's certificate. The fingerprint is
   // sent to the client as a DNS TXT record. Client uses the fingerprint to
   // verify server's certificate.
-  virtual std::string GetFingerprint() = 0;
+  virtual std::string GetAgentFingerprint() = 0;
 };
 
 }  // namespace openscreen::osp

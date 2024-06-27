@@ -13,6 +13,12 @@
 
 namespace openscreen::osp {
 
+// static
+QuicAgentCertificate& QuicServer::GetAgentCertificate() {
+  static QuicAgentCertificate agent_certificate;
+  return agent_certificate;
+}
+
 QuicServer::QuicServer(
     const EndpointConfig& config,
     MessageDemuxer& demuxer,
@@ -67,8 +73,8 @@ bool QuicServer::Resume() {
   return true;
 }
 
-std::string QuicServer::GetFingerprint() {
-  return connection_factory_->GetFingerprint();
+std::string QuicServer::GetAgentFingerprint() {
+  return GetAgentCertificate().GetAgentFingerprint();
 }
 
 void QuicServer::Cleanup() {

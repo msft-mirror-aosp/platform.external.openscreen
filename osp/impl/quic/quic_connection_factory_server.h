@@ -6,7 +6,6 @@
 #define OSP_IMPL_QUIC_QUIC_CONNECTION_FACTORY_SERVER_H_
 
 #include <memory>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -37,8 +36,6 @@ class QuicConnectionFactoryServer : public QuicConnectionFactoryBase {
 
   // QuicConnectionFactoryBase overrides.
   void OnConnectionClosed(QuicConnection* connection) override;
-
-  std::string GetFingerprint();
 
   virtual void SetServerDelegate(ServerDelegate* delegate,
                                  const std::vector<IPEndpoint>& endpoints);

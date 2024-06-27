@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_server.h"
 #include "osp/impl/quic/quic_service_common.h"
 #include "osp/public/endpoint_config.h"
@@ -36,6 +37,8 @@ class QuicServer final : public ProtocolConnectionServer,
                          public QuicConnectionFactoryServer::ServerDelegate,
                          public ServiceConnectionDelegate::ServiceDelegate {
  public:
+  static QuicAgentCertificate& GetAgentCertificate();
+
   QuicServer(const EndpointConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
@@ -49,7 +52,7 @@ class QuicServer final : public ProtocolConnectionServer,
   bool Stop() override;
   bool Suspend() override;
   bool Resume() override;
-  std::string GetFingerprint() override;
+  std::string GetAgentFingerprint() override;
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t instance_id) override;
 

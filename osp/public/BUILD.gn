@@ -10,6 +10,7 @@ if (!is_win) {
   openscreen_source_set("public") {
     visibility += [ "*" ]
     public = [
+      "agent_certificate.h",
       "endpoint_config.h",
       "message_demuxer.h",
       "network_metrics.h",
@@ -31,6 +32,7 @@ if (!is_win) {
       "service_publisher_factory.h",
     ]
     sources = [
+      "agent_certificate.cc",
       "instance_request_ids.cc",
       "instance_request_ids.h",
       "protocol_connection.cc",
