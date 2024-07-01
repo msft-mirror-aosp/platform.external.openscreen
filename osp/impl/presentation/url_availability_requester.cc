@@ -43,8 +43,8 @@ void MoveVectorSegment(std::vector<std::string>::iterator first,
 uint64_t GetNextRequestId(const uint64_t instance_id) {
   return NetworkServiceManager::Get()
       ->GetProtocolConnectionClient()
-      ->instance_request_ids()
-      ->GetNextRequestId(instance_id);
+      ->GetInstanceRequestIds()
+      .GetNextRequestId(instance_id);
 }
 
 }  // namespace
@@ -231,11 +231,11 @@ ErrorOr<uint64_t> UrlAvailabilityRequester::ReceiverRequester::SendRequest(
     watch_by_id_.emplace(
         watch_id, Watch{listener_.now_function_() + kWatchDuration, urls});
     if (!event_watch_) {
-      event_watch_ = GetClientDemuxer()->WatchMessageType(
+      event_watch_ = GetClientDemuxer().WatchMessageType(
           instance_id_, msgs::Type::kPresentationUrlAvailabilityEvent, this);
     }
     if (!response_watch_) {
-      response_watch_ = GetClientDemuxer()->WatchMessageType(
+      response_watch_ = GetClientDemuxer().WatchMessageType(
           instance_id_, msgs::Type::kPresentationUrlAvailabilityResponse, this);
     }
     return watch_id;

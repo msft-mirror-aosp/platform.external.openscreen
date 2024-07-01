@@ -200,17 +200,17 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     if (!response_watch_) {
       response_watch_ = NetworkServiceManager::Get()
                             ->GetProtocolConnectionClient()
-                            ->message_demuxer()
-                            ->WatchMessageType(connection_->instance_id(),
-                                               RequestT::kResponseType, this);
+                            ->GetMessageDemuxer()
+                            .WatchMessageType(connection_->instance_id(),
+                                              RequestT::kResponseType, this);
     }
   }
 
   uint64_t GetNextRequestId(uint64_t instance_id) {
     return NetworkServiceManager::Get()
         ->GetProtocolConnectionClient()
-        ->instance_request_ids()
-        ->GetNextRequestId(instance_id);
+        ->GetInstanceRequestIds()
+        .GetNextRequestId(instance_id);
   }
 
   ProtocolConnection* connection_ = nullptr;

@@ -63,23 +63,13 @@ class ProtocolConnectionClient : public ProtocolConnectionEndpoint,
     uint64_t request_id_ = 0;
   };
 
-  ProtocolConnectionClient(MessageDemuxer& demuxer,
-                           ProtocolConnectionServiceObserver& observer);
+  ProtocolConnectionClient();
   ProtocolConnectionClient(const ProtocolConnectionClient&) = delete;
   ProtocolConnectionClient& operator=(const ProtocolConnectionClient&) = delete;
   ProtocolConnectionClient(ProtocolConnectionClient&&) noexcept = delete;
   ProtocolConnectionClient& operator=(ProtocolConnectionClient&&) noexcept =
       delete;
   ~ProtocolConnectionClient() override;
-
-  // ProtocolConnectionEndpoint overrides
-  //
-  // NOTE: Currently we do not support Suspend()/Resume() for the connection
-  // client.  Add those if we can define behavior for the OSP protocol and QUIC
-  // for those operations.
-  // See: https://github.com/webscreens/openscreenprotocol/issues/108
-  bool Suspend() override;
-  bool Resume() override;
 
   // Open a new connection to `instance_name`.  This may succeed synchronously
   // if there are already connections open to `instance_name`, otherwise it will

@@ -11,10 +11,11 @@
 
 namespace openscreen::osp {
 
+// Embedder's view of the network service that receives OSP connections from OSP
+// initiaters.
 class ProtocolConnectionServer : public ProtocolConnectionEndpoint {
  public:
-  ProtocolConnectionServer(MessageDemuxer& demuxer,
-                           ProtocolConnectionServiceObserver& observer);
+  ProtocolConnectionServer();
   ProtocolConnectionServer(const ProtocolConnectionServer&) = delete;
   ProtocolConnectionServer& operator=(const ProtocolConnectionServer&) = delete;
   ProtocolConnectionServer(ProtocolConnectionServer&&) noexcept = delete;

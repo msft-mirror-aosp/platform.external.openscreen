@@ -4,11 +4,8 @@
 
 #include "osp/public/protocol_connection_client_factory.h"
 
-#include <memory>
-
 #include "osp/impl/quic/quic_client.h"
 #include "osp/impl/quic/quic_connection_factory_client.h"
-#include "osp/public/network_service_manager.h"
 #include "platform/api/task_runner.h"
 #include "platform/api/time.h"
 

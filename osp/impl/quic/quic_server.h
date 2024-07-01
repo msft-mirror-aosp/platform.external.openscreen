@@ -9,18 +9,13 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_server.h"
-#include "osp/impl/quic/quic_service_common.h"
+#include "osp/impl/quic/quic_service_base.h"
+#include "osp/public/instance_request_ids.h"
 #include "osp/public/protocol_connection_server.h"
-#include "osp/public/service_config.h"
-#include "platform/api/task_runner.h"
-#include "platform/api/time.h"
-#include "platform/base/ip_address.h"
-#include "util/alarm.h"
 
 namespace openscreen::osp {
 
@@ -35,7 +30,7 @@ namespace openscreen::osp {
 // routing CBOR messages.
 class QuicServer final : public ProtocolConnectionServer,
                          public QuicConnectionFactoryServer::ServerDelegate,
-                         public ServiceConnectionDelegate::ServiceDelegate {
+                         public QuicServiceBase {
  public:
   static QuicAgentCertificate& GetAgentCertificate();
 
@@ -45,6 +40,10 @@ class QuicServer final : public ProtocolConnectionServer,
              ProtocolConnectionServiceObserver& observer,
              ClockNowFunctionPtr now_function,
              TaskRunner& task_runner);
+  QuicServer(const QuicServer&) = delete;
+  QuicServer& operator=(const QuicServer&) = delete;
+  QuicServer(QuicServer&&) noexcept = delete;
+  QuicServer& operator=(QuicServer&&) noexcept = delete;
   ~QuicServer() override;
 
   // ProtocolConnectionServer overrides.
@@ -52,28 +51,24 @@ class QuicServer final : public ProtocolConnectionServer,
   bool Stop() override;
   bool Suspend() override;
   bool Resume() override;
-  std::string GetAgentFingerprint() override;
+  State GetState() override;
+  MessageDemuxer& GetMessageDemuxer() override;
+  InstanceRequestIds& GetInstanceRequestIds() override;
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t instance_id) override;
+  std::string GetAgentFingerprint() override;
 
-  // QuicProtocolConnection::Owner overrides.
-  void OnConnectionDestroyed(QuicProtocolConnection* connection) override;
-
-  // ServiceConnectionDelegate::ServiceDelegate overrides.
+  // QuicServiceBase overrides.
   uint64_t OnCryptoHandshakeComplete(ServiceConnectionDelegate* delegate,
                                      std::string connection_id) override;
-  void OnIncomingStream(
-      std::unique_ptr<QuicProtocolConnection> connection) override;
   void OnConnectionClosed(uint64_t instance_id,
                           std::string connection_id) override;
-  void OnDataReceived(uint64_t instance_id,
-                      uint64_t protocol_connection_id,
-                      const ByteView& bytes) override;
 
   const std::string& instance_name() const { return instance_name_; }
 
  private:
-  void CloseAllConnections();
+  // QuicServiceBase overrides.
+  void CloseAllConnections() override;
 
   // QuicConnectionFactoryServer::ServerDelegate overrides.
   QuicConnection::Delegate* NextConnectionDelegate(
@@ -81,44 +76,16 @@ class QuicServer final : public ProtocolConnectionServer,
   void OnIncomingConnection(
       std::unique_ptr<QuicConnection> connection) override;
 
-  // Deletes dead QUIC connections then returns the time interval before this
-  // method should be run again.
-  void Cleanup();
-
-  // IPEndpoints used by this server to build connection.
-  const std::vector<IPEndpoint> connection_endpoints_;
   // This is used for server name indication check.
   const std::string instance_name_;
 
+  InstanceRequestIds instance_request_ids_;
   std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
   std::unique_ptr<ServiceConnectionDelegate> pending_connection_delegate_;
-
-  // Maps an instance name to a generated instance ID. An instance is identified
-  // by instance name before connection is built and is identified by instance
-  // ID for simplicity after then. See OnCryptoHandshakeComplete method. This is
-  // used to insulate callers from post-handshake changes to a connections
-  // actual peer instance.
-  //
-  // TODO(crbug.com/347268871): Replace instance_name as an agent identifier.
-  std::map<std::string, uint64_t> instance_map_;
-
-  // Value that will be used for the next new instance in a Connect call.
-  uint64_t next_instance_id_ = 1u;
 
   // Maps an instance name to data about connections that haven't successfully
   // completed the QUIC handshake.
   std::map<std::string, ServiceConnectionData> pending_connections_;
-
-  // Maps an instance ID to data about connections that have successfully
-  // completed the QUIC handshake.
-  std::map<uint64_t, ServiceConnectionData> connections_;
-
-  // Connections (instance IDs) that need to be destroyed, but have to wait
-  // for the next event loop due to the underlying QUIC implementation's way of
-  // referencing them.
-  std::vector<uint64_t> delete_connections_;
-
-  Alarm cleanup_alarm_;
 };
 
 }  // namespace openscreen::osp

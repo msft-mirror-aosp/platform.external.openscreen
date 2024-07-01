@@ -197,16 +197,16 @@ TEST_F(QuicServerTest, RequestIds) {
   ASSERT_TRUE(connection);
 
   uint64_t instance_id = connection->instance_id();
-  EXPECT_EQ(1u, server_->instance_request_ids()->GetNextRequestId(instance_id));
-  EXPECT_EQ(3u, server_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(1u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
+  EXPECT_EQ(3u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 
   connection->CloseWriteEnd();
   connection.reset();
   quic_bridge_.RunTasksUntilIdle();
-  EXPECT_EQ(5u, server_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(5u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 
   server_->Stop();
-  EXPECT_EQ(1u, server_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(1u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 }
 
 }  // namespace openscreen::osp

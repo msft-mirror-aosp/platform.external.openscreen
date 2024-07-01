@@ -43,21 +43,8 @@ ProtocolConnectionClient::ConnectRequest::~ConnectRequest() {
     parent_->CancelConnectRequest(request_id_);
 }
 
-ProtocolConnectionClient::ProtocolConnectionClient(
-    MessageDemuxer& demuxer,
-    ProtocolConnectionServiceObserver& observer)
-    : ProtocolConnectionEndpoint(demuxer,
-                                 InstanceRequestIds::Role::kClient,
-                                 observer) {}
+ProtocolConnectionClient::ProtocolConnectionClient() = default;
 
 ProtocolConnectionClient::~ProtocolConnectionClient() = default;
-
-bool ProtocolConnectionClient::Suspend() {
-  OSP_NOTREACHED()
-}
-
-bool ProtocolConnectionClient::Resume() {
-  OSP_NOTREACHED()
-}
 
 }  // namespace openscreen::osp

@@ -116,17 +116,6 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   std::vector<ServiceStreamPair> closed_streams_;
 };
 
-struct ServiceConnectionData {
-  ServiceConnectionData(std::unique_ptr<QuicConnection> connection,
-                        std::unique_ptr<ServiceConnectionDelegate> delegate);
-  ServiceConnectionData(ServiceConnectionData&&) noexcept;
-  ~ServiceConnectionData();
-  ServiceConnectionData& operator=(ServiceConnectionData&&) noexcept;
-
-  std::unique_ptr<QuicConnection> connection;
-  std::unique_ptr<ServiceConnectionDelegate> delegate;
-};
-
 }  // namespace openscreen::osp
 
 #endif  // OSP_IMPL_QUIC_QUIC_SERVICE_COMMON_H_

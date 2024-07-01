@@ -7,7 +7,9 @@
 
 #include <memory>
 
+#include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection_client.h"
+#include "osp/public/protocol_connection_service_observer.h"
 #include "osp/public/service_config.h"
 
 namespace openscreen {

@@ -350,13 +350,13 @@ void Receiver::SetReceiverDelegate(ReceiverDelegate* delegate) {
   OSP_CHECK(!delegate_ || !delegate);
   delegate_ = delegate;
 
-  MessageDemuxer* demuxer = GetServerDemuxer();
+  MessageDemuxer& demuxer = GetServerDemuxer();
   if (delegate_) {
-    availability_watch_ = demuxer->SetDefaultMessageTypeWatch(
+    availability_watch_ = demuxer.SetDefaultMessageTypeWatch(
         msgs::Type::kPresentationUrlAvailabilityRequest, this);
-    initiation_watch_ = demuxer->SetDefaultMessageTypeWatch(
+    initiation_watch_ = demuxer.SetDefaultMessageTypeWatch(
         msgs::Type::kPresentationStartRequest, this);
-    connection_watch_ = demuxer->SetDefaultMessageTypeWatch(
+    connection_watch_ = demuxer.SetDefaultMessageTypeWatch(
         msgs::Type::kPresentationConnectionOpenRequest, this);
     return;
   }
@@ -417,7 +417,7 @@ Error Receiver::OnPresentationStarted(const std::string& presentation_id,
   presentation.connections.push_back(connection);
   connection_manager_->AddConnection(connection);
 
-  presentation.terminate_watch = GetServerDemuxer()->WatchMessageType(
+  presentation.terminate_watch = GetServerDemuxer().WatchMessageType(
       initiation_response.instance_id,
       msgs::Type::kPresentationTerminationRequest, this);
 

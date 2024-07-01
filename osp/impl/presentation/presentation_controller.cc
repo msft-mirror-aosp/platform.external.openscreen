@@ -409,7 +409,7 @@ Controller::Controller(ClockNowFunctionPtr now_function) {
   connection_manager_ =
       std::make_unique<ConnectionManager>(NetworkServiceManager::Get()
                                               ->GetProtocolConnectionClient()
-                                              ->message_demuxer());
+                                              ->GetMessageDemuxer());
   const std::vector<ServiceInfo>& receivers =
       NetworkServiceManager::Get()->GetServiceListener()->GetReceivers();
   for (const auto& info : receivers) {
@@ -616,9 +616,9 @@ Controller::TerminationListener::TerminationListener(
   event_watch_ =
       NetworkServiceManager::Get()
           ->GetProtocolConnectionClient()
-          ->message_demuxer()
-          ->WatchMessageType(instance_id,
-                             msgs::Type::kPresentationTerminationEvent, this);
+          ->GetMessageDemuxer()
+          .WatchMessageType(instance_id,
+                            msgs::Type::kPresentationTerminationEvent, this);
 }
 
 Controller::TerminationListener::~TerminationListener() = default;

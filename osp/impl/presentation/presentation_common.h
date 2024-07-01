@@ -29,8 +29,8 @@ std::unique_ptr<ProtocolConnection> GetProtocolConnection(uint64_t instance_id);
 // are retrieved from the protocol connection server and client. The lifetime of
 // the demuxers themselves are not well defined: currently they are created in
 // the demo component for the ListenerDemo and PublisherDemo methods.
-MessageDemuxer* GetServerDemuxer();
-MessageDemuxer* GetClientDemuxer();
+MessageDemuxer& GetServerDemuxer();
+MessageDemuxer& GetClientDemuxer();
 
 class PresentationID {
  public:

@@ -59,8 +59,8 @@ class ConnectionTest : public ::testing::Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(1298424))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now),
-        controller_connection_manager_(quic_bridge_.controller_demuxer.get()),
-        receiver_connection_manager_(quic_bridge_.receiver_demuxer.get()) {}
+        controller_connection_manager_(*quic_bridge_.controller_demuxer),
+        receiver_connection_manager_(*quic_bridge_.receiver_demuxer) {}
 
  protected:
   void SetUp() override {

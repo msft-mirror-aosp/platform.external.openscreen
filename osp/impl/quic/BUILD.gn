@@ -52,6 +52,8 @@ if (!is_win) {
       "quic_packet_writer_impl.cc",
       "quic_packet_writer_impl.h",
       "quic_server.cc",
+      "quic_service_base.cc",
+      "quic_service_base.h",
       "quic_service_common.cc",
       "quic_service_common.h",
       "quic_stream_impl.cc",

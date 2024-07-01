@@ -23,6 +23,7 @@
 #include "osp/public/protocol_connection_client_factory.h"
 #include "osp/public/protocol_connection_server.h"
 #include "osp/public/protocol_connection_server_factory.h"
+#include "osp/public/protocol_connection_service_observer.h"
 #include "osp/public/service_config.h"
 #include "osp/public/service_listener.h"
 #include "osp/public/service_listener_factory.h"

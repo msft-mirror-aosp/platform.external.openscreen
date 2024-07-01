@@ -13,13 +13,9 @@
 #include <vector>
 
 #include "osp/impl/quic/quic_connection_factory_client.h"
-#include "osp/impl/quic/quic_service_common.h"
+#include "osp/impl/quic/quic_service_base.h"
+#include "osp/public/instance_request_ids.h"
 #include "osp/public/protocol_connection_client.h"
-#include "osp/public/service_config.h"
-#include "platform/api/task_runner.h"
-#include "platform/api/time.h"
-#include "platform/base/ip_address.h"
-#include "util/alarm.h"
 
 namespace openscreen::osp {
 
@@ -40,7 +36,7 @@ namespace openscreen::osp {
 // when the connection completes.  CreateProtocolConnection simply returns
 // nullptr if there's no existing connection.
 class QuicClient final : public ProtocolConnectionClient,
-                         public ServiceConnectionDelegate::ServiceDelegate {
+                         public QuicServiceBase {
  public:
   QuicClient(const ServiceConfig& config,
              MessageDemuxer& demuxer,
@@ -48,30 +44,31 @@ class QuicClient final : public ProtocolConnectionClient,
              ProtocolConnectionServiceObserver& observer,
              ClockNowFunctionPtr now_function,
              TaskRunner& task_runner);
+  QuicClient(const QuicClient&) = delete;
+  QuicClient& operator=(const QuicClient&) = delete;
+  QuicClient(QuicClient&&) noexcept = delete;
+  QuicClient& operator=(QuicClient&&) noexcept = delete;
   ~QuicClient() override;
 
   // ProtocolConnectionClient overrides.
   bool Start() override;
   bool Stop() override;
+  bool Suspend() override;
+  bool Resume() override;
+  State GetState() override;
+  MessageDemuxer& GetMessageDemuxer() override;
+  InstanceRequestIds& GetInstanceRequestIds() override;
+  std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
+      uint64_t instance_id) override;
   bool Connect(const std::string& instance_name,
                ConnectRequest& request,
                ConnectionRequestCallback* request_callback) override;
-  std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
-      uint64_t instance_id) override;
 
-  // QuicProtocolConnection::Owner overrides.
-  void OnConnectionDestroyed(QuicProtocolConnection* connection) override;
-
-  // ServiceConnectionDelegate::ServiceDelegate overrides.
+  // QuicServiceBase overrides.
   uint64_t OnCryptoHandshakeComplete(ServiceConnectionDelegate* delegate,
                                      std::string connection_id) override;
-  void OnIncomingStream(
-      std::unique_ptr<QuicProtocolConnection> connection) override;
   void OnConnectionClosed(uint64_t instance_id,
                           std::string connection_id) override;
-  void OnDataReceived(uint64_t instance_id,
-                      uint64_t protocol_connection_id,
-                      const ByteView& bytes) override;
 
  private:
   // FakeQuicBridge needs to access `instance_infos_` and struct InstanceInfo
@@ -80,9 +77,11 @@ class QuicClient final : public ProtocolConnectionClient,
 
   struct PendingConnectionData {
     explicit PendingConnectionData(ServiceConnectionData&& data);
+    PendingConnectionData(const PendingConnectionData&) = delete;
+    PendingConnectionData& operator=(const PendingConnectionData&) = delete;
     PendingConnectionData(PendingConnectionData&&) noexcept;
-    ~PendingConnectionData();
     PendingConnectionData& operator=(PendingConnectionData&&) noexcept;
+    ~PendingConnectionData();
 
     ServiceConnectionData data;
 
@@ -115,42 +114,18 @@ class QuicClient final : public ProtocolConnectionClient,
   void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
+  // QuicServiceBase overrides.
+  void CloseAllConnections() override;
+
   bool CreatePendingConnection(const std::string& instance_name,
                                ConnectRequest& request,
                                ConnectionRequestCallback* request_callback);
   uint64_t StartConnectionRequest(const std::string& instance_name,
                                   ConnectionRequestCallback* request_callback);
-  void CloseAllConnections();
-  std::unique_ptr<QuicProtocolConnection> MakeProtocolConnection(
-      QuicConnection* connection,
-      ServiceConnectionDelegate* delegate,
-      uint64_t instance_id);
-
   void CancelConnectRequest(uint64_t request_id) override;
 
-  // Deletes dead QUIC connections then returns the time interval before this
-  // method should be run again.
-  void Cleanup();
-
+  InstanceRequestIds instance_request_ids_;
   std::unique_ptr<QuicConnectionFactoryClient> connection_factory_;
-
-  // IPEndpoints used by this client to build connection.
-  //
-  // NOTE: Only the first one is used currently. A better way is needed to
-  // handle multiple IPEndpoints situations.
-  std::vector<IPEndpoint> connection_endpoints_;
-
-  // Maps an instance name to a generated instance ID. An instance is identified
-  // by instance name before connection is built and is identified by instance
-  // ID for simplicity after then. See OnCryptoHandshakeComplete method. This is
-  // used to insulate callers from post-handshake changes to a connections
-  // actual peer instance.
-  //
-  // TODO(crbug.com/347268871): Replace instance_name as an agent identifier.
-  std::map<std::string, uint64_t> instance_map_;
-
-  // Value that will be used for the next new instance in a Connect call.
-  uint64_t next_instance_id_ = 1u;
 
   // Value that will be used for the next new connection request.
   uint64_t next_request_id_ = 1u;
@@ -159,20 +134,9 @@ class QuicClient final : public ProtocolConnectionClient,
   // completed the QUIC handshake.
   std::map<std::string, PendingConnectionData> pending_connections_;
 
-  // Maps an instance id to data about connections that have successfully
-  // completed the QUIC handshake.
-  std::map<uint64_t, ServiceConnectionData> connections_;
-
-  // Connections (instance IDs) that need to be destroyed, but have to wait
-  // for the next event loop due to the underlying QUIC implementation's way of
-  // referencing them.
-  std::vector<uint64_t> delete_connections_;
-
   // Maps an instance name to necessary information of the instance used to
   // build connection.
   std::map<std::string, InstanceInfo> instance_infos_;
-
-  Alarm cleanup_alarm_;
 };
 
 }  // namespace openscreen::osp

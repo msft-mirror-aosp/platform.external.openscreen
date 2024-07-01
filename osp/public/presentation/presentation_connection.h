@@ -190,7 +190,7 @@ class Connection {
 
 class ConnectionManager final : public MessageDemuxer::MessageCallback {
  public:
-  explicit ConnectionManager(MessageDemuxer* demuxer);
+  explicit ConnectionManager(MessageDemuxer& demuxer);
 
   void AddConnection(Connection* connection);
   void RemoveConnection(Connection* connection);

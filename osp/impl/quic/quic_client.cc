@@ -6,10 +6,7 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
 
-#include "platform/api/task_runner.h"
-#include "platform/api/time.h"
 #include "util/osp_logging.h"
 
 namespace openscreen::osp {
@@ -21,53 +18,49 @@ QuicClient::QuicClient(
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)
-    : ProtocolConnectionClient(demuxer, observer),
-      connection_factory_(std::move(connection_factory)),
-      connection_endpoints_(config.connection_endpoints),
-      cleanup_alarm_(now_function, task_runner) {}
+    : QuicServiceBase(config, demuxer, observer, now_function, task_runner),
+      instance_request_ids_(InstanceRequestIds::Role::kClient),
+      connection_factory_(std::move(connection_factory)) {}
 
 QuicClient::~QuicClient() {
   CloseAllConnections();
 }
 
 bool QuicClient::Start() {
-  if (state_ == State::kRunning)
-    return false;
-  state_ = State::kRunning;
-  Cleanup();  // Start periodic clean-ups.
-  observer_.OnRunning();
-  return true;
+  return StartImpl();
 }
 
 bool QuicClient::Stop() {
-  if (state_ == State::kStopped)
-    return false;
-  CloseAllConnections();
-  state_ = State::kStopped;
-  Cleanup();  // Final clean-up.
-  observer_.OnStopped();
-  return true;
+  return StopImpl();
 }
 
-void QuicClient::Cleanup() {
-  for (auto& entry : connections_) {
-    entry.second.delegate->DestroyClosedStreams();
-    if (!entry.second.delegate->has_streams())
-      entry.second.connection->Close();
-  }
+// NOTE: Currently we do not support Suspend()/Resume() for the connection
+// client.  Add those if we can define behavior for the OSP protocol and QUIC
+// for those operations.
+// See: https://github.com/webscreens/openscreenprotocol/issues/108
+bool QuicClient::Suspend() {
+  OSP_NOTREACHED();
+}
 
-  for (uint64_t instance_id : delete_connections_) {
-    auto it = connections_.find(instance_id);
-    if (it != connections_.end()) {
-      connections_.erase(it);
-    }
-  }
-  delete_connections_.clear();
+bool QuicClient::Resume() {
+  OSP_NOTREACHED();
+}
 
-  constexpr Clock::duration kQuicCleanupPeriod = std::chrono::milliseconds(500);
-  if (state_ != State::kStopped) {
-    cleanup_alarm_.ScheduleFromNow([this] { Cleanup(); }, kQuicCleanupPeriod);
-  }
+ProtocolConnectionEndpoint::State QuicClient::GetState() {
+  return state_;
+}
+
+MessageDemuxer& QuicClient::GetMessageDemuxer() {
+  return demuxer_;
+}
+
+InstanceRequestIds& QuicClient::GetInstanceRequestIds() {
+  return instance_request_ids_;
+}
+
+std::unique_ptr<ProtocolConnection> QuicClient::CreateProtocolConnection(
+    uint64_t instance_id) {
+  return CreateProtocolConnectionImpl(instance_id);
 }
 
 bool QuicClient::Connect(const std::string& instance_name,
@@ -78,6 +71,7 @@ bool QuicClient::Connect(const std::string& instance_name,
     OSP_LOG_ERROR << "QuicClient connect failed: QuicClient is not running.";
     return false;
   }
+
   auto instance_entry = instance_map_.find(instance_name);
   if (instance_entry != instance_map_.end()) {
     auto immediate_result = CreateProtocolConnection(instance_entry->second);
@@ -92,36 +86,14 @@ bool QuicClient::Connect(const std::string& instance_name,
   return CreatePendingConnection(instance_name, request, request_callback);
 }
 
-std::unique_ptr<ProtocolConnection> QuicClient::CreateProtocolConnection(
-    uint64_t instance_id) {
-  if (state_ != State::kRunning)
-    return nullptr;
-  auto connection_entry = connections_.find(instance_id);
-  if (connection_entry == connections_.end())
-    return nullptr;
-  return QuicProtocolConnection::FromExisting(
-      *this, connection_entry->second.connection.get(),
-      connection_entry->second.delegate.get(), instance_id);
-}
-
-void QuicClient::OnConnectionDestroyed(QuicProtocolConnection* connection) {
-  if (!connection->stream())
-    return;
-
-  auto connection_entry = connections_.find(connection->instance_id());
-  if (connection_entry == connections_.end())
-    return;
-
-  connection_entry->second.delegate->DropProtocolConnection(connection);
-}
-
 uint64_t QuicClient::OnCryptoHandshakeComplete(
     ServiceConnectionDelegate* delegate,
     std::string connection_id) {
   const std::string& instance_name = delegate->instance_name();
   auto pending_entry = pending_connections_.find(instance_name);
-  if (pending_entry == pending_connections_.end())
+  if (pending_entry == pending_connections_.end()) {
     return 0;
+  }
 
   ServiceConnectionData connection_data = std::move(pending_entry->second.data);
   auto* connection = connection_data.connection.get();
@@ -139,39 +111,23 @@ uint64_t QuicClient::OnCryptoHandshakeComplete(
   return instance_id;
 }
 
-void QuicClient::OnIncomingStream(
-    std::unique_ptr<QuicProtocolConnection> connection) {
-  OSP_CHECK_EQ(state_, State::kRunning);
-  observer_.OnIncomingConnection(std::move(connection));
-}
-
 void QuicClient::OnConnectionClosed(uint64_t instance_id,
                                     std::string connection_id) {
-  // TODO(btolsch): Is this how handshake failure is communicated to the
-  // delegate?
-  auto connection_entry = connections_.find(instance_id);
-  if (connection_entry == connections_.end())
-    return;
-  delete_connections_.push_back(instance_id);
-
+  QuicServiceBase::OnConnectionClosed(instance_id, connection_id);
   instance_request_ids_.ResetRequestId(instance_id);
-}
-
-void QuicClient::OnDataReceived(uint64_t instance_id,
-                                uint64_t protocol_connection_id,
-                                const ByteView& bytes) {
-  demuxer_.OnStreamData(instance_id, protocol_connection_id, bytes.data(),
-                        bytes.size());
 }
 
 QuicClient::PendingConnectionData::PendingConnectionData(
     ServiceConnectionData&& data)
     : data(std::move(data)) {}
+
 QuicClient::PendingConnectionData::PendingConnectionData(
     PendingConnectionData&&) noexcept = default;
-QuicClient::PendingConnectionData::~PendingConnectionData() = default;
+
 QuicClient::PendingConnectionData& QuicClient::PendingConnectionData::operator=(
     PendingConnectionData&&) noexcept = default;
+
+QuicClient::PendingConnectionData::~PendingConnectionData() = default;
 
 void QuicClient::OnStarted() {}
 void QuicClient::OnStopped() {}
@@ -199,6 +155,25 @@ void QuicClient::OnAllReceiversRemoved() {
 
 void QuicClient::OnError(const Error&) {}
 void QuicClient::OnMetrics(ServiceListener::Metrics) {}
+
+void QuicClient::CloseAllConnections() {
+  for (auto& conn : pending_connections_) {
+    conn.second.data.connection->Close();
+    for (auto& item : conn.second.callbacks) {
+      item.second->OnConnectionFailed(item.first);
+    }
+  }
+  pending_connections_.clear();
+
+  for (auto& conn : connections_) {
+    conn.second.connection->Close();
+  }
+  connections_.clear();
+
+  instance_map_.clear();
+  next_instance_id_ = 1;
+  instance_request_ids_.Reset();
+}
 
 bool QuicClient::CreatePendingConnection(
     const std::string& instance_name,
@@ -256,25 +231,6 @@ uint64_t QuicClient::StartConnectionRequest(
   pending_result.first->second.callbacks.emplace_back(request_id,
                                                       request_callback);
   return request_id;
-}
-
-void QuicClient::CloseAllConnections() {
-  for (auto& conn : pending_connections_) {
-    conn.second.data.connection->Close();
-    for (auto& item : conn.second.callbacks) {
-      item.second->OnConnectionFailed(item.first);
-    }
-  }
-  pending_connections_.clear();
-
-  for (auto& conn : connections_) {
-    conn.second.connection->Close();
-  }
-  connections_.clear();
-
-  instance_map_.clear();
-  next_instance_id_ = 1;
-  instance_request_ids_.Reset();
 }
 
 void QuicClient::CancelConnectRequest(uint64_t request_id) {

@@ -269,15 +269,15 @@ TEST_F(QuicClientTest, RequestIds) {
   ASSERT_TRUE(connection_callback.connection());
 
   const uint64_t instance_id = connection_callback.connection()->instance_id();
-  EXPECT_EQ(0u, client_->instance_request_ids()->GetNextRequestId(instance_id));
-  EXPECT_EQ(2u, client_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(0u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
+  EXPECT_EQ(2u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 
   connection_callback.connection()->CloseWriteEnd();
   quic_bridge_.RunTasksUntilIdle();
-  EXPECT_EQ(4u, client_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(4u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 
   client_->Stop();
-  EXPECT_EQ(0u, client_->instance_request_ids()->GetNextRequestId(instance_id));
+  EXPECT_EQ(0u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 }
 
 }  // namespace openscreen::osp

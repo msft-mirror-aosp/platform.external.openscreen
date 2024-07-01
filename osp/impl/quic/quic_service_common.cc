@@ -144,14 +144,4 @@ void ServiceConnectionDelegate::OnClose(uint64_t stream_id) {
   streams_.erase(stream_entry);
 }
 
-ServiceConnectionData::ServiceConnectionData(
-    std::unique_ptr<QuicConnection> connection,
-    std::unique_ptr<ServiceConnectionDelegate> delegate)
-    : connection(std::move(connection)), delegate(std::move(delegate)) {}
-ServiceConnectionData::ServiceConnectionData(ServiceConnectionData&&) noexcept =
-    default;
-ServiceConnectionData::~ServiceConnectionData() = default;
-ServiceConnectionData& ServiceConnectionData::operator=(
-    ServiceConnectionData&&) noexcept = default;
-
 }  // namespace openscreen::osp

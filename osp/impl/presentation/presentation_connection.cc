@@ -141,14 +141,14 @@ void Connection::Terminate(TerminationSource source, TerminationReason reason) {
   parent_delegate_->OnPresentationTerminated(presentation_.id, source, reason);
 }
 
-ConnectionManager::ConnectionManager(MessageDemuxer* demuxer) {
-  message_watch_ = demuxer->SetDefaultMessageTypeWatch(
+ConnectionManager::ConnectionManager(MessageDemuxer& demuxer) {
+  message_watch_ = demuxer.SetDefaultMessageTypeWatch(
       msgs::Type::kPresentationConnectionMessage, this);
 
-  close_request_watch_ = demuxer->SetDefaultMessageTypeWatch(
+  close_request_watch_ = demuxer.SetDefaultMessageTypeWatch(
       msgs::Type::kPresentationConnectionCloseRequest, this);
 
-  close_event_watch_ = demuxer->SetDefaultMessageTypeWatch(
+  close_event_watch_ = demuxer.SetDefaultMessageTypeWatch(
       msgs::Type::kPresentationConnectionCloseEvent, this);
 }
 
