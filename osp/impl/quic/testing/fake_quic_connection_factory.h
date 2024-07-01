@@ -46,7 +46,6 @@ class FakeQuicConnectionFactoryBridge {
   IPEndpoint receiver_endpoint_;
   bool client_idle_ = true;
   bool server_idle_ = true;
-  uint64_t next_connection_id_ = 0;
   bool connections_pending_ = true;
   ConnectionPair connections_ = {};
   QuicConnectionFactoryServer::ServerDelegate* delegate_ = nullptr;

@@ -44,7 +44,7 @@ class ProtocolConnection {
     virtual void OnConnectionClosed(const ProtocolConnection& connection) = 0;
   };
 
-  ProtocolConnection(uint64_t instance_id, uint64_t connection_id);
+  ProtocolConnection(uint64_t instance_id, uint64_t protocol_connection_id);
   virtual ~ProtocolConnection() = default;
 
   // TODO(mfoltz): Define extension API exposed to embedders.  This would be

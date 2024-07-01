@@ -59,10 +59,9 @@ class QuicServer final : public ProtocolConnectionServer,
   std::string GetAgentFingerprint() override;
 
   // QuicServiceBase overrides.
-  uint64_t OnCryptoHandshakeComplete(ServiceConnectionDelegate* delegate,
-                                     std::string connection_id) override;
-  void OnConnectionClosed(uint64_t instance_id,
-                          std::string connection_id) override;
+  uint64_t OnCryptoHandshakeComplete(
+      ServiceConnectionDelegate* delegate) override;
+  void OnConnectionClosed(uint64_t instance_id) override;
 
   const std::string& instance_name() const { return instance_name_; }
 

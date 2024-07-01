@@ -87,8 +87,7 @@ bool QuicClient::Connect(const std::string& instance_name,
 }
 
 uint64_t QuicClient::OnCryptoHandshakeComplete(
-    ServiceConnectionDelegate* delegate,
-    std::string connection_id) {
+    ServiceConnectionDelegate* delegate) {
   const std::string& instance_name = delegate->instance_name();
   auto pending_entry = pending_connections_.find(instance_name);
   if (pending_entry == pending_connections_.end()) {
@@ -111,9 +110,8 @@ uint64_t QuicClient::OnCryptoHandshakeComplete(
   return instance_id;
 }
 
-void QuicClient::OnConnectionClosed(uint64_t instance_id,
-                                    std::string connection_id) {
-  QuicServiceBase::OnConnectionClosed(instance_id, connection_id);
+void QuicClient::OnConnectionClosed(uint64_t instance_id) {
+  QuicServiceBase::OnConnectionClosed(instance_id);
   instance_request_ids_.ResetRequestId(instance_id);
 }
 

@@ -50,12 +50,10 @@ class FakeQuicStream final : public QuicStream {
 class FakeQuicConnection final : public QuicConnection {
  public:
   FakeQuicConnection(FakeQuicConnectionFactoryBridge& parent_factory,
-                     std::string connection_id,
                      Delegate& delegate);
   ~FakeQuicConnection() override;
 
   Delegate& delegate() { return delegate_; }
-  const std::string& id() const { return connection_id_; }
   std::map<uint64_t, std::unique_ptr<FakeQuicStream>>& streams() {
     return streams_;
   }
@@ -69,7 +67,6 @@ class FakeQuicConnection final : public QuicConnection {
 
  private:
   FakeQuicConnectionFactoryBridge& parent_factory_;
-  const std::string connection_id_;
   uint64_t next_stream_id_ = 1;
   std::map<uint64_t, std::unique_ptr<FakeQuicStream>> streams_;
 };

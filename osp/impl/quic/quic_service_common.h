@@ -37,7 +37,7 @@ class QuicProtocolConnection final : public ProtocolConnection {
 
   QuicProtocolConnection(Owner& owner,
                          uint64_t instance_id,
-                         uint64_t connection_id);
+                         uint64_t protocol_connection_id);
   ~QuicProtocolConnection() override;
 
   // ProtocolConnection overrides.
@@ -68,12 +68,10 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
     ~ServiceDelegate() override = default;
 
     virtual uint64_t OnCryptoHandshakeComplete(
-        ServiceConnectionDelegate* delegate,
-        std::string connection_id) = 0;
+        ServiceConnectionDelegate* delegate) = 0;
     virtual void OnIncomingStream(
         std::unique_ptr<QuicProtocolConnection> connection) = 0;
-    virtual void OnConnectionClosed(uint64_t instance_id,
-                                    std::string connection_id) = 0;
+    virtual void OnConnectionClosed(uint64_t instance_id) = 0;
     virtual void OnDataReceived(uint64_t instance_id,
                                 uint64_t protocol_connection_id,
                                 const ByteView& bytes) = 0;
@@ -96,12 +94,10 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   bool has_streams() const { return !streams_.empty(); }
 
   // QuicConnection::Delegate overrides.
-  void OnCryptoHandshakeComplete(const std::string& connection_id) override;
-  void OnIncomingStream(const std::string& connection_id,
-                        QuicStream* stream) override;
-  void OnConnectionClosed(const std::string& connection_id) override;
-  QuicStream::Delegate& NextStreamDelegate(const std::string& connection_id,
-                                           uint64_t stream_id) override;
+  void OnCryptoHandshakeComplete() override;
+  void OnIncomingStream(QuicStream* stream) override;
+  void OnConnectionClosed() override;
+  QuicStream::Delegate& NextStreamDelegate(uint64_t stream_id) override;
 
   // QuicStream::Delegate overrides.
   void OnReceived(QuicStream* stream, const ByteView& bytes) override;

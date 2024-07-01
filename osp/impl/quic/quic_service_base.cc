@@ -43,8 +43,7 @@ void QuicServiceBase::OnIncomingStream(
   observer_.OnIncomingConnection(std::move(connection));
 }
 
-void QuicServiceBase::OnConnectionClosed(uint64_t instance_id,
-                                         std::string connection_id) {
+void QuicServiceBase::OnConnectionClosed(uint64_t instance_id) {
   OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
 
   auto connection_entry = connections_.find(instance_id);

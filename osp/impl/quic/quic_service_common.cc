@@ -28,8 +28,8 @@ std::unique_ptr<QuicProtocolConnection> QuicProtocolConnection::FromExisting(
 
 QuicProtocolConnection::QuicProtocolConnection(Owner& owner,
                                                uint64_t instance_id,
-                                               uint64_t connection_id)
-    : ProtocolConnection(instance_id, connection_id), owner_(owner) {}
+                                               uint64_t protocol_connection_id)
+    : ProtocolConnection(instance_id, protocol_connection_id), owner_(owner) {}
 
 QuicProtocolConnection::~QuicProtocolConnection() {
   if (stream_) {
@@ -82,16 +82,13 @@ void ServiceConnectionDelegate::DestroyClosedStreams() {
   closed_streams_.clear();
 }
 
-void ServiceConnectionDelegate::OnCryptoHandshakeComplete(
-    const std::string& connection_id) {
-  instance_id_ = parent_.OnCryptoHandshakeComplete(this, connection_id);
+void ServiceConnectionDelegate::OnCryptoHandshakeComplete() {
+  instance_id_ = parent_.OnCryptoHandshakeComplete(this);
   OSP_VLOG << "QUIC connection handshake complete for instance "
            << instance_id_;
 }
 
-void ServiceConnectionDelegate::OnIncomingStream(
-    const std::string& connection_id,
-    QuicStream* stream) {
+void ServiceConnectionDelegate::OnIncomingStream(QuicStream* stream) {
   OSP_VLOG << "Incoming QUIC stream from instance " << instance_id_;
   pending_connection_->set_stream(stream);
   AddStreamPair(ServiceStreamPair{stream, pending_connection_->id(),
@@ -99,14 +96,12 @@ void ServiceConnectionDelegate::OnIncomingStream(
   parent_.OnIncomingStream(std::move(pending_connection_));
 }
 
-void ServiceConnectionDelegate::OnConnectionClosed(
-    const std::string& connection_id) {
+void ServiceConnectionDelegate::OnConnectionClosed() {
   OSP_VLOG << "QUIC connection closed for instance " << instance_id_;
-  parent_.OnConnectionClosed(instance_id_, connection_id);
+  parent_.OnConnectionClosed(instance_id_);
 }
 
 QuicStream::Delegate& ServiceConnectionDelegate::NextStreamDelegate(
-    const std::string& connection_id,
     uint64_t stream_id) {
   OSP_CHECK(!pending_connection_);
   pending_connection_ = std::make_unique<QuicProtocolConnection>(

@@ -17,13 +17,11 @@ class QuicConnection {
   class Delegate {
    public:
     // Called when the QUIC handshake has successfully completed.
-    virtual void OnCryptoHandshakeComplete(
-        const std::string& connection_id) = 0;
+    virtual void OnCryptoHandshakeComplete() = 0;
 
     // Called when a new stream on this connection is initiated by the other
     // endpoint.  |stream| will use a delegate returned by NextStreamDelegate.
-    virtual void OnIncomingStream(const std::string& connection_id,
-                                  QuicStream* stream) = 0;
+    virtual void OnIncomingStream(QuicStream* stream) = 0;
 
     // Called when the QUIC connection was closed.  The QuicConnection should
     // not be destroyed immediately, because the QUIC implementation will still
@@ -31,13 +29,11 @@ class QuicConnection {
     // event loop.
     // TODO(btolsch): Hopefully this can be changed with future QUIC
     // implementations.
-    virtual void OnConnectionClosed(const std::string& connection_id) = 0;
+    virtual void OnConnectionClosed() = 0;
 
     // This is used to get a QuicStream::Delegate for an incoming stream, which
     // will be returned via OnIncomingStream immediately after this call.
-    virtual QuicStream::Delegate& NextStreamDelegate(
-        const std::string& connection_id,
-        uint64_t stream_id) = 0;
+    virtual QuicStream::Delegate& NextStreamDelegate(uint64_t stream_id) = 0;
 
    protected:
     virtual ~Delegate() = default;

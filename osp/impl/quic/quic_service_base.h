@@ -45,8 +45,7 @@ class QuicServiceBase : public ServiceConnectionDelegate::ServiceDelegate {
   // ServiceConnectionDelegate::ServiceDelegate overrides.
   void OnIncomingStream(
       std::unique_ptr<QuicProtocolConnection> connection) override;
-  void OnConnectionClosed(uint64_t instance_id,
-                          std::string connection_id) override;
+  void OnConnectionClosed(uint64_t instance_id) override;
   void OnDataReceived(uint64_t instance_id,
                       uint64_t protocol_connection_id,
                       const ByteView& bytes) override;

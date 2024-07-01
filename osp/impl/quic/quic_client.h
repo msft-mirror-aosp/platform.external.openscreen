@@ -65,10 +65,9 @@ class QuicClient final : public ProtocolConnectionClient,
                ConnectionRequestCallback* request_callback) override;
 
   // QuicServiceBase overrides.
-  uint64_t OnCryptoHandshakeComplete(ServiceConnectionDelegate* delegate,
-                                     std::string connection_id) override;
-  void OnConnectionClosed(uint64_t instance_id,
-                          std::string connection_id) override;
+  uint64_t OnCryptoHandshakeComplete(
+      ServiceConnectionDelegate* delegate) override;
+  void OnConnectionClosed(uint64_t instance_id) override;
 
  private:
   // FakeQuicBridge needs to access `instance_infos_` and struct InstanceInfo

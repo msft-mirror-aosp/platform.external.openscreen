@@ -41,7 +41,7 @@ void FakeQuicConnectionFactoryBridge::OnOutgoingStream(
 
   if (remote_connection) {
     remote_connection->delegate().OnIncomingStream(
-        remote_connection->id(), remote_connection->MakeIncomingStream());
+        remote_connection->MakeIncomingStream());
   }
 }
 
@@ -63,10 +63,8 @@ void FakeQuicConnectionFactoryBridge::RunTasks(bool is_client) {
 
   if (connections_pending_) {
     *idle_flag = false;
-    connections_.receiver->delegate().OnCryptoHandshakeComplete(
-        connections_.receiver->id());
-    connections_.controller->delegate().OnCryptoHandshakeComplete(
-        connections_.controller->id());
+    connections_.receiver->delegate().OnCryptoHandshakeComplete();
+    connections_.controller->delegate().OnCryptoHandshakeComplete();
     connections_pending_ = false;
     return;
   }
@@ -141,13 +139,12 @@ FakeQuicConnectionFactoryBridge::Connect(
 
   OSP_CHECK(!connections_.controller);
   OSP_CHECK(!connections_.receiver);
-  auto controller_connection = std::make_unique<FakeQuicConnection>(
-      *this, std::to_string(next_connection_id_++), *connection_delegate);
+  auto controller_connection =
+      std::make_unique<FakeQuicConnection>(*this, *connection_delegate);
   connections_.controller = controller_connection.get();
 
   auto receiver_connection = std::make_unique<FakeQuicConnection>(
-      *this, std::to_string(next_connection_id_++),
-      *delegate_->NextConnectionDelegate(controller_endpoint_));
+      *this, *delegate_->NextConnectionDelegate(controller_endpoint_));
   connections_.receiver = receiver_connection.get();
   delegate_->OnIncomingConnection(std::move(receiver_connection));
   return ErrorOr<std::unique_ptr<QuicConnection>>(

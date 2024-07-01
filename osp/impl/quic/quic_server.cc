@@ -79,8 +79,7 @@ std::string QuicServer::GetAgentFingerprint() {
 }
 
 uint64_t QuicServer::OnCryptoHandshakeComplete(
-    ServiceConnectionDelegate* delegate,
-    std::string connection_id) {
+    ServiceConnectionDelegate* delegate) {
   OSP_CHECK_EQ(state_, State::kRunning);
 
   const std::string& instance_name = delegate->instance_name();
@@ -97,9 +96,8 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
   return instance_id;
 }
 
-void QuicServer::OnConnectionClosed(uint64_t instance_id,
-                                    std::string connection_id) {
-  QuicServiceBase::OnConnectionClosed(instance_id, connection_id);
+void QuicServer::OnConnectionClosed(uint64_t instance_id) {
+  QuicServiceBase::OnConnectionClosed(instance_id);
   instance_request_ids_.ResetRequestId(instance_id);
 }
 

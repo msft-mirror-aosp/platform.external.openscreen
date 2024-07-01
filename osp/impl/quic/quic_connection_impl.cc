@@ -60,7 +60,7 @@ void QuicConnectionImpl::OnConnectionClosed(
     quic::ConnectionCloseSource source) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnConnectionClosed");
   parent_factory_.OnConnectionClosed(this);
-  delegate_.OnConnectionClosed(session_->connection_id().ToString());
+  delegate_.OnConnectionClosed();
   if (dispatcher_) {
     dispatcher_->OnConnectionClosed(server_connection_id, error_code,
                                     error_details, source);
@@ -119,12 +119,12 @@ void QuicConnectionImpl::OnPathDegrading() {}
 void QuicConnectionImpl::OnCryptoHandshakeComplete() {
   TRACE_SCOPED(TraceCategory::kQuic,
                "QuicConnectionImpl::OnCryptoHandshakeComplete");
-  delegate_.OnCryptoHandshakeComplete(session_->connection_id().ToString());
+  delegate_.OnCryptoHandshakeComplete();
 }
 
 void QuicConnectionImpl::OnIncomingStream(QuicStream* stream) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnIncomingStream");
-  delegate_.OnIncomingStream(session_->connection_id().ToString(), stream);
+  delegate_.OnIncomingStream(stream);
 }
 
 }  // namespace openscreen::osp
