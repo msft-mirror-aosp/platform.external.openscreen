@@ -88,7 +88,7 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
   }
 
   auto connection_impl = std::make_unique<QuicConnectionImpl>(
-      *this, *connection_delegate, *helper_->GetClock());
+      *connection_delegate, *helper_->GetClock());
   // NOTE: Use instance name + domain temporarily to prevent blocking the
   // project. There is an ongoing discussion about this, see blow link：
   // https://github.com/w3c/openscreenprotocol/issues/275
@@ -117,7 +117,11 @@ void QuicConnectionFactoryClient::OnConnectionClosed(
       [connection](const decltype(connections_)::value_type& entry) {
         return entry.second.connection == connection;
       });
-  OSP_CHECK(entry != connections_.end());
+
+  if (entry == connections_.end()) {
+    return;
+  }
+
   UdpSocket* const socket = entry->second.socket;
   connections_.erase(entry);
 

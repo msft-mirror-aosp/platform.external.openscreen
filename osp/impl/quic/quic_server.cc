@@ -97,18 +97,29 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
 }
 
 void QuicServer::OnConnectionClosed(uint64_t instance_id) {
-  QuicServiceBase::OnConnectionClosed(instance_id);
+  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+
+  auto connection_entry = connections_.find(instance_id);
+  if (connection_entry == connections_.end()) {
+    return;
+  }
+
+  connection_factory_->OnConnectionClosed(
+      connection_entry->second.connection.get());
+  delete_connections_.push_back(instance_id);
   instance_request_ids_.ResetRequestId(instance_id);
 }
 
 void QuicServer::CloseAllConnections() {
   for (auto& conn : pending_connections_) {
     conn.second.connection->Close();
+    connection_factory_->OnConnectionClosed(conn.second.connection.get());
   }
   pending_connections_.clear();
 
   for (auto& conn : connections_) {
     conn.second.connection->Close();
+    connection_factory_->OnConnectionClosed(conn.second.connection.get());
   }
   connections_.clear();
 

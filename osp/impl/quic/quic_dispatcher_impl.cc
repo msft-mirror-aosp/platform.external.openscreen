@@ -56,7 +56,6 @@ std::unique_ptr<quic::QuicSession> QuicDispatcherImpl::CreateQuicSession(
       quic::ParsedQuicVersionVector{version}, connection_id_generator);
 
   auto connection_impl = std::make_unique<QuicConnectionImpl>(
-      parent_factory_,
       *parent_factory_.server_delegate()->NextConnectionDelegate(
           ToIPEndpoint(peer_address)),
       *helper()->GetClock());

@@ -120,7 +120,11 @@ void QuicConnectionFactoryServer::OnConnectionClosed(
       [connection](const decltype(connections_)::value_type& entry) {
         return entry.second.connection == connection;
       });
-  OSP_CHECK(entry != connections_.end());
+
+  if (entry == connections_.end()) {
+    return;
+  }
+
   UdpSocket* const socket = entry->second.socket;
   connections_.erase(entry);
 

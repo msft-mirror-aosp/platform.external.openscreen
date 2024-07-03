@@ -4,7 +4,6 @@
 
 #include "osp/impl/quic/quic_connection_impl.h"
 
-#include "osp/impl/quic/quic_connection_factory_base.h"
 #include "osp/impl/quic/quic_utils.h"
 #include "quiche/quic/core/quic_packets.h"
 #include "util/osp_logging.h"
@@ -12,11 +11,9 @@
 
 namespace openscreen::osp {
 
-QuicConnectionImpl::QuicConnectionImpl(
-    QuicConnectionFactoryBase& parent_factory,
-    QuicConnection::Delegate& delegate,
-    const quic::QuicClock& clock)
-    : QuicConnection(delegate), parent_factory_(parent_factory), clock_(clock) {
+QuicConnectionImpl::QuicConnectionImpl(QuicConnection::Delegate& delegate,
+                                       const quic::QuicClock& clock)
+    : QuicConnection(delegate), clock_(clock) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::QuicConnectionImpl");
 }
 
@@ -59,7 +56,6 @@ void QuicConnectionImpl::OnConnectionClosed(
     const std::string& error_details,
     quic::ConnectionCloseSource source) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnConnectionClosed");
-  parent_factory_.OnConnectionClosed(this);
   delegate_.OnConnectionClosed();
   if (dispatcher_) {
     dispatcher_->OnConnectionClosed(server_connection_id, error_code,

@@ -111,7 +111,16 @@ uint64_t QuicClient::OnCryptoHandshakeComplete(
 }
 
 void QuicClient::OnConnectionClosed(uint64_t instance_id) {
-  QuicServiceBase::OnConnectionClosed(instance_id);
+  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+
+  auto connection_entry = connections_.find(instance_id);
+  if (connection_entry == connections_.end()) {
+    return;
+  }
+
+  connection_factory_->OnConnectionClosed(
+      connection_entry->second.connection.get());
+  delete_connections_.push_back(instance_id);
   instance_request_ids_.ResetRequestId(instance_id);
 }
 
@@ -157,6 +166,7 @@ void QuicClient::OnMetrics(ServiceListener::Metrics) {}
 void QuicClient::CloseAllConnections() {
   for (auto& conn : pending_connections_) {
     conn.second.data.connection->Close();
+    connection_factory_->OnConnectionClosed(conn.second.data.connection.get());
     for (auto& item : conn.second.callbacks) {
       item.second->OnConnectionFailed(item.first);
     }
@@ -165,6 +175,7 @@ void QuicClient::CloseAllConnections() {
 
   for (auto& conn : connections_) {
     conn.second.connection->Close();
+    connection_factory_->OnConnectionClosed(conn.second.connection.get());
   }
   connections_.clear();
 

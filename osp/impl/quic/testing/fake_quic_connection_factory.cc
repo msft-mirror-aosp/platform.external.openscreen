@@ -166,6 +166,11 @@ FakeClientQuicConnectionFactory::Connect(
   return bridge_->Connect(remote_endpoint, connection_delegate);
 }
 
+// No need to deal with this, because we don't maintain QuicConnection list
+// in test.
+void FakeClientQuicConnectionFactory::OnConnectionClosed(
+    QuicConnection* connection) {}
+
 void FakeClientQuicConnectionFactory::OnError(UdpSocket* socket,
                                               const Error& error) {
   OSP_UNIMPLEMENTED();
@@ -198,6 +203,11 @@ void FakeServerQuicConnectionFactory::SetServerDelegate(
   bridge_->SetServerDelegate(delegate,
                              endpoints.empty() ? IPEndpoint{} : endpoints[0]);
 }
+
+// No need to deal with this, because we don't maintain QuicConnection list
+// in test.
+void FakeServerQuicConnectionFactory::OnConnectionClosed(
+    QuicConnection* connection) {}
 
 void FakeServerQuicConnectionFactory::OnError(UdpSocket* socket,
                                               const Error& error) {

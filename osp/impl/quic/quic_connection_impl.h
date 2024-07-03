@@ -19,13 +19,10 @@
 
 namespace openscreen::osp {
 
-class QuicConnectionFactoryBase;
-
 class QuicConnectionImpl final : public QuicConnection,
                                  public OpenScreenSessionBase::Visitor {
  public:
-  QuicConnectionImpl(QuicConnectionFactoryBase& parent_factory,
-                     QuicConnection::Delegate& delegate,
+  QuicConnectionImpl(QuicConnection::Delegate& delegate,
                      const quic::QuicClock& clock);
   QuicConnectionImpl(const QuicConnectionImpl&) = delete;
   QuicConnectionImpl& operator=(const QuicConnectionImpl&) = delete;
@@ -69,7 +66,6 @@ class QuicConnectionImpl final : public QuicConnection,
   }
 
  private:
-  QuicConnectionFactoryBase& parent_factory_;
   const quic::QuicClock& clock_;  // Not owned.
   // `dispatcher_` is only needed for QuicServer side.
   QuicDispatcherImpl* dispatcher_;

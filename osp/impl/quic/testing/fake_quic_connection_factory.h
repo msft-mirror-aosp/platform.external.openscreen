@@ -69,6 +69,7 @@ class FakeClientQuicConnectionFactory final
       const IPEndpoint& remote_endpoint,
       const ConnectData& connect_data,
       QuicConnection::Delegate* connection_delegate) override;
+  void OnConnectionClosed(QuicConnection* connection) override;
 
   bool idle() const { return idle_; }
 
@@ -94,6 +95,7 @@ class FakeServerQuicConnectionFactory final
   // QuicConnectionFactoryServer overrides.
   void SetServerDelegate(ServerDelegate* delegate,
                          const std::vector<IPEndpoint>& endpoints) override;
+  void OnConnectionClosed(QuicConnection* connection) override;
 
   bool idle() const { return idle_; }
 
