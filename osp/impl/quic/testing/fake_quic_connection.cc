@@ -59,7 +59,7 @@ FakeQuicConnection::~FakeQuicConnection() = default;
 FakeQuicStream* FakeQuicConnection::MakeIncomingStream() {
   uint64_t stream_id = next_stream_id_++;
   auto result = std::make_unique<FakeQuicStream>(
-      delegate().NextStreamDelegate(stream_id), stream_id);
+      delegate().NextStreamDelegate(), stream_id);
   auto* stream_ptr = result.get();
   streams_.emplace(result->GetStreamId(), std::move(result));
   return stream_ptr;

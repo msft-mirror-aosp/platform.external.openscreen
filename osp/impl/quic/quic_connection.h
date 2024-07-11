@@ -33,7 +33,7 @@ class QuicConnection {
 
     // This is used to get a QuicStream::Delegate for an incoming stream, which
     // will be returned via OnIncomingStream immediately after this call.
-    virtual QuicStream::Delegate& NextStreamDelegate(uint64_t stream_id) = 0;
+    virtual QuicStream::Delegate& NextStreamDelegate() = 0;
 
    protected:
     virtual ~Delegate() = default;

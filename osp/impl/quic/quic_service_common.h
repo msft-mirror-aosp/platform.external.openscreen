@@ -36,6 +36,7 @@ class QuicProtocolConnection final : public ProtocolConnection {
       uint64_t instance_id);
 
   QuicProtocolConnection(Owner& owner,
+                         QuicStream& stream,
                          uint64_t instance_id,
                          uint64_t protocol_connection_id);
   ~QuicProtocolConnection() override;
@@ -45,7 +46,6 @@ class QuicProtocolConnection final : public ProtocolConnection {
   void CloseWriteEnd() override;
 
   QuicStream* stream() { return stream_; }
-  void set_stream(QuicStream* stream) { stream_ = stream; }
 
   void OnClose();
 
@@ -97,7 +97,7 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   void OnCryptoHandshakeComplete() override;
   void OnIncomingStream(QuicStream* stream) override;
   void OnConnectionClosed() override;
-  QuicStream::Delegate& NextStreamDelegate(uint64_t stream_id) override;
+  QuicStream::Delegate& NextStreamDelegate() override;
 
   // QuicStream::Delegate overrides.
   void OnReceived(QuicStream* stream, const ByteView& bytes) override;
@@ -107,7 +107,6 @@ class ServiceConnectionDelegate final : public QuicConnection::Delegate,
   ServiceDelegate& parent_;
   std::string instance_name_;
   uint64_t instance_id_ = 0u;
-  std::unique_ptr<QuicProtocolConnection> pending_connection_;
   std::map<uint64_t, ServiceStreamPair> streams_;
   std::vector<ServiceStreamPair> closed_streams_;
 };

@@ -86,7 +86,7 @@ quic::QuicStream* OpenScreenSessionBase::CreateIncomingStream(
   OSP_CHECK(connection()->connected());
 
   auto stream = std::make_unique<QuicStreamImpl>(
-      visitor_.GetConnectionDelegate().NextStreamDelegate(id), id, this,
+      visitor_.GetConnectionDelegate().NextStreamDelegate(), id, this,
       quic::READ_UNIDIRECTIONAL);
   auto* stream_ptr = stream.get();
   ActivateStream(std::move(stream));
