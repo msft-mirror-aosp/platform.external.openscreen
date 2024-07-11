@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "openssl/base.h"
 #include "osp/public/agent_certificate.h"
 #include "quiche/quic/core/crypto/proof_source_x509.h"
 
@@ -36,14 +37,19 @@ class QuicAgentCertificate final : public AgentCertificate {
   void ResetCredentials();
 
  private:
-  // Loads private key and agent certificate from the specified files for
+  // Generate private key and agent certificate to the specified file for
+  // use.
+  // Returns true if generates credentials succeed, false otherwise.
+  bool GenerateCredentialsToFile();
+
+  // Load private key and agent certificate from the specified files for
   // use.
   // Returns true if loads credentials succeed, false otherwise.
   bool LoadCredentials();
 
   AgentFingerprint agent_fingerprint_;
   std::vector<std::string> certificates_;
-  std::string key_raw_;
+  bssl::UniquePtr<EVP_PKEY> key_;
 };
 
 }  // namespace openscreen::osp

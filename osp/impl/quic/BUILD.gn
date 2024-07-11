@@ -69,6 +69,7 @@ if (!is_win) {
     deps = [
       "../../../platform",
       "../../../third_party/abseil",
+      "../../../third_party/boringssl",
       "../../../third_party/quiche",
       "../../../util",
       "../../public",

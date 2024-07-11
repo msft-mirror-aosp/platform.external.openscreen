@@ -4,10 +4,15 @@
 
 #include "osp/impl/quic/certificates/quic_agent_certificate.h"
 
+#include <chrono>
 #include <utility>
 
+#include "openssl/bio.h"
+#include "openssl/evp.h"
+#include "openssl/nid.h"
 #include "quiche/quic/core/quic_utils.h"
 #include "util/base64.h"
+#include "util/crypto/certificate_utils.h"
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
 #include "util/read_file.h"
@@ -16,20 +21,48 @@ namespace openscreen::osp {
 
 namespace {
 
-// TODO(issuetracker.google.com/300236996): Replace with OSP certificate
-// generation. Fixed agent certificate is used currently.
-//
-// NOTE: This should not be used for any end-user software, as the private key
-// is obviously not private now.
+using FileUniquePtr = std::unique_ptr<FILE, decltype(&fclose)>;
+
 constexpr char kCertificatesPath[] =
-    "osp/impl/quic/certificates/openscreen.pem";
-constexpr char kPrivateKeyPath[] = "osp/impl/quic/certificates/openscreen.key";
+    "osp/impl/quic/certificates/agent_certificate.crt";
+constexpr char kPrivateKeyPath[] = "osp/impl/quic/certificates/private_key.key";
+constexpr int kOneYearInSeconds = 365 * 24 * 60 * 60;
+constexpr auto kCertificateDuration = std::chrono::seconds(kOneYearInSeconds);
+
+bssl::UniquePtr<EVP_PKEY> GeneratePrivateKey() {
+  bssl::UniquePtr<EVP_PKEY_CTX> ctx(
+      EVP_PKEY_CTX_new_id(EVP_PKEY_EC, /*e=*/nullptr));
+  OSP_CHECK(EVP_PKEY_keygen_init(ctx.get()));
+  OSP_CHECK(
+      EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx.get(), NID_X9_62_prime256v1));
+  EVP_PKEY* key = nullptr;
+  OSP_CHECK(EVP_PKEY_keygen(ctx.get(), &key));
+  return bssl::UniquePtr<EVP_PKEY>(key);
+}
+
+// TODO(issuetracker.google.com/300236996): There are currently some spec issues
+// about certificates that are still under discussion. Make all fields of the
+// certificate comply with the requirements of the spec once all the issues are
+// closed.
+bssl::UniquePtr<X509> GenerateRootCert(const EVP_PKEY& root_key) {
+  ErrorOr<bssl::UniquePtr<X509>> root_cert_or_error =
+      CreateSelfSignedX509Certificate("Open Screen Certificate",
+                                      kCertificateDuration, root_key,
+                                      GetWallTimeSinceUnixEpoch(), true);
+  OSP_CHECK(root_cert_or_error);
+  return std::move(root_cert_or_error.value());
+}
 
 }  // namespace
 
 QuicAgentCertificate::QuicAgentCertificate() {
+  // Load the certificate and key files if they already exist, otherwise
+  // generate new certificate and key files.
   bool result = LoadCredentials();
-  OSP_CHECK(result);
+  if (!result) {
+    result = GenerateCredentialsToFile() && LoadCredentials();
+    OSP_CHECK(result);
+  }
 }
 
 QuicAgentCertificate::~QuicAgentCertificate() = default;
@@ -51,15 +84,25 @@ bool QuicAgentCertificate::LoadAgentCertificate(std::string_view filename) {
 }
 
 bool QuicAgentCertificate::LoadPrivateKey(std::string_view filename) {
-  key_raw_.clear();
-  key_raw_ = ReadEntireFileToString(filename);
-  return !key_raw_.empty();
+  key_.reset();
+  std::string file_data = ReadEntireFileToString(filename);
+  if (file_data.empty()) {
+    return false;
+  }
+
+  bssl::UniquePtr<BIO> bio(BIO_new_mem_buf(const_cast<char*>(file_data.data()),
+                                           static_cast<int>(file_data.size())));
+  if (!bio) {
+    return false;
+  }
+
+  key_ = bssl::UniquePtr<EVP_PKEY>(
+      PEM_read_bio_PrivateKey(bio.get(), nullptr, nullptr, nullptr));
+  return (key_ != nullptr);
 }
 
-// NOTE: OSP certificate generation is not implemented yet and fixed certificate
-// is used currently. So rotate agent certificate is not supported now.
 bool QuicAgentCertificate::RotateAgentCertificate() {
-  OSP_NOTREACHED();
+  return GenerateCredentialsToFile() && LoadCredentials();
 }
 
 AgentFingerprint QuicAgentCertificate::GetAgentFingerprint() {
@@ -67,7 +110,7 @@ AgentFingerprint QuicAgentCertificate::GetAgentFingerprint() {
 }
 
 std::unique_ptr<quic::ProofSource> QuicAgentCertificate::CreateProofSource() {
-  if (certificates_.empty() || key_raw_.empty() || agent_fingerprint_.empty()) {
+  if (certificates_.empty() || !key_ || agent_fingerprint_.empty()) {
     return nullptr;
   }
 
@@ -75,17 +118,37 @@ std::unique_ptr<quic::ProofSource> QuicAgentCertificate::CreateProofSource() {
       new quic::ProofSource::Chain(certificates_));
   OSP_CHECK(chain) << "Failed to create the quic::ProofSource::Chain.";
 
-  std::unique_ptr<quic::CertificatePrivateKey> key =
-      quic::CertificatePrivateKey::LoadFromDer(key_raw_);
-  OSP_CHECK(key) << "Failed to parse the key file.";
-
-  return quic::ProofSourceX509::Create(std::move(chain), std::move(*key));
+  quic::CertificatePrivateKey key{std::move(key_)};
+  return quic::ProofSourceX509::Create(std::move(chain), std::move(key));
 }
 
 void QuicAgentCertificate::ResetCredentials() {
   agent_fingerprint_.clear();
   certificates_.clear();
-  key_raw_.clear();
+  key_.reset();
+}
+
+bool QuicAgentCertificate::GenerateCredentialsToFile() {
+  bssl::UniquePtr<EVP_PKEY> root_key = GeneratePrivateKey();
+  bssl::UniquePtr<X509> root_cert = GenerateRootCert(*root_key);
+
+  FileUniquePtr f(fopen(kPrivateKeyPath, "w"), &fclose);
+  if (PEM_write_PrivateKey(f.get(), root_key.get(), nullptr, nullptr, 0, 0,
+                           nullptr) != 1) {
+    OSP_LOG_ERROR << "Failed to write private key, check permissions?";
+    return false;
+  }
+  OSP_LOG_INFO << "Generated new private key in file: " << kPrivateKeyPath;
+
+  FileUniquePtr cert_file(fopen(kCertificatesPath, "w"), &fclose);
+  if (PEM_write_X509(cert_file.get(), root_cert.get()) != 1) {
+    OSP_LOG_ERROR << "Failed to write agent certificate, check permissions?";
+    return false;
+  }
+  OSP_LOG_INFO << "Generated new agent certificate in file: "
+               << kCertificatesPath;
+
+  return true;
 }
 
 bool QuicAgentCertificate::LoadCredentials() {
