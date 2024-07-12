@@ -305,7 +305,10 @@ include_rules = [
   '-third_party/boringssl',
 
   # Test framework includes.
-  "-third_party/googletest",
-  "+gtest",
-  "+gmock",
+  '-third_party/googletest',
+  '+gtest',
+  '+gmock',
+
+  # Can use generic Chromium buildflags.
+  '+build/build_config.h',
 ]

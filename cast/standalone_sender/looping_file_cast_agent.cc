@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "build/build_config.h"
 #include "cast/common/channel/message_util.h"
 #include "cast/common/public/cast_streaming_app_ids.h"
 #include "cast/standalone_sender/looping_file_sender.h"
@@ -60,9 +61,9 @@ void LoopingFileCastAgent::Connect(ConnectionSettings settings) {
                           : DeviceMediaPolicy::kAudioOnly;
 
   task_runner_.PostTask([this, policy] {
-#if defined(__APPLE__)
+#if BUILDFLAG(IS_APPLE)
     wake_lock_ = ScopedWakeLock::Create(task_runner_);
-#endif  // defined(__APPLE__)
+#endif  // BUILDFLAG(IS_APPLE)
     socket_factory_.Connect(connection_settings_->receiver_endpoint, policy,
                             &router_);
   });

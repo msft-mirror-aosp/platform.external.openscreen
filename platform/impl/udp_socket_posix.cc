@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "build/build_config.h"
 #include "platform/api/task_runner.h"
 #include "platform/base/error.h"
 #include "platform/impl/udp_socket_reader_posix.h"
@@ -30,7 +31,7 @@ namespace openscreen {
 namespace {
 
 // 64 KB is the maximum possible UDP datagram size.
-#if !defined(__linux__)
+#if !BUILDFLAG(IS_LINUX)
 constexpr int kMaxUdpBufferSize = 64 << 10;
 #endif
 
@@ -377,13 +378,13 @@ bool IsPacketInfo<in6_pktinfo>(cmsghdr* cmh) {
 template <class SockAddrType, class PktInfoType>
 ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   int upper_bound_bytes;
-#if defined(__linux__)
+#if BUILDFLAG(IS_LINUX)
   // This should return the exact size of the next message.
   upper_bound_bytes = recv(fd, nullptr, 0, MSG_PEEK | MSG_TRUNC);
   if (upper_bound_bytes == -1) {
     return ChooseError(errno, Error::Code::kSocketReadFailure);
   }
-#elif defined(__APPLE__)
+#elif BUILDFLAG(IS_APPLE)
   // Can't use MSG_TRUNC in recv(). Use the FIONREAD ioctl() to get an
   // upper-bound.
   if (ioctl(fd, FIONREAD, &upper_bound_bytes) == -1 || upper_bound_bytes < 0) {
@@ -394,7 +395,7 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   upper_bound_bytes = kMaxUdpBufferSize;
   OSP_LOG_ERROR << __func__
                 << ": POSIX upper bound bytes=" << upper_bound_bytes;
-#endif
+#endif  // BUILDFLAG(IS_LINUX)
 
   UdpPacket packet(upper_bound_bytes);
   msghdr msg = {};
@@ -407,11 +408,12 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
 
   // Although we don't do anything with the control buffer, on Linux
   // it is required for the message to be properly read.
-#if defined(__linux__)
+#if BUILDFLAG(IS_LINUX)
   alignas(alignof(cmsghdr)) uint8_t control_buffer[2048];
   msg.msg_control = control_buffer;
   msg.msg_controllen = sizeof(control_buffer);
-#endif
+#endif  // BUILDFLAG(IS_LINUX)
+
   const ssize_t bytes_received = recvmsg(fd, &msg, 0);
   if (bytes_received == -1) {
     OSP_DVLOG << "Failed to read from socket.";

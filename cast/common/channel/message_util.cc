@@ -7,12 +7,13 @@
 #include <sstream>
 #include <utility>
 
+#include "build/build_config.h"
 #include "cast/common/channel/virtual_connection.h"
 #include "util/json/json_serialization.h"
 #include "util/json/json_value.h"
 #include "util/osp_logging.h"
 
-#if defined(__APPLE__) || defined(__MACH__)
+#if BUILDFLAG(IS_APPLE)
 #include <TargetConditionals.h>
 #endif
 
@@ -44,30 +45,20 @@ enum VirtualConnectPlatformValue {
   kCastDevice = 7,
 };
 
-#if defined(__APPLE__) || defined(__MACH__)
-constexpr VirtualConnectPlatformValue GetVirtualConnectPlatformMacFlavor() {
-#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-  return kIOS;
-#else
-  return kMacOSX;
-#endif
-}
-#endif
-
 constexpr VirtualConnectPlatformValue GetVirtualConnectPlatform() {
   // Based on //build/build_config.h in the Chromium project. The order of these
   // matters!
-#if defined(__ANDROID__)
+#if BUILDFLAG(IS_ANDROID)
   return kAndroid;
-#elif defined(__APPLE__) || defined(__MACH__)
-  return GetVirtualConnectPlatformMacFlavor();
-#elif defined(_WIN32) || defined(_WIN64)
+#elif BUILDFLAG(IS_IOS)
+  return kIOS;
+#elif BUILDFLAG(IS_WIN)
   return kWindows;
-#elif defined(OS_CHROMEOS)
-  // Note: OS_CHROMEOS is defined via the compiler's command line in Chromium
-  // embedder builds by Chromium's //build/config/linux:runtime_library config.
+#elif BUILDFLAG(IS_MAC)
+  return kMacOSX;
+#elif BUILDFLAG(IS_CHROMEOS)
   return kChromeOS;
-#elif defined(__linux__)
+#elif BUILDFLAG(IS_LINUX)
   return kLinux;
 #else
   return kOtherPlatform;
