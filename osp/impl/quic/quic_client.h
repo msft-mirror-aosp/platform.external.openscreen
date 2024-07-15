@@ -6,9 +6,11 @@
 #define OSP_IMPL_QUIC_QUIC_CLIENT_H_
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -60,13 +62,12 @@ class QuicClient final : public ProtocolConnectionClient,
   InstanceRequestIds& GetInstanceRequestIds() override;
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t instance_id) override;
-  bool Connect(const std::string& instance_name,
+  bool Connect(std::string_view instance_name,
                ConnectRequest& request,
                ConnectionRequestCallback* request_callback) override;
 
   // QuicServiceBase overrides.
-  uint64_t OnCryptoHandshakeComplete(
-      ServiceConnectionDelegate* delegate) override;
+  uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
   void OnConnectionClosed(uint64_t instance_id) override;
 
  private:
@@ -116,10 +117,10 @@ class QuicClient final : public ProtocolConnectionClient,
   // QuicServiceBase overrides.
   void CloseAllConnections() override;
 
-  bool CreatePendingConnection(const std::string& instance_name,
+  bool CreatePendingConnection(std::string_view instance_name,
                                ConnectRequest& request,
                                ConnectionRequestCallback* request_callback);
-  uint64_t StartConnectionRequest(const std::string& instance_name,
+  uint64_t StartConnectionRequest(std::string_view instance_name,
                                   ConnectionRequestCallback* request_callback);
   void CancelConnectRequest(uint64_t request_id) override;
 
@@ -131,11 +132,12 @@ class QuicClient final : public ProtocolConnectionClient,
 
   // Maps an instance name to data about connections that haven't successfully
   // completed the QUIC handshake.
-  std::map<std::string, PendingConnectionData> pending_connections_;
+  std::map<std::string, PendingConnectionData, std::less<>>
+      pending_connections_;
 
   // Maps an instance name to necessary information of the instance used to
   // build connection.
-  std::map<std::string, InstanceInfo> instance_infos_;
+  std::map<std::string, InstanceInfo, std::less<>> instance_infos_;
 };
 
 }  // namespace openscreen::osp

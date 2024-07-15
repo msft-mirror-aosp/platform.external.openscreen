@@ -69,8 +69,6 @@ class FakeQuicBridge {
   void PostClientPacket();
   void PostServerPacket();
   void PostPacketsUntilIdle();
-  FakeClientQuicConnectionFactory* GetClientFactory();
-  FakeServerQuicConnectionFactory* GetServerFactory();
   FakeTaskRunner& task_runner_;
 
   std::unique_ptr<FakeUdpSocket> client_socket_;

@@ -22,8 +22,7 @@ class QuicConnectionFactoryServer : public QuicConnectionFactoryBase {
    public:
     virtual ~ServerDelegate() = default;
 
-    virtual QuicConnection::Delegate* NextConnectionDelegate(
-        const IPEndpoint& source) = 0;
+    virtual QuicConnection::Delegate& GetConnectionDelegate() = 0;
     virtual void OnIncomingConnection(
         std::unique_ptr<QuicConnection> connection) = 0;
   };

@@ -76,7 +76,7 @@ class ProtocolConnectionClient : public ProtocolConnectionEndpoint,
   // be asynchronous. Returns true if succeed synchronously or asynchronously,
   // false otherwise. `request` is overwritten with the result of a successful
   // connection attempt.
-  virtual bool Connect(const std::string& instance_name,
+  virtual bool Connect(std::string_view instance_name,
                        ConnectRequest& request,
                        ConnectionRequestCallback* request_callback) = 0;
 

@@ -78,11 +78,9 @@ std::string QuicServer::GetAgentFingerprint() {
   return GetAgentCertificate().GetAgentFingerprint();
 }
 
-uint64_t QuicServer::OnCryptoHandshakeComplete(
-    ServiceConnectionDelegate* delegate) {
-  OSP_CHECK_EQ(state_, State::kRunning);
+uint64_t QuicServer::OnCryptoHandshakeComplete(std::string_view instance_name) {
+  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
 
-  const std::string& instance_name = delegate->instance_name();
   auto pending_entry = pending_connections_.find(instance_name);
   if (pending_entry == pending_connections_.end()) {
     return 0;
@@ -91,7 +89,9 @@ uint64_t QuicServer::OnCryptoHandshakeComplete(
   ServiceConnectionData connection_data = std::move(pending_entry->second);
   pending_connections_.erase(pending_entry);
   uint64_t instance_id = next_instance_id_++;
-  instance_map_[instance_name] = instance_id;
+  instance_map_.emplace(instance_name, instance_id);
+  connection_data.stream_manager->set_quic_connection(
+      connection_data.connection.get());
   connections_.emplace(instance_id, std::move(connection_data));
   return instance_id;
 }
@@ -128,28 +128,15 @@ void QuicServer::CloseAllConnections() {
   instance_request_ids_.Reset();
 }
 
-QuicConnection::Delegate* QuicServer::NextConnectionDelegate(
-    const IPEndpoint& source) {
-  OSP_CHECK_EQ(state_, State::kRunning);
-  OSP_CHECK(!pending_connection_delegate_);
-
-  // NOTE: There is no corresponding instance name for IPEndpoint on the client
-  // side. So IPEndpoint is converted into a string and used as instance name.
-  pending_connection_delegate_ =
-      std::make_unique<ServiceConnectionDelegate>(*this, source.ToString());
-  return pending_connection_delegate_.get();
-}
-
 void QuicServer::OnIncomingConnection(
     std::unique_ptr<QuicConnection> connection) {
   OSP_CHECK_EQ(state_, State::kRunning);
 
-  const std::string& instance_name =
-      pending_connection_delegate_->instance_name();
+  const std::string& instance_name = connection->instance_name();
   pending_connections_.emplace(
       instance_name,
       ServiceConnectionData(std::move(connection),
-                            std::move(pending_connection_delegate_)));
+                            std::make_unique<QuicStreamManager>(*this)));
 }
 
 }  // namespace openscreen::osp

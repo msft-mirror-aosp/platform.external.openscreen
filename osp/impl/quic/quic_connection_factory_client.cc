@@ -88,7 +88,7 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
   }
 
   auto connection_impl = std::make_unique<QuicConnectionImpl>(
-      *connection_delegate, *helper_->GetClock());
+      connect_data.instance_name, *connection_delegate, *helper_->GetClock());
   // NOTE: Use instance name + domain temporarily to prevent blocking the
   // project. There is an ongoing discussion about this, see blow link：
   // https://github.com/w3c/openscreenprotocol/issues/275

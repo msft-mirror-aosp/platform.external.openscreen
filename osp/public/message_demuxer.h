@@ -78,12 +78,13 @@ class MessageDemuxer {
                                           MessageCallback* callback);
 
   // Gives data from `instance_id` to the demuxer for processing.
-  // TODO(btolsch): It'd be nice if errors could propagate out of here to close
-  // the stream.
   void OnStreamData(uint64_t instance_id,
                     uint64_t connection_id,
                     const uint8_t* data,
                     size_t data_size);
+
+  // Clears the buffered data when the stream is closed.
+  void OnStreamClose(uint64_t instance_id, uint64_t connection_id);
 
  private:
   struct HandleStreamBufferResult {

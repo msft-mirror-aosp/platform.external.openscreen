@@ -26,7 +26,7 @@ uint64_t QuicStreamImpl::GetStreamId() {
   return id();
 }
 
-void QuicStreamImpl::Write(const ByteView& bytes) {
+void QuicStreamImpl::Write(ByteView bytes) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicStreamImpl::Write");
   OSP_CHECK(!write_side_closed());
   WriteOrBufferData(

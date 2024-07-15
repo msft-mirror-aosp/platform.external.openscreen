@@ -33,7 +33,9 @@ class FakeQuicConnectionFactoryBridge {
                          const IPEndpoint& endpoint);
   void RunTasks(bool is_client);
   ErrorOr<std::unique_ptr<QuicConnection>> Connect(
-      const IPEndpoint& endpoint,
+      const IPEndpoint& local_endpoint,
+      const IPEndpoint& remote_endpoint,
+      const std::string& instance_name,
       QuicConnection::Delegate* connection_delegate);
 
  private:

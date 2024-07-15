@@ -56,8 +56,11 @@ std::unique_ptr<quic::QuicSession> QuicDispatcherImpl::CreateQuicSession(
       quic::ParsedQuicVersionVector{version}, connection_id_generator);
 
   auto connection_impl = std::make_unique<QuicConnectionImpl>(
-      *parent_factory_.server_delegate()->NextConnectionDelegate(
-          ToIPEndpoint(peer_address)),
+      // NOTE: There is no corresponding instance name for IPEndpoint on the
+      // client side. So IPEndpoint is converted into a string and used as
+      // instance name.
+      ToIPEndpoint(peer_address).ToString(),
+      parent_factory_.server_delegate()->GetConnectionDelegate(),
       *helper()->GetClock());
   connection_impl->set_dispacher(this);
 

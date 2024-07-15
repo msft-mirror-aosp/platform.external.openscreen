@@ -11,9 +11,10 @@
 
 namespace openscreen::osp {
 
-QuicConnectionImpl::QuicConnectionImpl(QuicConnection::Delegate& delegate,
+QuicConnectionImpl::QuicConnectionImpl(std::string_view instance_name,
+                                       QuicConnection::Delegate& delegate,
                                        const quic::QuicClock& clock)
-    : QuicConnection(delegate), clock_(clock) {
+    : QuicConnection(instance_name, delegate), clock_(clock) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::QuicConnectionImpl");
 }
 
@@ -36,7 +37,7 @@ void QuicConnectionImpl::OnPacketReceived(const UdpPacket& packet) {
 }
 
 QuicStream* QuicConnectionImpl::MakeOutgoingStream(
-    QuicStream::Delegate* delegate) {
+    QuicStream::Delegate& delegate) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::MakeOutgoingStream");
   OSP_CHECK(session_);
 
@@ -56,7 +57,7 @@ void QuicConnectionImpl::OnConnectionClosed(
     const std::string& error_details,
     quic::ConnectionCloseSource source) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnConnectionClosed");
-  delegate_.OnConnectionClosed();
+  delegate_.OnConnectionClosed(instance_id_);
   if (dispatcher_) {
     dispatcher_->OnConnectionClosed(server_connection_id, error_code,
                                     error_details, source);
@@ -115,12 +116,15 @@ void QuicConnectionImpl::OnPathDegrading() {}
 void QuicConnectionImpl::OnCryptoHandshakeComplete() {
   TRACE_SCOPED(TraceCategory::kQuic,
                "QuicConnectionImpl::OnCryptoHandshakeComplete");
-  delegate_.OnCryptoHandshakeComplete();
+  instance_id_ = delegate_.OnCryptoHandshakeComplete(instance_name_);
+  OSP_VLOG << "QUIC connection handshake complete for instance: "
+           << instance_name_
+           << ", the corresponding instance ID is: " << instance_id_;
 }
 
 void QuicConnectionImpl::OnIncomingStream(QuicStream* stream) {
   TRACE_SCOPED(TraceCategory::kQuic, "QuicConnectionImpl::OnIncomingStream");
-  delegate_.OnIncomingStream(stream);
+  delegate_.OnIncomingStream(instance_id_, stream);
 }
 
 }  // namespace openscreen::osp

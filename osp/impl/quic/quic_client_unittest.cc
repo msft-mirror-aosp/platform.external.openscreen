@@ -10,7 +10,6 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "osp/impl/quic/quic_service_common.h"
 #include "osp/impl/quic/testing/fake_quic_connection_factory.h"
 #include "osp/impl/quic/testing/quic_test_support.h"
 #include "osp/public/network_metrics.h"

@@ -137,13 +137,15 @@ MessageDemuxer::MessageWatch MessageDemuxer::WatchMessageType(
             .first;
   }
   auto emplace_result = callbacks_entry->second.emplace(message_type, callback);
-  if (!emplace_result.second)
+  if (!emplace_result.second) {
     return MessageWatch();
+  }
   auto instance_entry = buffers_.find(instance_id);
   if (instance_entry != buffers_.end()) {
     for (auto& buffer : instance_entry->second) {
-      if (buffer.second.empty())
+      if (buffer.second.empty()) {
         continue;
+      }
       auto buffered_type = static_cast<msgs::Type>(buffer.second[0]);
       if (message_type == buffered_type) {
         HandleStreamBufferLoop(instance_id, buffer.first, callbacks_entry,
@@ -158,13 +160,15 @@ MessageDemuxer::MessageWatch MessageDemuxer::SetDefaultMessageTypeWatch(
     msgs::Type message_type,
     MessageCallback* callback) {
   auto emplace_result = default_callbacks_.emplace(message_type, callback);
-  if (!emplace_result.second)
+  if (!emplace_result.second) {
     return MessageWatch();
+  }
   for (auto& instance_buffers : buffers_) {
     auto instance_id = instance_buffers.first;
     for (auto& stream_map : instance_buffers.second) {
-      if (stream_map.second.empty())
+      if (stream_map.second.empty()) {
         continue;
+      }
       auto buffered_type = static_cast<msgs::Type>(stream_map.second[0]);
       if (message_type == buffered_type) {
         auto connection_id = stream_map.first;
@@ -181,23 +185,28 @@ void MessageDemuxer::OnStreamData(uint64_t instance_id,
                                   uint64_t connection_id,
                                   const uint8_t* data,
                                   size_t data_size) {
+  OSP_CHECK(data_size);
   OSP_VLOG << __func__ << ": [" << instance_id << ", " << connection_id
            << "] - (" << data_size << ")";
   auto& stream_map = buffers_[instance_id];
-  if (!data_size) {
-    stream_map.erase(connection_id);
-    if (stream_map.empty())
-      buffers_.erase(instance_id);
-    return;
-  }
   std::vector<uint8_t>& buffer = stream_map[connection_id];
   buffer.insert(buffer.end(), data, data + data_size);
 
   auto callbacks_entry = message_callbacks_.find(instance_id);
   HandleStreamBufferLoop(instance_id, connection_id, callbacks_entry, &buffer);
 
-  if (buffer.size() > buffer_limit_)
+  if (buffer.size() > buffer_limit_) {
     stream_map.erase(connection_id);
+  }
+}
+
+void MessageDemuxer::OnStreamClose(uint64_t instance_id,
+                                   uint64_t connection_id) {
+  auto& stream_map = buffers_[instance_id];
+  stream_map.erase(connection_id);
+  if (stream_map.empty()) {
+    buffers_.erase(instance_id);
+  }
 }
 
 void MessageDemuxer::StopWatchingMessageType(uint64_t instance_id,
@@ -257,8 +266,9 @@ MessageDemuxer::HandleStreamBufferResult MessageDemuxer::HandleStreamBuffer(
       break;
     }
     auto callback_entry = message_callbacks->find(message_type.value());
-    if (callback_entry == message_callbacks->end())
+    if (callback_entry == message_callbacks->end()) {
       break;
+    }
     handled = true;
     OSP_VLOG << "handling message type "
              << static_cast<int>(message_type.value());

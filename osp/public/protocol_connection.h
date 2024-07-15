@@ -78,7 +78,7 @@ class ProtocolConnection {
   uint64_t instance_id() const { return instance_id_; }
   uint64_t id() const { return id_; }
 
-  virtual void Write(const ByteView& bytes) = 0;
+  virtual void Write(ByteView bytes) = 0;
   virtual void CloseWriteEnd() = 0;
 
  protected:
