@@ -134,7 +134,7 @@ IPEndpoint UdpSocketPosix::GetLocalEndpoint() const {
     // socket isn't bound yet. In this case, leave the original value in-place.
     switch (local_endpoint_.address.version()) {
       case UdpSocket::Version::kV4: {
-        struct sockaddr_in address;
+        struct sockaddr_in address {};
         socklen_t address_len = sizeof(address);
         if (getsockname(handle_.fd,
                         reinterpret_cast<struct sockaddr*>(&address),
@@ -149,7 +149,7 @@ IPEndpoint UdpSocketPosix::GetLocalEndpoint() const {
       }
 
       case UdpSocket::Version::kV6: {
-        struct sockaddr_in6 address;
+        struct sockaddr_in6 address {};
         socklen_t address_len = sizeof(address);
         if (getsockname(handle_.fd,
                         reinterpret_cast<struct sockaddr*>(&address),
@@ -226,7 +226,7 @@ void UdpSocketPosix::SetMulticastOutboundInterface(
 
   switch (local_endpoint_.address.version()) {
     case UdpSocket::Version::kV4: {
-      struct ip_mreqn multicast_properties;
+      struct ip_mreqn multicast_properties {};
       // Appropriate address is set based on |imr_ifindex| when set.
       multicast_properties.imr_address.s_addr = INADDR_ANY;
       multicast_properties.imr_multiaddr.s_addr = INADDR_ANY;
@@ -270,7 +270,7 @@ void UdpSocketPosix::JoinMulticastGroup(const IPAddress& address,
         OnError(Error::Code::kSocketOptionSettingFailure);
         return;
       }
-      struct ip_mreqn multicast_properties;
+      struct ip_mreqn multicast_properties {};
       // Appropriate address is set based on |imr_ifindex| when set.
       multicast_properties.imr_address.s_addr = INADDR_ANY;
       multicast_properties.imr_ifindex =
@@ -400,8 +400,8 @@ ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
   }
 
   UdpPacket packet(upper_bound_bytes);
-  msghdr msg = {};
-  SockAddrType sa;
+  struct msghdr msg {};
+  SockAddrType sa{};
   msg.msg_name = &sa;
   msg.msg_namelen = sizeof(sa);
   iovec iov = {packet.data(), packet.size()};
@@ -508,7 +508,7 @@ void UdpSocketPosix::SendMessage(ByteView data, const IPEndpoint& dest) {
 
   struct iovec iov = {
       reinterpret_cast<void*>(const_cast<uint8_t*>(data.data())), data.size()};
-  struct msghdr msg;
+  struct msghdr msg {};
   msg.msg_iov = &iov;
   msg.msg_iovlen = 1;
   msg.msg_control = nullptr;

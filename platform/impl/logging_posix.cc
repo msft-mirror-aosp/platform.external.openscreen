@@ -55,7 +55,7 @@ void SetLogFifoOrDie(const char* filename) {
   }
 
   // Note: The use of OSP_CHECK/OSP_LOG_* here will log to stderr.
-  struct stat st = {};
+  struct stat st {};
   int open_result = -1;
   if (stat(filename, &st) == -1 && errno == ENOENT) {
     if (mkfifo(filename, 0644) == 0) {
