@@ -31,9 +31,7 @@ namespace openscreen {
 namespace {
 
 // 64 KB is the maximum possible UDP datagram size.
-#if !BUILDFLAG(IS_LINUX)
 constexpr int kMaxUdpBufferSize = 64 << 10;
-#endif
 
 constexpr bool IsPowerOf2(uint32_t x) {
   return (x > 0) && ((x & (x - 1)) == 0);
@@ -377,25 +375,29 @@ bool IsPacketInfo<in6_pktinfo>(cmsghdr* cmh) {
 
 template <class SockAddrType, class PktInfoType>
 ErrorOr<UdpPacket> ReceiveMessageInternal(int fd) {
-  int upper_bound_bytes;
+  // Try to determine the size of the incoming packet.  If we cannot,
+  // it's not a fatal error, we will just allocate kMaxUdpBufferSize
+  // and shrink-to-fit below.
+  int upper_bound_bytes = -1;
 #if BUILDFLAG(IS_LINUX)
-  // This should return the exact size of the next message.
+  // Returns the exact size of the datagram, or -1 on error.
   upper_bound_bytes = recv(fd, nullptr, 0, MSG_PEEK | MSG_TRUNC);
-  if (upper_bound_bytes == -1) {
-    return ChooseError(errno, Error::Code::kSocketReadFailure);
-  }
 #elif BUILDFLAG(IS_APPLE)
-  // Can't use MSG_TRUNC in recv(). Use the FIONREAD ioctl() to get an
-  // upper-bound.
-  if (ioctl(fd, FIONREAD, &upper_bound_bytes) == -1 || upper_bound_bytes < 0) {
-    return ChooseError(errno, Error::Code::kSocketReadFailure);
+  // Can't use recv(MSG_TRUNC) (not supported).  Can't use ioctl(FIONREAD)
+  // (returns size in socket queue instead next message size).  Use
+  // getsocktopt(...NREAD...) to get the datagram size if possible.
+  // Ref: https://www.unix.com/man-page/mojave/2/getsockopt/
+  socklen_t optlen = sizeof(upper_bound_bytes);
+  if (getsockopt(fd, SOL_SOCKET, SO_NREAD, &upper_bound_bytes, &optlen) ==
+      -1) {
+    upper_bound_bytes = -1;
   }
-  upper_bound_bytes = std::min(upper_bound_bytes, kMaxUdpBufferSize);
-#else  // Other POSIX platforms (neither MSG_TRUNC nor FIONREAD available).
-  upper_bound_bytes = kMaxUdpBufferSize;
-  OSP_LOG_ERROR << __func__
-                << ": POSIX upper bound bytes=" << upper_bound_bytes;
 #endif  // BUILDFLAG(IS_LINUX)
+  if (upper_bound_bytes > 0) {
+    upper_bound_bytes = std::min(upper_bound_bytes, kMaxUdpBufferSize);
+  } else {
+    upper_bound_bytes = kMaxUdpBufferSize;
+  }
 
   UdpPacket packet(upper_bound_bytes);
   msghdr msg = {};
