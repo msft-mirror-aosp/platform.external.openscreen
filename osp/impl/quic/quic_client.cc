@@ -18,8 +18,12 @@ QuicClient::QuicClient(
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)
-    : QuicServiceBase(config, demuxer, observer, now_function, task_runner),
-      instance_request_ids_(InstanceRequestIds::Role::kClient),
+    : QuicServiceBase(config,
+                      demuxer,
+                      observer,
+                      InstanceRequestIds::Role::kClient,
+                      now_function,
+                      task_runner),
       connection_factory_(std::move(connection_factory)) {}
 
 QuicClient::~QuicClient() {

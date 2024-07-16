@@ -15,7 +15,6 @@
 #include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_server.h"
 #include "osp/impl/quic/quic_service_base.h"
-#include "osp/public/instance_request_ids.h"
 #include "osp/public/protocol_connection_server.h"
 
 namespace openscreen::osp {
@@ -77,7 +76,6 @@ class QuicServer final : public ProtocolConnectionServer,
   // This is used for server name indication check.
   const std::string instance_name_;
 
-  InstanceRequestIds instance_request_ids_;
   std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
 
   // Maps an instance name to data about connections that haven't successfully

@@ -13,9 +13,11 @@ namespace openscreen::osp {
 QuicServiceBase::QuicServiceBase(const ServiceConfig& config,
                                  MessageDemuxer& demuxer,
                                  ProtocolConnectionServiceObserver& observer,
+                                 InstanceRequestIds::Role role,
                                  ClockNowFunctionPtr now_function,
                                  TaskRunner& task_runner)
-    : demuxer_(demuxer),
+    : instance_request_ids_(role),
+      demuxer_(demuxer),
       observer_(observer),
       connection_endpoints_(config.connection_endpoints),
       cleanup_alarm_(now_function, task_runner) {}

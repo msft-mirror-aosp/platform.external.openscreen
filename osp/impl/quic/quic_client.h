@@ -16,7 +16,6 @@
 
 #include "osp/impl/quic/quic_connection_factory_client.h"
 #include "osp/impl/quic/quic_service_base.h"
-#include "osp/public/instance_request_ids.h"
 #include "osp/public/protocol_connection_client.h"
 
 namespace openscreen::osp {
@@ -124,7 +123,6 @@ class QuicClient final : public ProtocolConnectionClient,
                                   ConnectionRequestCallback* request_callback);
   void CancelConnectRequest(uint64_t request_id) override;
 
-  InstanceRequestIds instance_request_ids_;
   std::unique_ptr<QuicConnectionFactoryClient> connection_factory_;
 
   // Value that will be used for the next new connection request.

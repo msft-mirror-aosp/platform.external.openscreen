@@ -24,9 +24,13 @@ QuicServer::QuicServer(
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
     TaskRunner& task_runner)
-    : QuicServiceBase(config, demuxer, observer, now_function, task_runner),
+    : QuicServiceBase(config,
+                      demuxer,
+                      observer,
+                      InstanceRequestIds::Role::kServer,
+                      now_function,
+                      task_runner),
       instance_name_(config.instance_name),
-      instance_request_ids_(InstanceRequestIds::Role::kServer),
       connection_factory_(std::move(connection_factory)) {}
 
 QuicServer::~QuicServer() {

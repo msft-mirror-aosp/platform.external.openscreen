@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "osp/impl/quic/quic_stream_manager.h"
+#include "osp/public/instance_request_ids.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/protocol_connection_endpoint.h"
 #include "osp/public/protocol_connection_service_observer.h"
@@ -33,6 +34,7 @@ class QuicServiceBase : public QuicConnection::Delegate,
   QuicServiceBase(const ServiceConfig& config,
                   MessageDemuxer& demuxer,
                   ProtocolConnectionServiceObserver& observer,
+                  InstanceRequestIds::Role role,
                   ClockNowFunctionPtr now_function,
                   TaskRunner& task_runner);
   QuicServiceBase(const QuicServiceBase&) = delete;
@@ -80,6 +82,7 @@ class QuicServiceBase : public QuicConnection::Delegate,
 
   ProtocolConnectionEndpoint::State state_ =
       ProtocolConnectionEndpoint::State::kStopped;
+  InstanceRequestIds instance_request_ids_;
   MessageDemuxer& demuxer_;
   ProtocolConnectionServiceObserver& observer_;
 
