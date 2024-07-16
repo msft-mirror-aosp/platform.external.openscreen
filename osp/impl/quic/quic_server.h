@@ -61,6 +61,8 @@ class QuicServer final : public ProtocolConnectionServer,
   // QuicServiceBase overrides.
   uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
   void OnConnectionClosed(uint64_t instance_id) override;
+  void OnClientCertificates(std::string_view instance_name,
+                            const std::vector<std::string>& certs) override;
 
   const std::string& instance_name() const { return instance_name_; }
 
@@ -77,6 +79,10 @@ class QuicServer final : public ProtocolConnectionServer,
   const std::string instance_name_;
 
   std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
+
+  // Maps an instance name to the fingerprint of the instance's active agent
+  // certificate.
+  std::map<std::string, std::string, std::less<>> fingerprint_map_;
 
   // Maps an instance name to data about connections that haven't successfully
   // completed the QUIC handshake.

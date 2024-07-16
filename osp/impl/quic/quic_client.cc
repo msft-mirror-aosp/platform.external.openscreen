@@ -11,6 +11,12 @@
 
 namespace openscreen::osp {
 
+// static
+QuicAgentCertificate& QuicClient::GetAgentCertificate() {
+  static QuicAgentCertificate agent_certificate;
+  return agent_certificate;
+}
+
 QuicClient::QuicClient(
     const ServiceConfig& config,
     MessageDemuxer& demuxer,
@@ -128,6 +134,11 @@ void QuicClient::OnConnectionClosed(uint64_t instance_id) {
       connection_entry->second.connection.get());
   delete_connections_.push_back(instance_id);
   instance_request_ids_.ResetRequestId(instance_id);
+}
+
+void QuicClient::OnClientCertificates(std::string_view instance_name,
+                                      const std::vector<std::string>& certs) {
+  OSP_NOTREACHED();
 }
 
 QuicClient::PendingConnectionData::PendingConnectionData(

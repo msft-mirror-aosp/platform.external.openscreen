@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_client.h"
 #include "osp/impl/quic/quic_service_base.h"
 #include "osp/public/protocol_connection_client.h"
@@ -39,6 +40,8 @@ namespace openscreen::osp {
 class QuicClient final : public ProtocolConnectionClient,
                          public QuicServiceBase {
  public:
+  static QuicAgentCertificate& GetAgentCertificate();
+
   QuicClient(const ServiceConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
@@ -68,6 +71,8 @@ class QuicClient final : public ProtocolConnectionClient,
   // QuicServiceBase overrides.
   uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
   void OnConnectionClosed(uint64_t instance_id) override;
+  void OnClientCertificates(std::string_view instance_name,
+                            const std::vector<std::string>& certs) override;
 
  private:
   // FakeQuicBridge needs to access `instance_infos_` and struct InstanceInfo

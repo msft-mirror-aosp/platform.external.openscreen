@@ -127,4 +127,11 @@ void QuicConnectionImpl::OnIncomingStream(QuicStream* stream) {
   delegate_.OnIncomingStream(instance_id_, stream);
 }
 
+void QuicConnectionImpl::OnClientCertificates(
+    const std::vector<std::string>& certs) {
+  TRACE_SCOPED(TraceCategory::kQuic,
+               "QuicConnectionImpl::OnClientCertificates");
+  delegate_.OnClientCertificates(instance_name_, certs);
+}
+
 }  // namespace openscreen::osp

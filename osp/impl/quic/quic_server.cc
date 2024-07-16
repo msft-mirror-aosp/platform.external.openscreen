@@ -7,6 +7,8 @@
 #include <functional>
 #include <utility>
 
+#include "quiche/quic/core/quic_utils.h"
+#include "util/base64.h"
 #include "util/osp_logging.h"
 
 namespace openscreen::osp {
@@ -114,6 +116,12 @@ void QuicServer::OnConnectionClosed(uint64_t instance_id) {
   instance_request_ids_.ResetRequestId(instance_id);
 }
 
+void QuicServer::OnClientCertificates(std::string_view instance_name,
+                                      const std::vector<std::string>& certs) {
+  fingerprint_map_.emplace(instance_name,
+                           base64::Encode(quic::RawSha256(certs[0])));
+}
+
 void QuicServer::CloseAllConnections() {
   for (auto& conn : pending_connections_) {
     conn.second.connection->Close();
@@ -127,6 +135,7 @@ void QuicServer::CloseAllConnections() {
   }
   connections_.clear();
 
+  fingerprint_map_.clear();
   instance_map_.clear();
   next_instance_id_ = 1u;
   instance_request_ids_.Reset();
