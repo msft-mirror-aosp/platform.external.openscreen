@@ -5,6 +5,7 @@
 #ifndef CAST_RECEIVER_CHANNEL_DEVICE_AUTH_NAMESPACE_HANDLER_H_
 #define CAST_RECEIVER_CHANNEL_DEVICE_AUTH_NAMESPACE_HANDLER_H_
 
+#include <openssl/base.h>
 #include <openssl/evp.h>
 
 #include <string>
