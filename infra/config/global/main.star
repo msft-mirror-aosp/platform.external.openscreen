@@ -156,9 +156,6 @@ def get_properties(
     properties = {
         "clang_use_chrome_plugins": False,
         "target_cpu": target_cpu,
-        "$depot_tools/bot_update": {
-            "apply_patch_on_gclient": True,
-        },
         "$recipe_engine/swarming": {
             "server": "https://chromium-swarm.appspot.com",
         },
