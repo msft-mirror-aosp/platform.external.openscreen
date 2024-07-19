@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "util/stringutil.h"
+#include "util/string_util.h"
 
 #include "gtest/gtest.h"
 
-namespace openscreen::stringutil {
+namespace openscreen::string_util {
 
 // Reference: https://ascii-code.com
 TEST(StringUtilTest, AsciiTest) {
@@ -86,4 +86,4 @@ TEST(StringUtilTest, AsciiStrToUpperLower) {
   EXPECT_EQ("vulcans!", s2);
 }
 
-}  // namespace openscreen::stringutil
+}  // namespace openscreen::string_util

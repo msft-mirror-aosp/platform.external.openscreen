@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "util/stringutil.h"
+#include "util/string_util.h"
 
-namespace openscreen::stringutil {
+namespace openscreen::string_util {
 namespace internal {
 // clang-format off
 // Array of bitfields holding character information. Note that bitfields for all
@@ -149,4 +149,4 @@ bool EqualsIgnoreCase(std::string_view piece1, std::string_view piece2) {
   return true;
 }
 
-}  // namespace openscreen::stringutil
+}  // namespace openscreen::string_util

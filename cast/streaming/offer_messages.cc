@@ -21,8 +21,8 @@
 #include "util/json/json_helpers.h"
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
+#include "util/string_util.h"
 #include "util/stringprintf.h"
-#include "util/stringutil.h"
 
 namespace openscreen::cast {
 
@@ -40,15 +40,15 @@ bool CodecParameterIsValid(VideoCodec codec,
   }
   switch (codec) {
     case VideoCodec::kVp8:
-      return stringutil::starts_with(codec_parameter, "vp08");
+      return string_util::starts_with(codec_parameter, "vp08");
     case VideoCodec::kVp9:
-      return stringutil::starts_with(codec_parameter, "vp09");
+      return string_util::starts_with(codec_parameter, "vp09");
     case VideoCodec::kAv1:
-      return stringutil::starts_with(codec_parameter, "av01");
+      return string_util::starts_with(codec_parameter, "av01");
     case VideoCodec::kHevc:
-      return stringutil::starts_with(codec_parameter, "hev1");
+      return string_util::starts_with(codec_parameter, "hev1");
     case VideoCodec::kH264:
-      return stringutil::starts_with(codec_parameter, "avc1");
+      return string_util::starts_with(codec_parameter, "avc1");
     case VideoCodec::kNotSpecified:
       return false;
   }
@@ -62,7 +62,7 @@ bool CodecParameterIsValid(AudioCodec codec,
   }
   switch (codec) {
     case AudioCodec::kAac:
-      return stringutil::starts_with(codec_parameter, "mp4a.");
+      return string_util::starts_with(codec_parameter, "mp4a.");
 
     // Opus doesn't use codec parameters.
     case AudioCodec::kOpus:  // fallthrough

@@ -13,7 +13,7 @@
 #include "platform/impl/logging.h"
 #include "platform/impl/logging_test.h"
 #include "util/osp_logging.h"
-#include "util/stringutil.h"
+#include "util/string_util.h"
 
 namespace openscreen {
 
@@ -65,9 +65,9 @@ class LoggingTest : public ::testing::Test {
     // NOTE: This is somewhat brittle; it relies on details of how
     // logging_posix.cc formats log messages.
     while (expected_it != expected_messages.end()) {
-      EXPECT_TRUE(stringutil::starts_with(
+      EXPECT_TRUE(string_util::starts_with(
           *actual_it, absl::StrCat("[", expected_it->level)));
-      EXPECT_TRUE(stringutil::ends_with(
+      EXPECT_TRUE(string_util::ends_with(
           *actual_it, absl::StrCat("] ", expected_it->message, "\n")));
       actual_it++;
       expected_it++;

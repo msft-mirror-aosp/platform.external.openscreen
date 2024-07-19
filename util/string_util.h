@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef UTIL_STRINGUTIL_H_
-#define UTIL_STRINGUTIL_H_
+#ifndef UTIL_STRING_UTIL_H_
+#define UTIL_STRING_UTIL_H_
 
 #include <algorithm>
 #include <cstring>
@@ -11,7 +11,7 @@
 #include <string_view>
 
 // String query and manipulation utilities.
-namespace openscreen::stringutil {
+namespace openscreen::string_util {
 
 namespace internal {
 extern const unsigned char kPropertyBits[256];
@@ -92,6 +92,6 @@ inline std::string_view StripLeadingAsciiWhitespace(std::string_view str) {
   return str.substr(static_cast<size_t>(it - str.begin()));
 }
 
-}  // namespace openscreen::stringutil
+}  // namespace openscreen::string_util
 
-#endif  // UTIL_STRINGUTIL_H_
+#endif  // UTIL_STRING_UTIL_H_
