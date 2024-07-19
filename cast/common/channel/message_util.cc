@@ -168,6 +168,37 @@ std::string ToString(const CastMessage& message) {
   return ss.str();
 }
 
+constexpr EnumNameTable<CastMessageType, 25> kCastMessageTypeNames{
+    {{"PING", CastMessageType::kPing},
+     {"PONG", CastMessageType::kPong},
+     {"RPC", CastMessageType::kRpc},
+     {"GET_APP_AVAILABILITY", CastMessageType::kGetAppAvailability},
+     {"GET_STATUS", CastMessageType::kGetStatus},
+     {"CONNECT", CastMessageType::kConnect},
+     {"CLOSE", CastMessageType::kCloseConnection},
+     {"APPLICATION_BROADCAST", CastMessageType::kBroadcast},
+     {"LAUNCH", CastMessageType::kLaunch},
+     {"STOP", CastMessageType::kStop},
+     {"RECEIVER_STATUS", CastMessageType::kReceiverStatus},
+     {"MEDIA_STATUS", CastMessageType::kMediaStatus},
+     {"LAUNCH_ERROR", CastMessageType::kLaunchError},
+     {"OFFER", CastMessageType::kOffer},
+     {"ANSWER", CastMessageType::kAnswer},
+     {"CAPABILITIES_RESPONSE", CastMessageType::kCapabilitiesResponse},
+     {"STATUS_RESPONSE", CastMessageType::kStatusResponse},
+     {"MULTIZONE_STATUS", CastMessageType::kMultizoneStatus},
+     {"INVALID_PLAYER_STATE", CastMessageType::kInvalidPlayerState},
+     {"LOAD_FAILED", CastMessageType::kLoadFailed},
+     {"LOAD_CANCELLED", CastMessageType::kLoadCancelled},
+     {"INVALID_REQUEST", CastMessageType::kInvalidRequest},
+     {"PRESENTATION", CastMessageType::kPresentation},
+     {"GET_CAPABILITIES", CastMessageType::kGetCapabilities},
+     {"OTHER", CastMessageType::kOther}}};
+
+const char* CastMessageTypeToString(CastMessageType type) {
+  return GetEnumName(kCastMessageTypeNames, type).value("OTHER");
+}
+
 const std::string& GetPayload(const CastMessage& message) {
   // Receiver messages will report if they are string or binary, but may
   // populate either the utf8 or the binary field with the message contents.
