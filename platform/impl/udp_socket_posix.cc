@@ -177,11 +177,21 @@ void UdpSocketPosix::Bind() {
   // This is effectively a boolean passed to setsockopt() to allow a future
   // bind() on the same socket to succeed, even if the address is already in
   // use. This is pretty much universally the desired behavior.
-  const int reuse_addr = 1;
+  constexpr int reuse_addr = 1;
   if (setsockopt(handle_.fd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr,
                  sizeof(reuse_addr)) == -1) {
     OnError(Error::Code::kSocketOptionSettingFailure);
   }
+
+#if BUILDFLAG(IS_APPLE)
+  // On Mac, SO_REUSEADDR is not enough to allow a bind() on a reusable
+  // multicast socket.  We need to also set the option SO_REUSEPORT.
+  constexpr int reuse_port = 1;
+  if (setsockopt(handle_.fd, SOL_SOCKET, SO_REUSEPORT, &reuse_port,
+                 sizeof(reuse_port)) == -1) {
+    OnError(Error::Code::kSocketOptionSettingFailure);
+  }
+#endif  // BUILDFLAG(IS_APPLE)
 
   bool is_bound = false;
   switch (local_endpoint_.address.version()) {
