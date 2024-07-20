@@ -4,6 +4,7 @@
 
 #include "tools/cddl/codegen.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <iostream>
 #include <limits>
@@ -14,8 +15,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "absl/algorithm/container.h"
 
 // Convert '-' to '_' to use a CDDL identifier as a C identifier.
 std::string ToUnderscoreId(const std::string& x) {
@@ -118,11 +117,12 @@ bool WriteEnumEqualityOperatorSwitchCases(int fd,
             enum_value.c_str());
   }
 
-  return absl::c_all_of(parent.enum_type.sub_members,
-                        [&fd, &child_name, &parent_name](CppType* new_parent) {
-                          return WriteEnumEqualityOperatorSwitchCases(
-                              fd, *new_parent, child_name, parent_name);
-                        });
+  return std::all_of(parent.enum_type.sub_members.cbegin(),
+                     parent.enum_type.sub_members.cend(),
+                     [&fd, &child_name, &parent_name](CppType* new_parent) {
+                       return WriteEnumEqualityOperatorSwitchCases(
+                           fd, *new_parent, child_name, parent_name);
+                     });
 }
 
 // Write the equality operators for comparing an enum and its parent types.
@@ -169,8 +169,9 @@ bool WriteEnumStreamOperatorSwitchCases(int fd,
             name.c_str(), enum_value.c_str(), enum_value.c_str());
   }
 
-  return absl::c_all_of(
-      type.enum_type.sub_members, [&fd, &name](CppType* parent) {
+  return std::all_of(
+      type.enum_type.sub_members.cbegin(), type.enum_type.sub_members.cend(),
+      [&fd, &name](CppType* parent) {
         return WriteEnumStreamOperatorSwitchCases(fd, *parent, name);
       });
 }
@@ -192,10 +193,11 @@ bool WriteEnumOperators(int fd, const CppType& type) {
       "\n      break;\n  }\n  return os;\n}\n");
 
   // Write equality operators.
-  return absl::c_all_of(type.enum_type.sub_members,
-                        [&fd, &type](CppType* parent) {
-                          return WriteEnumEqualityOperator(fd, type, *parent);
-                        });
+  return std::all_of(type.enum_type.sub_members.cbegin(),
+                     type.enum_type.sub_members.cend(),
+                     [&fd, &type](CppType* parent) {
+                       return WriteEnumEqualityOperator(fd, type, *parent);
+                     });
 }
 
 // Writes the equality operator for a specific Discriminated Union.

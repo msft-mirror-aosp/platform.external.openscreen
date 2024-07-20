@@ -17,7 +17,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "absl/algorithm/container.h"
 #include "absl/strings/numbers.h"
 #include "tools/cddl/logging.h"
 
@@ -803,10 +802,11 @@ bool VerifyUniqueKeysInMember(std::unordered_set<std::string>* keys,
 bool HasUniqueKeys(const CppType& type) {
   std::unordered_set<std::string> keys;
   return type.which != CppType::Which::kStruct ||
-         absl::c_all_of(type.struct_type.members,
-                        [&keys](const CppType::Struct::CppMember& member) {
-                          return VerifyUniqueKeysInMember(&keys, member);
-                        });
+         std::all_of(type.struct_type.members.cbegin(),
+                     type.struct_type.members.cend(),
+                     [&keys](const CppType::Struct::CppMember& member) {
+                       return VerifyUniqueKeysInMember(&keys, member);
+                     });
 }
 
 bool IsUniqueEnumValue(std::vector<uint64_t>* values, uint64_t v) {
@@ -819,15 +819,16 @@ bool IsUniqueEnumValue(std::vector<uint64_t>* values, uint64_t v) {
 }
 
 bool HasUniqueEnumValues(std::vector<uint64_t>* values, const CppType& type) {
-  return absl::c_all_of(type.enum_type.sub_members,
-                        [values](CppType* sub_member) {
-                          return HasUniqueEnumValues(values, *sub_member);
-                        }) &&
-         absl::c_all_of(
-             type.enum_type.members,
-             [values](const std::pair<std::string, uint64_t>& member) {
-               return IsUniqueEnumValue(values, member.second);
-             });
+  return std::all_of(type.enum_type.sub_members.cbegin(),
+                     type.enum_type.sub_members.cend(),
+                     [values](CppType* sub_member) {
+                       return HasUniqueEnumValues(values, *sub_member);
+                     }) &&
+         std::all_of(type.enum_type.members.cbegin(),
+                     type.enum_type.members.cend(),
+                     [values](const std::pair<std::string, uint64_t>& member) {
+                       return IsUniqueEnumValue(values, member.second);
+                     });
 }
 
 bool HasUniqueEnumValues(const CppType& type) {
@@ -837,10 +838,11 @@ bool HasUniqueEnumValues(const CppType& type) {
 }
 
 bool ValidateCppTypes(const CppSymbolTable& cpp_symbols) {
-  return absl::c_all_of(
-      cpp_symbols.cpp_types, [](const std::unique_ptr<CppType>& ptr) {
-        return HasUniqueKeys(*ptr) && HasUniqueEnumValues(*ptr);
-      });
+  return std::all_of(cpp_symbols.cpp_types.cbegin(),
+                     cpp_symbols.cpp_types.cend(),
+                     [](const std::unique_ptr<CppType>& ptr) {
+                       return HasUniqueKeys(*ptr) && HasUniqueEnumValues(*ptr);
+                     });
 }
 
 std::string DumpTypeKey(std::optional<uint64_t> key) {

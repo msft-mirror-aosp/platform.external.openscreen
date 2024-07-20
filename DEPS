@@ -287,7 +287,6 @@ include_rules = [
   '-third_party/abseil',
 
   # Abseil allowed headers.
-  '+absl/algorithm/container.h',
   '+absl/base/thread_annotations.h',
   '+absl/hash/hash.h',
   '+absl/hash/hash_testing.h',

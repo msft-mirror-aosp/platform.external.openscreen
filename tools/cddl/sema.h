@@ -15,7 +15,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/algorithm/container.h"
 #include "tools/cddl/parse.h"
 
 struct CddlGroup;
