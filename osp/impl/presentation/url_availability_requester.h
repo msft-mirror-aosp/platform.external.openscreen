@@ -74,7 +74,7 @@ class UrlAvailabilityRequester {
   // send a new request to restart the watch, as long as there are active
   // observers for a given URL.
   class ReceiverRequester final
-      : public ProtocolConnectionClient::ConnectionRequestCallback,
+      : public ProtocolConnectionClient::ConnectRequestCallback,
         public MessageDemuxer::MessageCallback {
    public:
     ReceiverRequester(UrlAvailabilityRequester& listener,
@@ -95,11 +95,9 @@ class UrlAvailabilityRequester {
     void RemoveUnobservedWatches(const std::set<std::string>& unobserved_urls);
     void RemoveReceiver();
 
-    // ProtocolConnectionClient::ConnectionRequestCallback overrides.
-    void OnConnectionOpened(
-        uint64_t request_id,
-        std::unique_ptr<ProtocolConnection> connection) override;
-    void OnConnectionFailed(uint64_t request_id) override;
+    // ProtocolConnectionClient::ConnectRequestCallback overrides.
+    void OnConnectSucceed(uint64_t request_id, uint64_t instance_id) override;
+    void OnConnectFailed(uint64_t request_id) override;
 
     // MessageDemuxer::MessageCallback overrides.
     ErrorOr<size_t> OnStreamMessage(uint64_t instance_id,

@@ -10,11 +10,11 @@
 
 namespace openscreen::osp {
 
-ProtocolConnectionClient::ConnectionRequestCallback::
-    ConnectionRequestCallback() = default;
+ProtocolConnectionClient::ConnectRequestCallback::ConnectRequestCallback() =
+    default;
 
-ProtocolConnectionClient::ConnectionRequestCallback::
-    ~ConnectionRequestCallback() = default;
+ProtocolConnectionClient::ConnectRequestCallback::~ConnectRequestCallback() =
+    default;
 
 ProtocolConnectionClient::ConnectRequest::ConnectRequest() = default;
 

@@ -18,22 +18,21 @@ namespace openscreen::osp {
 class ProtocolConnectionClient : public ProtocolConnectionEndpoint,
                                  public ServiceListener::Observer {
  public:
-  class ConnectionRequestCallback {
+  class ConnectRequestCallback {
    public:
-    ConnectionRequestCallback();
-    ConnectionRequestCallback(const ConnectionRequestCallback&) = delete;
-    ConnectionRequestCallback& operator=(const ConnectionRequestCallback&) =
+    ConnectRequestCallback();
+    ConnectRequestCallback(const ConnectRequestCallback&) = delete;
+    ConnectRequestCallback& operator=(const ConnectRequestCallback&) = delete;
+    ConnectRequestCallback(ConnectRequestCallback&&) noexcept = delete;
+    ConnectRequestCallback& operator=(ConnectRequestCallback&&) noexcept =
         delete;
-    ConnectionRequestCallback(ConnectionRequestCallback&&) noexcept = delete;
-    ConnectionRequestCallback& operator=(ConnectionRequestCallback&&) noexcept =
-        delete;
-    virtual ~ConnectionRequestCallback();
+    virtual ~ConnectRequestCallback();
 
-    // Called when a new connection was created between 5-tuples.
-    virtual void OnConnectionOpened(
-        uint64_t request_id,
-        std::unique_ptr<ProtocolConnection> connection) = 0;
-    virtual void OnConnectionFailed(uint64_t request_id) = 0;
+    // Called when a new connection (corresponds to a underlying QuicConnection)
+    // was created between 5-tuples.
+    virtual void OnConnectSucceed(uint64_t request_id,
+                                  uint64_t instance_id) = 0;
+    virtual void OnConnectFailed(uint64_t request_id) = 0;
   };
 
   class ConnectRequest final {
@@ -78,7 +77,7 @@ class ProtocolConnectionClient : public ProtocolConnectionEndpoint,
   // connection attempt.
   virtual bool Connect(std::string_view instance_name,
                        ConnectRequest& request,
-                       ConnectionRequestCallback* request_callback) = 0;
+                       ConnectRequestCallback* request_callback) = 0;
 
  protected:
   virtual void CancelConnectRequest(uint64_t request_id) = 0;

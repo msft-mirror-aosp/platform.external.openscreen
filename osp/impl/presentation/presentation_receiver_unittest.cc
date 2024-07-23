@@ -28,15 +28,14 @@ using ::testing::_;
 using ::testing::Invoke;
 using ::testing::NiceMock;
 
-class MockConnectRequest final
-    : public ProtocolConnectionClient::ConnectionRequestCallback {
+class MockConnectRequestCallback final
+    : public ProtocolConnectionClient::ConnectRequestCallback {
  public:
-  ~MockConnectRequest() override = default;
+  ~MockConnectRequestCallback() override = default;
 
-  MOCK_METHOD2(OnConnectionOpened,
-               void(uint64_t request_id,
-                    std::unique_ptr<ProtocolConnection> connection));
-  MOCK_METHOD1(OnConnectionFailed, void(uint64_t request_id));
+  MOCK_METHOD2(OnConnectSucceed,
+               void(uint64_t request_id, uint64_t instance_id));
+  MOCK_METHOD1(OnConnectFailed, void(uint64_t request_id));
 };
 
 class MockReceiverDelegate final : public ReceiverDelegate {
@@ -71,15 +70,17 @@ class PresentationReceiverTest : public ::testing::Test {
 
  protected:
   std::unique_ptr<ProtocolConnection> MakeClientStream() {
-    MockConnectRequest mock_connect_request;
+    MockConnectRequestCallback mock_connect_request_callback;
     NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        quic_bridge_.kInstanceName, connect_request_, &mock_connect_request);
+        quic_bridge_.kInstanceName, connect_request_,
+        &mock_connect_request_callback);
     EXPECT_TRUE(connect_request_);
     std::unique_ptr<ProtocolConnection> stream;
-    EXPECT_CALL(mock_connect_request, OnConnectionOpened(_, _))
-        .WillOnce([&stream](uint64_t request_id,
-                            std::unique_ptr<ProtocolConnection> connection) {
-          stream = std::move(connection);
+    EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
+        .WillOnce([&stream](uint64_t request_id, uint64_t instance_id) {
+          stream = NetworkServiceManager::Get()
+                       ->GetProtocolConnectionClient()
+                       ->CreateProtocolConnection(instance_id);
         });
     quic_bridge_.RunTasksUntilIdle();
     return stream;

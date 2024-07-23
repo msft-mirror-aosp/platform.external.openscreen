@@ -34,29 +34,27 @@ class MockConnectionObserver final : public ProtocolConnection::Observer {
   MOCK_METHOD1(OnConnectionClosed, void(const ProtocolConnection& connection));
 };
 
-class ConnectionCallback final
-    : public ProtocolConnectionClient::ConnectionRequestCallback {
+class ConnectCallback final
+    : public ProtocolConnectionClient::ConnectRequestCallback {
  public:
-  ConnectionCallback() = default;
-  ~ConnectionCallback() override = default;
+  ConnectCallback() = default;
+  ~ConnectCallback() override = default;
 
-  void OnConnectionOpened(
-      uint64_t request_id,
-      std::unique_ptr<ProtocolConnection> connection) override {
-    OSP_CHECK(!failed_ && !connection_);
-    connection_ = std::move(connection);
+  void OnConnectSucceed(uint64_t request_id, uint64_t instance_id) override {
+    OSP_CHECK(!failed_ && !instance_id_);
+    instance_id_ = instance_id;
   }
 
-  void OnConnectionFailed(uint64_t request_id) override {
-    OSP_CHECK(!failed_ && !connection_);
+  void OnConnectFailed(uint64_t request_id) override {
+    OSP_CHECK(!failed_ && !instance_id_);
     failed_ = true;
   }
 
-  ProtocolConnection* connection() { return connection_.get(); }
+  uint64_t instance_id() { return instance_id_; }
 
  private:
   bool failed_ = false;
-  std::unique_ptr<ProtocolConnection> connection_;
+  uint64_t instance_id_ = 0u;
 };
 
 class QuicClientTest : public ::testing::Test {
@@ -129,7 +127,7 @@ class QuicClientTest : public ::testing::Test {
 TEST_F(QuicClientTest, Connect) {
   client_->Start();
 
-  ConnectionCallback connection_callback;
+  ConnectCallback connection_callback;
   ProtocolConnectionClient::ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
@@ -137,9 +135,12 @@ TEST_F(QuicClientTest, Connect) {
   ASSERT_TRUE(request);
 
   quic_bridge_.RunTasksUntilIdle();
-  ASSERT_TRUE(connection_callback.connection());
+  ASSERT_TRUE(connection_callback.instance_id());
 
-  SendTestMessage(connection_callback.connection());
+  std::unique_ptr<ProtocolConnection> connection =
+      client_->CreateProtocolConnection(connection_callback.instance_id());
+  ASSERT_TRUE(connection);
+  SendTestMessage(connection.get());
 
   client_->Stop();
 }
@@ -147,15 +148,15 @@ TEST_F(QuicClientTest, Connect) {
 TEST_F(QuicClientTest, DoubleConnect) {
   client_->Start();
 
-  ConnectionCallback connection_callback1;
+  ConnectCallback connection_callback1;
   ProtocolConnectionClient::ConnectRequest request1;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request1,
                                  &connection_callback1);
   ASSERT_TRUE(result);
   ASSERT_TRUE(request1);
-  ASSERT_FALSE(connection_callback1.connection());
+  ASSERT_FALSE(connection_callback1.instance_id());
 
-  ConnectionCallback connection_callback2;
+  ConnectCallback connection_callback2;
   ProtocolConnectionClient::ConnectRequest request2;
   result = client_->Connect(quic_bridge_.kInstanceName, request2,
                             &connection_callback2);
@@ -163,10 +164,14 @@ TEST_F(QuicClientTest, DoubleConnect) {
   ASSERT_TRUE(request2);
 
   quic_bridge_.RunTasksUntilIdle();
-  ASSERT_TRUE(connection_callback1.connection());
-  ASSERT_TRUE(connection_callback2.connection());
+  ASSERT_TRUE(connection_callback1.instance_id());
+  ASSERT_TRUE(connection_callback2.instance_id());
 
-  SendTestMessage(connection_callback1.connection());
+  std::unique_ptr<ProtocolConnection> connection =
+      client_->CreateProtocolConnection(connection_callback1.instance_id());
+  ASSERT_TRUE(connection);
+
+  SendTestMessage(connection.get());
 
   client_->Stop();
 }
@@ -174,10 +179,11 @@ TEST_F(QuicClientTest, DoubleConnect) {
 TEST_F(QuicClientTest, OpenImmediate) {
   client_->Start();
 
-  auto connection = client_->CreateProtocolConnection(1);
+  std::unique_ptr<ProtocolConnection> connection =
+      client_->CreateProtocolConnection(1);
   EXPECT_FALSE(connection);
 
-  ConnectionCallback connection_callback;
+  ConnectCallback connection_callback;
   ProtocolConnectionClient::ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
@@ -188,10 +194,10 @@ TEST_F(QuicClientTest, OpenImmediate) {
   EXPECT_FALSE(connection);
 
   quic_bridge_.RunTasksUntilIdle();
-  ASSERT_TRUE(connection_callback.connection());
+  ASSERT_TRUE(connection_callback.instance_id());
 
-  connection = client_->CreateProtocolConnection(
-      connection_callback.connection()->instance_id());
+  connection =
+      client_->CreateProtocolConnection(connection_callback.instance_id());
   ASSERT_TRUE(connection);
 
   SendTestMessage(connection.get());
@@ -201,7 +207,7 @@ TEST_F(QuicClientTest, OpenImmediate) {
 
 TEST_F(QuicClientTest, States) {
   client_->Stop();
-  ConnectionCallback connection_callback1;
+  ConnectCallback connection_callback1;
   ProtocolConnectionClient::ConnectRequest request1;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request1,
                                  &connection_callback1);
@@ -216,7 +222,7 @@ TEST_F(QuicClientTest, States) {
   EXPECT_TRUE(client_->Start());
   EXPECT_FALSE(client_->Start());
 
-  ConnectionCallback connection_callback2;
+  ConnectCallback connection_callback2;
   ProtocolConnectionClient::ConnectRequest request2;
   result = client_->Connect(quic_bridge_.kInstanceName, request2,
                             &connection_callback2);
@@ -224,23 +230,26 @@ TEST_F(QuicClientTest, States) {
   ASSERT_TRUE(request2);
 
   quic_bridge_.RunTasksUntilIdle();
-  ASSERT_TRUE(connection_callback2.connection());
+  ASSERT_TRUE(connection_callback2.instance_id());
 
   MockConnectionObserver mock_connection_observer1;
-  connection_callback2.connection()->SetObserver(&mock_connection_observer1);
-  connection = client_->CreateProtocolConnection(
-      connection_callback2.connection()->instance_id());
+  connection =
+      client_->CreateProtocolConnection(connection_callback2.instance_id());
   ASSERT_TRUE(connection);
+  connection->SetObserver(&mock_connection_observer1);
 
   MockConnectionObserver mock_connection_observer2;
-  connection->SetObserver(&mock_connection_observer2);
+  std::unique_ptr<ProtocolConnection> connection2 =
+      client_->CreateProtocolConnection(connection_callback2.instance_id());
+  ASSERT_TRUE(connection2);
+  connection2->SetObserver(&mock_connection_observer2);
   EXPECT_CALL(mock_connection_observer1, OnConnectionClosed(_));
   EXPECT_CALL(mock_connection_observer2, OnConnectionClosed(_));
   EXPECT_CALL(quic_bridge_.mock_client_observer, OnStopped());
   EXPECT_TRUE(client_->Stop());
   EXPECT_FALSE(client_->Stop());
 
-  ConnectionCallback connection_callback3;
+  ConnectCallback connection_callback3;
   ProtocolConnectionClient::ConnectRequest request3;
   result = client_->Connect(quic_bridge_.kInstanceName, request3,
                             &connection_callback3);
@@ -257,7 +266,7 @@ TEST_F(QuicClientTest, RequestIds) {
       .WillOnce(Invoke([](std::unique_ptr<ProtocolConnection>& connection) {
         connection->CloseWriteEnd();
       }));
-  ConnectionCallback connection_callback;
+  ConnectCallback connection_callback;
   ProtocolConnectionClient::ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
@@ -265,13 +274,15 @@ TEST_F(QuicClientTest, RequestIds) {
   ASSERT_TRUE(request);
 
   quic_bridge_.RunTasksUntilIdle();
-  ASSERT_TRUE(connection_callback.connection());
-
-  const uint64_t instance_id = connection_callback.connection()->instance_id();
+  const uint64_t instance_id = connection_callback.instance_id();
+  ASSERT_TRUE(instance_id);
+  std::unique_ptr<ProtocolConnection> connection =
+      client_->CreateProtocolConnection(instance_id);
+  ASSERT_TRUE(connection);
   EXPECT_EQ(0u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
   EXPECT_EQ(2u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 
-  connection_callback.connection()->CloseWriteEnd();
+  connection->CloseWriteEnd();
   quic_bridge_.RunTasksUntilIdle();
   EXPECT_EQ(4u, client_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 

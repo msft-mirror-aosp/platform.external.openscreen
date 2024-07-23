@@ -379,16 +379,18 @@ void UrlAvailabilityRequester::ReceiverRequester::RemoveReceiver() {
   }
 }
 
-void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
+void UrlAvailabilityRequester::ReceiverRequester::OnConnectSucceed(
     uint64_t request_id,
-    std::unique_ptr<ProtocolConnection> connection) {
+    uint64_t instance_id) {
   OSP_CHECK_EQ(request_id, connect_request_.request_id());
   connect_request_.MarkComplete();
 
   // TODO(btolsch): This is one place where we need to make sure the QUIC
   // connection stays alive, even without constant traffic.
-  instance_id_ = connection->instance_id();
-  connection_ = std::move(connection);
+  instance_id_ = instance_id;
+  connection_ = NetworkServiceManager::Get()
+                    ->GetProtocolConnectionClient()
+                    ->CreateProtocolConnection(instance_id);
   ErrorOr<uint64_t> watch_id_or_error(0);
   for (auto entry = request_by_id_.begin(); entry != request_by_id_.end();) {
     if ((watch_id_or_error = SendRequest(entry->first, entry->second.urls))) {
@@ -400,7 +402,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectionOpened(
   }
 }
 
-void UrlAvailabilityRequester::ReceiverRequester::OnConnectionFailed(
+void UrlAvailabilityRequester::ReceiverRequester::OnConnectFailed(
     uint64_t request_id) {
   OSP_CHECK_EQ(request_id, connect_request_.request_id());
   connect_request_.MarkComplete();

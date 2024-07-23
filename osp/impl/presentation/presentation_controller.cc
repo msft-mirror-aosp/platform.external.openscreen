@@ -60,7 +60,7 @@ struct TerminationRequest {
 };
 
 class Controller::MessageGroupStreams final
-    : public ProtocolConnectionClient::ConnectionRequestCallback,
+    : public ProtocolConnectionClient::ConnectRequestCallback,
       public ProtocolConnection::Observer,
       public RequestResponseHandler<StartRequest>::Delegate,
       public RequestResponseHandler<ConnectionOpenRequest>::Delegate,
@@ -96,11 +96,9 @@ class Controller::MessageGroupStreams final
                          uint64_t instance_id) override;
   void OnError(TerminationRequest* request, const Error& error) override;
 
-  // ProtocolConnectionClient::ConnectionRequestCallback overrides.
-  void OnConnectionOpened(
-      uint64_t request_id,
-      std::unique_ptr<ProtocolConnection> connection) override;
-  void OnConnectionFailed(uint64_t request_id) override;
+  // ProtocolConnectionClient::ConnectRequestCallback overrides.
+  void OnConnectSucceed(uint64_t request_id, uint64_t instance_id) override;
+  void OnConnectFailed(uint64_t request_id) override;
 
   // ProtocolConnection::Observer overrides.
   void OnConnectionClosed(const ProtocolConnection& connection) override;
@@ -288,19 +286,24 @@ void Controller::MessageGroupStreams::OnMatchedResponse(
 void Controller::MessageGroupStreams::OnError(TerminationRequest* request,
                                               const Error& error) {}
 
-void Controller::MessageGroupStreams::OnConnectionOpened(
-    uint64_t request_id,
-    std::unique_ptr<ProtocolConnection> connection) {
+void Controller::MessageGroupStreams::OnConnectSucceed(uint64_t request_id,
+                                                       uint64_t instance_id) {
   if ((initiation_connect_request_ &&
        initiation_connect_request_.request_id() == request_id)) {
-    initiation_protocol_connection_ = std::move(connection);
+    initiation_protocol_connection_ =
+        NetworkServiceManager::Get()
+            ->GetProtocolConnectionClient()
+            ->CreateProtocolConnection(instance_id);
     initiation_protocol_connection_->SetObserver(this);
     initiation_connect_request_.MarkComplete();
     initiation_handler_.SetConnection(initiation_protocol_connection_.get());
     termination_handler_.SetConnection(initiation_protocol_connection_.get());
   } else if ((connection_connect_request_ &&
               connection_connect_request_.request_id() == request_id)) {
-    connection_protocol_connection_ = std::move(connection);
+    connection_protocol_connection_ =
+        NetworkServiceManager::Get()
+            ->GetProtocolConnectionClient()
+            ->CreateProtocolConnection(instance_id);
     connection_protocol_connection_->SetObserver(this);
     connection_connect_request_.MarkComplete();
     connection_open_handler_.SetConnection(
@@ -310,7 +313,7 @@ void Controller::MessageGroupStreams::OnConnectionOpened(
   }
 }
 
-void Controller::MessageGroupStreams::OnConnectionFailed(uint64_t request_id) {
+void Controller::MessageGroupStreams::OnConnectFailed(uint64_t request_id) {
   if (initiation_connect_request_ &&
       initiation_connect_request_.request_id() == request_id) {
     initiation_connect_request_.MarkComplete();

@@ -66,7 +66,7 @@ class QuicClient final : public ProtocolConnectionClient,
       uint64_t instance_id) override;
   bool Connect(std::string_view instance_name,
                ConnectRequest& request,
-               ConnectionRequestCallback* request_callback) override;
+               ConnectRequestCallback* request_callback) override;
 
   // QuicServiceBase overrides.
   uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
@@ -89,8 +89,8 @@ class QuicClient final : public ProtocolConnectionClient,
 
     ServiceConnectionData data;
 
-    // Pairs of request IDs and the associated connection callback.
-    std::vector<std::pair<uint64_t, ConnectionRequestCallback*>> callbacks;
+    // Pairs of request IDs and the associated ConnectRequestCallback.
+    std::vector<std::pair<uint64_t, ConnectRequestCallback*>> callbacks;
   };
 
   // This struct holds necessary information of an instance used to build
@@ -123,9 +123,9 @@ class QuicClient final : public ProtocolConnectionClient,
 
   bool CreatePendingConnection(std::string_view instance_name,
                                ConnectRequest& request,
-                               ConnectionRequestCallback* request_callback);
+                               ConnectRequestCallback* request_callback);
   uint64_t StartConnectionRequest(std::string_view instance_name,
-                                  ConnectionRequestCallback* request_callback);
+                                  ConnectRequestCallback* request_callback);
   void CancelConnectRequest(uint64_t request_id) override;
 
   std::unique_ptr<QuicConnectionFactoryClient> connection_factory_;

@@ -37,18 +37,13 @@ class MockParentDelegate : public Connection::ParentDelegate {
 };
 
 class MockConnectRequestCallback final
-    : public ProtocolConnectionClient::ConnectionRequestCallback {
+    : public ProtocolConnectionClient::ConnectRequestCallback {
  public:
   ~MockConnectRequestCallback() override = default;
 
-  void OnConnectionOpened(
-      uint64_t request_id,
-      std::unique_ptr<ProtocolConnection> connection) override {
-    OnConnectionOpenedMock(request_id, connection.release());
-  }
-  MOCK_METHOD2(OnConnectionOpenedMock,
-               void(uint64_t request_id, ProtocolConnection* connection));
-  MOCK_METHOD1(OnConnectionFailed, void(uint64_t request_id));
+  MOCK_METHOD2(OnConnectSucceed,
+               void(uint64_t request_id, uint64_t instance_id));
+  MOCK_METHOD1(OnConnectFailed, void(uint64_t request_id));
 };
 
 }  // namespace
@@ -142,11 +137,13 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
       quic_bridge_.kInstanceName, request, &mock_connect_request_callback);
   EXPECT_TRUE(request);
-  EXPECT_CALL(mock_connect_request_callback, OnConnectionOpenedMock(_, _))
-      .WillOnce(Invoke([&controller_stream](uint64_t request_id,
-                                            ProtocolConnection* stream) {
-        controller_stream.reset(stream);
-      }));
+  EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
+      .WillOnce(Invoke(
+          [&controller_stream](uint64_t request_id, uint64_t instance_id) {
+            controller_stream = NetworkServiceManager::Get()
+                                    ->GetProtocolConnectionClient()
+                                    ->CreateProtocolConnection(instance_id);
+          }));
 
   EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
       .WillOnce(testing::WithArgs<0>(testing::Invoke(
