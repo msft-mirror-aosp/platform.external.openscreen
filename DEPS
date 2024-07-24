@@ -293,10 +293,7 @@ include_rules = [
   '+absl/strings/numbers.h',
   '+absl/strings/str_cat.h',
   '+absl/strings/str_join.h',
-  '+absl/strings/str_replace.h',
   '+absl/strings/str_split.h',
-  '+absl/strings/substitute.h',
-  '+absl/synchronization/mutex.h',
   '+absl/types/variant.h',
 
   # Similar to abseil, don't include boringssl using root path.  Instead,
