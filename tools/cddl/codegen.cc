@@ -37,6 +37,8 @@ std::string GetTypeDefaultValue(const std::string& type) {
     return " = false";
   } else if (type == "float") {
     return " = 0.0f";
+  } else if (type == "double") {
+    return " = 0.0";
   } else if (type.find("std::array") != std::string::npos) {
     return "{}";
   } else {
@@ -73,6 +75,8 @@ std::string CppTypeToString(const CppType& cpp_type) {
       return "bool";
     case CppType::Which::kFloat:
       return "float";
+    case CppType::Which::kFloat64:
+      return "double";
     case CppType::Which::kInt64:
       return "int64_t";
     case CppType::Which::kUint64:
@@ -222,6 +226,11 @@ bool WriteDiscriminatedUnionEqualityOperator(
                 "(this->which != Which::kFloat || this->float_var == "
                 "other.float_var)");
         break;
+      case CppType::Which::kFloat64:
+        dprintf(fd,
+                "(this->which != Which::kFloat64 || this->double_var == "
+                "other.double_var)");
+        break;
       case CppType::Which::kInt64:
         dprintf(
             fd,
@@ -329,6 +338,9 @@ bool WriteStructMembers(
             case CppType::Which::kFloat:
               dprintf(fd, "    kFloat,\n");
               break;
+            case CppType::Which::kFloat64:
+              dprintf(fd, "    kFloat64,\n");
+              break;
             case CppType::Which::kInt64:
               dprintf(fd, "    kInt64,\n");
               break;
@@ -355,6 +367,9 @@ bool WriteStructMembers(
               break;
             case CppType::Which::kFloat:
               dprintf(fd, "    float float_var;\n");
+              break;
+            case CppType::Which::kFloat64:
+              dprintf(fd, "    double double_var;\n");
               break;
             case CppType::Which::kInt64:
               dprintf(fd, "    int64_t int_var;\n");
@@ -632,6 +647,11 @@ bool WriteEncoder(int fd,
               "  CBOR_RETURN_ON_ERROR(cbor_encode_float(&encoder%d, %s));\n",
               encoder_depth, ToUnderscoreId(name).c_str());
       return true;
+    case CppType::Which::kFloat64:
+      dprintf(fd,
+              "  CBOR_RETURN_ON_ERROR(cbor_encode_double(&encoder%d, %s));\n",
+              encoder_depth, ToUnderscoreId(name).c_str());
+      return true;
     case CppType::Which::kInt64:
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_encode_int(&encoder%d, %s));\n",
               encoder_depth, ToUnderscoreId(name).c_str());
@@ -723,6 +743,17 @@ bool WriteEncoder(int fd,
                     ToCamelCase(nested_type_scope).c_str(),
                     ToCamelCase(cpp_type.name).c_str());
             if (!WriteEncoder(fd, ToUnderscoreId(name + ".float_var"),
+                              *union_member, nested_type_scope,
+                              encoder_depth)) {
+              return false;
+            }
+            dprintf(fd, "    break;\n");
+            break;
+          case CppType::Which::kFloat64:
+            dprintf(fd, "  case %s::%s::Which::kFloat64:\n",
+                    ToCamelCase(nested_type_scope).c_str(),
+                    ToCamelCase(cpp_type.name).c_str());
+            if (!WriteEncoder(fd, ToUnderscoreId(name + ".double_var"),
                               *union_member, nested_type_scope,
                               encoder_depth)) {
               return false;
@@ -1034,6 +1065,9 @@ bool WriteEncoders(int fd, CppSymbolTable* table) {
           case CppType::Which::kFloat: {
             dprintf(fd, "    case Which::kFloat: break;\n");
           } break;
+          case CppType::Which::kFloat64: {
+            dprintf(fd, "    case Which::kFloat64: break;\n");
+          } break;
           case CppType::Which::kInt64: {
             dprintf(fd, "    case Which::kInt64: break;\n");
           } break;
@@ -1160,6 +1194,14 @@ bool WriteDecoder(int fd,
     }
     case CppType::Which::kFloat: {
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_get_float(&it%d, &%s));\n",
+              decoder_depth, name.c_str());
+      dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
+              decoder_depth);
+      return true;
+    }
+    case CppType::Which::kFloat64: {
+      dprintf(fd,
+              "  CBOR_RETURN_ON_ERROR(cbor_value_get_double(&it%d, &%s));\n",
               decoder_depth, name.c_str());
       dprintf(fd, "  CBOR_RETURN_ON_ERROR(cbor_value_advance_fixed(&it%d));\n",
               decoder_depth);
@@ -1337,6 +1379,15 @@ bool WriteDecoder(int fd,
             dprintf(fd, "  %s.which = decltype(%s)::Which::kFloat;\n",
                     name.c_str(), name.c_str());
             if (!WriteDecoder(fd, name + ".float_var", *x, decoder_depth,
+                              temporary_count)) {
+              return false;
+            }
+            break;
+          case CppType::Which::kFloat64:
+            dprintf(fd, "  if (type%d == CborDoublType) {\n", temp_value_type);
+            dprintf(fd, "  %s.which = decltype(%s)::Which::kFloat64;\n",
+                    name.c_str(), name.c_str());
+            if (!WriteDecoder(fd, name + ".double_var", *x, decoder_depth,
                               temporary_count)) {
               return false;
             }
