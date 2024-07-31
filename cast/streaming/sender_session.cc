@@ -12,7 +12,6 @@
 #include <string>
 #include <utility>
 
-#include "absl/strings/numbers.h"
 #include "cast/streaming/capture_recommendations.h"
 #include "cast/streaming/clock_offset_estimator.h"
 #include "cast/streaming/environment.h"
