@@ -16,7 +16,6 @@
 #include "cast/streaming/rtp_time.h"
 #include "json/value.h"
 #include "platform/api/time.h"
-#include "util/enum_name_table.h"
 
 namespace openscreen::cast {
 
@@ -85,10 +84,6 @@ enum class StatisticType {
   kNumTypes = kLastEventTimeMs + 1
 };
 
-extern const EnumNameTable<StatisticType,
-                           static_cast<size_t>(StatisticType::kNumTypes)>
-    kStatisticTypeNames;
-
 enum class HistogramType {
   // Histogram representing the capture latency (in milliseconds).
   kCaptureLatencyMs,
@@ -114,10 +109,6 @@ enum class HistogramType {
   // The number of histogram types.
   kNumTypes = kFrameLatenessMs + 1
 };
-
-extern const EnumNameTable<HistogramType,
-                           static_cast<size_t>(HistogramType::kNumTypes)>
-    kHistogramTypeNames;
 
 struct SimpleHistogram {
   // This will create N+2 buckets where N = (max - min) / width:

@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "absl/strings/str_join.h"
+#include "util/enum_name_table.h"
 #include "util/json/json_helpers.h"
 #include "util/json/json_serialization.h"
 #include "util/stringprintf.h"
@@ -42,8 +43,9 @@ Json::Value ArrayToJson(
 
 }  // namespace
 
-const EnumNameTable<StatisticType,
-                    static_cast<size_t>(StatisticType::kNumTypes)>
+// External linkage for unit test
+extern const EnumNameTable<StatisticType,
+                           static_cast<size_t>(StatisticType::kNumTypes)>
     kStatisticTypeNames = {
         {{"EnqueueFps", StatisticType::kEnqueueFps},
          {"AvgCaptureLatencyMs", StatisticType::kAvgCaptureLatencyMs},
@@ -67,8 +69,9 @@ const EnumNameTable<StatisticType,
          {"FirstEventTimeMs", StatisticType::kFirstEventTimeMs},
          {"LastEventTimeMs", StatisticType::kLastEventTimeMs}}};
 
-const EnumNameTable<HistogramType,
-                    static_cast<size_t>(HistogramType::kNumTypes)>
+// External linkage for unit test
+extern const EnumNameTable<HistogramType,
+                           static_cast<size_t>(HistogramType::kNumTypes)>
     kHistogramTypeNames = {
         {{"CaptureLatencyMs", HistogramType::kCaptureLatencyMs},
          {"EncodeTimeMs", HistogramType::kEncodeTimeMs},

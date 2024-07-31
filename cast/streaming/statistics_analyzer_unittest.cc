@@ -14,6 +14,7 @@
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
+#include "util/enum_name_table.h"
 
 using testing::_;
 using testing::AtLeast;
@@ -26,6 +27,14 @@ using testing::Sequence;
 using testing::StrictMock;
 
 namespace openscreen::cast {
+
+extern const EnumNameTable<StatisticType,
+                           static_cast<size_t>(StatisticType::kNumTypes)>
+    kStatisticTypeNames;
+
+extern const EnumNameTable<HistogramType,
+                           static_cast<size_t>(HistogramType::kNumTypes)>
+    kHistogramTypeNames;
 
 namespace {
 
