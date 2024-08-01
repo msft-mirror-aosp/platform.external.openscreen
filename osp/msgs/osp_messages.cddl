@@ -85,29 +85,19 @@ psk-input-method = &(
   qr-code: 1
 )
 
-auth-initiation-token = (
+auth-initiation-token = {
   ? 0 : text ; token
+}
+
+auth-spake2-psk-status = &(
+  psk-needs-presentation: 0
+  psk-shown: 1
+  psk-input: 2
 )
 
-; type key 1002
-auth-spake2-need-psk = {
-  auth-initiation-token
-}
-
 ; type key 1003
-auth-spake2-handshake = {
-  auth-initiation-token
-  1 : bytes .size 32 ; random
-}
-
-; type key 1004
 auth-spake2-confirmation = {
-  1 : bytes .size 32 ; transcript-mac
-}
-
-; type key 1005
-auth-status = {
-  1 : auth-status-result ; result
+  1 : bytes .size 64 ; confirmation-value
 }
 
 auth-status-result = &(
@@ -118,6 +108,18 @@ auth-status-result = &(
   validation-took-too-long : 4
   proof-invalid: 5
 )
+
+; type key 1004
+auth-status = {
+  1 : auth-status-result ; result
+}
+
+; type key 1005
+auth-spake2-handshake = {
+  0: auth-initiation-token ; token
+  1: auth-spake2-psk-status ; psk-status
+  2: bytes ; public-value
+}
 
 watch-id = uint
 
