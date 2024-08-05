@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_client.h"
 #include "osp/impl/quic/quic_service_base.h"
 #include "osp/public/protocol_connection_client.h"
@@ -40,8 +39,6 @@ namespace openscreen::osp {
 class QuicClient final : public ProtocolConnectionClient,
                          public QuicServiceBase {
  public:
-  static QuicAgentCertificate& GetAgentCertificate();
-
   QuicClient(const ServiceConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
@@ -68,30 +65,10 @@ class QuicClient final : public ProtocolConnectionClient,
                ConnectRequest& request,
                ConnectRequestCallback* request_callback) override;
 
-  // QuicServiceBase overrides.
-  uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
-  void OnConnectionClosed(uint64_t instance_id) override;
-  void OnClientCertificates(std::string_view instance_name,
-                            const std::vector<std::string>& certs) override;
-
  private:
   // FakeQuicBridge needs to access `instance_infos_` and struct InstanceInfo
   // for tests.
   friend class FakeQuicBridge;
-
-  struct PendingConnectionData {
-    explicit PendingConnectionData(ServiceConnectionData&& data);
-    PendingConnectionData(const PendingConnectionData&) = delete;
-    PendingConnectionData& operator=(const PendingConnectionData&) = delete;
-    PendingConnectionData(PendingConnectionData&&) noexcept;
-    PendingConnectionData& operator=(PendingConnectionData&&) noexcept;
-    ~PendingConnectionData();
-
-    ServiceConnectionData data;
-
-    // Pairs of request IDs and the associated ConnectRequestCallback.
-    std::vector<std::pair<uint64_t, ConnectRequestCallback*>> callbacks;
-  };
 
   // This struct holds necessary information of an instance used to build
   // connection.
@@ -118,9 +95,6 @@ class QuicClient final : public ProtocolConnectionClient,
   void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
-  // QuicServiceBase overrides.
-  void CloseAllConnections() override;
-
   bool CreatePendingConnection(std::string_view instance_name,
                                ConnectRequest& request,
                                ConnectRequestCallback* request_callback);
@@ -128,15 +102,8 @@ class QuicClient final : public ProtocolConnectionClient,
                                   ConnectRequestCallback* request_callback);
   void CancelConnectRequest(uint64_t request_id) override;
 
-  std::unique_ptr<QuicConnectionFactoryClient> connection_factory_;
-
   // Value that will be used for the next new connection request.
   uint64_t next_request_id_ = 1u;
-
-  // Maps an instance name to data about connections that haven't successfully
-  // completed the QUIC handshake.
-  std::map<std::string, PendingConnectionData, std::less<>>
-      pending_connections_;
 
   // Maps an instance name to necessary information of the instance used to
   // build connection.

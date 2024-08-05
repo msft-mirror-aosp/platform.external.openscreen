@@ -12,7 +12,6 @@
 #include <string>
 #include <vector>
 
-#include "osp/impl/quic/certificates/quic_agent_certificate.h"
 #include "osp/impl/quic/quic_connection_factory_server.h"
 #include "osp/impl/quic/quic_service_base.h"
 #include "osp/public/protocol_connection_server.h"
@@ -32,8 +31,6 @@ class QuicServer final : public ProtocolConnectionServer,
                          public QuicConnectionFactoryServer::ServerDelegate,
                          public QuicServiceBase {
  public:
-  static QuicAgentCertificate& GetAgentCertificate();
-
   QuicServer(const ServiceConfig& config,
              MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
@@ -59,17 +56,12 @@ class QuicServer final : public ProtocolConnectionServer,
   std::string GetAgentFingerprint() override;
 
   // QuicServiceBase overrides.
-  uint64_t OnCryptoHandshakeComplete(std::string_view instance_name) override;
-  void OnConnectionClosed(uint64_t instance_id) override;
   void OnClientCertificates(std::string_view instance_name,
                             const std::vector<std::string>& certs) override;
 
   const std::string& instance_name() const { return instance_name_; }
 
  private:
-  // QuicServiceBase overrides.
-  void CloseAllConnections() override;
-
   // QuicConnectionFactoryServer::ServerDelegate overrides.
   QuicConnection::Delegate& GetConnectionDelegate() override { return *this; }
   void OnIncomingConnection(
@@ -78,16 +70,9 @@ class QuicServer final : public ProtocolConnectionServer,
   // This is used for server name indication check.
   const std::string instance_name_;
 
-  std::unique_ptr<QuicConnectionFactoryServer> connection_factory_;
-
   // Maps an instance name to the fingerprint of the instance's active agent
   // certificate.
   std::map<std::string, std::string, std::less<>> fingerprint_map_;
-
-  // Maps an instance name to data about connections that haven't successfully
-  // completed the QUIC handshake.
-  std::map<std::string, ServiceConnectionData, std::less<>>
-      pending_connections_;
 };
 
 }  // namespace openscreen::osp

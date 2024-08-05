@@ -12,6 +12,7 @@
 #include "gtest/gtest.h"
 #include "osp/impl/quic/testing/fake_quic_connection_factory.h"
 #include "osp/impl/quic/testing/quic_test_support.h"
+#include "osp/public/connect_request.h"
 #include "osp/public/network_metrics.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/testing/message_demuxer_test_support.h"
@@ -34,8 +35,7 @@ class MockConnectionObserver final : public ProtocolConnection::Observer {
   MOCK_METHOD1(OnConnectionClosed, void(const ProtocolConnection& connection));
 };
 
-class ConnectCallback final
-    : public ProtocolConnectionClient::ConnectRequestCallback {
+class ConnectCallback final : public ConnectRequestCallback {
  public:
   ConnectCallback() = default;
   ~ConnectCallback() override = default;
@@ -128,7 +128,7 @@ TEST_F(QuicClientTest, Connect) {
   client_->Start();
 
   ConnectCallback connection_callback;
-  ProtocolConnectionClient::ConnectRequest request;
+  ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
   ASSERT_TRUE(result);
@@ -149,7 +149,7 @@ TEST_F(QuicClientTest, DoubleConnect) {
   client_->Start();
 
   ConnectCallback connection_callback1;
-  ProtocolConnectionClient::ConnectRequest request1;
+  ConnectRequest request1;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request1,
                                  &connection_callback1);
   ASSERT_TRUE(result);
@@ -157,7 +157,7 @@ TEST_F(QuicClientTest, DoubleConnect) {
   ASSERT_FALSE(connection_callback1.instance_id());
 
   ConnectCallback connection_callback2;
-  ProtocolConnectionClient::ConnectRequest request2;
+  ConnectRequest request2;
   result = client_->Connect(quic_bridge_.kInstanceName, request2,
                             &connection_callback2);
   ASSERT_TRUE(result);
@@ -184,7 +184,7 @@ TEST_F(QuicClientTest, OpenImmediate) {
   EXPECT_FALSE(connection);
 
   ConnectCallback connection_callback;
-  ProtocolConnectionClient::ConnectRequest request;
+  ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
   ASSERT_TRUE(result);
@@ -208,7 +208,7 @@ TEST_F(QuicClientTest, OpenImmediate) {
 TEST_F(QuicClientTest, States) {
   client_->Stop();
   ConnectCallback connection_callback1;
-  ProtocolConnectionClient::ConnectRequest request1;
+  ConnectRequest request1;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request1,
                                  &connection_callback1);
   EXPECT_FALSE(result);
@@ -223,7 +223,7 @@ TEST_F(QuicClientTest, States) {
   EXPECT_FALSE(client_->Start());
 
   ConnectCallback connection_callback2;
-  ProtocolConnectionClient::ConnectRequest request2;
+  ConnectRequest request2;
   result = client_->Connect(quic_bridge_.kInstanceName, request2,
                             &connection_callback2);
   ASSERT_TRUE(result);
@@ -250,7 +250,7 @@ TEST_F(QuicClientTest, States) {
   EXPECT_FALSE(client_->Stop());
 
   ConnectCallback connection_callback3;
-  ProtocolConnectionClient::ConnectRequest request3;
+  ConnectRequest request3;
   result = client_->Connect(quic_bridge_.kInstanceName, request3,
                             &connection_callback3);
   EXPECT_FALSE(result);
@@ -267,7 +267,7 @@ TEST_F(QuicClientTest, RequestIds) {
         connection->CloseWriteEnd();
       }));
   ConnectCallback connection_callback;
-  ProtocolConnectionClient::ConnectRequest request;
+  ConnectRequest request;
   bool result = client_->Connect(quic_bridge_.kInstanceName, request,
                                  &connection_callback);
   ASSERT_TRUE(result);

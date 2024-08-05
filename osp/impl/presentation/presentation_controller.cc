@@ -10,9 +10,9 @@
 
 #include "osp/impl/presentation/url_availability_requester.h"
 #include "osp/msgs/osp_messages.h"
+#include "osp/public/connect_request.h"
 #include "osp/public/message_demuxer.h"
 #include "osp/public/network_service_manager.h"
-#include "osp/public/protocol_connection_client.h"
 #include "osp/public/request_response_handler.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"
@@ -60,7 +60,7 @@ struct TerminationRequest {
 };
 
 class Controller::MessageGroupStreams final
-    : public ProtocolConnectionClient::ConnectRequestCallback,
+    : public ConnectRequestCallback,
       public ProtocolConnection::Observer,
       public RequestResponseHandler<StartRequest>::Delegate,
       public RequestResponseHandler<ConnectionOpenRequest>::Delegate,
@@ -96,7 +96,7 @@ class Controller::MessageGroupStreams final
                          uint64_t instance_id) override;
   void OnError(TerminationRequest* request, const Error& error) override;
 
-  // ProtocolConnectionClient::ConnectRequestCallback overrides.
+  // ConnectRequestCallback overrides.
   void OnConnectSucceed(uint64_t request_id, uint64_t instance_id) override;
   void OnConnectFailed(uint64_t request_id) override;
 
@@ -110,9 +110,9 @@ class Controller::MessageGroupStreams final
   const std::string instance_name_;
 
   uint64_t next_internal_request_id_ = 1;
-  ProtocolConnectionClient::ConnectRequest initiation_connect_request_;
+  openscreen::osp::ConnectRequest initiation_connect_request_;
   std::unique_ptr<ProtocolConnection> initiation_protocol_connection_;
-  ProtocolConnectionClient::ConnectRequest connection_connect_request_;
+  openscreen::osp::ConnectRequest connection_connect_request_;
   std::unique_ptr<ProtocolConnection> connection_protocol_connection_;
 
   RequestResponseHandler<StartRequest> initiation_handler_;

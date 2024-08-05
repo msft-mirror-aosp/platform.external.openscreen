@@ -39,7 +39,7 @@ void QuicConnectionFactoryServer::SetServerDelegate(
 
   crypto_server_config_ = std::make_unique<quic::QuicCryptoServerConfig>(
       kSourceAddressTokenSecret, quic::QuicRandom::GetInstance(),
-      QuicServer::GetAgentCertificate().CreateServerProofSource(),
+      QuicServiceBase::GetAgentCertificate().CreateServerProofSource(),
       quic::KeyExchangeSource::Default());
 
   for (const auto& endpoint : endpoints) {

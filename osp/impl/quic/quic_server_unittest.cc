@@ -12,6 +12,7 @@
 #include "gtest/gtest.h"
 #include "osp/impl/quic/testing/fake_quic_connection_factory.h"
 #include "osp/impl/quic/testing/quic_test_support.h"
+#include "osp/public/connect_request.h"
 #include "osp/public/network_metrics.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/testing/message_demuxer_test_support.h"
@@ -27,8 +28,7 @@ using ::testing::_;
 using ::testing::Invoke;
 using ::testing::Test;
 
-class MockConnectRequestCallback final
-    : public ProtocolConnectionClient::ConnectRequestCallback {
+class MockConnectRequestCallback final : public ConnectRequestCallback {
  public:
   ~MockConnectRequestCallback() override = default;
 
@@ -126,7 +126,7 @@ class QuicServerTest : public Test {
     EXPECT_EQ(received_message.message.str, message.message.str);
   }
 
-  QuicClient::ConnectRequest connect_request_;
+  ConnectRequest connect_request_;
   FakeClock fake_clock_;
   FakeTaskRunner task_runner_;
   FakeQuicBridge quic_bridge_;

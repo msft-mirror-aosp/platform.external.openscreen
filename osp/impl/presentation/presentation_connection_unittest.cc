@@ -12,6 +12,7 @@
 #include "osp/impl/quic/testing/fake_quic_connection.h"
 #include "osp/impl/quic/testing/fake_quic_connection_factory.h"
 #include "osp/impl/quic/testing/quic_test_support.h"
+#include "osp/public/connect_request.h"
 #include "osp/public/network_service_manager.h"
 #include "osp/public/presentation/presentation_controller.h"
 #include "platform/test/fake_clock.h"
@@ -36,8 +37,7 @@ class MockParentDelegate : public Connection::ParentDelegate {
   MOCK_METHOD1(OnConnectionDestroyed, void(Connection*));
 };
 
-class MockConnectRequestCallback final
-    : public ProtocolConnectionClient::ConnectRequestCallback {
+class MockConnectRequestCallback final : public ConnectRequestCallback {
  public:
   ~MockConnectRequestCallback() override = default;
 
@@ -131,7 +131,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   EXPECT_EQ(Connection::State::kConnecting, receiver.state());
 
   MockConnectRequestCallback mock_connect_request_callback;
-  QuicClient::ConnectRequest request;
+  ConnectRequest request;
   std::unique_ptr<ProtocolConnection> controller_stream;
   std::unique_ptr<ProtocolConnection> receiver_stream;
   NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(

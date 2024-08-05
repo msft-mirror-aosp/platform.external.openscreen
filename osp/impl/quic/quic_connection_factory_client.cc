@@ -92,7 +92,8 @@ ErrorOr<std::unique_ptr<QuicConnection>> QuicConnectionFactoryClient::Connect(
     crypto_client_config_ = std::make_unique<quic::QuicCryptoClientConfig>(
         std::move(proof_verifier), nullptr);
     crypto_client_config_->set_proof_source(
-        QuicClient::GetAgentCertificate().CreateClientProofSource(host_name));
+        QuicServiceBase::GetAgentCertificate().CreateClientProofSource(
+            host_name));
   }
 
   auto connection_impl = std::make_unique<QuicConnectionImpl>(
