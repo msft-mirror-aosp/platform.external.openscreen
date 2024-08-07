@@ -73,7 +73,7 @@ deps = {
   # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/main
   'build': {
     'url': Var('chromium_git') + '/chromium/src/build' +
-      '@' + '007a74bf79d5c749f6c217f743999ffdcea4cbec',
+      '@' + 'b54b4378fdd36dd8636d982451216bcb4ab298cd',
     'condition': 'not build_with_chromium',
   },
 
