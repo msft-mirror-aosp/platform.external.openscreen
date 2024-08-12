@@ -54,6 +54,7 @@ class FakeQuicBridge {
   const IPEndpoint kReceiverEndpoint{{192, 168, 1, 17}, 1234};
   const std::string kInstanceName{"test instance name"};
   const std::string kFingerprint{"test fringprint"};
+  const std::string kAuthToken{"test token"};
 
   std::unique_ptr<MessageDemuxer> controller_demuxer;
   std::unique_ptr<MessageDemuxer> receiver_demuxer;

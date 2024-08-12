@@ -35,7 +35,8 @@ FakeQuicBridge::FakeQuicBridge(FakeTaskRunner& task_runner,
       client_config, *controller_demuxer, std::move(fake_client_factory),
       mock_client_observer, now_function, task_runner);
   quic_client->instance_infos_.emplace(
-      kInstanceName, QuicClient::InstanceInfo{kFingerprint, kReceiverEndpoint});
+      kInstanceName,
+      QuicClient::InstanceInfo{kFingerprint, kAuthToken, kReceiverEndpoint});
 
   auto fake_server_factory = std::make_unique<FakeServerQuicConnectionFactory>(
       task_runner, fake_bridge.get());

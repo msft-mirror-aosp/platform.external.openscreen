@@ -93,13 +93,13 @@ void QuicClient::OnSearching() {}
 
 void QuicClient::OnReceiverAdded(const ServiceInfo& info) {
   instance_infos_.insert(std::make_pair(
-      info.instance_name,
-      InstanceInfo{info.fingerprint, info.v4_endpoint, info.v6_endpoint}));
+      info.instance_name, InstanceInfo{info.fingerprint, info.auth_token,
+                                       info.v4_endpoint, info.v6_endpoint}));
 }
 
 void QuicClient::OnReceiverChanged(const ServiceInfo& info) {
-  instance_infos_[info.instance_name] =
-      InstanceInfo{info.fingerprint, info.v4_endpoint, info.v6_endpoint};
+  instance_infos_[info.instance_name] = InstanceInfo{
+      info.fingerprint, info.auth_token, info.v4_endpoint, info.v6_endpoint};
 }
 
 void QuicClient::OnReceiverRemoved(const ServiceInfo& info) {

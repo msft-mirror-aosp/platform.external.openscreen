@@ -592,6 +592,8 @@ void PublisherDemo(std::string_view friendly_name) {
 
   publisher_config.fingerprint = connection_server->GetAgentFingerprint();
   OSP_CHECK(!publisher_config.fingerprint.empty());
+  publisher_config.auth_token = connection_server->GetAuthToken();
+  OSP_CHECK(!publisher_config.auth_token.empty());
 
   DemoPublisherObserver publisher_observer;
   auto service_publisher = ServicePublisherFactory::Create(

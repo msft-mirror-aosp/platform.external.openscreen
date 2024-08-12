@@ -70,11 +70,15 @@ class QuicClient final : public ProtocolConnectionClient,
   // for tests.
   friend class FakeQuicBridge;
 
-  // This struct holds necessary information of an instance used to build
-  // connection.
+  // This struct holds necessary information of an instance found through
+  // discovery for building connection and authentication.
   struct InstanceInfo {
     // Agent fingerprint.
     std::string fingerprint;
+
+    // Token published by the other agent that allows this agent to initiate
+    // authentication with that agent.
+    std::string auth_token;
 
     // The network endpoints to create a new connection to the Open Screen
     // service. At least one of them is valid and use |v4_endpoint| first if it
