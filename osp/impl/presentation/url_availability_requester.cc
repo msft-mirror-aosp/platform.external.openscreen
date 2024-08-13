@@ -404,8 +404,9 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectSucceed(
 
 void UrlAvailabilityRequester::ReceiverRequester::OnConnectFailed(
     uint64_t request_id) {
-  OSP_CHECK_EQ(request_id, connect_request_.request_id());
-  connect_request_.MarkComplete();
+  if (connect_request_ && connect_request_.request_id() == request_id) {
+    connect_request_.MarkComplete();
+  }
 
   std::set<std::string> waiting_urls;
   for (auto& entry : request_by_id_) {

@@ -117,9 +117,9 @@ void QuicConnectionImpl::OnCryptoHandshakeComplete() {
   TRACE_SCOPED(TraceCategory::kQuic,
                "QuicConnectionImpl::OnCryptoHandshakeComplete");
   instance_id_ = delegate_.OnCryptoHandshakeComplete(instance_name_);
-  OSP_VLOG << "QUIC connection handshake complete for instance: "
-           << instance_name_
-           << ", the corresponding instance ID is: " << instance_id_;
+  OSP_VLOG_IF(instance_id_ > 0)
+      << "QUIC connection handshake complete for instance: " << instance_name_
+      << ", the corresponding instance ID is: " << instance_id_;
 }
 
 void QuicConnectionImpl::OnIncomingStream(QuicStream* stream) {

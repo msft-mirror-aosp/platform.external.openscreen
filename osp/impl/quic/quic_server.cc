@@ -93,7 +93,9 @@ void QuicServer::OnClientCertificates(std::string_view instance_name,
 
 void QuicServer::OnIncomingConnection(
     std::unique_ptr<QuicConnection> connection) {
-  OSP_CHECK_EQ(state_, State::kRunning);
+  if (state_ != State::kRunning) {
+    return;
+  }
 
   const std::string& instance_name = connection->instance_name();
   pending_connections_.emplace(

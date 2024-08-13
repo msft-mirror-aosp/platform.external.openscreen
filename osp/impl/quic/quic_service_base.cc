@@ -35,7 +35,9 @@ QuicServiceBase::~QuicServiceBase() {
 
 uint64_t QuicServiceBase::OnCryptoHandshakeComplete(
     std::string_view instance_name) {
-  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+  if (state_ != ProtocolConnectionEndpoint::State::kRunning) {
+    return 0;
+  }
 
   auto pending_entry = pending_connections_.find(instance_name);
   if (pending_entry == pending_connections_.end()) {
@@ -61,7 +63,9 @@ uint64_t QuicServiceBase::OnCryptoHandshakeComplete(
 
 void QuicServiceBase::OnIncomingStream(uint64_t instance_id,
                                        QuicStream* stream) {
-  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+  if (state_ != ProtocolConnectionEndpoint::State::kRunning) {
+    return;
+  }
 
   auto connection_entry = connections_.find(instance_id);
   if (connection_entry == connections_.end()) {
@@ -74,7 +78,9 @@ void QuicServiceBase::OnIncomingStream(uint64_t instance_id,
 }
 
 void QuicServiceBase::OnConnectionClosed(uint64_t instance_id) {
-  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+  if (state_ != ProtocolConnectionEndpoint::State::kRunning) {
+    return;
+  }
 
   auto connection_entry = connections_.find(instance_id);
   if (connection_entry == connections_.end()) {
@@ -117,7 +123,9 @@ void QuicServiceBase::OnConnectionDestroyed(
 void QuicServiceBase::OnDataReceived(uint64_t instance_id,
                                      uint64_t protocol_connection_id,
                                      ByteView bytes) {
-  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+  if (state_ != ProtocolConnectionEndpoint::State::kRunning) {
+    return;
+  }
 
   demuxer_.OnStreamData(instance_id, protocol_connection_id, bytes.data(),
                         bytes.size());
@@ -125,7 +133,9 @@ void QuicServiceBase::OnDataReceived(uint64_t instance_id,
 
 void QuicServiceBase::OnClose(uint64_t instance_id,
                               uint64_t protocol_connection_id) {
-  OSP_CHECK_EQ(state_, ProtocolConnectionEndpoint::State::kRunning);
+  if (state_ != ProtocolConnectionEndpoint::State::kRunning) {
+    return;
+  }
 
   demuxer_.OnStreamClose(instance_id, protocol_connection_id);
 }
