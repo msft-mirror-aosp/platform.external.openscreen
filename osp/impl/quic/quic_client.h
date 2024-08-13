@@ -99,11 +99,9 @@ class QuicClient final : public ProtocolConnectionClient,
   void OnError(const Error& error) override;
   void OnMetrics(ServiceListener::Metrics) override;
 
-  bool CreatePendingConnection(std::string_view instance_name,
-                               ConnectRequest& request,
-                               ConnectRequestCallback* request_callback);
-  uint64_t StartConnectionRequest(std::string_view instance_name,
-                                  ConnectRequestCallback* request_callback);
+  bool StartConnectionRequest(std::string_view instance_name,
+                              ConnectRequest& request,
+                              ConnectRequestCallback* request_callback);
   void CancelConnectRequest(uint64_t request_id) override;
 
   // Value that will be used for the next new connection request.
