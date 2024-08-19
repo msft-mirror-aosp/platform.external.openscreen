@@ -9,19 +9,10 @@
 #include <optional>
 #include <string_view>
 #include <system_error>
-#include <type_traits>
 
-namespace openscreen {
+#include "platform/base/type_util.h"
 
-namespace internal {
-
-template <typename T>
-using EnableIfArithmetic =
-    std::enable_if_t<std::is_arithmetic<T>::value>;  // NOLINT
-
-}  // namespace internal
-
-namespace string_parse {
+namespace openscreen::string_parse {
 
 // Parses `number` into the numeric type `result` and returns true if
 // successful.  `number` must be an ASCII representation of an integer or
@@ -36,7 +27,6 @@ bool ParseAsciiNumber(std::string_view number, T& result) {
   return error_code == std::errc();
 }
 
-}  // namespace string_parse
-}  // namespace openscreen
+}  // namespace openscreen::string_parse
 
 #endif  // UTIL_STRING_PARSE_H_

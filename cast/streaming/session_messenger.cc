@@ -4,12 +4,16 @@
 
 #include "cast/streaming/session_messenger.h"
 
-#include "absl/strings/str_cat.h"
+#include <chrono>
+#include <string>
+
 #include "cast/common/public/message_port.h"
 #include "cast/streaming/message_fields.h"
+#include "platform/base/trivial_clock_traits.h"
 #include "util/json/json_helpers.h"
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
+#include "util/string_util.h"
 
 namespace openscreen::cast {
 
@@ -35,11 +39,9 @@ void ReplyIfTimedOut(
       // replies vector.
       SenderSessionMessenger::ReplyCallback callback = std::move(it->second);
       replies->erase(it);
-      callback(
-          Error(Error::Code::kMessageTimeout,
-                absl::StrCat("message timed out (max delay of",
-                             std::chrono::milliseconds(kReplyTimeout).count(),
-                             "ms).")));
+      callback(Error(Error::Code::kMessageTimeout,
+                     string_util::StrCat({"message timed out; max delay of ",
+                                          ToString(kReplyTimeout)})));
       return;
     }
   }

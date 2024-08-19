@@ -149,4 +149,16 @@ bool EqualsIgnoreCase(std::string_view piece1, std::string_view piece2) {
   return true;
 }
 
+[[nodiscard]] std::string StrCat(
+    std::initializer_list<std::string_view> pieces) {
+  std::string result;
+  size_t length = 0;
+  for (const auto& piece : pieces)
+    length += piece.size();
+  result.reserve(length);
+  for (const auto& piece : pieces)
+    result.append(piece);
+  return result;
+}
+
 }  // namespace openscreen::string_util

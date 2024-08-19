@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <initializer_list>
 #include <string>
 #include <string_view>
 
@@ -14,9 +15,11 @@
 namespace openscreen::string_util {
 
 namespace internal {
+
 extern const unsigned char kPropertyBits[256];
 extern const char kToLower[256];
 extern const char kToUpper[256];
+
 }  // namespace internal
 
 // Determines whether the given character is an alphabetic character.
@@ -91,6 +94,10 @@ inline std::string_view StripLeadingAsciiWhitespace(std::string_view str) {
   auto it = std::find_if_not(str.cbegin(), str.cend(), ascii_isspace);
   return str.substr(static_cast<size_t>(it - str.begin()));
 }
+
+// Concatenates arguments into a single string.
+[[nodiscard]] std::string StrCat(
+    std::initializer_list<std::string_view> pieces);
 
 }  // namespace openscreen::string_util
 

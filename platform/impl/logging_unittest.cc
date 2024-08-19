@@ -8,7 +8,6 @@
 #include <string_view>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
 #include "gtest/gtest.h"
 #include "platform/impl/logging.h"
 #include "platform/impl/logging_test.h"
@@ -66,9 +65,9 @@ class LoggingTest : public ::testing::Test {
     // logging_posix.cc formats log messages.
     while (expected_it != expected_messages.end()) {
       EXPECT_TRUE(string_util::starts_with(
-          *actual_it, absl::StrCat("[", expected_it->level)));
+          *actual_it, string_util::StrCat({"[", expected_it->level})));
       EXPECT_TRUE(string_util::ends_with(
-          *actual_it, absl::StrCat("] ", expected_it->message, "\n")));
+          *actual_it, string_util::StrCat({"] ", expected_it->message, "\n"})));
       actual_it++;
       expected_it++;
     }

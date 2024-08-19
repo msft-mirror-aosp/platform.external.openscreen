@@ -7,13 +7,15 @@
 #include <string_view>
 #include <utility>
 
-#include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "cast/streaming/constants.h"
 #include "platform/base/error.h"
 #include "util/enum_name_table.h"
 #include "util/json/json_helpers.h"
 #include "util/osp_logging.h"
+#include "util/string_parse.h"
+#include "util/stringprintf.h"
+
 namespace openscreen::cast {
 
 namespace {
@@ -161,8 +163,8 @@ bool AspectRatio::TryParse(const Json::Value& value, AspectRatio* out) {
     return false;
   }
 
-  if (!absl::SimpleAtoi(fields[0], &out->width) ||
-      !absl::SimpleAtoi(fields[1], &out->height)) {
+  if (!string_parse::ParseAsciiNumber(fields[0], out->width) ||
+      !string_parse::ParseAsciiNumber(fields[1], out->height)) {
     return false;
   }
   return out->IsValid();
@@ -331,8 +333,9 @@ Json::Value DisplayDescription::ToJson() const {
   OSP_CHECK(IsValid());
   Json::Value root;
   if (aspect_ratio.has_value()) {
-    root[kAspectRatio] = absl::StrCat(
-        aspect_ratio->width, kAspectRatioDelimiter, aspect_ratio->height);
+    root[kAspectRatio] =
+        StringPrintf("%d%s%d", aspect_ratio->width, kAspectRatioDelimiter,
+                     aspect_ratio->height);
   }
   if (dimensions.has_value()) {
     root[kDimensions] = dimensions->ToJson();

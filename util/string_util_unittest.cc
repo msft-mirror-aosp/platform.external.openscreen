@@ -86,4 +86,10 @@ TEST(StringUtilTest, AsciiStrToUpperLower) {
   EXPECT_EQ("vulcans!", s2);
 }
 
+TEST(StringUtilTest, StrCat) {
+  EXPECT_EQ(std::string(), StrCat({}));
+  EXPECT_EQ(std::string(), StrCat({"", ""}));
+  EXPECT_EQ(std::string("abcdef"), StrCat({"abc", std::string("def")}));
+}
+
 }  // namespace openscreen::string_util
