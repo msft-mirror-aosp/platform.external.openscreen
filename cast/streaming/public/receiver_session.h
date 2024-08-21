@@ -12,15 +12,15 @@
 
 #include "cast/common/public/message_port.h"
 #include "cast/streaming/capture_configs.h"
+#include "cast/streaming/impl/receiver_packet_router.h"
+#include "cast/streaming/impl/session_config.h"
 #include "cast/streaming/public/constants.h"
 #include "cast/streaming/public/offer_messages.h"
 #include "cast/streaming/public/receiver_constraints.h"
 #include "cast/streaming/public/rpc_messenger.h"
 #include "cast/streaming/public/session_messenger.h"
-#include "cast/streaming/receiver_packet_router.h"
 #include "cast/streaming/resolution.h"
 #include "cast/streaming/sender_message.h"
-#include "cast/streaming/session_config.h"
 
 namespace openscreen::cast {
 

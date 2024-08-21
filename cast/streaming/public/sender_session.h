@@ -12,6 +12,8 @@
 
 #include "cast/common/public/message_port.h"
 #include "cast/streaming/capture_configs.h"
+#include "cast/streaming/impl/session_config.h"
+#include "cast/streaming/impl/statistics_analyzer.h"
 #include "cast/streaming/public/answer_messages.h"
 #include "cast/streaming/public/capture_recommendations.h"
 #include "cast/streaming/public/offer_messages.h"
@@ -21,8 +23,6 @@
 #include "cast/streaming/public/statistics.h"
 #include "cast/streaming/remoting_capabilities.h"
 #include "cast/streaming/sender_packet_router.h"
-#include "cast/streaming/session_config.h"
-#include "cast/streaming/statistics_analyzer.h"
 #include "json/value.h"
 #include "util/json/json_serialization.h"
 

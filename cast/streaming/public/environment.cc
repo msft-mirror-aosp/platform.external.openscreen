@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "cast/streaming/rtp_defines.h"
+#include "cast/streaming/impl/rtp_defines.h"
 #include "platform/api/task_runner.h"
 #include "platform/base/span.h"
 #include "util/osp_logging.h"

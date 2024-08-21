@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 
-#include "cast/streaming/statistics_collector.h"
+#include "cast/streaming/impl/statistics_collector.h"
 #include "platform/api/time.h"
 #include "platform/api/udp_socket.h"
 #include "platform/base/ip_address.h"

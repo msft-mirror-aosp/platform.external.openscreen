@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
+#include "cast/streaming/impl/rtp_defines.h"
+#include "cast/streaming/impl/session_config.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/resolution.h"
-#include "cast/streaming/rtp_defines.h"
-#include "cast/streaming/session_config.h"
 #include "json/value.h"
 #include "platform/base/error.h"
 #include "util/simple_fraction.h"

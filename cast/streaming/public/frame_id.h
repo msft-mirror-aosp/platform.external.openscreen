@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 
-#include "cast/streaming/expanded_value_base.h"
+#include "cast/streaming/impl/expanded_value_base.h"
 
 namespace openscreen::cast {
 

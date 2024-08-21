@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <utility>
 
+#include "cast/streaming/impl/receiver_packet_router.h"
+#include "cast/streaming/impl/session_config.h"
 #include "cast/streaming/public/constants.h"
-#include "cast/streaming/receiver_packet_router.h"
-#include "cast/streaming/session_config.h"
 #include "platform/base/span.h"
 #include "platform/base/trivial_clock_traits.h"
 #include "util/chrono_helpers.h"

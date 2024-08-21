@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-#include "cast/streaming/clock_offset_estimator.h"
+#include "cast/streaming/impl/clock_offset_estimator.h"
 #include "cast/streaming/message_fields.h"
 #include "cast/streaming/public/capture_recommendations.h"
 #include "cast/streaming/public/environment.h"
