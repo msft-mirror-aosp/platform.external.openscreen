@@ -414,7 +414,7 @@ Error Receiver::OnPresentationStarted(const std::string& presentation_id,
   auto* raw_protocol_connection_ptr = protocol_connection.get();
 
   OSP_VLOG << "presentation started with protocol_connection id: "
-           << protocol_connection->id();
+           << protocol_connection->GetID();
   if (result != ResponseResult::kSuccess) {
     queued_responses_by_id_.erase(queued_responses_entry);
     return WritePresentationInitiationResponse(response,

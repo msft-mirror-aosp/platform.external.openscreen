@@ -103,7 +103,7 @@ class ControllerTest : public ::testing::Test {
     ON_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
         .WillByDefault(
             Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
-              controller_instance_id_ = connection->instance_id();
+              controller_instance_id_ = connection->GetInstanceID();
             }));
 
     availability_watch_ =

@@ -151,7 +151,7 @@ TEST_F(QuicServerTest, OpenImmediate) {
   ASSERT_TRUE(connection1);
 
   std::unique_ptr<ProtocolConnection> connection2 =
-      server_->CreateProtocolConnection(connection1->instance_id());
+      server_->CreateProtocolConnection(connection1->GetInstanceID());
 
   SendTestMessage(connection2.get());
 
@@ -198,7 +198,7 @@ TEST_F(QuicServerTest, RequestIds) {
   std::unique_ptr<ProtocolConnection> connection = ExpectIncomingConnection();
   ASSERT_TRUE(connection);
 
-  uint64_t instance_id = connection->instance_id();
+  uint64_t instance_id = connection->GetInstanceID();
   EXPECT_EQ(1u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
   EXPECT_EQ(3u, server_->GetInstanceRequestIds().GetNextRequestId(instance_id));
 

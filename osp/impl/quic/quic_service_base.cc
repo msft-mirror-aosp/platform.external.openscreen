@@ -108,11 +108,7 @@ void QuicServiceBase::OnClientCertificates(
 
 void QuicServiceBase::OnConnectionDestroyed(
     QuicProtocolConnection& connection) {
-  if (!connection.stream()) {
-    return;
-  }
-
-  auto connection_entry = connections_.find(connection.instance_id());
+  auto connection_entry = connections_.find(connection.GetInstanceID());
   if (connection_entry == connections_.end()) {
     return;
   }
@@ -251,10 +247,6 @@ void QuicServiceBase::CloseAllConnections() {
 }
 
 void QuicServiceBase::Cleanup() {
-  for (auto& entry : connections_) {
-    entry.second.stream_manager->DestroyClosedStreams();
-  }
-
   for (uint64_t instance_id : delete_connections_) {
     auto it = connections_.find(instance_id);
     if (it != connections_.end()) {

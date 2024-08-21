@@ -94,7 +94,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   WriteMessage(std::optional<uint64_t> id, RequestTRval&& message) {
     auto* request_msg = RequestCoderTraits::serial_request(message);
     if (connection_) {
-      request_msg->request_id = GetNextRequestId(connection_->instance_id());
+      request_msg->request_id = GetNextRequestId(connection_->GetInstanceID());
       Error result =
           connection_->WriteMessage(*request_msg, RequestCoderTraits::kEncoder);
       if (!result.ok()) {
@@ -140,7 +140,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     connection_ = connection;
     for (auto& message : to_send_) {
       auto* request_msg = RequestCoderTraits::serial_request(message.request);
-      request_msg->request_id = GetNextRequestId(connection_->instance_id());
+      request_msg->request_id = GetNextRequestId(connection_->GetInstanceID());
       Error result =
           connection_->WriteMessage(*request_msg, RequestCoderTraits::kEncoder);
       if (result.ok()) {
@@ -182,7 +182,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
         });
     if (it != sent_.end()) {
       delegate_.OnMatchedResponse(&it->request, &response,
-                                  connection_->instance_id());
+                                  connection_->GetInstanceID());
       sent_.erase(it);
       if (sent_.empty()) {
         response_watch_ = MessageDemuxer::MessageWatch();
@@ -205,7 +205,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
       response_watch_ = NetworkServiceManager::Get()
                             ->GetProtocolConnectionClient()
                             ->GetMessageDemuxer()
-                            .WatchMessageType(connection_->instance_id(),
+                            .WatchMessageType(connection_->GetInstanceID(),
                                               RequestT::kResponseType, this);
     }
   }

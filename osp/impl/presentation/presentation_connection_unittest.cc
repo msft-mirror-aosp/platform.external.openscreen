@@ -157,8 +157,8 @@ TEST_F(ConnectionTest, ConnectAndSend) {
 
   EXPECT_CALL(mock_controller_delegate, OnConnected());
   EXPECT_CALL(mock_receiver_delegate, OnConnected());
-  uint64_t controller_instance_id = receiver_stream->instance_id();
-  uint64_t receiver_instance_id = controller_stream->instance_id();
+  uint64_t controller_instance_id = receiver_stream->GetInstanceID();
+  uint64_t receiver_instance_id = controller_stream->GetInstanceID();
   controller.OnConnected(connection_id, receiver_instance_id,
                          std::move(controller_stream));
   receiver.OnConnected(connection_id, controller_instance_id,
