@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "cast/streaming/encoded_frame.h"
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/encoded_frame.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtp_time.h"
 #include "gmock/gmock.h"

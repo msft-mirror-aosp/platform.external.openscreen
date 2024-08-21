@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/sender_session.h"
+#include "cast/streaming/public/sender_session.h"
 
 #include <openssl/rand.h>
 #include <stdint.h>
@@ -12,12 +12,12 @@
 #include <string>
 #include <utility>
 
-#include "cast/streaming/capture_recommendations.h"
 #include "cast/streaming/clock_offset_estimator.h"
-#include "cast/streaming/environment.h"
 #include "cast/streaming/message_fields.h"
-#include "cast/streaming/offer_messages.h"
-#include "cast/streaming/sender.h"
+#include "cast/streaming/public/capture_recommendations.h"
+#include "cast/streaming/public/environment.h"
+#include "cast/streaming/public/offer_messages.h"
+#include "cast/streaming/public/sender.h"
 #include "cast/streaming/sender_message.h"
 #include "util/crypto/random_bytes.h"
 #include "util/json/json_helpers.h"

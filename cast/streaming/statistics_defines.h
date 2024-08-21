@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "cast/streaming/constants.h"
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/constants.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtp_time.h"
 #include "platform/api/time.h"
 

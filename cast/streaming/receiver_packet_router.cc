@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "cast/streaming/packet_util.h"
-#include "cast/streaming/receiver.h"
+#include "cast/streaming/public/receiver.h"
 #include "platform/base/span.h"
 #include "util/osp_logging.h"
 #include "util/stringprintf.h"

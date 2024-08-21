@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "cast/standalone_receiver/simple_remoting_receiver.h"
-#include "cast/streaming/receiver_session.h"
+#include "cast/streaming/public/receiver_session.h"
 #include "platform/impl/task_runner.h"
 
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)

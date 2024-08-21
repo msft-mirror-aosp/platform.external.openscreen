@@ -9,7 +9,7 @@
 #include <limits>
 #include <utility>
 
-#include "cast/streaming/environment.h"
+#include "cast/streaming/public/environment.h"
 #include "util/big_endian.h"
 
 namespace openscreen::cast {

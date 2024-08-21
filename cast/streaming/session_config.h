@@ -9,7 +9,7 @@
 #include <chrono>
 #include <cstdint>
 
-#include "cast/streaming/constants.h"
+#include "cast/streaming/public/constants.h"
 #include "cast/streaming/ssrc.h"
 
 namespace openscreen::cast {

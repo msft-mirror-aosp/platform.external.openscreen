@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-#include "cast/streaming/encoded_frame.h"
+#include "cast/streaming/public/encoded_frame.h"
 #include "cast/streaming/session_config.h"
 #include "cast/streaming/ssrc.h"
 #include "platform/api/time.h"

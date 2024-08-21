@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/rpc_messenger.h"
+#include "cast/streaming/public/rpc_messenger.h"
 
 #include <memory>
 #include <string>
@@ -61,7 +61,8 @@ void RpcMessenger::RegisterMessageReceiverCallback(
   receive_callbacks_.emplace_back(handle, std::move(callback));
 }
 
-void RpcMessenger::UnregisterMessageReceiverCallback(RpcMessenger::Handle handle) {
+void RpcMessenger::UnregisterMessageReceiverCallback(
+    RpcMessenger::Handle handle) {
   receive_callbacks_.erase_key(handle);
 }
 
@@ -76,7 +77,8 @@ void RpcMessenger::ProcessMessageFromRemote(const uint8_t* message,
   ProcessMessageFromRemote(std::move(rpc));
 }
 
-void RpcMessenger::ProcessMessageFromRemote(std::unique_ptr<RpcMessage> message) {
+void RpcMessenger::ProcessMessageFromRemote(
+    std::unique_ptr<RpcMessage> message) {
   const auto entry = receive_callbacks_.find(message->handle());
   if (entry == receive_callbacks_.end()) {
     OSP_VLOG << "Dropping message due to unregistered handle: "

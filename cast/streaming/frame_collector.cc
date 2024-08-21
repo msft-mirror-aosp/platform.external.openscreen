@@ -8,7 +8,7 @@
 #include <limits>
 #include <numeric>
 
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtp_defines.h"
 #include "platform/base/span.h"
 #include "util/osp_logging.h"

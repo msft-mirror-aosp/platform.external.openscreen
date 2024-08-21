@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "cast/streaming/compound_rtcp_parser.h"
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtcp_session.h"
 #include "platform/base/span.h"
 

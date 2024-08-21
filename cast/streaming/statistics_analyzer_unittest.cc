@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <numeric>
 
-#include "cast/streaming/statistics.h"
+#include "cast/streaming/public/statistics.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "platform/base/span.h"

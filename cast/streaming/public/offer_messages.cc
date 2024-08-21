@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/offer_messages.h"
+#include "cast/streaming/public/offer_messages.h"
 
 #include <inttypes.h>
 
@@ -13,7 +13,7 @@
 #include <utility>
 
 #include "absl/strings/str_split.h"
-#include "cast/streaming/constants.h"
+#include "cast/streaming/public/constants.h"
 #include "platform/base/error.h"
 #include "util/big_endian.h"
 #include "util/enum_name_table.h"

@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/capture_recommendations.h"
+#include "cast/streaming/public/capture_recommendations.h"
 
 #include <algorithm>
 #include <utility>
 
-#include "cast/streaming/answer_messages.h"
+#include "cast/streaming/public/answer_messages.h"
 #include "util/osp_logging.h"
 
 namespace openscreen::cast {

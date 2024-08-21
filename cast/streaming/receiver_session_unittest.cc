@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/receiver_session.h"
+#include "cast/streaming/public/receiver_session.h"
 
 #include <utility>
 
 #include "cast/streaming/mock_environment.h"
-#include "cast/streaming/receiver.h"
+#include "cast/streaming/public/receiver.h"
 #include "cast/streaming/testing/simple_message_port.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/statistics.h"
+#include "cast/streaming/public/statistics.h"
 
 #include "gtest/gtest.h"
 #include "util/std_util.h"

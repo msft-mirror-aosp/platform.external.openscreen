@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/receiver.h"
+#include "cast/streaming/public/receiver.h"
 
 #include <algorithm>
 #include <utility>
 
-#include "cast/streaming/constants.h"
+#include "cast/streaming/public/constants.h"
 #include "cast/streaming/receiver_packet_router.h"
 #include "cast/streaming/session_config.h"
 #include "platform/base/span.h"

@@ -12,8 +12,8 @@
 #include <vector>
 
 #include "cast/streaming/bandwidth_estimator.h"
-#include "cast/streaming/constants.h"
-#include "cast/streaming/environment.h"
+#include "cast/streaming/public/constants.h"
+#include "cast/streaming/public/environment.h"
 #include "cast/streaming/ssrc.h"
 #include "platform/api/time.h"
 #include "platform/base/span.h"

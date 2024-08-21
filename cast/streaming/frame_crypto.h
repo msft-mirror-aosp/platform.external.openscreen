@@ -11,7 +11,7 @@
 #include <array>
 #include <vector>
 
-#include "cast/streaming/encoded_frame.h"
+#include "cast/streaming/public/encoded_frame.h"
 #include "openssl/aes.h"
 #include "platform/base/macros.h"
 #include "platform/base/span.h"

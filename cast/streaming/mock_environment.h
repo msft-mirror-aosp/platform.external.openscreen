@@ -5,7 +5,7 @@
 #ifndef CAST_STREAMING_MOCK_ENVIRONMENT_H_
 #define CAST_STREAMING_MOCK_ENVIRONMENT_H_
 
-#include "cast/streaming/environment.h"
+#include "cast/streaming/public/environment.h"
 #include "gmock/gmock.h"
 
 namespace openscreen::cast {

@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "cast/streaming/environment.h"
+#include "cast/streaming/public/environment.h"
 #include "cast/streaming/ssrc.h"
 #include "platform/base/span.h"
 #include "util/flat_map.h"

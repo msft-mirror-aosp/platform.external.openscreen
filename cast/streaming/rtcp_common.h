@@ -11,8 +11,8 @@
 #include <tuple>
 #include <vector>
 
-#include "cast/streaming/frame_id.h"
 #include "cast/streaming/ntp_time.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtp_defines.h"
 #include "cast/streaming/rtp_time.h"
 #include "cast/streaming/ssrc.h"

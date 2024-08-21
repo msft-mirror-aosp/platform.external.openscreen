@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "cast/streaming/frame_crypto.h"
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtp_packet_parser.h"
 #include "platform/base/span.h"

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/receiver.h"
+#include "cast/streaming/public/receiver.h"
 
 #include <stdint.h>
 
@@ -12,11 +12,11 @@
 #include <vector>
 
 #include "cast/streaming/compound_rtcp_parser.h"
-#include "cast/streaming/constants.h"
-#include "cast/streaming/encoded_frame.h"
-#include "cast/streaming/environment.h"
 #include "cast/streaming/frame_crypto.h"
 #include "cast/streaming/mock_environment.h"
+#include "cast/streaming/public/constants.h"
+#include "cast/streaming/public/encoded_frame.h"
+#include "cast/streaming/public/environment.h"
 #include "cast/streaming/receiver_packet_router.h"
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtcp_session.h"

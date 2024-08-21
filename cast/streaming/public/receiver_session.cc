@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/receiver_session.h"
+#include "cast/streaming/public/receiver_session.h"
 
 #include <algorithm>
 #include <chrono>
@@ -11,11 +11,11 @@
 
 #include "cast/common/channel/message_util.h"
 #include "cast/common/public/message_port.h"
-#include "cast/streaming/answer_messages.h"
-#include "cast/streaming/environment.h"
 #include "cast/streaming/message_fields.h"
-#include "cast/streaming/offer_messages.h"
-#include "cast/streaming/receiver.h"
+#include "cast/streaming/public/answer_messages.h"
+#include "cast/streaming/public/environment.h"
+#include "cast/streaming/public/offer_messages.h"
+#include "cast/streaming/public/receiver.h"
 #include "cast/streaming/sender_message.h"
 #include "util/json/json_helpers.h"
 #include "util/osp_logging.h"

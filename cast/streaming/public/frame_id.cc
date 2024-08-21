@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/frame_id.h"
 
 namespace openscreen::cast {
 

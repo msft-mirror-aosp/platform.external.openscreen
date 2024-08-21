@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cast/streaming/receiver_constraints.h"
+#include "cast/streaming/public/receiver_constraints.h"
 
 #include <memory>
 
-#include "cast/streaming/constants.h"
+#include "cast/streaming/public/constants.h"
 #include "gtest/gtest.h"
 
 namespace openscreen::cast {

@@ -7,7 +7,7 @@
 #include <chrono>
 #include <limits>
 
-#include "cast/streaming/constants.h"
+#include "cast/streaming/public/constants.h"
 #include "gtest/gtest.h"
 #include "util/chrono_helpers.h"
 

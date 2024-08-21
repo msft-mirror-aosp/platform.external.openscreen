@@ -9,7 +9,7 @@
 #include <optional>
 #include <vector>
 
-#include "cast/streaming/frame_id.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtcp_common.h"
 #include "cast/streaming/rtp_defines.h"
 #include "platform/base/span.h"
