@@ -123,6 +123,9 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       ssize_t decode_result = msgs::DecodePresentationUrlAvailabilityRequest(
           buffer, buffer_size, request);
       if (decode_result < 0) {
+        if (decode_result == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "Presentation-url-availability-request parse error: "
                      << decode_result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -146,6 +149,9 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       const ssize_t result =
           msgs::DecodePresentationStartRequest(buffer, buffer_size, request);
       if (result < 0) {
+        if (result == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "Presentation-initiation-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -184,8 +190,9 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
           Connection::PresentationInfo{presentation_id, request.url},
           instance_id, request.headers);
 
-      if (starting)
+      if (starting) {
         return result;
+      }
 
       queued_responses_by_id_.erase(presentation_id);
       msgs::PresentationStartResponse response = {
@@ -209,6 +216,9 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       const ssize_t result = msgs::DecodePresentationConnectionOpenRequest(
           buffer, buffer_size, request);
       if (result < 0) {
+        if (result == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "Presentation-connection-open-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -249,12 +259,14 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
                          this->GetNextConnectionId(), instance_id});
       bool connecting = delegate_->ConnectToPresentation(
           request.request_id, presentation_id, instance_id);
-      if (connecting)
+      if (connecting) {
         return result;
+      }
 
       responses.pop_back();
-      if (responses.empty())
+      if (responses.empty()) {
         queued_responses_by_id_.erase(presentation_id);
+      }
 
       msgs::PresentationConnectionOpenResponse response = {
           .request_id = request.request_id,
@@ -278,6 +290,9 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       const ssize_t result = msgs::DecodePresentationTerminationRequest(
           buffer, buffer_size, request);
       if (result < 0) {
+        if (result == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "Presentation-termination-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);

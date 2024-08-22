@@ -436,8 +436,9 @@ ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(
       ssize_t result = msgs::DecodePresentationUrlAvailabilityResponse(
           buffer, buffer_size, response);
       if (result < 0) {
-        if (result == msgs::kParserEOF)
+        if (result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "parse error: " << result;
         return Error::Code::kCborParsing;
       } else {
@@ -458,8 +459,9 @@ ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(
           return update_result;
         }
         request_by_id_.erase(response.request_id);
-        if (request_by_id_.empty())
+        if (request_by_id_.empty()) {
           StopWatching(&response_watch_);
+        }
         return result;
       }
     }
@@ -468,8 +470,9 @@ ErrorOr<size_t> UrlAvailabilityRequester::ReceiverRequester::OnStreamMessage(
       ssize_t result = msgs::DecodePresentationUrlAvailabilityEvent(
           buffer, buffer_size, event);
       if (result < 0) {
-        if (result == msgs::kParserEOF)
+        if (result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "parse error: " << result;
         return Error::Code::kCborParsing;
       } else {

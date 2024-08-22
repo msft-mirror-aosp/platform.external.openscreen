@@ -169,7 +169,11 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     ssize_t result =
         RequestCoderTraits::kDecoder(buffer, buffer_size, response);
     if (result < 0) {
-      return 0;
+      if (result == msgs::kParserEOF) {
+        return Error::Code::kCborIncompleteMessage;
+      }
+      OSP_LOG_WARN << "parse error: " << result;
+      return Error::Code::kCborParsing;
     }
     auto it = std::find_if(
         sent_.begin(), sent_.end(), [&response](const RequestWithId& msg) {

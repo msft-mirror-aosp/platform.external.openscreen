@@ -639,6 +639,9 @@ ErrorOr<size_t> Controller::TerminationListener::OnStreamMessage(
   ssize_t result =
       msgs::DecodePresentationTerminationEvent(buffer, buffer_size, event);
   if (result < 0) {
+    if (result == msgs::kParserEOF) {
+      return Error::Code::kCborIncompleteMessage;
+    }
     OSP_LOG_WARN << "decode presentation-termination-event error: " << result;
     return Error::Code::kCborParsing;
   } else if (event.presentation_id != presentation_id_) {

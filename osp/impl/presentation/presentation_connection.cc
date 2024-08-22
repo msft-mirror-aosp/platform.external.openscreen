@@ -182,6 +182,9 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_id,
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionMessage(
           buffer, buffer_size, message);
       if (bytes_decoded < 0) {
+        if (bytes_decoded == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "presentation-connection-message parse error";
         return Error::Code::kParseError;
       }
@@ -211,6 +214,9 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_id,
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionCloseRequest(
           buffer, buffer_size, request);
       if (bytes_decoded < 0) {
+        if (bytes_decoded == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "decode presentation-connection-close-request error: "
                      << bytes_decoded;
         return Error::Code::kCborInvalidMessage;
@@ -248,6 +254,9 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_id,
       ssize_t bytes_decoded = msgs::DecodePresentationConnectionCloseEvent(
           buffer, buffer_size, event);
       if (bytes_decoded < 0) {
+        if (bytes_decoded == msgs::kParserEOF) {
+          return Error::Code::kCborIncompleteMessage;
+        }
         OSP_LOG_WARN << "decode presentation-connection-close-event error: "
                      << bytes_decoded;
         return Error::Code::kParseError;
