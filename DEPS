@@ -46,8 +46,8 @@ vars = {
   'checkout_instrumented_libraries': 'checkout_linux and checkout_configuration == "default"',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:5e19d2fb166fbd4f6f32147fbb2f497091a54ad8',
-  'clang_format_revision': 'e435ad79c17b1888b34df88d6a30a094936e3836',
+  'gn_version': 'git_revision:225e90c5025bf74f41dbee60d9cde4512c846fe7',
+  'clang_format_revision': '3c0acd2d4e73dd911309d9e970ba09d58bf23a62',
 
   # 'magic' text to tell depot_tools that git submodules should be accepted
   # but parity with DEPS file is expected.
@@ -70,7 +70,7 @@ deps = {
   },
 
   # and here:
-  # https://chromium.googlesource.com/chromium/src/buildtools/+/refs/heads/main
+  # https://chromium.googlesource.com/chromium/src/build/+/refs/heads/main
   'build': {
     'url': Var('chromium_git') + '/chromium/src/build' +
       '@' + 'b54b4378fdd36dd8636d982451216bcb4ab298cd',
@@ -119,7 +119,7 @@ deps = {
       # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/ninja
       {
         'package': 'infra/3pp/tools/ninja/${{platform}}',
-        'version': 'version:2@1.8.2.chromium.3',
+        'version': 'version:2@1.12.1.chromium.4',
       }
     ],
     'dep_type': 'cipd',
