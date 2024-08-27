@@ -82,87 +82,90 @@ openscreen_source_set("api") {
 }
 
 # The following target is only activated in standalone builds (see :platform).
-if (!build_with_chromium) {
-  openscreen_source_set("standalone_impl") {
-    defines = []
-    visibility += [
-      "../cast/common:discovery_e2e_test",
-      "../cast/standalone_receiver:cast_receiver",
-      "../cast/standalone_sender:cast_sender",
-      "../cast/test:e2e_tests",
-      "../osp:osp_demo",
-      "../test:test_main",
-    ]
-    public = [
-      "impl/logging.h",
-      "impl/network_interface.h",
-      "impl/task_runner.h",
-      "impl/text_trace_logging_platform.h",
-    ]
-    sources = [
-      "impl/network_interface.cc",
-      "impl/socket_handle.h",
-      "impl/socket_handle_waiter.cc",
-      "impl/socket_handle_waiter.h",
-      "impl/socket_state.h",
-      "impl/stream_socket.h",
-      "impl/task_runner.cc",
-      "impl/text_trace_logging_platform.cc",
-      "impl/time.cc",
-      "impl/tls_write_buffer.cc",
-      "impl/tls_write_buffer.h",
-    ]
-
-    public_configs = [ "//util:trace_logging_config" ]
-
-    if (is_linux) {
-      sources += [ "impl/network_interface_linux.cc" ]
-    } else if (is_mac) {
-      defines += [
-        # Required, to use the new IPv6 Sockets options introduced by RFC 3542.
-        "__APPLE_USE_RFC_3542",
-      ]
-      sources += [ "impl/network_interface_mac.cc" ]
-    }
-
-    if (is_posix) {
-      public += [ "impl/platform_client_posix.h" ]
-      sources += [
-        "impl/logging_posix.cc",
-        "impl/logging_test.h",
-        "impl/platform_client_posix.cc",
-        "impl/scoped_pipe.h",
-        "impl/socket_address_posix.cc",
-        "impl/socket_address_posix.h",
-        "impl/socket_handle_posix.cc",
-        "impl/socket_handle_posix.h",
-        "impl/socket_handle_waiter_posix.cc",
-        "impl/socket_handle_waiter_posix.h",
-        "impl/stream_socket_posix.cc",
-        "impl/stream_socket_posix.h",
-        "impl/timeval_posix.cc",
-        "impl/timeval_posix.h",
-        "impl/tls_connection_factory_posix.cc",
-        "impl/tls_connection_factory_posix.h",
-        "impl/tls_connection_posix.cc",
-        "impl/tls_connection_posix.h",
-        "impl/tls_data_router_posix.cc",
-        "impl/tls_data_router_posix.h",
-        "impl/udp_socket_posix.cc",
-        "impl/udp_socket_posix.h",
-        "impl/udp_socket_reader_posix.cc",
-        "impl/udp_socket_reader_posix.h",
-      ]
-    }
-
-    deps = [
-      ":api",
-      "../third_party/abseil",
-      "../third_party/boringssl",
-      "../util",
-    ]
-    friend = [ ":unittests" ]
+openscreen_source_set("standalone_impl") {
+  # Setting the target as testonly ensures that the standalone implementation is
+  # not included in Chromium.
+  if (build_with_chromium) {
+    testonly = true
   }
+  defines = []
+  visibility += [
+    "../cast/common:discovery_e2e_test",
+    "../cast/standalone_receiver:cast_receiver",
+    "../cast/standalone_sender:cast_sender",
+    "../cast/test:e2e_tests",
+    "../osp:osp_demo",
+    "../test:test_main",
+  ]
+  public = [
+    "impl/logging.h",
+    "impl/network_interface.h",
+    "impl/task_runner.h",
+    "impl/text_trace_logging_platform.h",
+  ]
+  sources = [
+    "impl/network_interface.cc",
+    "impl/socket_handle.h",
+    "impl/socket_handle_waiter.cc",
+    "impl/socket_handle_waiter.h",
+    "impl/socket_state.h",
+    "impl/stream_socket.h",
+    "impl/task_runner.cc",
+    "impl/text_trace_logging_platform.cc",
+    "impl/time.cc",
+    "impl/tls_write_buffer.cc",
+    "impl/tls_write_buffer.h",
+  ]
+
+  public_configs = [ "../util:trace_logging_config" ]
+
+  if (is_linux) {
+    sources += [ "impl/network_interface_linux.cc" ]
+  } else if (is_mac) {
+    defines += [
+      # Required, to use the new IPv6 Sockets options introduced by RFC 3542.
+      "__APPLE_USE_RFC_3542",
+    ]
+    sources += [ "impl/network_interface_mac.cc" ]
+  }
+
+  if (is_posix) {
+    public += [ "impl/platform_client_posix.h" ]
+    sources += [
+      "impl/logging_posix.cc",
+      "impl/logging_test.h",
+      "impl/platform_client_posix.cc",
+      "impl/scoped_pipe.h",
+      "impl/socket_address_posix.cc",
+      "impl/socket_address_posix.h",
+      "impl/socket_handle_posix.cc",
+      "impl/socket_handle_posix.h",
+      "impl/socket_handle_waiter_posix.cc",
+      "impl/socket_handle_waiter_posix.h",
+      "impl/stream_socket_posix.cc",
+      "impl/stream_socket_posix.h",
+      "impl/timeval_posix.cc",
+      "impl/timeval_posix.h",
+      "impl/tls_connection_factory_posix.cc",
+      "impl/tls_connection_factory_posix.h",
+      "impl/tls_connection_posix.cc",
+      "impl/tls_connection_posix.h",
+      "impl/tls_data_router_posix.cc",
+      "impl/tls_data_router_posix.h",
+      "impl/udp_socket_posix.cc",
+      "impl/udp_socket_posix.h",
+      "impl/udp_socket_reader_posix.cc",
+      "impl/udp_socket_reader_posix.h",
+    ]
+  }
+
+  deps = [
+    ":api",
+    "../third_party/abseil",
+    "../third_party/boringssl",
+    "../util",
+  ]
+  friend = [ ":unittests" ]
 }
 
 # The main target, which either assumes an embedder will link-in the platform
