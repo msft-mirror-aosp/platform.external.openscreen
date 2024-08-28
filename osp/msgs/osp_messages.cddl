@@ -244,8 +244,8 @@ presentation-connection-close-event = {
     connection-object-discarded: 10
     unrecoverable-error-while-sending-or-receiving-message: 100
   ) ; reason
-  ? 2: text ; error-message
-  3: uint ; connection-count
+  2: uint ; connection-count
+  ? 3: text ; error-message
 }
 
 ; type key 121
