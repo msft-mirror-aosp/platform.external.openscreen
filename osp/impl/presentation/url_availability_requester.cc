@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "osp/impl/presentation/presentation_common.h"
+#include "osp/impl/presentation/presentation_utils.h"
 #include "osp/public/network_service_manager.h"
 #include "platform/base/span.h"
 #include "util/chrono_helpers.h"
@@ -388,9 +388,7 @@ void UrlAvailabilityRequester::ReceiverRequester::OnConnectSucceed(
   // TODO(btolsch): This is one place where we need to make sure the QUIC
   // connection stays alive, even without constant traffic.
   instance_id_ = instance_id;
-  connection_ = NetworkServiceManager::Get()
-                    ->GetProtocolConnectionClient()
-                    ->CreateProtocolConnection(instance_id);
+  connection_ = CreateClientProtocolConnection(instance_id);
   ErrorOr<uint64_t> watch_id_or_error(0);
   for (auto entry = request_by_id_.begin(); entry != request_by_id_.end();) {
     if ((watch_id_or_error = SendRequest(entry->first, entry->second.urls))) {

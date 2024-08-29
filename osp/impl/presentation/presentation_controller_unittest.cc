@@ -9,6 +9,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "osp/impl/presentation/presentation_utils.h"
 #include "osp/impl/presentation/testing/mock_connection_delegate.h"
 #include "osp/impl/quic/testing/quic_test_support.h"
 #include "osp/impl/service_listener_impl.h"
@@ -139,9 +140,7 @@ class ControllerTest : public ::testing::Test {
   void SendAvailabilityResponse(
       const msgs::PresentationUrlAvailabilityResponse& response) {
     std::unique_ptr<ProtocolConnection> controller_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(controller_connection);
     ASSERT_EQ(Error::Code::kNone,
               controller_connection
@@ -152,9 +151,7 @@ class ControllerTest : public ::testing::Test {
 
   void SendStartResponse(const msgs::PresentationStartResponse& response) {
     std::unique_ptr<ProtocolConnection> protocol_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -166,9 +163,7 @@ class ControllerTest : public ::testing::Test {
   void SendAvailabilityEvent(
       const msgs::PresentationUrlAvailabilityEvent& event) {
     std::unique_ptr<ProtocolConnection> controller_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(controller_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -180,9 +175,7 @@ class ControllerTest : public ::testing::Test {
   void SendTerminationResponse(
       const msgs::PresentationTerminationResponse& response) {
     std::unique_ptr<ProtocolConnection> protocol_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection
@@ -193,9 +186,7 @@ class ControllerTest : public ::testing::Test {
 
   void SendTerminationEvent(const msgs::PresentationTerminationEvent& event) {
     std::unique_ptr<ProtocolConnection> protocol_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(
         Error::Code::kNone,
@@ -229,9 +220,7 @@ class ControllerTest : public ::testing::Test {
   void SendCloseResponse(
       const msgs::PresentationConnectionCloseResponse& response) {
     std::unique_ptr<ProtocolConnection> protocol_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection
@@ -243,9 +232,7 @@ class ControllerTest : public ::testing::Test {
   void SendOpenResponse(
       const msgs::PresentationConnectionOpenResponse& response) {
     std::unique_ptr<ProtocolConnection> protocol_connection =
-        NetworkServiceManager::Get()
-            ->GetProtocolConnectionServer()
-            ->CreateProtocolConnection(controller_instance_id_);
+        CreateServerProtocolConnection(controller_instance_id_);
     ASSERT_TRUE(protocol_connection);
     ASSERT_EQ(Error::Code::kNone,
               protocol_connection

@@ -8,6 +8,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "osp/impl/presentation/presentation_utils.h"
 #include "osp/impl/presentation/testing/mock_connection_delegate.h"
 #include "osp/impl/quic/quic_client.h"
 #include "osp/impl/quic/quic_server.h"
@@ -78,9 +79,7 @@ class PresentationReceiverTest : public ::testing::Test {
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
         .WillOnce([&stream](uint64_t request_id, uint64_t instance_id) {
-          stream = NetworkServiceManager::Get()
-                       ->GetProtocolConnectionClient()
-                       ->CreateProtocolConnection(instance_id);
+          stream = CreateClientProtocolConnection(instance_id);
         });
     quic_bridge_.RunTasksUntilIdle();
     return stream;

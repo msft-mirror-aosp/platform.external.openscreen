@@ -8,6 +8,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "osp/impl/presentation/presentation_utils.h"
 #include "osp/impl/presentation/testing/mock_connection_delegate.h"
 #include "osp/impl/quic/testing/fake_quic_connection.h"
 #include "osp/impl/quic/testing/fake_quic_connection_factory.h"
@@ -26,10 +27,10 @@ using ::testing::NiceMock;
 
 namespace {
 
-class MockParentDelegate : public Connection::ParentDelegate {
+class MockController : public Connection::Controller {
  public:
-  MockParentDelegate() = default;
-  ~MockParentDelegate() override = default;
+  MockController() = default;
+  ~MockController() override = default;
 
   MOCK_METHOD2(CloseConnection, Error(Connection*, Connection::CloseReason));
   MOCK_METHOD3(OnPresentationTerminated,
@@ -81,8 +82,8 @@ class ConnectionTest : public ::testing::Test {
   FakeQuicBridge quic_bridge_;
   ConnectionManager controller_connection_manager_;
   ConnectionManager receiver_connection_manager_;
-  NiceMock<MockParentDelegate> mock_controller_;
-  NiceMock<MockParentDelegate> mock_receiver_;
+  NiceMock<MockController> mock_controller_;
+  NiceMock<MockController> mock_receiver_;
 };
 
 TEST_F(ConnectionTest, ConnectAndSend) {
@@ -140,9 +141,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
       .WillOnce(Invoke(
           [&controller_stream](uint64_t request_id, uint64_t instance_id) {
-            controller_stream = NetworkServiceManager::Get()
-                                    ->GetProtocolConnectionClient()
-                                    ->CreateProtocolConnection(instance_id);
+            controller_stream = CreateClientProtocolConnection(instance_id);
           }));
 
   EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))

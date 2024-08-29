@@ -1,33 +1,14 @@
-// Copyright 2019 The Chromium Authors
+// Copyright 2024 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "osp/impl/presentation/presentation_common.h"
+#include "osp/impl/presentation/presentation_id.h"
 
 #include <utility>
 
 #include "util/string_util.h"
 
 namespace openscreen::osp {
-
-std::unique_ptr<ProtocolConnection> GetProtocolConnection(
-    uint64_t instance_id) {
-  return NetworkServiceManager::Get()
-      ->GetProtocolConnectionServer()
-      ->CreateProtocolConnection(instance_id);
-}
-
-MessageDemuxer& GetServerDemuxer() {
-  return NetworkServiceManager::Get()
-      ->GetProtocolConnectionServer()
-      ->GetMessageDemuxer();
-}
-
-MessageDemuxer& GetClientDemuxer() {
-  return NetworkServiceManager::Get()
-      ->GetProtocolConnectionClient()
-      ->GetMessageDemuxer();
-}
 
 PresentationID::PresentationID(std::string presentation_id)
     : id_(Error::Code::kParseError) {
@@ -42,5 +23,7 @@ PresentationID::PresentationID(std::string presentation_id)
     id_ = std::move(presentation_id);
   }
 }
+
+PresentationID::~PresentationID() = default;
 
 }  // namespace openscreen::osp
