@@ -339,7 +339,7 @@ bool AnalyzeGroupEntry(CddlSymbolTable* table,
                        CddlGroup::Entry* entry);
 
 CddlGroup* AnalyzeGroup(CddlSymbolTable* table, const AstNode& group) {
-  // NOTE: |group.children| is a grpchoice, which we don't currently handle.
+  // NOTE: `group.children` is a grpchoice, which we don't currently handle.
   // Therefore, we assume it has no siblings and move on to immediately handling
   // its grpent children.
   const AstNode* node = group.children->children;

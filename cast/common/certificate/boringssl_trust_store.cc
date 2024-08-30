@@ -76,12 +76,12 @@ constexpr static int32_t kMinRsaModulusLengthBits = 2048;
 struct CertPathStep {
   X509* cert;
 
-  // The next index that can be checked in |trust_store| if the choice |cert| on
+  // The next index that can be checked in `trust_store` if the choice `cert` on
   // the path needs to be reverted.
   uint32_t trust_store_index;
 
-  // The next index that can be checked in |intermediate_certs| if the choice
-  // |cert| on the path needs to be reverted.
+  // The next index that can be checked in `intermediate_certs` if the choice
+  // `cert` on the path needs to be reverted.
   uint32_t intermediate_cert_index;
 };
 
@@ -105,7 +105,7 @@ bool CertInPath(X509_NAME* name,
 }
 
 bssl::UniquePtr<BASIC_CONSTRAINTS> GetConstraints(X509* issuer) {
-  // TODO(davidben): This and other |X509_get_ext_d2i| are missing
+  // TODO(davidben): This and other `X509_get_ext_d2i` are missing
   // error-handling for syntax errors in certificates. See BoringSSL
   // documentation for the calling convention.
   return bssl::UniquePtr<BASIC_CONSTRAINTS>{
@@ -432,15 +432,15 @@ BoringSSLTrustStore::FindCertificatePath(
   uint32_t first_index = path.size() - 1;
   path[first_index].cert = path_head;
 
-  // Index into |path| of the current frontier of path construction.
+  // Index into `path` of the current frontier of path construction.
   uint32_t path_index = first_index;
 
-  // Whether |path| has reached a certificate in |trust_store| and is ready for
+  // Whether `path` has reached a certificate in `trust_store` and is ready for
   // verification.
   bool path_cert_in_trust_store = false;
 
-  // Attempt to build a valid certificate chain from |target_cert| to a
-  // certificate in |trust_store|.  This loop tries all possible paths in a
+  // Attempt to build a valid certificate chain from `target_cert` to a
+  // certificate in `trust_store`.  This loop tries all possible paths in a
   // depth-first-search fashion.  If no valid paths are found, the error
   // returned is whatever the last error was from the last path tried.
   uint32_t trust_store_index = 0;

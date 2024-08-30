@@ -42,7 +42,7 @@ struct DefaultRequestCoderTraits {
 };
 
 // Provides a wrapper for the common pattern of sending a request message and
-// waiting for a response message with a matching |request_id| field.  It also
+// waiting for a response message with a matching `request_id` field.  It also
 // handles the business of queueing messages to be sent until a protocol
 // connection is available.
 //
@@ -83,7 +83,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   }
 
   // Write a message to the underlying protocol connection, or queue it until
-  // one is provided via SetConnection.  If |id| is provided, it can be used to
+  // one is provided via SetConnection.  If `id` is provided, it can be used to
   // cancel the message via CancelMessage.
   template <typename RequestTRval>
   typename std::enable_if<
@@ -118,7 +118,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
     return WriteMessage(std::nullopt, std::move(message));
   }
 
-  // Remove the message that was originally written with |id| from the send and
+  // Remove the message that was originally written with `id` from the send and
   // sent queues so that we are no longer looking for a response.
   void CancelMessage(uint64_t id) {
     to_send_.erase(std::remove_if(to_send_.begin(), to_send_.end(),

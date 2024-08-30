@@ -35,7 +35,7 @@ class RSAPrivateKey {
       const std::vector<uint8_t>& input);
 
   // Create a new instance from an existing EVP_PKEY, taking a
-  // reference to it. |key| must be an RSA key.
+  // reference to it. `key` must be an RSA key.
   static ErrorOr<RSAPrivateKey> CreateFromKey(EVP_PKEY* key);
 
   // Creates a copy of the object.

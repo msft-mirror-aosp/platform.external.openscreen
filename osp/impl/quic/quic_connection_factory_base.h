@@ -26,7 +26,7 @@ class QuicConnectionFactoryBase : public UdpSocket::Client {
  public:
   struct OpenConnection {
     QuicConnection* connection = nullptr;
-    UdpSocket* socket = nullptr;  // References one of the owned |sockets_|.
+    UdpSocket* socket = nullptr;  // References one of the owned `sockets_`.
   };
 
   explicit QuicConnectionFactoryBase(TaskRunner& task_runner);

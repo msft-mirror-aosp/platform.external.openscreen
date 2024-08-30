@@ -637,7 +637,7 @@ TEST_F(SenderSessionTest, SuccessfulGetCapabilitiesRequest) {
       .WillOnce(testing::SaveArg<1>(&capabilities));
   message_port_->ReceiveMessage(kCapabilitiesResponse);
 
-  // The capabilities should match the values in |kCapabilitiesResponse|.
+  // The capabilities should match the values in `kCapabilitiesResponse`.
   EXPECT_THAT(capabilities.audio,
               testing::ElementsAre(AudioCapability::kBaselineSet,
                                    AudioCapability::kAac));

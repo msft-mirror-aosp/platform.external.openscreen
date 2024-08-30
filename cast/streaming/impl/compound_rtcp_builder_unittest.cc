@@ -35,9 +35,9 @@ class CompoundRtcpBuilderTest : public testing::Test {
   StrictMock<MockCompoundRtcpParserClient>* client() { return &client_; }
   CompoundRtcpParser* parser() { return &parser_; }
 
-  // Return |timestamp| converted to the NtpTimestamp wire format and then
+  // Return `timestamp` converted to the NtpTimestamp wire format and then
   // converted back to the local Clock's time_point. The result will be either
-  // exactly equal to |original|, or one tick off from it due to the lossy
+  // exactly equal to `original`, or one tick off from it due to the lossy
   // conversions.
   Clock::time_point ViaNtpTimestampTranslation(
       Clock::time_point timestamp) const {

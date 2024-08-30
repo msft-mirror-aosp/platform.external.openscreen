@@ -188,7 +188,7 @@ class MockSender : public CompoundRtcpParser::Client {
   }
 
   // Returns a vector containing each packet ID once (of the current frame being
-  // sent). |permutation| controls the sort order of the vector: zero will
+  // sent). `permutation` controls the sort order of the vector: zero will
   // provide all the packet IDs in order, and greater values will provide them
   // in a different, predictable order.
   std::vector<FramePacketId> GetAllPacketIds(int permutation) {
@@ -318,7 +318,7 @@ class ReceiverTest : public testing::Test {
   }
 
   // Consume one frame from the Receiver, and verify that it is the same as the
-  // |sent_frame|. Exception: The |reference_time| is the playout time on the
+  // `sent_frame`. Exception: The `reference_time` is the playout time on the
   // Receiver's end, while it refers to the capture time on the Sender's end.
   void ConsumeAndVerifyFrame(const SimulatedFrame& sent_frame) {
     SCOPED_TRACE(testing::Message() << "for frame " << sent_frame.frame_id);

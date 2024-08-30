@@ -81,7 +81,7 @@ class QuicClient final : public ProtocolConnectionClient,
     std::string auth_token;
 
     // The network endpoints to create a new connection to the Open Screen
-    // service. At least one of them is valid and use |v4_endpoint| first if it
+    // service. At least one of them is valid and use `v4_endpoint` first if it
     // is valid.
     IPEndpoint v4_endpoint;
     IPEndpoint v6_endpoint;

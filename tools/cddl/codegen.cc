@@ -66,8 +66,8 @@ std::string ToCamelCase(const std::string& x) {
   return result;
 }
 
-// Returns a string which represents the C++ type of |cpp_type|.  Returns an
-// empty string if there is no valid representation for |cpp_type| (e.g. a
+// Returns a string which represents the C++ type of `cpp_type`.  Returns an
+// empty string if there is no valid representation for `cpp_type` (e.g. a
 // vector with an invalid element type).
 std::string CppTypeToString(const CppType& cpp_type) {
   switch (cpp_type.which) {
@@ -293,8 +293,8 @@ bool WriteStructEqualityOperator(int fd,
   return true;
 }
 
-// Write the C++ struct member definitions of every type in |members| to the
-// file descriptor |fd|.
+// Write the C++ struct member definitions of every type in `members` to the
+// file descriptor `fd`.
 bool WriteStructMembers(
     int fd,
     const std::string& name,
@@ -416,7 +416,7 @@ void WriteEnumMembers(int fd, const CppType& type) {
   }
 }
 
-// Writes a C++ type definition for |type| to the file descriptor |fd|.  This
+// Writes a C++ type definition for `type` to the file descriptor `fd`.  This
 // only generates a definition for enums and structs.
 bool WriteTypeDefinition(int fd, const CppType& type) {
   std::string name = ToCamelCase(type.name);
@@ -446,12 +446,12 @@ bool WriteTypeDefinition(int fd, const CppType& type) {
   return true;
 }
 
-// Ensures that any dependencies within |cpp_type| are written to the file
-// descriptor |fd| before writing |cpp_type| to the file descriptor |fd|.  This
-// is done by walking the tree of types defined by |cpp_type| (e.g. all the
-// members for a struct).  |defs| contains the names of types that have already
+// Ensures that any dependencies within `cpp_type` are written to the file
+// descriptor `fd` before writing `cpp_type` to the file descriptor `fd`.  This
+// is done by walking the tree of types defined by `cpp_type` (e.g. all the
+// members for a struct).  `defs` contains the names of types that have already
 // been written.  If a type hasn't been written and needs to be, its name will
-// also be added to |defs|.
+// also be added to `defs`.
 bool EnsureDependentTypeDefinitionsWritten(int fd,
                                            const CppType& cpp_type,
                                            std::set<std::string>* defs) {
@@ -502,10 +502,10 @@ bool EnsureDependentTypeDefinitionsWritten(int fd,
   return true;
 }
 
-// Writes the type definition for every C++ type in |table|.  This function
+// Writes the type definition for every C++ type in `table`.  This function
 // makes sure to write them in such an order that all type dependencies are
 // written before they are need so the resulting text in the file descriptor
-// |fd| will compile without modification.  For example, the following would be
+// `fd` will compile without modification.  For example, the following would be
 // bad output:
 //
 // struct Foo {
@@ -558,7 +558,7 @@ bool WriteTypeParserDefinition(int fd, CppSymbolTable* table) {
 }
 
 // Writes the function prototypes for the encode and decode functions for each
-// type in |table| to the file descriptor |fd|.
+// type in `table` to the file descriptor `fd`.
 bool WriteFunctionDeclarations(int fd, CppSymbolTable* table) {
   for (CppType* real_type : table->TypesWithId()) {
     const auto& name = real_type->name;
@@ -592,10 +592,10 @@ bool WriteArrayEncoder(int fd,
                        const std::string& nested_type_scope,
                        int encoder_depth = 1);
 
-// Writes the encoding function for the C++ type |cpp_type| to the file
-// descriptor |fd|.  |name| is the C++ variable name that needs to be encoded.
-// |nested_type_scope| is the closest C++ scope name (i.e. struct name), which
-// may be used to access local enum constants.  |encoder_depth| is used to
+// Writes the encoding function for the C++ type `cpp_type` to the file
+// descriptor `fd`.  `name` is the C++ variable name that needs to be encoded.
+// `nested_type_scope` is the closest C++ scope name (i.e. struct name), which
+// may be used to access local enum constants.  `encoder_depth` is used to
 // independently name independent cbor encoders that need to be created.
 bool WriteEncoder(int fd,
                   const std::string& name,
@@ -859,10 +859,10 @@ MemberCountResult CountMemberTypes(
 }
 
 // Writes the encoding function for a CBOR map with the C++ type members in
-// |members| to the file descriptor |fd|.  |name| is the C++ variable name that
-// needs to be encoded.  |nested_type_scope| is the closest C++ scope name (i.e.
+// `members` to the file descriptor `fd`.  `name` is the C++ variable name that
+// needs to be encoded.  `nested_type_scope` is the closest C++ scope name (i.e.
 // struct name), which may be used to access local enum constants.
-// |encoder_depth| is used to independently name independent cbor encoders that
+// `encoder_depth` is used to independently name independent cbor encoders that
 // need to be created.
 bool WriteMapEncoder(int fd,
                      const std::string& name,
@@ -932,10 +932,10 @@ bool WriteMapEncoder(int fd,
 }
 
 // Writes the encoding function for a CBOR array with the C++ type members in
-// |members| to the file descriptor |fd|.  |name| is the C++ variable name that
-// needs to be encoded.  |nested_type_scope| is the closest C++ scope name (i.e.
+// `members` to the file descriptor `fd`.  `name` is the C++ variable name that
+// needs to be encoded.  `nested_type_scope` is the closest C++ scope name (i.e.
 // struct name), which may be used to access local enum constants.
-// |encoder_depth| is used to independently name independent cbor encoders that
+// `encoder_depth` is used to independently name independent cbor encoders that
 // need to be created.
 bool WriteArrayEncoder(int fd,
                        const std::string& name,
@@ -1031,8 +1031,8 @@ std::string GetEncodedTypeKey(const CppType& type) {
   return ss.str();
 }
 
-// Writes encoding functions for each type in |table| to the file descriptor
-// |fd|.
+// Writes encoding functions for each type in `table` to the file descriptor
+// `fd`.
 bool WriteEncoders(int fd, CppSymbolTable* table) {
   for (CppType* real_type : table->TypesWithId()) {
     const auto& name = real_type->name;
@@ -1173,10 +1173,10 @@ bool WriteArrayDecoder(int fd,
                        int decoder_depth,
                        int* temporary_count);
 
-// Writes the decoding function for the C++ type |cpp_type| to the file
-// descriptor |fd|.  |name| is the C++ variable name that needs to be decoded.
-// |decoder_depth| is used to independently name independent cbor
-// decoders that need to be created.  |temporary_count| is used to ensure
+// Writes the decoding function for the C++ type `cpp_type` to the file
+// descriptor `fd`.  `name` is the C++ variable name that needs to be decoded.
+// `decoder_depth` is used to independently name independent cbor
+// decoders that need to be created.  `temporary_count` is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteDecoder(int fd,
@@ -1473,10 +1473,10 @@ bool WriteDecoder(int fd,
   return false;
 }
 
-// Writes the decoding function for the CBOR map with members in |members| to
-// the file descriptor |fd|.  |name| is the C++ variable name that needs to be
-// decoded.  |decoder_depth| is used to independently name independent
-// cbor decoders that need to be created.  |temporary_count| is used to ensure
+// Writes the decoding function for the CBOR map with members in `members` to
+// the file descriptor `fd`.  `name` is the C++ variable name that needs to be
+// decoded.  `decoder_depth` is used to independently name independent
+// cbor decoders that need to be created.  `temporary_count` is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteMapDecoder(int fd,
@@ -1565,10 +1565,10 @@ bool WriteMapDecoder(int fd,
   return true;
 }
 
-// Writes the decoding function for the CBOR array with members in |members| to
-// the file descriptor |fd|.  |name| is the C++ variable name that needs to be
-// decoded.  |decoder_depth| is used to independently name independent
-// cbor decoders that need to be created.  |temporary_count| is used to ensure
+// Writes the decoding function for the CBOR array with members in `members` to
+// the file descriptor `fd`.  `name` is the C++ variable name that needs to be
+// decoded.  `decoder_depth` is used to independently name independent
+// cbor decoders that need to be created.  `temporary_count` is used to ensure
 // temporaries get unique names by appending an automatically incremented
 // integer.
 bool WriteArrayDecoder(int fd,
@@ -1655,8 +1655,8 @@ bool WriteEqualityOperators(int fd, CppSymbolTable* table) {
   return true;
 }
 
-// Writes a decoder function definition for every type in |table| to the file
-// descriptor |fd|.
+// Writes a decoder function definition for every type in `table` to the file
+// descriptor `fd`.
 bool WriteDecoders(int fd, CppSymbolTable* table) {
   if (!WriteTypeParserDefinition(fd, table)) {
     return false;
@@ -1700,7 +1700,7 @@ bool WriteDecoders(int fd, CppSymbolTable* table) {
   return true;
 }
 
-// Converts the filename |header_filename| to a preprocessor token that can be
+// Converts the filename `header_filename` to a preprocessor token that can be
 // used as a header guard macro name.
 std::string ToHeaderGuard(const std::string& header_filename) {
   std::string result = header_filename;

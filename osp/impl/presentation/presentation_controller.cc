@@ -135,7 +135,7 @@ uint64_t Controller::MessageGroupStreams::SendStartRequest(
 }
 
 void Controller::MessageGroupStreams::CancelStartRequest(uint64_t request_id) {
-  // TODO(btolsch): Instead, mark the |request_id| for immediate termination if
+  // TODO(btolsch): Instead, mark the `request_id` for immediate termination if
   // we get a successful response.
   initiation_handler_.CancelMessage(request_id);
 }

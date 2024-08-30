@@ -374,7 +374,7 @@ struct CommandLineSplit {
 
 CommandLineSplit SeparateCommandFromArguments(const std::string& line) {
   size_t split_index = line.find_first_of(' ');
-  // NOTE: |split_index| can be std::string::npos because not all commands
+  // NOTE: `split_index` can be std::string::npos because not all commands
   // accept arguments.
   std::string command = line.substr(0, split_index);
   std::string argument_tail =

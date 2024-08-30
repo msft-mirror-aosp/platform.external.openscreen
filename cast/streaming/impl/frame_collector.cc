@@ -85,7 +85,7 @@ bool FrameCollector::CollectRtpPacket(const RtpPacketParser::ParseResult& part,
     frame_.new_playout_delay = part.new_playout_delay;
   }
 
-  // Take ownership of the contents of the |buffer| (no copy!), and record the
+  // Take ownership of the contents of the `buffer` (no copy!), and record the
   // region of the buffer containing the payload data. The payload region is
   // usually all but the first few dozen bytes of the buffer.
   PayloadChunk& chunk = chunks_[part.packet_id];

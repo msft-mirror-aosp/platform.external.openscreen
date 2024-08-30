@@ -84,7 +84,7 @@ usage: %s <options> addr[:port] media_file
                             kDefaultCastPort, kDefaultMaxBitrate);
 }
 
-// Attempts to parse |string_form| into an IPEndpoint. The format is a
+// Attempts to parse `string_form` into an IPEndpoint. The format is a
 // standard-format IPv4 or IPv6 address followed by an optional colon and port.
 // If the port is not provided, kDefaultCastPort is assumed.
 //
@@ -229,7 +229,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
     }
   }
 
-  // |cast_agent| must be constructed and destroyed from a Task run by the
+  // `cast_agent` must be constructed and destroyed from a Task run by the
   // TaskRunner.
   LoopingFileCastAgent* cast_agent = nullptr;
   task_runner->PostTask([&] {
@@ -251,7 +251,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   // SIGTERM are signaled.
   task_runner->RunUntilSignaled();
 
-  // Spin the TaskRunner to destroy the |cast_agent| and execute any lingering
+  // Spin the TaskRunner to destroy the `cast_agent` and execute any lingering
   // destruction/shutdown tasks.
   OSP_LOG_INFO << "Shutting down...";
   task_runner->PostTask([&] {

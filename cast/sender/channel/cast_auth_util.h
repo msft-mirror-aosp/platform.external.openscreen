@@ -35,7 +35,7 @@ class AuthContext {
   static AuthContext CreateForTest(const std::string& nonce_data);
 
   // Verifies the nonce received in the response is equivalent to the one sent.
-  // Returns success if |nonce_response| matches nonce_
+  // Returns success if `nonce_response` matches nonce_
   Error VerifySenderNonce(const std::string& nonce_response,
                           bool enforce_nonce_checking = false) const;
 
@@ -48,7 +48,7 @@ class AuthContext {
   const std::string nonce_;
 };
 
-// Authenticates the given |challenge_reply|:
+// Authenticates the given `challenge_reply`:
 // 1. Signature contained in the reply is valid.
 // 2. certificate used to sign is rooted to a trusted CA.
 ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReply(
@@ -76,8 +76,8 @@ Error VerifyTLSCertificateValidity(const ParsedCertificate& peer_cert,
                                    std::chrono::seconds verification_time);
 
 // Auth-library specific implementation of cryptographic signature verification
-// routines. Verifies that |response| contains a valid signature of
-// |signature_input|.
+// routines. Verifies that `response` contains a valid signature of
+// `signature_input`.
 ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
     const proto::AuthResponse& response,
     const std::vector<uint8_t>& signature_input,

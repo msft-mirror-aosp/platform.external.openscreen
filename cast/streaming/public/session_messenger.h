@@ -91,7 +91,7 @@ class SenderSessionMessenger final : public SessionMessenger {
  private:
   TaskRunner& task_runner_;
 
-  // This messenger should only be connected to one receiver, so |receiver_id_|
+  // This messenger should only be connected to one receiver, so `receiver_id_`
   // should not change.
   const std::string receiver_id_;
 

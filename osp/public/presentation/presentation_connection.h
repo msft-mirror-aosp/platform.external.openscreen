@@ -105,7 +105,7 @@ class Connection {
     std::string url;
   };
 
-  // Constructs a new connection using |delegate| for callbacks.
+  // Constructs a new connection using `delegate` for callbacks.
   Connection(const PresentationInfo& info,
              Delegate* delegate,
              Controller* controller);

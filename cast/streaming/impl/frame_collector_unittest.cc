@@ -25,7 +25,7 @@ const FrameId kSomeFrameId = FrameId::first() + 39;
 constexpr RtpTimeTicks kSomeRtpTimestamp =
     RtpTimeTicks() + RtpTimeDelta::FromTicks(90000);
 
-// Convenience macro to check that the |collector| generates an expected set of
+// Convenience macro to check that the `collector` generates an expected set of
 // NACKs.
 #define EXPECT_HAS_NACKS(expected_nacks, collector) \
   do {                                              \
@@ -56,7 +56,7 @@ TEST(FrameCollectorTest, CollectsFrameWithOnlyOnePart) {
     part.max_packet_id = 0;
     if (i == 0) {
       part.is_key_frame = true;
-      // Do not set |part.new_playout_delay|.
+      // Do not set `part.new_playout_delay`.
     } else {
       part.is_key_frame = false;
       part.new_playout_delay = std::chrono::milliseconds(800);

@@ -25,7 +25,7 @@ enum : NetworkInterfaceIndex { kInvalidNetworkInterfaceIndex = -1 };
 struct IPSubnet {
   IPAddress address;
 
-  // Prefix length of |address|, which is another way of specifying a subnet
+  // Prefix length of `address`, which is another way of specifying a subnet
   // mask. For example, 192.168.0.10/24 is a common representation of the
   // address 192.168.0.10 with a 24-bit prefix (this describes a range of IPv4
   // addresses from 192.168.0.0 through 192.168.0.255). Likewise, for IPv6
@@ -63,7 +63,7 @@ struct InterfaceInfo {
   IPAddress GetIpAddressV4() const;
   IPAddress GetIpAddressV6() const;
 
-  // Returns true if |hardware_address| is non-zero.
+  // Returns true if `hardware_address` is non-zero.
   bool HasHardwareAddress() const;
 
   InterfaceInfo();

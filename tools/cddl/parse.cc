@@ -229,7 +229,7 @@ AstNode* ParseBytes(Parser* p) {
   return nullptr;
 }
 
-// Returns whether |c| could be the first character in a valid "value" string.
+// Returns whether `c` could be the first character in a valid "value" string.
 // This is not a guarantee however, since 'h' and 'b' could also indicate the
 // start of an ID, but value needs to be tried first.
 bool IsValue(char c) {

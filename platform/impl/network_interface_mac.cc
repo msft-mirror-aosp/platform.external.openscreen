@@ -29,7 +29,7 @@ namespace openscreen {
 
 namespace {
 
-// Assuming |netmask| consists of 0 to N*8 leftmost bits set followed by all
+// Assuming `netmask` consists of 0 to N*8 leftmost bits set followed by all
 // unset bits, return the number of leftmost bits set. This also sanity-checks
 // that there are no "holes" in the bit pattern, returning 0 if that check
 // fails.
@@ -70,7 +70,7 @@ std::vector<InterfaceInfo> ProcessInterfacesList(ifaddrs* interfaces) {
   // Socket used for querying interface media types.
   const ScopedFd ioctl_socket(socket(AF_INET6, SOCK_DGRAM, 0));
 
-  // Walk the |interfaces| linked list, creating the hierarchical structure.
+  // Walk the `interfaces` linked list, creating the hierarchical structure.
   std::vector<InterfaceInfo> results;
   for (ifaddrs* cur = interfaces; cur; cur = cur->ifa_next) {
     // Skip: 1) interfaces that are down, 2) interfaces with no address
@@ -80,7 +80,7 @@ std::vector<InterfaceInfo> ProcessInterfacesList(ifaddrs* interfaces) {
     }
 
     // Look-up the InterfaceInfo entry by name. Auto-create a new one if none by
-    // the current name exists in |results|.
+    // the current name exists in `results`.
     const std::string name = cur->ifa_name;
     const auto it = std::find_if(
         results.begin(), results.end(),

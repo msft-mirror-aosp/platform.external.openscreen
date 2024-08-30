@@ -41,15 +41,15 @@ class ServiceListenerImpl final
     ServiceListenerImpl* listener_ = nullptr;
   };
 
-  // |delegate| is used to implement state transitions.
+  // `delegate` is used to implement state transitions.
   explicit ServiceListenerImpl(std::unique_ptr<Delegate> delegate);
   ~ServiceListenerImpl() override;
 
-  // OnReceiverUpdated is called by |delegate_| when there are updates to the
+  // OnReceiverUpdated is called by `delegate_` when there are updates to the
   // available receivers.
   void OnReceiverUpdated(const std::vector<ServiceInfo>& new_receivers);
 
-  // Called by |delegate_| when an internal error occurs.
+  // Called by `delegate_` when an internal error occurs.
   void OnError(const Error& error);
 
   // ServiceListener overrides.
@@ -74,11 +74,11 @@ class ServiceListenerImpl final
   void OnReceiverRemoved(const ServiceInfo& info);
   void OnAllReceiversRemoved();
 
-  // Called by |delegate_| to transition the state machine (except kStarting and
+  // Called by `delegate_` to transition the state machine (except kStarting and
   // kStopping which are done automatically).
   void SetState(State state);
 
-  // Notifies each observer in |observers_| if the transition to |state_| is one
+  // Notifies each observer in `observers_` if the transition to `state_` is one
   // that is watched by the observer interface.
   void MaybeNotifyObservers();
 

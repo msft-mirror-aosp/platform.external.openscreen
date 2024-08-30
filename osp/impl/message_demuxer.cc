@@ -274,7 +274,7 @@ MessageDemuxer::HandleStreamBufferResult MessageDemuxer::HandleStreamBufferLoop(
 }
 
 // TODO(issuetracker.google.com/281741443): Use openscreen::Span for the
-// |buffer|.
+// `buffer`.
 MessageDemuxer::HandleStreamBufferResult MessageDemuxer::HandleStreamBuffer(
     uint64_t instance_id,
     uint64_t connection_id,

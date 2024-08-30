@@ -18,7 +18,7 @@
 namespace openscreen::cast {
 namespace message_serialization {
 
-// Serializes |message_proto| into |message_data|.
+// Serializes `message_proto` into `message_data`.
 // Returns true if the message was serialized successfully, false otherwise.
 ErrorOr<std::vector<uint8_t>> Serialize(const proto::CastMessage& message);
 
@@ -27,10 +27,10 @@ struct DeserializeResult {
   size_t length;
 };
 
-// Reads bytes from |input| and returns a new CastMessage if one is fully
+// Reads bytes from `input` and returns a new CastMessage if one is fully
 // read.  Returns a parsed CastMessage if a message was received in its
 // entirety, and an error otherwise.  The result also contains the number of
-// bytes consumed from |input| when a parse succeeds.
+// bytes consumed from `input` when a parse succeeds.
 ErrorOr<DeserializeResult> TryDeserialize(ByteView input);
 
 }  // namespace message_serialization
