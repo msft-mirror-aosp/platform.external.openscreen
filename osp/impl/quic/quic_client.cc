@@ -14,18 +14,18 @@ namespace openscreen::osp {
 
 QuicClient::QuicClient(
     const ServiceConfig& config,
-    MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
-    TaskRunner& task_runner)
+    TaskRunner& task_runner,
+    size_t buffer_limit)
     : QuicServiceBase(config,
-                      demuxer,
                       std::move(connection_factory),
                       observer,
                       InstanceRequestIds::Role::kClient,
                       now_function,
-                      task_runner) {}
+                      task_runner,
+                      buffer_limit) {}
 
 QuicClient::~QuicClient() = default;
 

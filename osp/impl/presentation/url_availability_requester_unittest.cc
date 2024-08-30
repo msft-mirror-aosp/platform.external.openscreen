@@ -58,24 +58,20 @@ class UrlAvailabilityRequesterTest : public Test {
   }
 
   void SetUp() override {
-    NetworkServiceManager::Create(nullptr, nullptr,
-                                  std::move(quic_bridge_.quic_client),
-                                  std::move(quic_bridge_.quic_server));
+    quic_bridge_.CreateNetworkServiceManager(nullptr, nullptr);
     availability_watch_ =
-        quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+        quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
             msgs::Type::kPresentationUrlAvailabilityRequest, &mock_callback_);
   }
 
-  void TearDown() override {
-    availability_watch_.Reset();
-    NetworkServiceManager::Dispose();
-  }
+  void TearDown() override { availability_watch_.Reset(); }
 
  protected:
   std::unique_ptr<ProtocolConnection> ExpectIncomingConnection() {
     std::unique_ptr<ProtocolConnection> stream;
 
-    EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
+    EXPECT_CALL(quic_bridge_.mock_server_observer(),
+                OnIncomingConnectionMock(_))
         .WillOnce(
             Invoke([&stream](std::unique_ptr<ProtocolConnection>& connection) {
               stream = std::move(connection);

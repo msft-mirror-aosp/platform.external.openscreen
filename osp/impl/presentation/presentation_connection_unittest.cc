@@ -55,17 +55,13 @@ class ConnectionTest : public ::testing::Test {
       : fake_clock_(Clock::time_point(std::chrono::milliseconds(1298424))),
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now),
-        controller_connection_manager_(*quic_bridge_.controller_demuxer),
-        receiver_connection_manager_(*quic_bridge_.receiver_demuxer) {}
+        controller_connection_manager_(quic_bridge_.GetControllerDemuxer()),
+        receiver_connection_manager_(quic_bridge_.GetReceiverDemuxer()) {}
 
  protected:
   void SetUp() override {
-    NetworkServiceManager::Create(nullptr, nullptr,
-                                  std::move(quic_bridge_.quic_client),
-                                  std::move(quic_bridge_.quic_server));
+    quic_bridge_.CreateNetworkServiceManager(nullptr, nullptr);
   }
-
-  void TearDown() override { NetworkServiceManager::Dispose(); }
 
   std::string MakeEchoResponse(const std::string& message) {
     return std::string("echo: ") + message;
@@ -135,8 +131,8 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   ConnectRequest request;
   std::unique_ptr<ProtocolConnection> controller_stream;
   std::unique_ptr<ProtocolConnection> receiver_stream;
-  NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-      quic_bridge_.kInstanceName, request, &mock_connect_request_callback);
+  quic_bridge_.GetQuicClient()->Connect(quic_bridge_.kInstanceName, request,
+                                        &mock_connect_request_callback);
   EXPECT_TRUE(request);
   EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
       .WillOnce(Invoke(
@@ -144,7 +140,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
             controller_stream = CreateClientProtocolConnection(instance_id);
           }));
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnIncomingConnectionMock(_))
       .WillOnce(testing::WithArgs<0>(testing::Invoke(
           [&receiver_stream](std::unique_ptr<ProtocolConnection>& connection) {
             receiver_stream = std::move(connection);

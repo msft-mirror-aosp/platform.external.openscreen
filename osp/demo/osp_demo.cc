@@ -477,11 +477,11 @@ void ListenerDemo() {
   OSP_LOG_IF(WARN, listener_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS Listening.";
 
-  MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionClientObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
-      client_config, demuxer, client_observer,
-      PlatformClientPosix::GetInstance()->GetTaskRunner());
+      client_config, client_observer,
+      PlatformClientPosix::GetInstance()->GetTaskRunner(),
+      MessageDemuxer::kDefaultBufferLimit);
 
   DemoListenerObserver listener_observer;
   auto service_listener = ServiceListenerFactory::Create(
@@ -584,11 +584,11 @@ void PublisherDemo(std::string_view friendly_name) {
   OSP_LOG_IF(WARN, publisher_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS publishing.";
 
-  MessageDemuxer demuxer(Clock::now, MessageDemuxer::kDefaultBufferLimit);
   DemoConnectionServerObserver server_observer;
   auto connection_server = ProtocolConnectionServerFactory::Create(
-      server_config, demuxer, server_observer,
-      PlatformClientPosix::GetInstance()->GetTaskRunner());
+      server_config, server_observer,
+      PlatformClientPosix::GetInstance()->GetTaskRunner(),
+      MessageDemuxer::kDefaultBufferLimit);
 
   publisher_config.fingerprint = connection_server->GetAgentFingerprint();
   OSP_CHECK(!publisher_config.fingerprint.empty());

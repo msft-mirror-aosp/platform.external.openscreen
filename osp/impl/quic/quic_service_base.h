@@ -38,12 +38,12 @@ class QuicServiceBase : public QuicConnection::Delegate,
   static QuicAgentCertificate& GetAgentCertificate();
 
   QuicServiceBase(const ServiceConfig& config,
-                  MessageDemuxer& demuxer,
                   std::unique_ptr<QuicConnectionFactoryBase> connection_factory,
                   ProtocolConnectionServiceObserver& observer,
                   InstanceRequestIds::Role role,
                   ClockNowFunctionPtr now_function,
-                  TaskRunner& task_runner);
+                  TaskRunner& task_runner,
+                  size_t buffer_limit);
   QuicServiceBase(const QuicServiceBase&) = delete;
   QuicServiceBase& operator=(const QuicServiceBase&) = delete;
   QuicServiceBase(QuicServiceBase&&) noexcept = delete;
@@ -104,7 +104,7 @@ class QuicServiceBase : public QuicConnection::Delegate,
   ProtocolConnectionEndpoint::State state_ =
       ProtocolConnectionEndpoint::State::kStopped;
   InstanceRequestIds instance_request_ids_;
-  MessageDemuxer& demuxer_;
+  MessageDemuxer demuxer_;
   std::unique_ptr<QuicConnectionFactoryBase> connection_factory_;
 
   // IPEndpoints used by this service to build connection.

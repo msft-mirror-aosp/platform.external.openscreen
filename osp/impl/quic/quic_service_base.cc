@@ -16,14 +16,14 @@ QuicAgentCertificate& QuicServiceBase::GetAgentCertificate() {
 
 QuicServiceBase::QuicServiceBase(
     const ServiceConfig& config,
-    MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactoryBase> connection_factory,
     ProtocolConnectionServiceObserver& observer,
     InstanceRequestIds::Role role,
     ClockNowFunctionPtr now_function,
-    TaskRunner& task_runner)
+    TaskRunner& task_runner,
+    size_t buffer_limit)
     : instance_request_ids_(role),
-      demuxer_(demuxer),
+      demuxer_(now_function, buffer_limit),
       connection_factory_(std::move(connection_factory)),
       connection_endpoints_(config.connection_endpoints),
       observer_(observer),

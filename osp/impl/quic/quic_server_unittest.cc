@@ -54,17 +54,16 @@ class QuicServerTest : public Test {
  protected:
   std::unique_ptr<ProtocolConnection> ExpectIncomingConnection() {
     MockConnectRequestCallback mock_connect_request_callback;
-    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        quic_bridge_.kInstanceName, connect_request_,
-        &mock_connect_request_callback);
+    quic_bridge_.GetQuicClient()->Connect(quic_bridge_.kInstanceName,
+                                          connect_request_,
+                                          &mock_connect_request_callback);
     std::unique_ptr<ProtocolConnection> stream;
     EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
-        .WillOnce(Invoke([](uint64_t request_id, uint64_t instance_id) {
-          NetworkServiceManager::Get()
-              ->GetProtocolConnectionClient()
-              ->CreateProtocolConnection(instance_id);
+        .WillOnce(Invoke([this](uint64_t request_id, uint64_t instance_id) {
+          quic_bridge_.GetQuicClient()->CreateProtocolConnection(instance_id);
         }));
-    EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
+    EXPECT_CALL(quic_bridge_.mock_server_observer(),
+                OnIncomingConnectionMock(_))
         .WillOnce(
             Invoke([&stream](std::unique_ptr<ProtocolConnection>& connection) {
               stream = std::move(connection);
@@ -74,21 +73,16 @@ class QuicServerTest : public Test {
   }
 
   void SetUp() override {
-    server_ = quic_bridge_.quic_server.get();
-    NetworkServiceManager::Create(nullptr, nullptr,
-                                  std::move(quic_bridge_.quic_client),
-                                  std::move(quic_bridge_.quic_server));
+    server_ = quic_bridge_.GetQuicServer();
+    quic_bridge_.CreateNetworkServiceManager(nullptr, nullptr);
   }
 
-  void TearDown() override {
-    connect_request_.MarkComplete();
-    NetworkServiceManager::Dispose();
-  }
+  void TearDown() override { connect_request_.MarkComplete(); }
 
   void SendTestMessage(ProtocolConnection* connection) {
     MockMessageCallback mock_message_callback;
     MessageDemuxer::MessageWatch message_watch =
-        quic_bridge_.controller_demuxer->WatchMessageType(
+        quic_bridge_.GetControllerDemuxer().WatchMessageType(
             1, msgs::Type::kPresentationConnectionMessage,
             &mock_message_callback);
 
@@ -160,7 +154,7 @@ TEST_F(QuicServerTest, OpenImmediate) {
 
 TEST_F(QuicServerTest, States) {
   server_->Stop();
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnRunning());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnRunning());
   EXPECT_TRUE(server_->Start());
   EXPECT_FALSE(server_->Start());
 
@@ -170,27 +164,27 @@ TEST_F(QuicServerTest, States) {
   connection->SetObserver(&mock_connection_observer);
 
   EXPECT_CALL(mock_connection_observer, OnConnectionClosed(_));
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnStopped());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnStopped());
   EXPECT_TRUE(server_->Stop());
   EXPECT_FALSE(server_->Stop());
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnRunning());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnRunning());
   EXPECT_TRUE(server_->Start());
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnSuspended());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnSuspended());
   EXPECT_TRUE(server_->Suspend());
   EXPECT_FALSE(server_->Suspend());
   EXPECT_FALSE(server_->Start());
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnRunning());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnRunning());
   EXPECT_TRUE(server_->Resume());
   EXPECT_FALSE(server_->Resume());
   EXPECT_FALSE(server_->Start());
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnSuspended());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnSuspended());
   EXPECT_TRUE(server_->Suspend());
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnStopped());
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnStopped());
   EXPECT_TRUE(server_->Stop());
 }
 

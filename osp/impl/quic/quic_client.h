@@ -40,11 +40,11 @@ class QuicClient final : public ProtocolConnectionClient,
                          public QuicServiceBase {
  public:
   QuicClient(const ServiceConfig& config,
-             MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryClient> connection_factory,
              ProtocolConnectionServiceObserver& observer,
              ClockNowFunctionPtr now_function,
-             TaskRunner& task_runner);
+             TaskRunner& task_runner,
+             size_t buffer_limit);
   QuicClient(const QuicClient&) = delete;
   QuicClient& operator=(const QuicClient&) = delete;
   QuicClient(QuicClient&&) noexcept = delete;

@@ -66,18 +66,14 @@ class QuicClientTest : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    client_ = quic_bridge_.quic_client.get();
-    NetworkServiceManager::Create(nullptr, nullptr,
-                                  std::move(quic_bridge_.quic_client),
-                                  std::move(quic_bridge_.quic_server));
+    client_ = quic_bridge_.GetQuicClient();
+    quic_bridge_.CreateNetworkServiceManager(nullptr, nullptr);
   }
-
-  void TearDown() override { NetworkServiceManager::Dispose(); }
 
   void SendTestMessage(ProtocolConnection* connection) {
     MockMessageCallback mock_message_callback;
     MessageDemuxer::MessageWatch message_watch =
-        quic_bridge_.receiver_demuxer->WatchMessageType(
+        quic_bridge_.GetReceiverDemuxer().WatchMessageType(
             1, msgs::Type::kPresentationConnectionMessage,
             &mock_message_callback);
 
@@ -218,7 +214,7 @@ TEST_F(QuicClientTest, States) {
       client_->CreateProtocolConnection(1);
   EXPECT_FALSE(connection);
 
-  EXPECT_CALL(quic_bridge_.mock_client_observer, OnRunning());
+  EXPECT_CALL(quic_bridge_.mock_client_observer(), OnRunning());
   EXPECT_TRUE(client_->Start());
   EXPECT_FALSE(client_->Start());
 
@@ -245,7 +241,7 @@ TEST_F(QuicClientTest, States) {
   connection2->SetObserver(&mock_connection_observer2);
   EXPECT_CALL(mock_connection_observer1, OnConnectionClosed(_));
   EXPECT_CALL(mock_connection_observer2, OnConnectionClosed(_));
-  EXPECT_CALL(quic_bridge_.mock_client_observer, OnStopped());
+  EXPECT_CALL(quic_bridge_.mock_client_observer(), OnStopped());
   EXPECT_TRUE(client_->Stop());
   EXPECT_FALSE(client_->Stop());
 
@@ -262,7 +258,7 @@ TEST_F(QuicClientTest, States) {
 TEST_F(QuicClientTest, RequestIds) {
   client_->Start();
 
-  EXPECT_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
+  EXPECT_CALL(quic_bridge_.mock_server_observer(), OnIncomingConnectionMock(_))
       .WillOnce(Invoke([](std::unique_ptr<ProtocolConnection>& connection) {
         connection->CloseWriteEnd();
       }));

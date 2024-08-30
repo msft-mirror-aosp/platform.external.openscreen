@@ -32,11 +32,11 @@ class QuicServer final : public ProtocolConnectionServer,
                          public QuicServiceBase {
  public:
   QuicServer(const ServiceConfig& config,
-             MessageDemuxer& demuxer,
              std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
              ProtocolConnectionServiceObserver& observer,
              ClockNowFunctionPtr now_function,
-             TaskRunner& task_runner);
+             TaskRunner& task_runner,
+             size_t buffer_limit);
   QuicServer(const QuicServer&) = delete;
   QuicServer& operator=(const QuicServer&) = delete;
   QuicServer(QuicServer&&) noexcept = delete;

@@ -96,26 +96,24 @@ class ControllerTest : public ::testing::Test {
     mock_listener_delegate_ = mock_listener_delegate.get();
     auto service_listener = std::make_unique<ServiceListenerImpl>(
         std::move(mock_listener_delegate));
-    service_listener->AddObserver(*quic_bridge_.quic_client);
-    NetworkServiceManager::Create(std::move(service_listener), nullptr,
-                                  std::move(quic_bridge_.quic_client),
-                                  std::move(quic_bridge_.quic_server));
+    service_listener->AddObserver(*quic_bridge_.GetQuicClient());
+    quic_bridge_.CreateNetworkServiceManager(std::move(service_listener),
+                                             nullptr);
     controller_ = std::make_unique<Controller>(FakeClock::now);
-    ON_CALL(quic_bridge_.mock_server_observer, OnIncomingConnectionMock(_))
+    ON_CALL(quic_bridge_.mock_server_observer(), OnIncomingConnectionMock(_))
         .WillByDefault(
             Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
               controller_instance_id_ = connection->GetInstanceID();
             }));
 
     availability_watch_ =
-        quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+        quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
             msgs::Type::kPresentationUrlAvailabilityRequest, &mock_callback_);
   }
 
   void TearDown() override {
     availability_watch_.Reset();
     controller_.reset();
-    NetworkServiceManager::Dispose();
   }
 
   void ExpectAvailabilityRequest(
@@ -244,7 +242,7 @@ class ControllerTest : public ::testing::Test {
                          MockConnectionDelegate* mock_connection_delegate,
                          std::unique_ptr<Connection>* connection) {
     MessageDemuxer::MessageWatch start_presentation_watch =
-        quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+        quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
             msgs::Type::kPresentationStartRequest, mock_callback);
     mock_listener_delegate_->listener()->OnReceiverUpdated({receiver_info1});
     quic_bridge_.RunTasksUntilIdle();
@@ -396,7 +394,7 @@ TEST_F(ControllerTest, TerminatePresentationFromController) {
   StartPresentation(&mock_callback, &mock_connection_delegate, &connection);
 
   MessageDemuxer::MessageWatch terminate_presentation_watch =
-      quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+      quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
           msgs::Type::kPresentationTerminationRequest, &mock_callback);
   msgs::PresentationTerminationRequest termination_request;
   msgs::Type msg_type;
@@ -448,7 +446,7 @@ TEST_F(ControllerTest, CloseConnection) {
   StartPresentation(&mock_callback, &mock_connection_delegate, &connection);
 
   MessageDemuxer::MessageWatch close_event_watch =
-      quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+      quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
           msgs::Type::kPresentationConnectionCloseEvent, &mock_callback);
   ExpectCloseEvent(&mock_callback, connection.get());
 }
@@ -478,13 +476,13 @@ TEST_F(ControllerTest, Reconnect) {
   StartPresentation(&mock_callback, &mock_connection_delegate, &connection);
 
   MessageDemuxer::MessageWatch close_event_watch =
-      quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+      quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
           msgs::Type::kPresentationConnectionCloseEvent, &mock_callback);
   ExpectCloseEvent(&mock_callback, connection.get());
   quic_bridge_.RunTasksUntilIdle();
 
   MessageDemuxer::MessageWatch connection_open_watch =
-      quic_bridge_.receiver_demuxer->SetDefaultMessageTypeWatch(
+      quic_bridge_.GetReceiverDemuxer().SetDefaultMessageTypeWatch(
           msgs::Type::kPresentationConnectionOpenRequest, &mock_callback);
   msgs::PresentationConnectionOpenRequest open_request;
   MockRequestDelegate reconnect_delegate;

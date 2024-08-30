@@ -16,18 +16,18 @@ namespace openscreen::osp {
 
 QuicServer::QuicServer(
     const ServiceConfig& config,
-    MessageDemuxer& demuxer,
     std::unique_ptr<QuicConnectionFactoryServer> connection_factory,
     ProtocolConnectionServiceObserver& observer,
     ClockNowFunctionPtr now_function,
-    TaskRunner& task_runner)
+    TaskRunner& task_runner,
+    size_t buffer_limit)
     : QuicServiceBase(config,
-                      demuxer,
                       std::move(connection_factory),
                       observer,
                       InstanceRequestIds::Role::kServer,
                       now_function,
-                      task_runner),
+                      task_runner,
+                      buffer_limit),
       instance_name_(config.instance_name) {
   auth_token_ = GenerateToken(16);
 }
