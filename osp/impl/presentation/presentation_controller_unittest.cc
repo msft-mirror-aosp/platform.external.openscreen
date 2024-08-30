@@ -113,7 +113,7 @@ class ControllerTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    availability_watch_ = MessageDemuxer::MessageWatch();
+    availability_watch_.Reset();
     controller_.reset();
     NetworkServiceManager::Dispose();
   }

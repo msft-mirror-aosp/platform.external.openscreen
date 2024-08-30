@@ -67,7 +67,7 @@ class UrlAvailabilityRequesterTest : public Test {
   }
 
   void TearDown() override {
-    availability_watch_ = MessageDemuxer::MessageWatch();
+    availability_watch_.Reset();
     NetworkServiceManager::Dispose();
   }
 

@@ -54,7 +54,7 @@ Error Receiver::OnPresentationTerminated(const std::string& presentation_id,
   }
 
   Presentation& presentation = presentation_entry->second;
-  presentation.terminate_watch = MessageDemuxer::MessageWatch();
+  presentation.terminate_watch.Reset();
   std::unique_ptr<ProtocolConnection> protocol_connection =
       CreateServerProtocolConnection(presentation.instance_id);
   if (!protocol_connection) {
@@ -367,9 +367,9 @@ void Receiver::SetReceiverDelegate(ReceiverDelegate* delegate) {
     return;
   }
 
-  StopWatching(&availability_watch_);
-  StopWatching(&initiation_watch_);
-  StopWatching(&connection_watch_);
+  availability_watch_.Reset();
+  initiation_watch_.Reset();
+  connection_watch_.Reset();
 
   std::vector<std::string> presentations_to_remove(
       started_presentations_by_id_.size());

@@ -79,7 +79,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
       delegate_.OnError(&message.request, Error::Code::kRequestCancelled);
     }
     sent_.clear();
-    response_watch_ = MessageDemuxer::MessageWatch();
+    response_watch_.Reset();
   }
 
   // Write a message to the underlying protocol connection, or queue it until
@@ -131,7 +131,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
                     [&id](const RequestWithId& msg) { return id == msg.id; }),
                 sent_.end());
     if (sent_.empty()) {
-      response_watch_ = MessageDemuxer::MessageWatch();
+      response_watch_.Reset();
     }
   }
 
@@ -185,7 +185,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
                                   connection_->GetInstanceID());
       sent_.erase(it);
       if (sent_.empty()) {
-        response_watch_ = MessageDemuxer::MessageWatch();
+        response_watch_.Reset();
       }
     } else {
       OSP_LOG_WARN << "got response for unknown request id: "
