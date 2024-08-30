@@ -209,7 +209,6 @@ class ConnectionManager final : public MessageDemuxer::MessageCallback {
   std::map<uint64_t, Connection*> connections_;
 
   MessageDemuxer::MessageWatch message_watch_;
-  MessageDemuxer::MessageWatch close_request_watch_;
   MessageDemuxer::MessageWatch close_event_watch_;
 };
 

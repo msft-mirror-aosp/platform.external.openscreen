@@ -41,7 +41,6 @@ Error Receiver::CloseConnection(Connection* connection,
       .reason = ConvertCloseEventReason(reason),
       .connection_count = connection_manager_->ConnectionCount(),
       .has_error_message = false};
-  msgs::CborEncodeBuffer buffer;
   return protocol_connection->WriteMessage(
       event, msgs::EncodePresentationConnectionCloseEvent);
 }

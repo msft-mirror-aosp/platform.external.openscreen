@@ -48,12 +48,6 @@ struct ConnectionOpenRequest {
   std::unique_ptr<Connection> connection;
 };
 
-struct ConnectionCloseRequest {
-  DECLARE_MSG_REQUEST_RESPONSE(ConnectionClose);
-
-  msgs::PresentationConnectionCloseRequest request;
-};
-
 struct TerminationRequest {
   DECLARE_MSG_REQUEST_RESPONSE(Termination);
 
@@ -65,7 +59,6 @@ class Controller::MessageGroupStreams final
       public ProtocolConnection::Observer,
       public RequestResponseHandler<StartRequest>::Delegate,
       public RequestResponseHandler<ConnectionOpenRequest>::Delegate,
-      public RequestResponseHandler<ConnectionCloseRequest>::Delegate,
       public RequestResponseHandler<TerminationRequest>::Delegate {
  public:
   MessageGroupStreams(Controller* controller, const std::string& instance_name);
@@ -88,12 +81,6 @@ class Controller::MessageGroupStreams final
                          msgs::PresentationConnectionOpenResponse* response,
                          uint64_t instance_id) override;
   void OnError(ConnectionOpenRequest* request, const Error& error) override;
-
-  void SendConnectionCloseRequest(ConnectionCloseRequest request);
-  void OnMatchedResponse(ConnectionCloseRequest* request,
-                         msgs::PresentationConnectionCloseResponse* response,
-                         uint64_t instance_id) override;
-  void OnError(ConnectionCloseRequest* request, const Error& error) override;
 
   void SendTerminationRequest(TerminationRequest request);
   void OnMatchedResponse(TerminationRequest* request,
@@ -122,7 +109,6 @@ class Controller::MessageGroupStreams final
 
   RequestResponseHandler<StartRequest> initiation_handler_;
   RequestResponseHandler<ConnectionOpenRequest> connection_open_handler_;
-  RequestResponseHandler<ConnectionCloseRequest> connection_close_handler_;
   RequestResponseHandler<TerminationRequest> termination_handler_;
 };
 
@@ -133,7 +119,6 @@ Controller::MessageGroupStreams::MessageGroupStreams(
       instance_name_(instance_name),
       initiation_handler_(*this),
       connection_open_handler_(*this),
-      connection_close_handler_(*this),
       termination_handler_(*this) {}
 
 Controller::MessageGroupStreams::~MessageGroupStreams() = default;
@@ -238,32 +223,6 @@ void Controller::MessageGroupStreams::OnError(ConnectionOpenRequest* request,
   request->delegate->OnError(error);
 }
 
-void Controller::MessageGroupStreams::SendConnectionCloseRequest(
-    ConnectionCloseRequest request) {
-  if (!connection_protocol_connection_ && !connection_connect_request_) {
-    NetworkServiceManager::Get()->GetProtocolConnectionClient()->Connect(
-        instance_name_, connection_connect_request_, this);
-  }
-  connection_close_handler_.WriteMessage(std::move(request));
-}
-
-void Controller::MessageGroupStreams::OnMatchedResponse(
-    ConnectionCloseRequest* request,
-    msgs::PresentationConnectionCloseResponse* response,
-    uint64_t instance_id) {
-  OSP_LOG_IF(INFO,
-             response->result !=
-                 msgs::PresentationConnectionCloseResponse_result::kSuccess)
-      << "error in presentation-connection-close-response: "
-      << static_cast<int>(response->result);
-}
-
-void Controller::MessageGroupStreams::OnError(ConnectionCloseRequest* request,
-                                              const Error& error) {
-  OSP_LOG_INFO << "got error when closing connection "
-               << request->request.connection_id << ": " << error;
-}
-
 void Controller::MessageGroupStreams::SendTerminationRequest(
     TerminationRequest request) {
   if (!initiation_protocol_connection_ && !initiation_connect_request_) {
@@ -304,8 +263,6 @@ void Controller::MessageGroupStreams::OnConnectSucceed(uint64_t request_id,
     connection_connect_request_.MarkComplete();
     connection_open_handler_.SetConnection(
         connection_protocol_connection_.get());
-    connection_close_handler_.SetConnection(
-        connection_protocol_connection_.get());
   }
 }
 
@@ -319,7 +276,6 @@ void Controller::MessageGroupStreams::OnConnectFailed(uint64_t request_id) {
              connection_connect_request_.request_id() == request_id) {
     connection_connect_request_.MarkComplete();
     connection_open_handler_.Reset();
-    connection_close_handler_.Reset();
   }
 }
 
@@ -513,11 +469,20 @@ Error Controller::CloseConnection(Connection* connection,
        << connection->connection_id();
     return Error(Error::Code::kNoPresentationFound, ss.str());
   }
-  ConnectionCloseRequest request = {
-      .request = {.connection_id = connection->connection_id()}};
-  group_streams_by_instance_name_[presentation_entry->second.instance_name]
-      ->SendConnectionCloseRequest(std::move(request));
-  return Error::None();
+
+  std::unique_ptr<ProtocolConnection> protocol_connection =
+      CreateClientProtocolConnection(connection->instance_id());
+  if (!protocol_connection) {
+    return Error::Code::kNoActiveConnection;
+  }
+
+  msgs::PresentationConnectionCloseEvent event = {
+      .connection_id = connection->connection_id(),
+      .reason = ConvertCloseEventReason(reason),
+      .connection_count = connection_manager_->ConnectionCount(),
+      .has_error_message = false};
+  return protocol_connection->WriteMessage(
+      event, msgs::EncodePresentationConnectionCloseEvent);
 }
 
 Error Controller::OnPresentationTerminated(const std::string& presentation_id,

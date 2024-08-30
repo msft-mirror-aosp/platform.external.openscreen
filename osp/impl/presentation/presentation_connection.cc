@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <ostream>
 
 #include "osp/impl/presentation/presentation_utils.h"
 #include "osp/msgs/osp_messages.h"
@@ -125,9 +124,7 @@ void Connection::OnConnected(
 
 void Connection::OnClosedByError(const Error& cause) {
   if (OnClosed()) {
-    std::ostringstream stream;
-    stream << cause;
-    delegate_->OnError(stream.str());
+    delegate_->OnError(cause.ToString());
   }
 }
 
@@ -160,9 +157,6 @@ bool Connection::OnClosed() {
 ConnectionManager::ConnectionManager(MessageDemuxer& demuxer) {
   message_watch_ = demuxer.SetDefaultMessageTypeWatch(
       msgs::Type::kPresentationConnectionMessage, this);
-
-  close_request_watch_ = demuxer.SetDefaultMessageTypeWatch(
-      msgs::Type::kPresentationConnectionCloseRequest, this);
 
   close_event_watch_ = demuxer.SetDefaultMessageTypeWatch(
       msgs::Type::kPresentationConnectionCloseEvent, this);
@@ -225,44 +219,6 @@ ErrorOr<size_t> ConnectionManager::OnStreamMessage(uint64_t instance_id,
           break;
       }
       return bytes_decoded;
-    }
-
-    case msgs::Type::kPresentationConnectionCloseRequest: {
-      msgs::PresentationConnectionCloseRequest request;
-      ssize_t bytes_decoded = msgs::DecodePresentationConnectionCloseRequest(
-          buffer, buffer_size, request);
-      if (bytes_decoded < 0) {
-        if (bytes_decoded == msgs::kParserEOF) {
-          return Error::Code::kCborIncompleteMessage;
-        }
-        OSP_LOG_WARN << "decode presentation-connection-close-request error: "
-                     << bytes_decoded;
-        return Error::Code::kCborInvalidMessage;
-      }
-
-      msgs::PresentationConnectionCloseResponse response = {
-          .request_id = request.request_id,
-          .result = msgs::PresentationConnectionCloseResponse_result::
-              kInvalidConnectionId};
-
-      Connection* connection = GetConnection(request.connection_id);
-      if (connection) {
-        response.result =
-            msgs::PresentationConnectionCloseResponse_result::kSuccess;
-        connection->OnClosedByRemote();
-      }
-
-      std::unique_ptr<ProtocolConnection> protocol_connection =
-          CreateServerProtocolConnection(instance_id);
-      if (protocol_connection) {
-        protocol_connection->WriteMessage(
-            response, &msgs::EncodePresentationConnectionCloseResponse);
-      }
-
-      return (response.result ==
-              msgs::PresentationConnectionCloseResponse_result::kSuccess)
-                 ? ErrorOr<size_t>(bytes_decoded)
-                 : Error::Code::kNoActiveConnection;
     }
 
     case msgs::Type::kPresentationConnectionCloseEvent: {
