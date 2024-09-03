@@ -119,7 +119,7 @@ openscreen_source_set("standalone_impl") {
 
   public_configs = [ "../util:trace_logging_config" ]
 
-  if (is_linux) {
+  if (is_linux || is_chromeos) {
     sources += [ "impl/network_interface_linux.cc" ]
   } else if (is_mac) {
     defines += [
