@@ -11,8 +11,8 @@
 #include <sstream>
 #include <vector>
 
-#include "absl/strings/str_join.h"
 #include "discovery/mdns/public/mdns_writer.h"
+#include "util/string_util.h"
 
 namespace openscreen::discovery {
 
@@ -169,7 +169,8 @@ size_t DomainName::MaxWireSize() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const DomainName& domain_name) {
-  return os << absl::StrJoin(domain_name.labels_, ".");
+  return os << string_util::Join(domain_name.labels_.cbegin(),
+                                 domain_name.labels_.cend(), ".");
 }
 
 // static
