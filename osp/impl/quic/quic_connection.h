@@ -34,7 +34,7 @@ class QuicConnection {
     // event loop.
     // TODO(btolsch): Hopefully this can be changed with future QUIC
     // implementations.
-    virtual void OnConnectionClosed(uint64_t instance_id) = 0;
+    virtual void OnConnectionClosed(std::string_view instance_name) = 0;
 
     // This is used to get a QuicStream::Delegate for an incoming stream, which
     // will be returned via OnIncomingStream immediately after this call.

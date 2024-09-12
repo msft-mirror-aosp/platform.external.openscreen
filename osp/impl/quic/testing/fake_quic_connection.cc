@@ -85,8 +85,7 @@ QuicStream* FakeQuicConnection::MakeOutgoingStream(
 }
 
 void FakeQuicConnection::Close() {
-  parent_factory_.OnConnectionClosed(this);
-  delegate().OnConnectionClosed(instance_id_);
+  delegate().OnConnectionClosed(instance_name_);
   for (auto& stream : streams_) {
     stream.second->delegate().OnClose(stream.first);
     stream.second->delegate().OnReceived(stream.second.get(),
