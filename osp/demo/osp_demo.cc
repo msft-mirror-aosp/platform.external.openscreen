@@ -78,28 +78,6 @@ void SignalThings() {
 
 namespace openscreen::osp {
 
-class DemoListenerObserver final : public ServiceListener::Observer {
- public:
-  ~DemoListenerObserver() override = default;
-  void OnStarted() override { OSP_LOG_INFO << "listener started!"; }
-  void OnStopped() override { OSP_LOG_INFO << "listener stopped!"; }
-  void OnSuspended() override { OSP_LOG_INFO << "listener suspended!"; }
-  void OnSearching() override { OSP_LOG_INFO << "listener searching!"; }
-
-  void OnReceiverAdded(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "found! " << info.friendly_name;
-  }
-  void OnReceiverChanged(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "changed! " << info.friendly_name;
-  }
-  void OnReceiverRemoved(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "removed! " << info.friendly_name;
-  }
-  void OnAllReceiversRemoved() override { OSP_LOG_INFO << "all removed!"; }
-  void OnError(const Error&) override {}
-  void OnMetrics(ServiceListener::Metrics) override {}
-};
-
 std::string SanitizeInstanceName(std::string_view instance_name) {
   std::string safe_instance_name(instance_name);
   for (auto& c : safe_instance_name) {
@@ -144,6 +122,28 @@ class DemoReceiverObserver final : public ReceiverObserver {
   std::map<std::string, std::string> safe_instance_names_;
 };
 
+class DemoListenerObserver final : public ServiceListener::Observer {
+ public:
+  ~DemoListenerObserver() override = default;
+  void OnStarted() override { OSP_LOG_INFO << "listener started!"; }
+  void OnStopped() override { OSP_LOG_INFO << "listener stopped!"; }
+  void OnSuspended() override { OSP_LOG_INFO << "listener suspended!"; }
+  void OnSearching() override { OSP_LOG_INFO << "listener searching!"; }
+
+  void OnReceiverAdded(const ServiceInfo& info) override {
+    OSP_LOG_INFO << "found! " << info.friendly_name;
+  }
+  void OnReceiverChanged(const ServiceInfo& info) override {
+    OSP_LOG_INFO << "changed! " << info.friendly_name;
+  }
+  void OnReceiverRemoved(const ServiceInfo& info) override {
+    OSP_LOG_INFO << "removed! " << info.friendly_name;
+  }
+  void OnAllReceiversRemoved() override { OSP_LOG_INFO << "all removed!"; }
+  void OnError(const Error&) override {}
+  void OnMetrics(ServiceListener::Metrics) override {}
+};
+
 class DemoPublisherObserver final : public ServicePublisher::Observer {
  public:
   ~DemoPublisherObserver() override = default;
@@ -158,12 +158,12 @@ class DemoPublisherObserver final : public ServicePublisher::Observer {
   void OnMetrics(ServicePublisher::Metrics) override {}
 };
 
-class DemoConnectionClientObserver final
+class DemoConnectionServiceObserver final
     : public ProtocolConnectionServiceObserver {
  public:
   class ConnectionObserver final : public ProtocolConnection::Observer {
    public:
-    explicit ConnectionObserver(DemoConnectionClientObserver& parent)
+    explicit ConnectionObserver(DemoConnectionServiceObserver& parent)
         : parent_(parent) {}
     ~ConnectionObserver() override = default;
 
@@ -180,61 +180,14 @@ class DemoConnectionClientObserver final
     }
 
    private:
-    DemoConnectionClientObserver& parent_;
+    DemoConnectionServiceObserver& parent_;
   };
 
-  ~DemoConnectionClientObserver() override = default;
-  void OnRunning() override {}
-  void OnStopped() override {}
-  void OnSuspended() override {}
-
-  void OnMetrics(const NetworkMetrics& metrics) override {}
-  void OnError(const Error& error) override {}
-
-  void OnIncomingConnection(
-      std::unique_ptr<ProtocolConnection> connection) override {
-    auto observer = std::make_unique<ConnectionObserver>(*this);
-    connection->SetObserver(observer.get());
-    connections_.emplace_back(std::move(observer), std::move(connection));
-  }
-
- private:
-  std::vector<std::pair<std::unique_ptr<ConnectionObserver>,
-                        std::unique_ptr<ProtocolConnection>>>
-      connections_;
-};
-
-class DemoConnectionServerObserver final
-    : public ProtocolConnectionServiceObserver {
- public:
-  class ConnectionObserver final : public ProtocolConnection::Observer {
-   public:
-    explicit ConnectionObserver(DemoConnectionServerObserver& parent)
-        : parent_(parent) {}
-    ~ConnectionObserver() override = default;
-
-    void OnConnectionClosed(const ProtocolConnection& connection) override {
-      auto& connections = parent_.connections_;
-      connections.erase(
-          std::remove_if(
-              connections.begin(), connections.end(),
-              [this](const std::pair<std::unique_ptr<ConnectionObserver>,
-                                     std::unique_ptr<ProtocolConnection>>& p) {
-                return p.first.get() == this;
-              }),
-          connections.end());
-    }
-
-   private:
-    DemoConnectionServerObserver& parent_;
-  };
-
-  ~DemoConnectionServerObserver() override = default;
+  ~DemoConnectionServiceObserver() override = default;
 
   void OnRunning() override {}
   void OnStopped() override {}
   void OnSuspended() override {}
-
   void OnMetrics(const NetworkMetrics& metrics) override {}
   void OnError(const Error& error) override {}
 
@@ -283,34 +236,17 @@ class DemoConnectionDelegate final : public Connection::Delegate {
   void OnError(const std::string_view message) override {}
   void OnTerminated() override { OSP_LOG_INFO << "presentation terminated"; }
 
-  void OnStringMessage(std::string_view message) override {
-    OSP_LOG_INFO << "got message: " << message;
-  }
-  void OnBinaryMessage(const std::vector<uint8_t>& data) override {}
-};
-
-class DemoReceiverConnectionDelegate final : public Connection::Delegate {
- public:
-  DemoReceiverConnectionDelegate() = default;
-  ~DemoReceiverConnectionDelegate() override = default;
-
-  void OnConnected() override {
-    OSP_LOG_INFO << "presentation connection connected";
-  }
-  void OnClosedByRemote() override {
-    OSP_LOG_INFO << "presentation connection closed by remote";
-  }
-  void OnDiscarded() override {}
-  void OnError(const std::string_view message) override {}
-  void OnTerminated() override { OSP_LOG_INFO << "presentation terminated"; }
-
   void OnStringMessage(const std::string_view message) override {
     OSP_LOG_INFO << "got message: " << message;
-    connection_->SendString("--echo-- " + std::string(message));
+    // On server side, `connection_` is not nullptr and we will send received
+    // message back to the client.
+    if (connection_) {
+      connection_->SendString("--echo-- " + std::string(message));
+    }
   }
   void OnBinaryMessage(const std::vector<uint8_t>& data) override {}
 
-  Connection* connection_;
+  Connection* connection_ = nullptr;
 };
 
 class DemoReceiverDelegate final : public ReceiverDelegate {
@@ -336,8 +272,9 @@ class DemoReceiverDelegate final : public ReceiverDelegate {
       uint64_t source_id,
       const std::vector<msgs::HttpHeader>& http_headers) override {
     presentation_id_ = info.id;
-    connection_ = std::make_unique<Connection>(info, &cd_, receiver_);
-    cd_.connection_ = connection_.get();
+    connection_ =
+        std::make_unique<Connection>(info, &connection_delegate_, receiver_);
+    connection_delegate_.connection_ = connection_.get();
     receiver_->OnPresentationStarted(info.id, connection_.get(),
                                      ResponseResult::kSuccess);
     return true;
@@ -348,8 +285,8 @@ class DemoReceiverDelegate final : public ReceiverDelegate {
                              uint64_t source_id) override {
     connection_ = std::make_unique<Connection>(
         Connection::PresentationInfo{id, connection_->presentation_info().url},
-        &cd_, receiver_);
-    cd_.connection_ = connection_.get();
+        &connection_delegate_, receiver_);
+    connection_delegate_.connection_ = connection_.get();
     receiver_->OnConnectionCreated(request_id, connection_.get(),
                                    ResponseResult::kSuccess);
     return true;
@@ -364,7 +301,7 @@ class DemoReceiverDelegate final : public ReceiverDelegate {
   Receiver* receiver_;
   std::string presentation_id_;
   std::unique_ptr<Connection> connection_;
-  DemoReceiverConnectionDelegate cd_;
+  DemoConnectionDelegate connection_delegate_;
 };
 
 struct CommandLineSplit {
@@ -477,7 +414,7 @@ void ListenerDemo() {
   OSP_LOG_IF(WARN, listener_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS Listening.";
 
-  DemoConnectionClientObserver client_observer;
+  DemoConnectionServiceObserver client_observer;
   auto connection_client = ProtocolConnectionClientFactory::Create(
       client_config, client_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner(),
@@ -499,44 +436,14 @@ void ListenerDemo() {
 
   RunControllerPollLoop(controller.get());
 
-  network_service->GetServiceListener()->Stop();
-  network_service->GetProtocolConnectionClient()->Stop();
-
   controller.reset();
 
+  network_service->GetServiceListener()->Stop();
+  network_service->GetProtocolConnectionClient()->Stop();
   NetworkServiceManager::Dispose();
 }
 
-void HandleReceiverCommand(std::string_view command,
-                           std::string_view argument_tail,
-                           DemoReceiverDelegate& delegate,
-                           NetworkServiceManager* manager) {
-  if (command == "avail") {
-    ServicePublisher* publisher = manager->GetServicePublisher();
-
-    OSP_LOG_INFO << "publisher->state() == "
-                 << static_cast<int>(publisher->state());
-
-    if (publisher->state() == ServicePublisher::State::kSuspended) {
-      publisher->Resume();
-    } else {
-      publisher->Suspend();
-    }
-  } else if (command == "close") {
-    delegate.connection_->Close(Connection::CloseReason::kClosed);
-  } else if (command == "msg") {
-    delegate.connection_->SendString(argument_tail);
-  } else if (command == "term") {
-    delegate.receiver_->OnPresentationTerminated(
-        delegate.presentation_id_, TerminationSource::kReceiver,
-        TerminationReason::kUserTerminated);
-  } else {
-    OSP_LOG_FATAL << "Received unknown receiver command: " << command;
-  }
-}
-
-void RunReceiverPollLoop(pollfd& file_descriptor,
-                         NetworkServiceManager* manager,
+void RunReceiverPollLoop(NetworkServiceManager* manager,
                          DemoReceiverDelegate& delegate) {
   pollfd stdin_pollfd{STDIN_FILENO, POLLIN};
   while (true) {
@@ -547,17 +454,31 @@ void RunReceiverPollLoop(pollfd& file_descriptor,
       break;
     }
 
-    HandleReceiverCommand(command_result.command_line.command,
-                          command_result.command_line.argument_tail, delegate,
-                          manager);
+    if (command_result.command_line.command == "avail") {
+      ServicePublisher* publisher = manager->GetServicePublisher();
+
+      OSP_LOG_INFO << "publisher->state() == "
+                   << static_cast<int>(publisher->state());
+
+      if (publisher->state() == ServicePublisher::State::kSuspended) {
+        publisher->Resume();
+      } else {
+        publisher->Suspend();
+      }
+    } else if (command_result.command_line.command == "close") {
+      delegate.connection_->Close(Connection::CloseReason::kClosed);
+    } else if (command_result.command_line.command == "msg") {
+      delegate.connection_->SendString(
+          command_result.command_line.argument_tail);
+    } else if (command_result.command_line.command == "term") {
+      delegate.receiver_->OnPresentationTerminated(
+          delegate.presentation_id_, TerminationSource::kReceiver,
+          TerminationReason::kUserTerminated);
+    } else {
+      OSP_LOG_FATAL << "Received unknown receiver command: "
+                    << command_result.command_line.command;
+    }
   }
-}
-
-void CleanupPublisherDemo(NetworkServiceManager* manager) {
-  manager->GetServicePublisher()->Stop();
-  manager->GetProtocolConnectionServer()->Stop();
-
-  NetworkServiceManager::Dispose();
 }
 
 void PublisherDemo(std::string_view friendly_name) {
@@ -584,7 +505,7 @@ void PublisherDemo(std::string_view friendly_name) {
   OSP_LOG_IF(WARN, publisher_config.network_interfaces.empty())
       << "No network interfaces had usable addresses for mDNS publishing.";
 
-  DemoConnectionServerObserver server_observer;
+  DemoConnectionServiceObserver server_observer;
   auto connection_server = ProtocolConnectionServerFactory::Create(
       server_config, server_observer,
       PlatformClientPosix::GetInstance()->GetTaskRunner(),
@@ -604,21 +525,22 @@ void PublisherDemo(std::string_view friendly_name) {
       NetworkServiceManager::Create(nullptr, std::move(service_publisher),
                                     nullptr, std::move(connection_server));
   auto receiver = std::make_unique<Receiver>();
-
   DemoReceiverDelegate receiver_delegate(receiver.get());
   receiver->Init();
   receiver->SetReceiverDelegate(&receiver_delegate);
+
   network_service->GetServicePublisher()->Start();
   network_service->GetProtocolConnectionServer()->Start();
 
-  pollfd stdin_pollfd{STDIN_FILENO, POLLIN};
-
-  RunReceiverPollLoop(stdin_pollfd, network_service, receiver_delegate);
+  RunReceiverPollLoop(network_service, receiver_delegate);
 
   receiver_delegate.connection_.reset();
   receiver->SetReceiverDelegate(nullptr);
   receiver->Deinit();
-  CleanupPublisherDemo(network_service);
+
+  network_service->GetServicePublisher()->Stop();
+  network_service->GetProtocolConnectionServer()->Stop();
+  NetworkServiceManager::Dispose();
 }
 
 }  // namespace openscreen::osp
