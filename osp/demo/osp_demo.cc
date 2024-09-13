@@ -394,7 +394,7 @@ void RunControllerPollLoop(Controller* controller) {
     }
   }
 
-  watch = Controller::ReceiverWatch();
+  watch.Reset();
 }
 
 void ListenerDemo() {

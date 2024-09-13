@@ -380,27 +380,41 @@ Controller::ReceiverWatch::ReceiverWatch(Controller* controller,
 
 Controller::ReceiverWatch::ReceiverWatch(
     Controller::ReceiverWatch&& other) noexcept {
-  swap(*this, other);
+  // Although all fields are POD, this does not use the default implementation.
+  // See `operator=` for details.
+  *this = std::move(other);
 }
 
 Controller::ReceiverWatch& Controller::ReceiverWatch::operator=(
     Controller::ReceiverWatch&& other) noexcept {
-  swap(*this, other);
+  // Although all fields are POD, this does not use the default `operator=`
+  // implementation because it is important that we should stop current watch
+  // for `observer_` before taking values from `other` and making `other`
+  // invalid.
+  StopWatching();
+  urls_ = std::move(other.urls_);
+  observer_ = other.observer_;
+  controller_ = other.controller_;
+  other.observer_ = nullptr;
+  other.observer_ = nullptr;
   return *this;
 }
 
 Controller::ReceiverWatch::~ReceiverWatch() {
+  StopWatching();
+}
+
+void Controller::ReceiverWatch::Reset() {
+  StopWatching();
+  urls_.clear();
+  controller_ = nullptr;
+}
+
+void Controller::ReceiverWatch::StopWatching() {
   if (observer_) {
     controller_->CancelReceiverWatch(urls_, observer_);
   }
   observer_ = nullptr;
-}
-
-void swap(Controller::ReceiverWatch& a, Controller::ReceiverWatch& b) {
-  using std::swap;
-  swap(a.urls_, b.urls_);
-  swap(a.observer_, b.observer_);
-  swap(a.controller_, b.controller_);
 }
 
 Controller::ConnectRequest::ConnectRequest() = default;
@@ -408,36 +422,52 @@ Controller::ConnectRequest::ConnectRequest() = default;
 Controller::ConnectRequest::ConnectRequest(Controller* controller,
                                            const std::string& instance_name,
                                            bool is_reconnect,
-                                           std::optional<uint64_t> request_id)
+                                           uint64_t request_id)
     : instance_name_(instance_name),
       is_reconnect_(is_reconnect),
       request_id_(request_id),
       controller_(controller) {}
 
 Controller::ConnectRequest::ConnectRequest(ConnectRequest&& other) noexcept {
-  swap(*this, other);
+  // Although all fields are POD, this does not use the default implementation.
+  // See `operator=` for details.
+  *this = std::move(other);
 }
 
 Controller::ConnectRequest& Controller::ConnectRequest::operator=(
     ConnectRequest&& other) noexcept {
-  swap(*this, other);
+  // Although all fields are POD, this does not use the default `operator=`
+  // implementation because it is important that we should cancel current
+  // request for `controller_` before taking values from `other` and making
+  // `other` invalid.
+  CancelRequest();
+  instance_name_ = std::move(other.instance_name_);
+  is_reconnect_ = other.is_reconnect_;
+  request_id_ = other.request_id_;
+  controller_ = other.controller_;
+  other.request_id_ = 0;
+  other.is_reconnect_ = false;
+  other.controller_ = nullptr;
   return *this;
 }
 
 Controller::ConnectRequest::~ConnectRequest() {
-  if (request_id_) {
-    controller_->CancelConnectRequest(instance_name_, is_reconnect_,
-                                      request_id_.value());
-  }
-  request_id_ = 0;
+  CancelRequest();
 }
 
-void swap(Controller::ConnectRequest& a, Controller::ConnectRequest& b) {
-  using std::swap;
-  swap(a.instance_name_, b.instance_name_);
-  swap(a.is_reconnect_, b.is_reconnect_);
-  swap(a.request_id_, b.request_id_);
-  swap(a.controller_, b.controller_);
+void Controller::ConnectRequest::Reset() {
+  CancelRequest();
+  instance_name_.clear();
+  is_reconnect_ = false;
+  controller_ = nullptr;
+}
+
+void Controller::ConnectRequest::CancelRequest() {
+  if (request_id_) {
+    controller_->CancelConnectRequest(instance_name_, is_reconnect_,
+                                      request_id_);
+  }
+  request_id_ = 0;
 }
 
 Controller::Controller(ClockNowFunctionPtr now_function) {

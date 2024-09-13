@@ -369,7 +369,7 @@ TEST_F(ControllerTest, ReceiverWatchCancel) {
   Controller::ReceiverWatch watch2 =
       controller_->RegisterReceiverWatch({kTestUrl}, &mock_receiver_observer2);
 
-  watch = Controller::ReceiverWatch();
+  watch.Reset();
   msgs::PresentationUrlAvailabilityEvent event = {
       .watch_id = request.watch_id,
       .url_availabilities = {msgs::UrlAvailability::kUnavailable}};
