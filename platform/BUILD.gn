@@ -121,7 +121,7 @@ openscreen_source_set("standalone_impl") {
 
   if (is_linux || is_chromeos) {
     sources += [ "impl/network_interface_linux.cc" ]
-  } else if (is_mac) {
+  } else if (is_mac || is_ios) {
     defines += [
       # Required, to use the new IPv6 Sockets options introduced by RFC 3542.
       "__APPLE_USE_RFC_3542",
