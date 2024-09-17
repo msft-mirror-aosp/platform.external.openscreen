@@ -121,7 +121,7 @@ if (!is_ios) {
 
     public_configs = [ "../util:trace_logging_config" ]
 
-    if (is_linux || is_chromeos ) {
+    if (is_linux || is_chromeos || is_android) {
       sources += [ "impl/network_interface_linux.cc" ]
     } else if (is_mac) {
       defines += [
