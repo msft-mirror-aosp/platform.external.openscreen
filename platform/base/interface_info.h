@@ -45,8 +45,9 @@ struct InterfaceInfo {
   // identifying this interface on the host machine.
   NetworkInterfaceIndex index = kInvalidNetworkInterfaceIndex;
 
-  // MAC address of the interface.  All 0s if unavailable.
-  std::array<uint8_t, 6> hardware_address = {};
+  // MAC address of the interface.  Typically 6 or 16 bytes.  Empty if
+  // unavailable.
+  std::vector<uint8_t> hardware_address;
 
   // Interface name (e.g. eth0) if available.
   std::string name;

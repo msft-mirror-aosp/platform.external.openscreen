@@ -25,6 +25,7 @@
 
 #include "platform/api/network_interface.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 #include "platform/impl/network_interface.h"
 #include "platform/impl/scoped_pipe.h"
 #include "util/osp_logging.h"
@@ -94,9 +95,10 @@ void GetInterfaceAttributes(struct rtattr* rta,
       info->name =
           GetInterfaceName(reinterpret_cast<const char*>(RTA_DATA(rta)));
     } else if (rta->rta_type == IFLA_ADDRESS) {
-      OSP_CHECK_EQ(sizeof(info->hardware_address), RTA_PAYLOAD(rta));
-      std::memcpy(info->hardware_address.data(), RTA_DATA(rta),
-                  sizeof(info->hardware_address));
+      ByteView address_bytes(reinterpret_cast<uint8_t*>(RTA_DATA(rta)),
+                             RTA_PAYLOAD(rta));
+      info->hardware_address.assign(address_bytes.cbegin(),
+                                    address_bytes.cend());
     }
   }
 

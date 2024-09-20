@@ -20,6 +20,7 @@
 
 #include "platform/api/network_interface.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 #include "platform/impl/network_interface.h"
 #include "platform/impl/scoped_pipe.h"
 #include "util/osp_logging.h"
@@ -129,11 +130,10 @@ std::vector<InterfaceInfo> ProcessInterfacesList(ifaddrs* interfaces) {
     // Add another address to the list of addresses for the current interface.
     if (cur->ifa_addr->sa_family == AF_LINK) {  // Hardware ethernet address.
       auto* const addr_dl = reinterpret_cast<const sockaddr_dl*>(cur->ifa_addr);
-      const caddr_t lladdr = LLADDR(addr_dl);
-      static_assert(sizeof(lladdr) >= sizeof(interface->hardware_address),
-                    "Platform defines too-small link addresses?");
-      memcpy(&interface->hardware_address[0], &lladdr[0],
-             sizeof(interface->hardware_address));
+      ByteView address_bytes(reinterpret_cast<uint8_t*>(LLADDR(addr_dl)),
+                             addr_dl->sdl_alen);
+      interface->hardware_address.assign(address_bytes.cbegin(),
+                                         address_bytes.cend());
     } else if (cur->ifa_addr->sa_family == AF_INET6) {  // Ipv6 address.
       struct in6_ifreq ifr = {};
       // Reject network interfaces that have a deprecated flag set.
