@@ -13,9 +13,9 @@
 #include "cast/common/public/cast_socket.h"
 #include "cast/common/public/parsed_certificate.h"
 #include "platform/api/task_runner.h"
+#include "platform/api/task_runner_deleter.h"
 #include "platform/api/tls_connection_factory.h"
 #include "platform/base/ip_address.h"
-#include "util/serial_delete_ptr.h"
 
 namespace openscreen::cast {
 
@@ -88,7 +88,7 @@ class SenderSocketFactory final : public TlsConnectionFactory::Client,
   struct PendingAuth {
     IPEndpoint endpoint;
     DeviceMediaPolicy media_policy;
-    SerialDeletePtr<CastSocket> socket;
+    std::unique_ptr<CastSocket, TaskRunnerDeleter> socket;
     CastSocket::Client* client;
     std::unique_ptr<AuthContext> auth_context;
     std::unique_ptr<ParsedCertificate> peer_cert;

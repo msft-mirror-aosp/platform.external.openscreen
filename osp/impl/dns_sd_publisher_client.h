@@ -36,11 +36,11 @@ class DnsSdPublisherClient final : public ServicePublisherImpl::Delegate {
   DnsSdPublisherClient(DnsSdPublisherClient&&) noexcept = delete;
 
   void StartPublisherInternal(const ServicePublisher::Config& config);
-  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter>
-  CreateDnsSdServiceInternal(const ServicePublisher::Config& config);
+  discovery::DnsSdServicePtr CreateDnsSdServiceInternal(
+      const ServicePublisher::Config& config);
 
   TaskRunner& task_runner_;
-  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter> dns_sd_service_;
+  discovery::DnsSdServicePtr dns_sd_service_;
 
   using OspDnsSdPublisher =
       discovery::DnsSdServicePublisher<ServicePublisher::Config>;

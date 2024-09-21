@@ -49,7 +49,7 @@ class ReceiverChooser final : public discovery::ReportingClient {
   void PrintMenuAndHandleChoice();
 
   ResultCallback result_callback_;
-  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter> service_;
+  discovery::DnsSdServicePtr service_;
   std::unique_ptr<discovery::DnsSdServiceWatcher<ReceiverInfo>> watcher_;
   std::vector<ReceiverInfo> discovered_receivers_;
   Alarm menu_alarm_;

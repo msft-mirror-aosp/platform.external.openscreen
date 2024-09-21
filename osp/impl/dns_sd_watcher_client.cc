@@ -138,8 +138,7 @@ void DnsSdWatcherClient::StartWatcherInternal(
       });
 }
 
-std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter>
-DnsSdWatcherClient::CreateDnsSdServiceInternal(
+discovery::DnsSdServicePtr DnsSdWatcherClient::CreateDnsSdServiceInternal(
     const ServiceListener::Config& config) {
   // NOTE: With the current API, the client cannot customize the behavior of
   // DNS-SD beyond the interface list.

@@ -27,7 +27,6 @@
 #include "platform/base/interface_info.h"
 #include "platform/impl/task_runner.h"
 #include "util/scoped_wake_lock.h"
-#include "util/serial_delete_ptr.h"
 
 namespace Json {
 class Value;
@@ -168,7 +167,7 @@ class LoopingFileCastAgent final
 
   // Initialized by Connect().
   std::optional<ConnectionSettings> connection_settings_;
-  SerialDeletePtr<ScopedWakeLock> wake_lock_;
+  ScopedWakeLockPtr wake_lock_;
 
   // If non-empty, this is the sessionId associated with the Cast Receiver
   // application that this LoopingFileCastAgent launched.

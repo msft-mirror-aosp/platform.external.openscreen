@@ -38,14 +38,14 @@ class DnsSdWatcherClient final : public ServiceListenerImpl::Delegate {
   DnsSdWatcherClient(DnsSdWatcherClient&&) noexcept = delete;
 
   void StartWatcherInternal(const ServiceListener::Config& config);
-  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter>
-  CreateDnsSdServiceInternal(const ServiceListener::Config& config);
+  discovery::DnsSdServicePtr CreateDnsSdServiceInternal(
+      const ServiceListener::Config& config);
 
   using OspDnsSdWatcher = discovery::DnsSdServiceWatcher<ServiceInfo>;
   void OnDnsWatcherUpdated(std::vector<OspDnsSdWatcher::ConstRefT> all);
 
   TaskRunner& task_runner_;
-  std::unique_ptr<discovery::DnsSdService, TaskRunnerDeleter> dns_sd_service_;
+  discovery::DnsSdServicePtr dns_sd_service_;
 
   std::unique_ptr<OspDnsSdWatcher> dns_sd_watcher_;
 };
