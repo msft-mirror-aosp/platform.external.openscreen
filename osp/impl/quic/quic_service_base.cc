@@ -115,16 +115,6 @@ void QuicServiceBase::OnClientCertificates(
   OSP_NOTREACHED();
 }
 
-void QuicServiceBase::OnConnectionDestroyed(
-    QuicProtocolConnection& connection) {
-  auto connection_entry = connections_.find(connection.GetInstanceID());
-  if (connection_entry == connections_.end()) {
-    return;
-  }
-
-  connection_entry->second.stream_manager->DropProtocolConnection(connection);
-}
-
 void QuicServiceBase::OnDataReceived(uint64_t instance_id,
                                      uint64_t protocol_connection_id,
                                      ByteView bytes) {
@@ -227,7 +217,7 @@ QuicServiceBase::CreateProtocolConnectionImpl(uint64_t instance_id) {
   }
 
   return QuicProtocolConnection::FromExisting(
-      *this, *connection_entry->second.connection,
+      *connection_entry->second.connection,
       *connection_entry->second.stream_manager, instance_id);
 }
 

@@ -59,7 +59,6 @@ class QuicServiceBase : public QuicConnection::Delegate,
                             const std::vector<std::string>& certs) override;
 
   // QuicStreamManager::Delegate overrides.
-  void OnConnectionDestroyed(QuicProtocolConnection& connection) override;
   void OnDataReceived(uint64_t instance_id,
                       uint64_t protocol_connection_id,
                       ByteView bytes) override;

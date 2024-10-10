@@ -72,7 +72,7 @@ class ProtocolConnection {
   virtual uint64_t GetInstanceID() const = 0;
   virtual uint64_t GetID() const = 0;
   virtual void Write(ByteView bytes) = 0;
-  virtual void CloseWriteEnd() = 0;
+  virtual void Close() = 0;
 
  protected:
   Observer* observer_ = nullptr;

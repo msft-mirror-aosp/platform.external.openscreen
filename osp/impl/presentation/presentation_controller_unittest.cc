@@ -104,6 +104,12 @@ class ControllerTest : public ::testing::Test {
         .WillByDefault(
             Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
               controller_instance_id_ = connection->GetInstanceID();
+              server_connections_.push_back(std::move(connection));
+            }));
+    ON_CALL(quic_bridge_.mock_client_observer(), OnIncomingConnectionMock(_))
+        .WillByDefault(
+            Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
+              client_connections_.push_back(std::move(connection));
             }));
 
     availability_watch_ =
@@ -293,6 +299,8 @@ class ControllerTest : public ::testing::Test {
   ServiceInfo receiver_info1;
   MockReceiverObserver mock_receiver_observer_;
   uint64_t controller_instance_id_{0};
+  std::vector<std::unique_ptr<ProtocolConnection>> server_connections_;
+  std::vector<std::unique_ptr<ProtocolConnection>> client_connections_;
 };
 
 TEST_F(ControllerTest, ReceiverWatchMoves) {

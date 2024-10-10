@@ -18,13 +18,9 @@ FakeQuicStream::FakeQuicStream(Delegate& delegate, uint64_t id)
 FakeQuicStream::~FakeQuicStream() = default;
 
 void FakeQuicStream::ReceiveData(ByteView bytes) {
-  OSP_CHECK(!read_end_closed_);
+  OSP_CHECK(!is_closed_);
   read_buffer_.insert(read_buffer_.end(), bytes.data(),
                       bytes.data() + bytes.size());
-}
-
-void FakeQuicStream::CloseReadEnd() {
-  read_end_closed_ = true;
 }
 
 std::vector<uint8_t> FakeQuicStream::TakeReceivedData() {
@@ -40,13 +36,14 @@ uint64_t FakeQuicStream::GetStreamId() {
 }
 
 void FakeQuicStream::Write(ByteView bytes) {
-  OSP_CHECK(!write_end_closed_);
+  OSP_CHECK(!is_closed_);
   write_buffer_.insert(write_buffer_.end(), bytes.data(),
                        bytes.data() + bytes.size());
 }
 
-void FakeQuicStream::CloseWriteEnd() {
-  write_end_closed_ = true;
+void FakeQuicStream::Close() {
+  is_closed_ = true;
+  delegate_.OnClose(stream_id_);
 }
 
 FakeQuicConnection::FakeQuicConnection(
@@ -87,9 +84,7 @@ QuicStream* FakeQuicConnection::MakeOutgoingStream(
 void FakeQuicConnection::Close() {
   delegate().OnConnectionClosed(instance_name_);
   for (auto& stream : streams_) {
-    stream.second->delegate().OnClose(stream.first);
-    stream.second->delegate().OnReceived(stream.second.get(),
-                                         ByteView(nullptr, size_t(0)));
+    stream.second->Close();
   }
 }
 

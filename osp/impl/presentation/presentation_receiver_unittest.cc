@@ -87,6 +87,16 @@ class PresentationReceiverTest : public ::testing::Test {
 
   void SetUp() override {
     quic_bridge_.CreateNetworkServiceManager(nullptr, nullptr);
+    ON_CALL(quic_bridge_.mock_server_observer(), OnIncomingConnectionMock(_))
+        .WillByDefault(
+            Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
+              server_connections_.push_back(std::move(connection));
+            }));
+    ON_CALL(quic_bridge_.mock_client_observer(), OnIncomingConnectionMock(_))
+        .WillByDefault(
+            Invoke([this](std::unique_ptr<ProtocolConnection>& connection) {
+              client_connections_.push_back(std::move(connection));
+            }));
     receiver_.Init();
     receiver_.SetReceiverDelegate(&mock_receiver_delegate_);
   }
@@ -104,6 +114,8 @@ class PresentationReceiverTest : public ::testing::Test {
   const std::string url1_{"https://www.example.com/receiver.html"};
   FakeQuicBridge quic_bridge_;
   MockReceiverDelegate mock_receiver_delegate_;
+  std::vector<std::unique_ptr<ProtocolConnection>> server_connections_;
+  std::vector<std::unique_ptr<ProtocolConnection>> client_connections_;
 };
 
 }  // namespace
