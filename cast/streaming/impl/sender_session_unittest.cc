@@ -613,12 +613,12 @@ TEST_F(SenderSessionTest, SuccessfulRemotingNegotiationYieldsValidObject) {
 
   SenderSession::ConfiguredSenders senders;
   EXPECT_CALL(client_, OnNegotiated(session_.get(), _, _))
-      .WillOnce([&senders](
-          const SenderSession* session,
-          SenderSession::ConfiguredSenders arg0,
-          capture_recommendations::Recommendations recommendations) {
-        senders = std::move(arg0);
-      });
+      .WillOnce(
+          [&senders](const SenderSession* session,
+                     SenderSession::ConfiguredSenders arg0,
+                     capture_recommendations::Recommendations recommendations) {
+            senders = std::move(arg0);
+          });
 
   message_port_->ReceiveMessage(answer);
 

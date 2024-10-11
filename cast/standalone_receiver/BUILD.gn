@@ -72,6 +72,7 @@ openscreen_executable("cast_receiver") {
   deps = [
     ":cast_receiver_lib",
     "../../platform:standalone_impl",
+    "../../third_party/getopt",
     "../common:certificate_boringssl",
     "../common/certificate/proto:certificate_proto",
     "../receiver:channel",

@@ -8,8 +8,8 @@
 #include <chrono>
 
 #include "cast/streaming/impl/compound_rtcp_parser.h"
-#include "cast/streaming/public/constants.h"
 #include "cast/streaming/impl/rtcp_session.h"
+#include "cast/streaming/public/constants.h"
 #include "cast/streaming/testing/mock_compound_rtcp_parser_client.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

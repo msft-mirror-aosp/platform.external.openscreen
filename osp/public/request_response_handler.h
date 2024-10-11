@@ -22,7 +22,7 @@
 namespace openscreen::osp {
 
 template <typename T>
-using MessageDecodingFunction = ssize_t (*)(const uint8_t*, size_t, T&);
+using MessageDecodingFunction = int64_t (*)(const uint8_t*, size_t, T&);
 
 // Provides a uniform way of accessing import properties of a request/response
 // message pair from a template: request encode function, response decode
@@ -166,7 +166,7 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
       return 0;
     }
     typename RequestT::ResponseMsgType response;
-    ssize_t result =
+    int64_t result =
         RequestCoderTraits::kDecoder(buffer, buffer_size, response);
     if (result < 0) {
       if (result == msgs::kParserEOF) {

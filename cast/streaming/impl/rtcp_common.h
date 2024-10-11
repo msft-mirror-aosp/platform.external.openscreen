@@ -12,11 +12,11 @@
 #include <vector>
 
 #include "cast/streaming/impl/ntp_time.h"
-#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/impl/rtp_defines.h"
+#include "cast/streaming/impl/statistics_defines.h"
+#include "cast/streaming/public/frame_id.h"
 #include "cast/streaming/rtp_time.h"
 #include "cast/streaming/ssrc.h"
-#include "cast/streaming/impl/statistics_defines.h"
 #include "platform/base/span.h"
 
 namespace openscreen::cast {

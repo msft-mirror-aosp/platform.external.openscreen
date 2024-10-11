@@ -338,7 +338,7 @@ ErrorOr<size_t> Controller::TerminationListener::OnStreamMessage(
   OSP_CHECK_EQ(static_cast<int>(msgs::Type::kPresentationTerminationEvent),
                static_cast<int>(message_type));
   msgs::PresentationTerminationEvent event;
-  ssize_t result =
+  const msgs::CborResult result =
       msgs::DecodePresentationTerminationEvent(buffer, buffer_size, event);
   if (result < 0) {
     if (result == msgs::kParserEOF) {

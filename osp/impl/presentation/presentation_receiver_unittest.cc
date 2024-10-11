@@ -151,8 +151,9 @@ TEST_F(PresentationReceiverTest, QueryAvailability) {
       .WillOnce(Invoke([&response](uint64_t instance_id, uint64_t cid,
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buffer_size, Clock::time_point now) {
-        ssize_t result = msgs::DecodePresentationUrlAvailabilityResponse(
-            buf, buffer_size, response);
+        const msgs::CborResult result =
+            msgs::DecodePresentationUrlAvailabilityResponse(buf, buffer_size,
+                                                            response);
         return result;
       }));
   quic_bridge_.RunTasksUntilIdle();
@@ -198,7 +199,7 @@ TEST_F(PresentationReceiverTest, StartPresentation) {
       .WillOnce(Invoke([&response](uint64_t instance_id, uint64_t cid,
                                    msgs::Type message_type, const uint8_t* buf,
                                    size_t buf_size, Clock::time_point now) {
-        ssize_t result =
+        const msgs::CborResult result =
             msgs::DecodePresentationStartResponse(buf, buf_size, response);
         return result;
       }));

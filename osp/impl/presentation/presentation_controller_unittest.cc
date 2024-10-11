@@ -124,7 +124,7 @@ class ControllerTest : public ::testing::Test {
 
   void ExpectAvailabilityRequest(
       msgs::PresentationUrlAvailabilityRequest& request) {
-    ssize_t decode_result = -1;
+    msgs::CborResult decode_result = -1;
     msgs::Type msg_type;
     EXPECT_CALL(mock_callback_, OnStreamMessage(_, _, _, _, _, _))
         .WillOnce(Invoke([&request, &msg_type, &decode_result](
@@ -201,7 +201,7 @@ class ControllerTest : public ::testing::Test {
 
   void ExpectCloseEvent(MockMessageCallback* mock_callback,
                         Connection* connection) {
-    ssize_t decode_result = -1;
+    msgs::CborResult decode_result = -1;
     msgs::Type msg_type;
     msgs::PresentationConnectionCloseEvent event;
     EXPECT_CALL(*mock_callback, OnStreamMessage(_, _, _, _, _, _))
@@ -262,7 +262,7 @@ class ControllerTest : public ::testing::Test {
                              msgs::Type message_type, const uint8_t* buffer,
                              size_t buffer_size, Clock::time_point now) {
           msg_type = message_type;
-          ssize_t result = msgs::DecodePresentationStartRequest(
+          const msgs::CborResult result = msgs::DecodePresentationStartRequest(
               buffer, buffer_size, request);
           return result;
         }));
@@ -412,8 +412,9 @@ TEST_F(ControllerTest, TerminatePresentationFromController) {
                            msgs::Type message_type, const uint8_t* buffer,
                            size_t buffer_size, Clock::time_point now) {
         msg_type = message_type;
-        ssize_t result = msgs::DecodePresentationTerminationRequest(
-            buffer, buffer_size, termination_request);
+        const msgs::CborResult result =
+            msgs::DecodePresentationTerminationRequest(buffer, buffer_size,
+                                                       termination_request);
         return result;
       }));
   connection->Terminate(TerminationSource::kController,
@@ -498,7 +499,7 @@ TEST_F(ControllerTest, Reconnect) {
       controller_->ReconnectConnection(std::move(connection),
                                        &reconnect_delegate);
   ASSERT_TRUE(reconnect_request);
-  ssize_t decode_result = -1;
+  msgs::CborResult decode_result = -1;
   msgs::Type msg_type;
   EXPECT_CALL(mock_callback, OnStreamMessage(_, _, _, _, _, _))
       .WillOnce(Invoke([&open_request, &msg_type, &decode_result](
