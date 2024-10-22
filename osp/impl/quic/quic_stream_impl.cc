@@ -17,7 +17,7 @@ QuicStreamImpl::QuicStreamImpl(Delegate& delegate,
                                quic::QuicSession* session,
                                quic::StreamType type)
     : osp::QuicStream(delegate),
-      quic::QuicStream(id, session, /*is_static*/ false, type) {}
+      quic::QuicStream(id, session, /*is_static=*/false, type) {}
 
 QuicStreamImpl::~QuicStreamImpl() = default;
 

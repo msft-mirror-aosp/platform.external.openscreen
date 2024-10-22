@@ -186,7 +186,7 @@ class ConnectionManager final : public MessageDemuxer::MessageCallback {
   ConnectionManager& operator=(const ConnectionManager&) = delete;
   ConnectionManager(ConnectionManager&&) noexcept = delete;
   ConnectionManager& operator=(ConnectionManager&&) noexcept = delete;
-  ~ConnectionManager();
+  ~ConnectionManager() override;
 
   void AddConnection(Connection* connection);
   void RemoveConnection(Connection* connection);
@@ -200,7 +200,7 @@ class ConnectionManager final : public MessageDemuxer::MessageCallback {
                                   Clock::time_point now) override;
 
   Connection* GetConnection(uint64_t connection_id);
-  size_t ConnectionCount() const;
+  size_t ConnectionCount() const { return connections_.size(); }
 
  private:
   // TODO(btolsch): Connection IDs were changed to be per-instance, but this

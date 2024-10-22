@@ -20,6 +20,10 @@ class ServicePublisherImpl final
   class Delegate {
    public:
     Delegate();
+    Delegate(const Delegate&) = delete;
+    Delegate& operator=(const Delegate&) = delete;
+    Delegate(Delegate&&) noexcept = delete;
+    Delegate& operator=(Delegate&&) noexcept = delete;
     virtual ~Delegate();
 
     void SetPublisherImpl(ServicePublisherImpl* publisher);
@@ -39,6 +43,10 @@ class ServicePublisherImpl final
 
   // `delegate` is required and is used to implement state transitions.
   explicit ServicePublisherImpl(std::unique_ptr<Delegate> delegate);
+  ServicePublisherImpl(const ServicePublisherImpl&) = delete;
+  ServicePublisherImpl& operator=(const ServicePublisherImpl&) = delete;
+  ServicePublisherImpl(ServicePublisherImpl&&) noexcept = delete;
+  ServicePublisherImpl& operator=(ServicePublisherImpl&&) noexcept = delete;
   ~ServicePublisherImpl() override;
 
   // Called by `delegate_` when an internal error occurs.
@@ -67,8 +75,6 @@ class ServicePublisherImpl final
   void MaybeNotifyObserver();
 
   std::unique_ptr<Delegate> delegate_;
-
-  OSP_DISALLOW_COPY_AND_ASSIGN(ServicePublisherImpl);
 };
 
 }  // namespace openscreen::osp

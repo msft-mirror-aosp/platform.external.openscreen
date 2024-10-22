@@ -72,8 +72,10 @@ ErrorOr<msgs::Type> MessageTypeDecoder::DecodeType(
 // static
 constexpr size_t MessageDemuxer::kDefaultBufferLimit;
 
-MessageDemuxer::MessageWatch::MessageWatch() = default;
+MessageDemuxer::MessageCallback::MessageCallback() = default;
+MessageDemuxer::MessageCallback::~MessageCallback() = default;
 
+MessageDemuxer::MessageWatch::MessageWatch() = default;
 MessageDemuxer::MessageWatch::MessageWatch(MessageDemuxer* parent,
                                            bool is_default,
                                            uint64_t instance_id,
@@ -149,16 +151,19 @@ MessageDemuxer::MessageWatch MessageDemuxer::WatchMessageType(
             .emplace(instance_id, std::map<msgs::Type, MessageCallback*>{})
             .first;
   }
+
   auto emplace_result = callbacks_entry->second.emplace(message_type, callback);
   if (!emplace_result.second) {
     return MessageWatch();
   }
+
   auto instance_entry = buffers_.find(instance_id);
   if (instance_entry != buffers_.end()) {
     for (auto& buffer : instance_entry->second) {
       if (buffer.second.empty()) {
         continue;
       }
+
       auto buffered_type = static_cast<msgs::Type>(buffer.second[0]);
       if (message_type == buffered_type) {
         HandleStreamBufferLoop(instance_id, buffer.first, callbacks_entry,
@@ -176,12 +181,14 @@ MessageDemuxer::MessageWatch MessageDemuxer::SetDefaultMessageTypeWatch(
   if (!emplace_result.second) {
     return MessageWatch();
   }
+
   for (auto& instance_buffers : buffers_) {
     auto instance_id = instance_buffers.first;
     for (auto& stream_map : instance_buffers.second) {
       if (stream_map.second.empty()) {
         continue;
       }
+
       auto buffered_type = static_cast<msgs::Type>(stream_map.second[0]);
       if (message_type == buffered_type) {
         auto connection_id = stream_map.first;

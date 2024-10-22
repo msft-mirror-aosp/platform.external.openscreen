@@ -120,7 +120,7 @@ class Controller final : public ServiceListener::Observer,
   Controller& operator=(const Controller&) = delete;
   Controller(Controller&&) noexcept = delete;
   Controller& operator=(Controller&&) noexcept = delete;
-  ~Controller();
+  ~Controller() override;
 
   // Connection::Controller overrides.
   Error CloseConnection(Connection* connection,

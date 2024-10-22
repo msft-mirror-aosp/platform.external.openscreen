@@ -20,18 +20,15 @@
 namespace openscreen::osp {
 
 ReceiverDelegate::ReceiverDelegate() = default;
-
 ReceiverDelegate::~ReceiverDelegate() = default;
 
 Receiver::Receiver() = default;
-
 Receiver::~Receiver() = default;
 
 Error Receiver::CloseConnection(Connection* connection,
                                 Connection::CloseReason reason) {
   std::unique_ptr<ProtocolConnection> protocol_connection =
       CreateServerProtocolConnection(connection->instance_id());
-
   if (!protocol_connection) {
     return Error::Code::kNoActiveConnection;
   }
@@ -93,12 +90,9 @@ void Receiver::OnConnectionDestroyed(Connection* connection) {
 
   std::vector<Connection*>& connections =
       presentation_entry->second.connections;
-
-  auto past_the_end =
-      std::remove(connections.begin(), connections.end(), connection);
-  // An additional call to "erase" is necessary to actually adjust the size
-  // of the vector.
-  connections.erase(past_the_end, connections.end());
+  connections.erase(
+      std::remove(connections.begin(), connections.end(), connection),
+      connections.end());
 
   connection_manager_->RemoveConnection(connection);
 }
@@ -123,6 +117,7 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
         if (decode_result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
         }
+
         OSP_LOG_WARN << "Presentation-url-availability-request parse error: "
                      << decode_result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -150,6 +145,7 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
         if (result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
         }
+
         OSP_LOG_WARN << "Presentation-initiation-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -157,7 +153,6 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       }
 
       OSP_LOG_INFO << "Got an initiation request for: " << request.url;
-
       PresentationID presentation_id(std::move(request.presentation_id));
       if (!presentation_id) {
         msgs::PresentationStartResponse response = {
@@ -177,11 +172,11 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       }
 
       auto& response_list = queued_responses_by_id_[presentation_id];
-      QueuedResponse queued_response{
-          /* .type = */ QueuedResponse::Type::kInitiation,
-          /* .request_id = */ request.request_id,
-          /* .connection_id = */ this->GetNextConnectionId(),
-          /* .instance_id = */ instance_id};
+      QueuedResponse queued_response = {
+          .type = QueuedResponse::Type::kInitiation,
+          .request_id = request.request_id,
+          .connection_id = this->GetNextConnectionId(),
+          .instance_id = instance_id};
       response_list.push_back(std::move(queued_response));
 
       const bool starting = delegate_->StartPresentation(
@@ -218,6 +213,7 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
         if (result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
         }
+
         OSP_LOG_WARN << "Presentation-connection-open-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -297,6 +293,7 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
         if (result == msgs::kParserEOF) {
           return Error::Code::kCborIncompleteMessage;
         }
+
         OSP_LOG_WARN << "Presentation-termination-request parse error: "
                      << result;
         TRACE_SET_RESULT(Error::Code::kParseError);
@@ -334,13 +331,13 @@ ErrorOr<size_t> Receiver::OnStreamMessage(uint64_t instance_id,
       presentation_entry->second.terminate_request_id = request.request_id;
       delegate_->TerminatePresentation(presentation_id,
                                        TerminationSource::kController, reason);
-
       return result;
     }
 
-    default:
+    default: {
       TRACE_SET_RESULT(Error::Code::kUnknownMessageType);
       return Error::Code::kUnknownMessageType;
+    }
   }
 }
 
@@ -440,12 +437,12 @@ Error Receiver::OnConnectionCreated(uint64_t request_id,
                                     Connection* connection,
                                     ResponseResult result) {
   const auto presentation_id = connection->presentation_info().id;
-
   ErrorOr<QueuedResponseIterator> connection_response =
       GetQueuedResponse(presentation_id, request_id);
   if (connection_response.is_error()) {
     return connection_response.error();
   }
+
   connection->OnConnected(
       connection_response.value()->connection_id,
       connection_response.value()->instance_id,
@@ -492,7 +489,6 @@ ErrorOr<Receiver::QueuedResponseIterator> Receiver::GetQueuedResponse(
                    [request_id](const QueuedResponse& response) {
                      return response.request_id == request_id;
                    });
-
   if (it == responses.end()) {
     OSP_LOG_WARN << "connection created for unknown request";
     return Error::Code::kUnknownRequestId;

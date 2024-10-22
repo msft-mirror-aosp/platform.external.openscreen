@@ -30,7 +30,12 @@ class ProtocolConnection {
  public:
   class Observer {
    public:
-    virtual ~Observer() = default;
+    Observer();
+    Observer(const Observer&) = delete;
+    Observer& operator=(const Observer&) = delete;
+    Observer(Observer&&) noexcept = delete;
+    Observer& operator=(Observer&&) noexcept = delete;
+    virtual ~Observer();
 
     // Called when `connection` is no longer available, either because the
     // underlying transport was terminated, the underying system resource was

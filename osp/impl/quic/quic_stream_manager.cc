@@ -11,6 +11,9 @@
 
 namespace openscreen::osp {
 
+QuicStreamManager::Delegate::Delegate() = default;
+QuicStreamManager::Delegate::~Delegate() = default;
+
 QuicStreamManager::QuicStreamManager(Delegate& delegate)
     : delegate_(delegate) {}
 

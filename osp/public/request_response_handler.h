@@ -16,7 +16,6 @@
 #include "osp/public/network_service_manager.h"
 #include "osp/public/protocol_connection.h"
 #include "platform/base/error.h"
-#include "platform/base/macros.h"
 #include "util/osp_logging.h"
 
 namespace openscreen::osp {
@@ -57,16 +56,24 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
  public:
   class Delegate {
    public:
+    Delegate() = default;
+    Delegate(const Delegate&) = delete;
+    Delegate& operator=(const Delegate&) = delete;
+    Delegate(Delegate&&) noexcept = delete;
+    Delegate& operator=(Delegate&&) noexcept = delete;
+    virtual ~Delegate() = default;
+
     virtual void OnMatchedResponse(RequestT* request,
                                    typename RequestT::ResponseMsgType* response,
                                    uint64_t instance_id) = 0;
     virtual void OnError(RequestT* request, const Error& error) = 0;
-
-   protected:
-    virtual ~Delegate() = default;
   };
 
   explicit RequestResponseHandler(Delegate& delegate) : delegate_(delegate) {}
+  RequestResponseHandler(const RequestResponseHandler&) = delete;
+  RequestResponseHandler& operator=(const RequestResponseHandler&) = delete;
+  RequestResponseHandler(RequestResponseHandler&&) noexcept = delete;
+  RequestResponseHandler& operator=(RequestResponseHandler&&) noexcept = delete;
   ~RequestResponseHandler() { Reset(); }
 
   void Reset() {
@@ -222,8 +229,6 @@ class RequestResponseHandler : public MessageDemuxer::MessageCallback {
   std::vector<RequestWithId> to_send_;
   std::vector<RequestWithId> sent_;
   MessageDemuxer::MessageWatch response_watch_;
-
-  OSP_DISALLOW_COPY_AND_ASSIGN(RequestResponseHandler);
 };
 
 }  // namespace openscreen::osp

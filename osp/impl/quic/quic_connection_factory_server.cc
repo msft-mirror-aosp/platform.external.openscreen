@@ -23,6 +23,9 @@
 
 namespace openscreen::osp {
 
+QuicConnectionFactoryServer::ServerDelegate::ServerDelegate() = default;
+QuicConnectionFactoryServer::ServerDelegate::~ServerDelegate() = default;
+
 QuicConnectionFactoryServer::QuicConnectionFactoryServer(
     TaskRunner& task_runner)
     : QuicConnectionFactoryBase(task_runner) {}

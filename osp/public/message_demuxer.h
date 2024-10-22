@@ -15,8 +15,6 @@
 
 namespace openscreen::osp {
 
-class QuicStream;
-
 // This class separates QUIC stream data into CBOR messages by reading a type
 // prefix from the stream and passes those messages to any callback matching the
 // source endpoint and message type.  If there is no callback for a given
@@ -25,7 +23,12 @@ class MessageDemuxer {
  public:
   class MessageCallback {
    public:
-    virtual ~MessageCallback() = default;
+    MessageCallback();
+    MessageCallback(const MessageCallback&) = delete;
+    MessageCallback& operator=(const MessageCallback&) = delete;
+    MessageCallback(MessageCallback&&) noexcept = default;
+    MessageCallback& operator=(MessageCallback&&) noexcept = default;
+    virtual ~MessageCallback();
 
     // `buffer` contains data for a message of type `message_type`.  However,
     // the data may be incomplete, in which case the callback should return an
@@ -71,6 +74,10 @@ class MessageDemuxer {
   static constexpr size_t kDefaultBufferLimit = 1 << 16;
 
   MessageDemuxer(ClockNowFunctionPtr now_function, size_t buffer_limit);
+  MessageDemuxer(const MessageDemuxer&) = delete;
+  MessageDemuxer& operator=(const MessageDemuxer&) = delete;
+  MessageDemuxer(MessageDemuxer&&) noexcept = delete;
+  MessageDemuxer& operator=(MessageDemuxer&&) noexcept = delete;
   ~MessageDemuxer();
 
   // Starts watching for messages of type `message_type` from the instance

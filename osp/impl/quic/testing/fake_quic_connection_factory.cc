@@ -17,6 +17,8 @@ FakeQuicConnectionFactoryBridge::FakeQuicConnectionFactoryBridge(
     const IPEndpoint& controller_endpoint)
     : controller_endpoint_(controller_endpoint) {}
 
+FakeQuicConnectionFactoryBridge::~FakeQuicConnectionFactoryBridge() = default;
+
 void FakeQuicConnectionFactoryBridge::OnConnectionClosed(
     QuicConnection* connection) {
   if (connection == connections_.controller) {
@@ -141,6 +143,7 @@ FakeClientQuicConnectionFactory::FakeClientQuicConnectionFactory(
     TaskRunner& task_runner,
     FakeQuicConnectionFactoryBridge* bridge)
     : QuicConnectionFactoryClient(task_runner), bridge_(bridge) {}
+
 FakeClientQuicConnectionFactory::~FakeClientQuicConnectionFactory() = default;
 
 ErrorOr<std::unique_ptr<QuicConnection>>
@@ -178,6 +181,7 @@ FakeServerQuicConnectionFactory::FakeServerQuicConnectionFactory(
     TaskRunner& task_runner,
     FakeQuicConnectionFactoryBridge* bridge)
     : QuicConnectionFactoryServer(task_runner), bridge_(bridge) {}
+
 FakeServerQuicConnectionFactory::~FakeServerQuicConnectionFactory() = default;
 
 void FakeServerQuicConnectionFactory::SetServerDelegate(

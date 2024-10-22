@@ -22,12 +22,12 @@ class QuicStreamManager final : public QuicStream::Delegate {
  public:
   class Delegate {
    public:
-    Delegate() = default;
+    Delegate();
     Delegate(const Delegate&) = delete;
     Delegate& operator=(const Delegate&) = delete;
     Delegate(Delegate&&) noexcept = delete;
     Delegate& operator=(Delegate&&) noexcept = delete;
-    virtual ~Delegate() = default;
+    virtual ~Delegate();
 
     virtual void OnDataReceived(uint64_t instance_id,
                                 uint64_t protocol_connection_id,

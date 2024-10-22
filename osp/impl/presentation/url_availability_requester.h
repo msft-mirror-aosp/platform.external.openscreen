@@ -30,6 +30,11 @@ namespace openscreen::osp {
 class UrlAvailabilityRequester {
  public:
   explicit UrlAvailabilityRequester(ClockNowFunctionPtr now_function);
+  UrlAvailabilityRequester(const UrlAvailabilityRequester&) = delete;
+  UrlAvailabilityRequester& operator=(const UrlAvailabilityRequester&) = delete;
+  UrlAvailabilityRequester(UrlAvailabilityRequester&&) noexcept = delete;
+  UrlAvailabilityRequester& operator=(UrlAvailabilityRequester&&) noexcept =
+      delete;
   ~UrlAvailabilityRequester();
 
   // Adds a persistent availability request for `urls` to all known receivers.
@@ -78,6 +83,10 @@ class UrlAvailabilityRequester {
    public:
     ReceiverRequester(UrlAvailabilityRequester& listener,
                       const std::string& instance_name);
+    ReceiverRequester(const ReceiverRequester&) = delete;
+    ReceiverRequester& operator=(const ReceiverRequester&) = delete;
+    ReceiverRequester(ReceiverRequester&&) noexcept = delete;
+    ReceiverRequester& operator=(ReceiverRequester&&) noexcept = delete;
     ~ReceiverRequester() override;
 
     void GetOrRequestAvailabilities(

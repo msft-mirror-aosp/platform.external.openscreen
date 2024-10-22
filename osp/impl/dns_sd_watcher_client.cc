@@ -64,10 +64,12 @@ ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
     if (!service_info.v4_endpoint && record.address.IsV4()) {
       service_info.v4_endpoint = record;
     }
+
     if (!service_info.v6_endpoint && record.address.IsV6()) {
       service_info.v6_endpoint = record;
     }
   }
+
   if (!service_info.v4_endpoint && !service_info.v6_endpoint) {
     return {Error::Code::kParameterInvalid,
             "No IPv4 nor IPv6 address in record."};

@@ -31,10 +31,6 @@ std::vector<uint8_t> FakeQuicStream::TakeWrittenData() {
   return std::move(write_buffer_);
 }
 
-uint64_t FakeQuicStream::GetStreamId() {
-  return stream_id_;
-}
-
 void FakeQuicStream::Write(ByteView bytes) {
   OSP_CHECK(!is_closed_);
   write_buffer_.insert(write_buffer_.end(), bytes.data(),

@@ -56,9 +56,11 @@ class QuicClient final : public ProtocolConnectionClient,
   bool Stop() override;
   bool Suspend() override;
   bool Resume() override;
-  State GetState() override;
-  MessageDemuxer& GetMessageDemuxer() override;
-  InstanceRequestIds& GetInstanceRequestIds() override;
+  State GetState() override { return state_; }
+  MessageDemuxer& GetMessageDemuxer() override { return demuxer_; }
+  InstanceRequestIds& GetInstanceRequestIds() override {
+    return instance_request_ids_;
+  }
   std::unique_ptr<ProtocolConnection> CreateProtocolConnection(
       uint64_t instance_id) override;
   bool Connect(std::string_view instance_name,

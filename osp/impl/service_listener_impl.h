@@ -12,7 +12,6 @@
 #include "osp/impl/receiver_list.h"
 #include "osp/public/service_info.h"
 #include "osp/public/service_listener.h"
-#include "platform/base/macros.h"
 
 namespace openscreen::osp {
 
@@ -23,6 +22,10 @@ class ServiceListenerImpl final
   class Delegate {
    public:
     Delegate();
+    Delegate(const Delegate&) = delete;
+    Delegate& operator=(const Delegate&) = delete;
+    Delegate(Delegate&&) noexcept = delete;
+    Delegate& operator=(Delegate&&) noexcept = delete;
     virtual ~Delegate();
 
     void SetListenerImpl(ServiceListenerImpl* listener);
@@ -43,6 +46,10 @@ class ServiceListenerImpl final
 
   // `delegate` is used to implement state transitions.
   explicit ServiceListenerImpl(std::unique_ptr<Delegate> delegate);
+  ServiceListenerImpl(const ServiceListenerImpl&) = delete;
+  ServiceListenerImpl& operator=(const ServiceListenerImpl&) = delete;
+  ServiceListenerImpl(ServiceListenerImpl&&) noexcept = delete;
+  ServiceListenerImpl& operator=(ServiceListenerImpl&&) noexcept = delete;
   ~ServiceListenerImpl() override;
 
   // OnReceiverUpdated is called by `delegate_` when there are updates to the
@@ -84,8 +91,6 @@ class ServiceListenerImpl final
 
   std::unique_ptr<Delegate> delegate_;
   ReceiverList receiver_list_;
-
-  OSP_DISALLOW_COPY_AND_ASSIGN(ServiceListenerImpl);
 };
 
 }  // namespace openscreen::osp

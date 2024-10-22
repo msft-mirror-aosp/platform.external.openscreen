@@ -20,6 +20,10 @@ class FakeQuicConnectionFactoryBridge;
 class FakeQuicStream final : public QuicStream {
  public:
   FakeQuicStream(Delegate& delegate, uint64_t id);
+  FakeQuicStream(const FakeQuicStream&) = delete;
+  FakeQuicStream& operator=(const FakeQuicStream&) = delete;
+  FakeQuicStream(FakeQuicStream&&) noexcept = delete;
+  FakeQuicStream& operator=(FakeQuicStream&&) noexcept = delete;
   ~FakeQuicStream() override;
 
   void ReceiveData(ByteView bytes);
@@ -30,7 +34,7 @@ class FakeQuicStream final : public QuicStream {
   bool is_closed() const { return is_closed_; }
   Delegate& delegate() { return delegate_; }
 
-  uint64_t GetStreamId() override;
+  uint64_t GetStreamId() override { return stream_id_; }
   void Write(ByteView bytes) override;
   void Close() override;
 
@@ -46,6 +50,10 @@ class FakeQuicConnection final : public QuicConnection {
   FakeQuicConnection(std::string_view instance_name,
                      FakeQuicConnectionFactoryBridge& parent_factory,
                      Delegate& delegate);
+  FakeQuicConnection(const FakeQuicConnection&) = delete;
+  FakeQuicConnection& operator=(const FakeQuicConnection&) = delete;
+  FakeQuicConnection(FakeQuicConnection&&) noexcept = delete;
+  FakeQuicConnection& operator=(FakeQuicConnection&&) noexcept = delete;
   ~FakeQuicConnection() override;
 
   Delegate& delegate() { return delegate_; }
