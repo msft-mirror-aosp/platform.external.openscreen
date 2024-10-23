@@ -42,9 +42,12 @@ class MockConnectRequestCallback final : public ConnectRequestCallback {
  public:
   ~MockConnectRequestCallback() override = default;
 
-  MOCK_METHOD2(OnConnectSucceed,
-               void(uint64_t request_id, uint64_t instance_id));
-  MOCK_METHOD1(OnConnectFailed, void(uint64_t request_id));
+  MOCK_METHOD3(OnConnectSucceed,
+               void(uint64_t request_id,
+                    std::string_view instance_name,
+                    uint64_t instance_id));
+  MOCK_METHOD2(OnConnectFailed,
+               void(uint64_t request_id, std::string_view instance_name));
 };
 
 }  // namespace
@@ -134,11 +137,12 @@ TEST_F(ConnectionTest, ConnectAndSend) {
   quic_bridge_.GetQuicClient()->Connect(quic_bridge_.kInstanceName, request,
                                         &mock_connect_request_callback);
   EXPECT_TRUE(request);
-  EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _))
-      .WillOnce(Invoke(
-          [&controller_stream](uint64_t request_id, uint64_t instance_id) {
-            controller_stream = CreateClientProtocolConnection(instance_id);
-          }));
+  EXPECT_CALL(mock_connect_request_callback, OnConnectSucceed(_, _, _))
+      .WillOnce(Invoke([&controller_stream](uint64_t request_id,
+                                            std::string_view instance_name,
+                                            uint64_t instance_id) {
+        controller_stream = CreateClientProtocolConnection(instance_id);
+      }));
 
   EXPECT_CALL(quic_bridge_.mock_server_observer(), OnIncomingConnectionMock(_))
       .WillOnce(testing::WithArgs<0>(testing::Invoke(
