@@ -12,6 +12,7 @@
 #include "osp/msgs/osp_messages.h"
 #include "platform/api/time.h"
 #include "platform/base/error.h"
+#include "platform/base/span.h"
 
 namespace openscreen::osp {
 
@@ -115,13 +116,13 @@ class MessageDemuxer {
       uint64_t connection_id,
       std::map<uint64_t, std::map<msgs::Type, MessageCallback*>>::iterator
           instance_entry,
-      std::vector<uint8_t>* buffer);
+      std::vector<uint8_t>& buffer);
 
   HandleStreamBufferResult HandleStreamBuffer(
       uint64_t instance_id,
       uint64_t connection_id,
       std::map<msgs::Type, MessageCallback*>* message_callbacks,
-      std::vector<uint8_t>* buffer);
+      std::vector<uint8_t>& buffer);
 
   const ClockNowFunctionPtr now_function_;
   const size_t buffer_limit_;
@@ -134,11 +135,11 @@ class MessageDemuxer {
 
 class MessageTypeDecoder {
  public:
-  static ErrorOr<msgs::Type> DecodeType(const std::vector<uint8_t>& buffer,
+  static ErrorOr<msgs::Type> DecodeType(ByteView buffer,
                                         size_t* num_bytes_decoded);
 
  private:
-  static ErrorOr<uint64_t> DecodeVarUint(const std::vector<uint8_t>& buffer,
+  static ErrorOr<uint64_t> DecodeVarUint(ByteView buffer,
                                          size_t* num_bytes_decoded);
 };
 

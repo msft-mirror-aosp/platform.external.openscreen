@@ -62,7 +62,7 @@ bssl::UniquePtr<X509> MakeTrustAnchor(const uint8_t (&data)[N]) {
   return bssl::UniquePtr<X509>{d2i_X509(nullptr, &dptr, N)};
 }
 
-inline bssl::UniquePtr<X509> MakeTrustAnchor(const std::vector<uint8_t>& data) {
+inline bssl::UniquePtr<X509> MakeTrustAnchor(ByteView data) {
   const uint8_t* dptr = data.data();
   return bssl::UniquePtr<X509>{d2i_X509(nullptr, &dptr, data.size())};
 }
@@ -328,7 +328,7 @@ std::unique_ptr<TrustStore> TrustStore::CreateInstanceFromPemFile(
 
 // static
 std::unique_ptr<TrustStore> TrustStore::CreateInstanceForTest(
-    const std::vector<uint8_t>& trust_anchor_der) {
+    ByteView trust_anchor_der) {
   std::unique_ptr<TrustStore> trust_store =
       std::make_unique<BoringSSLTrustStore>(trust_anchor_der);
   return trust_store;
@@ -355,8 +355,7 @@ std::unique_ptr<TrustStore> CastCRLTrustStore::Create() {
 
 BoringSSLTrustStore::BoringSSLTrustStore() {}
 
-BoringSSLTrustStore::BoringSSLTrustStore(
-    const std::vector<uint8_t>& trust_anchor_der) {
+BoringSSLTrustStore::BoringSSLTrustStore(ByteView trust_anchor_der) {
   certs_.emplace_back(MakeTrustAnchor(trust_anchor_der));
 }
 

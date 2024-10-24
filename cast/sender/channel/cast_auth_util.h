@@ -11,6 +11,7 @@
 
 #include "cast/common/certificate/cast_cert_validator.h"
 #include "platform/base/error.h"
+#include "platform/base/span.h"
 
 namespace openscreen::cast {
 namespace proto {
@@ -80,7 +81,7 @@ Error VerifyTLSCertificateValidity(const ParsedCertificate& peer_cert,
 // `signature_input`.
 ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
     const proto::AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,
     bool enforce_revocation_checking = false,
@@ -92,7 +93,7 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
 // and verification times.
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsForTest(
     const proto::AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     CRLPolicy crl_policy,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,

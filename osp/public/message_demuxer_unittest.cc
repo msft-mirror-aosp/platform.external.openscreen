@@ -380,7 +380,8 @@ TEST_F(MessageDemuxerTest, DeserializeMessages) {
   EXPECT_EQ(used_bytes, size_t{2});
   EXPECT_EQ(kAuthCapabilitiesInfo.value(), msgs::Type::kAuthCapabilities);
 
-  auto kUnknownInfo = MessageTypeDecoder::DecodeType({0xFF}, &used_bytes);
+  auto kUnknownInfo =
+      MessageTypeDecoder::DecodeType(std::vector<uint8_t>{0xFF}, &used_bytes);
   EXPECT_TRUE(kUnknownInfo.is_error());
 }
 

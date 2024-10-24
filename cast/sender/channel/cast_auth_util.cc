@@ -257,7 +257,7 @@ Error VerifyTLSCertificateValidity(const ParsedCertificate& peer_cert,
 
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
     const AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     const CRLPolicy& crl_policy,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,
@@ -352,7 +352,7 @@ ErrorOr<CastDeviceCertPolicy> AuthenticateChallengeReplyForTest(
 //   `signature_input` by `response.client_auth_certificate`'s public key.
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
     const AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     const CRLPolicy& crl_policy,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,
@@ -398,8 +398,8 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
   }
 
   ByteView signature = ByteViewFromString(response.signature());
-  ByteView siginput(signature_input);
-  if (!target_cert->VerifySignedData(digest_algorithm, siginput, signature)) {
+  if (!target_cert->VerifySignedData(digest_algorithm, signature_input,
+                                     signature)) {
     return Error(Error::Code::kCastV2SignedBlobsMismatch,
                  "Failed verifying signature over data.");
   }
@@ -409,7 +409,7 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentialsImpl(
 
 ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
     const AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,
     bool enforce_revocation_checking,
@@ -425,7 +425,7 @@ ErrorOr<CastDeviceCertPolicy> VerifyCredentials(
 
 ErrorOr<CastDeviceCertPolicy> VerifyCredentialsForTest(
     const AuthResponse& response,
-    const std::vector<uint8_t>& signature_input,
+    ByteView signature_input,
     CRLPolicy crl_policy,
     TrustStore* cast_trust_store,
     TrustStore* crl_trust_store,

@@ -15,8 +15,7 @@
 #include "platform/base/error.h"
 #include "platform/base/span.h"
 
-namespace openscreen::cast {
-namespace message_serialization {
+namespace openscreen::cast::message_serialization {
 
 // Serializes `message_proto` into `message_data`.
 // Returns true if the message was serialized successfully, false otherwise.
@@ -33,7 +32,6 @@ struct DeserializeResult {
 // bytes consumed from `input` when a parse succeeds.
 ErrorOr<DeserializeResult> TryDeserialize(ByteView input);
 
-}  // namespace message_serialization
-}  // namespace openscreen::cast
+}  // namespace openscreen::cast::message_serialization
 
 #endif  // CAST_COMMON_CHANNEL_MESSAGE_FRAMER_H_

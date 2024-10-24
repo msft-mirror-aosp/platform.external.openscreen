@@ -29,7 +29,7 @@ enum class DigestAlgorithm {
 class ParsedCertificate {
  public:
   static ErrorOr<std::unique_ptr<ParsedCertificate>> ParseFromDER(
-      const std::vector<uint8_t>& der_cert);
+      ByteView der_cert);
 
   virtual ~ParsedCertificate() = default;
 

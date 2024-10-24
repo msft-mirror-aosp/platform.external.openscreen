@@ -38,7 +38,7 @@ const EVP_MD* MapDigestAlgorithm(DigestAlgorithm algorithm) {
 
 // static
 ErrorOr<std::unique_ptr<ParsedCertificate>> ParsedCertificate::ParseFromDER(
-    const std::vector<uint8_t>& der_cert) {
+    ByteView der_cert) {
   ErrorOr<bssl::UniquePtr<X509>> parsed =
       ImportCertificate(der_cert.data(), der_cert.size());
   if (!parsed) {
