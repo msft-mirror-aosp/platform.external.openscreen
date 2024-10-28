@@ -107,7 +107,7 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   // between all Open Screen executables. If it is a platform feature
   // being exposed, consider if it applies to the standalone receiver,
   // standalone sender, osp demo, and test_main argument options.
-  const struct option kArgumentOptions[] = {
+  const get_opt::option kArgumentOptions[] = {
       {"max-bitrate", required_argument, nullptr, 'm'},
       {"no-looping", no_argument, nullptr, 'n'},
       {"developer-certificate", required_argument, nullptr, 'd'},
