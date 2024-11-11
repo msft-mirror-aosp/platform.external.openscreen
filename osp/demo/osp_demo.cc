@@ -657,8 +657,8 @@ InputArgs GetInputArgs(int argc, char** argv) {
     }
   }
 
-  if (optind < argc) {
-    args.friendly_server_name = argv[optind];
+  if (get_opt::optind < argc) {
+    args.friendly_server_name = argv[get_opt::optind];
   }
 
   return args;
