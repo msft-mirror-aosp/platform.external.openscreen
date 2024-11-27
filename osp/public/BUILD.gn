@@ -11,6 +11,9 @@ if (!is_win) {
     visibility += [ "*" ]
     public = [
       "agent_certificate.h",
+      "authentication_alice.h",
+      "authentication_base.h",
+      "authentication_bob.h",
       "connect_request.h",
       "instance_request_ids.h",
       "message_demuxer.h",
@@ -37,6 +40,9 @@ if (!is_win) {
     ]
     sources = [
       "agent_certificate.cc",
+      "authentication_alice.cc",
+      "authentication_base.cc",
+      "authentication_bob.cc",
       "connect_request.cc",
       "instance_request_ids.cc",
       "protocol_connection.cc",
@@ -53,6 +59,7 @@ if (!is_win) {
 
     deps = [
       "../../platform",
+      "../../third_party/boringssl",
       "../../util",
     ]
 
