@@ -99,7 +99,8 @@ class ReceiverBase {
   // This value is based on real world experimentation, however may vary
   // widely depending on the platform of the receiver and what type of
   // decoder is available.
-  static constexpr std::chrono::milliseconds kDefaultPlayerProcessingTime{50};
+  static constexpr std::chrono::milliseconds kDefaultPlayerProcessingTime =
+      std::chrono::milliseconds(50);
 
   // Returned by AdvanceToNextFrame() when there are no frames currently ready
   // for consumption.

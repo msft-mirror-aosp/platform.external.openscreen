@@ -450,7 +450,7 @@ TEST_F(MdnsTrackerTest, QuestionTrackerQueryAfterDelay) {
           DoAll(WithArgs<0>(VerifyTruncated(false)), Return(Error::None())));
   clock_.Advance(std::chrono::milliseconds(120));
 
-  std::chrono::seconds interval{1};
+  std::chrono::seconds interval(1);
   while (interval < std::chrono::hours(1)) {
     EXPECT_CALL(sender_, SendMulticast(_))
         .WillOnce(

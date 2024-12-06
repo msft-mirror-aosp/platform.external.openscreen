@@ -86,8 +86,8 @@ class ConnectionTest : public ::testing::Test {
 };
 
 TEST_F(ConnectionTest, ConnectAndSend) {
-  const std::string id{"deadbeef01234"};
-  const std::string url{"https://example.com/receiver.html"};
+  const std::string id = "deadbeef01234";
+  const std::string url = "https://example.com/receiver.html";
   const uint64_t connection_id = 13;
   MockConnectionDelegate mock_controller_delegate;
   MockConnectionDelegate mock_receiver_delegate;

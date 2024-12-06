@@ -23,7 +23,7 @@ using testing::ElementsAreArray;
 
 namespace {
 
-constexpr std::chrono::seconds kTtl{120};
+constexpr std::chrono::seconds kTtl(120);
 
 template <class T>
 void TestCopyAndMove(const T& value) {
@@ -45,7 +45,7 @@ TEST(MdnsDomainNameTest, Construct) {
   EXPECT_EQ(name1.MaxWireSize(), size_t{1});
   EXPECT_EQ(name1.labels().size(), size_t{0});
 
-  DomainName name2{"MyDevice", "_mYSERvice", "local"};
+  DomainName name2({"MyDevice", "_mYSERvice", "local"});
   EXPECT_FALSE(name2.empty());
   EXPECT_EQ(name2.MaxWireSize(), size_t{27});
   ASSERT_EQ(name2.labels().size(), size_t{3});
@@ -70,11 +70,11 @@ TEST(MdnsDomainNameTest, Construct) {
 }
 
 TEST(MdnsDomainNameTest, Compare) {
-  DomainName first{"testing", "local"};
-  DomainName second{"TeStInG", "LOCAL"};
-  DomainName third{"testing"};
-  DomainName fourth{"testing.local"};
-  DomainName fifth{"Testing.Local"};
+  DomainName first({"testing", "local"});
+  DomainName second({"TeStInG", "LOCAL"});
+  DomainName third({"testing"});
+  DomainName fourth({"testing.local"});
+  DomainName fifth({"Testing.Local"});
 
   EXPECT_EQ(first, second);
   EXPECT_TRUE(first >= second);
@@ -316,7 +316,7 @@ TEST(MdnsTxtRecordRdataTest, CopyAndMove) {
 }
 
 TEST(MdnsNsecRecordRdataTest, Construct) {
-  const DomainName domain{"testing", "local"};
+  const DomainName domain({"testing", "local"});
   NsecRecordRdata rdata(domain);
   EXPECT_EQ(rdata.MaxWireSize(), domain.MaxWireSize());
   EXPECT_EQ(rdata.next_domain_name(), domain);
@@ -421,7 +421,7 @@ TEST(MdnsNsecRecordRdataTest, Construct) {
 }
 
 TEST(MdnsNsecRecordRdataTest, Compare) {
-  const DomainName domain{"testing", "local"};
+  const DomainName domain({"testing", "local"});
   const NsecRecordRdata rdata1(domain, DnsType::kA, DnsType::kSRV);
   const NsecRecordRdata rdata2(domain, DnsType::kSRV, DnsType::kA);
   const NsecRecordRdata rdata3(domain, DnsType::kSRV, DnsType::kA,

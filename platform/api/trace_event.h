@@ -35,7 +35,7 @@ struct TraceEvent {
   std::string ToString() const;
 
   // May be called to truncate all std::strings on this object.
-  static const size_t kMaxStringLength{1024};
+  static const size_t kMaxStringLength = 1024;
   void TruncateStrings();
 
   // The category of this event.
@@ -45,7 +45,7 @@ struct TraceEvent {
   Clock::time_point start_time;
 
   // Name of this operation.
-  const char* name{nullptr};
+  const char* name = nullptr;
 
   // Name of the file the log was generated in.
   const char* file_name{nullptr};
@@ -57,7 +57,7 @@ struct TraceEvent {
   TraceIdHierarchy ids;
 
   // Optional result of the trace event.
-  Error::Code result{Error::Code::kNone};
+  Error::Code result = Error::Code::kNone;
 
   // Optional list of arguments. May contain 0, 1, or 2 arguments.
   // Excess arguments will remain unused.

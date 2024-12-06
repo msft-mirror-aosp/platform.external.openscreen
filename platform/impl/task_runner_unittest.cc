@@ -222,7 +222,7 @@ TEST(TaskRunnerImplTest, TaskRunnerUsesEventWaiter) {
   std::unique_ptr<TaskRunnerImpl> runner =
       TaskRunnerWithWaiterFactory::Create(Clock::now);
 
-  std::atomic<int> x{0};
+  std::atomic<int> x(0);
   std::thread t([&runner, &x] {
     runner.get()->RunUntilStopped();
     x = 1;
@@ -249,7 +249,7 @@ TEST(TaskRunnerImplTest, WakesEventWaiterOnPostTask) {
   std::unique_ptr<TaskRunnerImpl> runner =
       TaskRunnerWithWaiterFactory::Create(Clock::now);
 
-  std::atomic<int> x{0};
+  std::atomic<int> x(0);
   std::thread t([&runner] { runner.get()->RunUntilStopped(); });
 
   const Clock::time_point start1 = Clock::now();

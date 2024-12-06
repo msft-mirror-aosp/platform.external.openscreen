@@ -30,7 +30,7 @@ uint64_t ComputeAggregateHash(uint64_t original_seed, const T&... objs) {
   };
 
   uint64_t result = original_seed;
-  std::vector<uint64_t> hashes{std::hash<T>()(objs)...};
+  std::vector<uint64_t> hashes = {std::hash<T>()(objs)...};
   for (uint64_t hash : hashes) {
     result = hash_combiner(result, hash);
   }

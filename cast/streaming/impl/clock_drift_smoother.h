@@ -39,7 +39,8 @@ class ClockDriftSmoother {
   // A time constant suitable for most use cases, where the clocks are expected
   // to drift very little with respect to each other, and the jitter caused by
   // clock imprecision is effectively canceled out.
-  static constexpr std::chrono::seconds kDefaultTimeConstant{30};
+  static constexpr std::chrono::seconds kDefaultTimeConstant =
+      std::chrono::seconds(30);
 
  private:
   const std::chrono::duration<double, Clock::duration::period> time_constant_;
