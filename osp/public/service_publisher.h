@@ -64,14 +64,8 @@ class ServicePublisher {
   };
 
   struct Config {
-    // The human readable friendly name of the service being published in
-    // UTF-8.
-    std::string friendly_name;
-
     // The DNS domain name label that should be used to identify this service
     // within the openscreen service type.
-    // TODO(btolsch): This could be derived from `friendly_name` but we will
-    // leave it as an arbitrary name until the spec is finalized.
     std::string instance_name;
 
     // The fingerprint of the server's certificate and it is included in DNS TXT

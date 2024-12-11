@@ -321,19 +321,14 @@ TEST_F(ServiceListenerImplTest, ObserveFromSearching) {
 }
 
 TEST_F(ServiceListenerImplTest, ReceiverObserverPassThrough) {
-  const ServiceInfo receiver1{"id1",    "name1", "fingerprint1",
-                              "token1", 1,       {{192, 168, 1, 10}, 12345},
-                              {}};
-  const ServiceInfo receiver2{"id2",    "name2", "fingerprint2",
-                              "token2", 1,       {{192, 168, 1, 11}, 12345},
-                              {}};
-  const ServiceInfo receiver3{"id3",    "name3", "fingerprint3",
-                              "token3", 1,       {{192, 168, 1, 12}, 12345},
-                              {}};
-  const ServiceInfo receiver1_alt_name{
-      "id1",    "name1 alt", "fingerprint1",
-      "token1", 1,           {{192, 168, 1, 10}, 12345},
-      {}};
+  const ServiceInfo receiver1 = {
+      "id1", "fingerprint1", "token1", 1, {{192, 168, 1, 10}, 12345}, {}};
+  const ServiceInfo receiver2 = {
+      "id2", "fingerprint2", "token2", 1, {{192, 168, 1, 11}, 12345}, {}};
+  const ServiceInfo receiver3 = {
+      "id3", "fingerprint3", "token3", 1, {{192, 168, 1, 12}, 12345}, {}};
+  const ServiceInfo receiver1_alt_token{
+      "id1", "fingerprint1", "token4", 1, {{192, 168, 1, 10}, 12345}, {}};
   MockObserver observer;
   service_listener_->AddObserver(observer);
 
@@ -344,32 +339,32 @@ TEST_F(ServiceListenerImplTest, ReceiverObserverPassThrough) {
   EXPECT_THAT(service_listener_->GetReceivers(), ElementsAre(receiver1));
 
   receivers.clear();
-  receivers.push_back(receiver1_alt_name);
-  EXPECT_CALL(observer, OnReceiverChanged(receiver1_alt_name));
+  receivers.push_back(receiver1_alt_token);
+  EXPECT_CALL(observer, OnReceiverChanged(receiver1_alt_token));
   service_listener_->OnReceiverUpdated(receivers);
   EXPECT_THAT(service_listener_->GetReceivers(),
-              ElementsAre(receiver1_alt_name));
+              ElementsAre(receiver1_alt_token));
 
   receivers.clear();
   receivers.push_back(receiver2);
   EXPECT_CALL(observer, OnReceiverChanged(receiver2)).Times(0);
   service_listener_->OnReceiverUpdated(receivers);
   EXPECT_THAT(service_listener_->GetReceivers(),
-              ElementsAre(receiver1_alt_name));
+              ElementsAre(receiver1_alt_token));
 
-  receivers.push_back(receiver1_alt_name);
+  receivers.push_back(receiver1_alt_token);
   EXPECT_CALL(observer, OnReceiverAdded(receiver2));
   service_listener_->OnReceiverUpdated(receivers);
   EXPECT_EQ(service_listener_->GetReceivers().size(), 2u);
-  EXPECT_EQ(service_listener_->GetReceivers()[0], receiver1_alt_name);
+  EXPECT_EQ(service_listener_->GetReceivers()[0], receiver1_alt_token);
   EXPECT_EQ(service_listener_->GetReceivers()[1], receiver2);
 
   receivers.clear();
-  receivers.push_back(receiver1_alt_name);
+  receivers.push_back(receiver1_alt_token);
   EXPECT_CALL(observer, OnReceiverRemoved(receiver2));
   service_listener_->OnReceiverUpdated(receivers);
   EXPECT_THAT(service_listener_->GetReceivers(),
-              ElementsAre(receiver1_alt_name));
+              ElementsAre(receiver1_alt_token));
 
   receivers.clear();
   EXPECT_CALL(observer, OnAllReceiversRemoved());

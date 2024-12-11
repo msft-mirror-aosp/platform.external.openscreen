@@ -33,13 +33,6 @@ ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
     return {Error::Code::kParameterInvalid, "Invalid network inferface index."};
   }
 
-  std::string friendly_name =
-      endpoint.txt().GetStringValue(kFriendlyNameTxtKey).value("");
-  if (friendly_name.empty()) {
-    return {Error::Code::kParameterInvalid,
-            "Missing receiver friendly name in record."};
-  }
-
   // TODO(Wei): Add additional validation to check and discard records with
   // invalid fingerprints early. There's a specific format for the fingerprint
   // defined by the spec:
@@ -57,9 +50,8 @@ ErrorOr<ServiceInfo> DnsSdInstanceEndpointToServiceInfo(
             "Missing authentication token in record."};
   }
 
-  ServiceInfo service_info{endpoint.instance_id(), std::move(friendly_name),
-                           std::move(fingerprint), std::move(auth_token),
-                           endpoint.network_interface()};
+  ServiceInfo service_info{endpoint.instance_id(), std::move(fingerprint),
+                           std::move(auth_token), endpoint.network_interface()};
   for (const IPEndpoint& record : endpoint.endpoints()) {
     if (!service_info.v4_endpoint && record.address.IsV4()) {
       service_info.v4_endpoint = record;

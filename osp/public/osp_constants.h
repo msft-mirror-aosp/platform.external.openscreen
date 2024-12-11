@@ -18,9 +18,6 @@ inline constexpr char kOpenScreenServiceName[] = "_openscreen._udp";
 inline constexpr char kDnsSdDomainId[] = "local";
 inline constexpr char kOpenScreenServiceType[] = "_openscreen._udp.local";
 
-// DEPRECATED.
-inline constexpr char kFriendlyNameTxtKey[] = "fn";
-
 }  // namespace openscreen::osp
 
 #endif  // OSP_PUBLIC_OSP_CONSTANTS_H_

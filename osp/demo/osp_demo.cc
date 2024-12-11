@@ -144,16 +144,15 @@ class DemoListenerObserver final : public ServiceListener::Observer {
   void OnSearching() override { OSP_LOG_INFO << "listener searching!"; }
 
   void OnReceiverAdded(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "found! " << info.friendly_name
-                 << ", corresponding instance name is: " << info.instance_name;
+    OSP_LOG_INFO << "found! " << info.instance_name;
   }
 
   void OnReceiverChanged(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "changed! " << info.friendly_name;
+    OSP_LOG_INFO << "changed! " << info.instance_name;
   }
 
   void OnReceiverRemoved(const ServiceInfo& info) override {
-    OSP_LOG_INFO << "removed! " << info.friendly_name;
+    OSP_LOG_INFO << "removed! " << info.instance_name;
   }
 
   void OnAllReceiversRemoved() override { OSP_LOG_INFO << "all removed!"; }
@@ -547,8 +546,7 @@ void PublisherDemo(std::string_view friendly_name) {
 
   constexpr uint16_t server_port = 6667;
   ServicePublisher::Config publisher_config = {
-      .friendly_name = std::string(friendly_name),
-      .instance_name = "deadbeef",
+      .instance_name = std::string(friendly_name),
       .connection_server_port = server_port};
   ServiceConfig server_config = {.instance_name =
                                      publisher_config.instance_name};

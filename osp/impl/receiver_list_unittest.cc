@@ -14,17 +14,15 @@ TEST(ReceiverListTest, AddReceivers) {
 
   EXPECT_TRUE(list.receivers().empty());
 
-  const ServiceInfo receiver1{"id1",    "name1", "fingerprint1",
-                              "token1", 1,       {{192, 168, 1, 10}, 12345},
-                              {}};
+  const ServiceInfo receiver1 = {
+      "id1", "fingerprint1", "token1", 1, {{192, 168, 1, 10}, 12345}, {}};
   list.OnReceiverAdded(receiver1);
 
   ASSERT_EQ(1u, list.receivers().size());
   EXPECT_EQ(receiver1, list.receivers()[0]);
 
-  const ServiceInfo receiver2{"id2",    "name2", "fingerprint2",
-                              "token2", 1,       {{192, 168, 1, 11}, 12345},
-                              {}};
+  const ServiceInfo receiver2 = {
+      "id2", "fingerprint2", "token2", 1, {{192, 168, 1, 11}, 12345}, {}};
   list.OnReceiverAdded(receiver2);
 
   ASSERT_EQ(2u, list.receivers().size());
@@ -42,38 +40,31 @@ TEST(ReceiverListTest, AddReceivers) {
 
 TEST(ReceiverListTest, ChangeReceivers) {
   ReceiverList list;
-  const ServiceInfo receiver1{"id1",    "name1", "fingerprint1",
-                              "token1", 1,       {{192, 168, 1, 10}, 12345},
-                              {}};
-  const ServiceInfo receiver2{"id2",    "name2", "fingerprint2",
-                              "token2", 1,       {{192, 168, 1, 11}, 12345},
-                              {}};
-  const ServiceInfo receiver3{"id3",    "name3", "fingerprint3",
-                              "token3", 1,       {{192, 168, 1, 12}, 12345},
-                              {}};
-  const ServiceInfo receiver1_alt_name{
-      "id1",    "name1 alt", "fingerprint1",
-      "token1", 1,           {{192, 168, 1, 10}, 12345},
-      {}};
+  const ServiceInfo receiver1 = {
+      "id1", "fingerprint1", "token1", 1, {{192, 168, 1, 10}, 12345}, {}};
+  const ServiceInfo receiver2 = {
+      "id2", "fingerprint2", "token2", 1, {{192, 168, 1, 11}, 12345}, {}};
+  const ServiceInfo receiver3 = {
+      "id3", "fingerprint3", "token3", 1, {{192, 168, 1, 12}, 12345}, {}};
+  const ServiceInfo receiver1_alt_token{
+      "id1", "fingerprint1", "token4", 1, {{192, 168, 1, 10}, 12345}, {}};
   list.OnReceiverAdded(receiver1);
   list.OnReceiverAdded(receiver2);
 
-  EXPECT_TRUE(list.OnReceiverChanged(receiver1_alt_name).ok());
+  EXPECT_TRUE(list.OnReceiverChanged(receiver1_alt_token).ok());
   EXPECT_FALSE(list.OnReceiverChanged(receiver3).ok());
 
   ASSERT_EQ(2u, list.receivers().size());
-  EXPECT_EQ(receiver1_alt_name, list.receivers()[0]);
+  EXPECT_EQ(receiver1_alt_token, list.receivers()[0]);
   EXPECT_EQ(receiver2, list.receivers()[1]);
 }
 
 TEST(ReceiverListTest, RemoveReceivers) {
   ReceiverList list;
-  const ServiceInfo receiver1{"id1",    "name1", "fingerprint1",
-                              "token1", 1,       {{192, 168, 1, 10}, 12345},
-                              {}};
-  const ServiceInfo receiver2{"id2",    "name2", "fingerprint2",
-                              "token2", 1,       {{192, 168, 1, 11}, 12345},
-                              {}};
+  const ServiceInfo receiver1 = {
+      "id1", "fingerprint1", "token1", 1, {{192, 168, 1, 10}, 12345}, {}};
+  const ServiceInfo receiver2 = {
+      "id2", "fingerprint2", "token2", 1, {{192, 168, 1, 11}, 12345}, {}};
   EXPECT_TRUE(list.OnReceiverRemoved(receiver1).is_error());
   list.OnReceiverAdded(receiver1);
   EXPECT_TRUE(list.OnReceiverRemoved(receiver2).is_error());
@@ -88,12 +79,10 @@ TEST(ReceiverListTest, RemoveReceivers) {
 
 TEST(ReceiverListTest, RemoveAllReceivers) {
   ReceiverList list;
-  const ServiceInfo receiver1{"id1",    "name1", "fingerprint1",
-                              "token1", 1,       {{192, 168, 1, 10}, 12345},
-                              {}};
-  const ServiceInfo receiver2{"id2",    "name2", "fingerprint2",
-                              "token2", 1,       {{192, 168, 1, 11}, 12345},
-                              {}};
+  const ServiceInfo receiver1 = {
+      "id1", "fingerprint1", "token1", 1, {{192, 168, 1, 10}, 12345}, {}};
+  const ServiceInfo receiver2 = {
+      "id2", "fingerprint2", "token2", 1, {{192, 168, 1, 11}, 12345}, {}};
   EXPECT_FALSE(list.OnAllReceiversRemoved().ok());
   list.OnReceiverAdded(receiver1);
   list.OnReceiverAdded(receiver2);

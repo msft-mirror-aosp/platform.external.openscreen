@@ -83,7 +83,6 @@ class ControllerTest : public ::testing::Test {
         task_runner_(fake_clock_),
         quic_bridge_(task_runner_, FakeClock::now) {
     receiver_info1 = {quic_bridge_.kInstanceName,
-                      "lucas-auer",
                       quic_bridge_.kFingerprint,
                       quic_bridge_.kAuthToken,
                       1,
