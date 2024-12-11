@@ -115,7 +115,7 @@ class PresentationReceiverTest : public ::testing::Test {
   Receiver receiver_;
   FakeClock fake_clock_;
   FakeTaskRunner task_runner_;
-  const std::string url1_{"https://www.example.com/receiver.html"};
+  const std::string url1_ = "https://www.example.com/receiver.html";
   FakeQuicBridge quic_bridge_;
   MockReceiverDelegate mock_receiver_delegate_;
   std::vector<std::unique_ptr<ProtocolConnection>> server_connections_;

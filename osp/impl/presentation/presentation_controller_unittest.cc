@@ -301,7 +301,7 @@ class ControllerTest : public ::testing::Test {
   std::unique_ptr<Controller> controller_;
   ServiceInfo receiver_info1;
   MockReceiverObserver mock_receiver_observer_;
-  uint64_t controller_instance_id_{0};
+  uint64_t controller_instance_id_ = 0;
   std::vector<std::unique_ptr<ProtocolConnection>> server_connections_;
   std::vector<std::unique_ptr<ProtocolConnection>> client_connections_;
 };
@@ -323,7 +323,7 @@ TEST_F(ControllerTest, ReceiverWatchMoves) {
 }
 
 TEST_F(ControllerTest, ConnectRequestMoves) {
-  std::string instance_name{"instance-name1"};
+  std::string instance_name = "instance-name1";
   uint64_t request_id = 7;
 
   Controller::ConnectRequest request1(controller_.get(), instance_name, false,

@@ -125,7 +125,7 @@ class MdnsTrackerTest : public testing::Test {
  protected:
   void AdvanceThroughAllTtlFractions(std::chrono::seconds ttl) {
     constexpr double kTtlFractions[] = {0.83, 0.88, 0.93, 0.98, 1.00};
-    Clock::duration time_passed{0};
+    Clock::duration time_passed(0);
     for (double fraction : kTtlFractions) {
       Clock::duration time_till_refresh = Clock::to_duration(ttl * fraction);
       Clock::duration delta = time_till_refresh - time_passed;

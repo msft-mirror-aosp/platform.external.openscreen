@@ -48,10 +48,10 @@ struct TraceEvent {
   const char* name = nullptr;
 
   // Name of the file the log was generated in.
-  const char* file_name{nullptr};
+  const char* file_name = nullptr;
 
   // Line number the log was generated on.
-  uint32_t line_number{0};
+  uint32_t line_number = 0;
 
   // The trace ids of this event and its ancestors.
   TraceIdHierarchy ids;

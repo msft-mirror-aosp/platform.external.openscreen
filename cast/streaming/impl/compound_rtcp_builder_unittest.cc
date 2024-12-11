@@ -57,7 +57,7 @@ class CompoundRtcpBuilderTest : public testing::Test {
 TEST_F(CompoundRtcpBuilderTest, TheBasics) {
   const FrameId checkpoint = FrameId::first() + 42;
   builder()->SetCheckpointFrame(checkpoint);
-  const milliseconds playout_delay{321};
+  const milliseconds playout_delay(321);
   builder()->SetPlayoutDelay(playout_delay);
 
   const auto send_time = Clock::now();

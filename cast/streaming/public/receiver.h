@@ -302,8 +302,7 @@ class Receiver : public ReceiverBase {
   //
   // TODO(jophba): This should be a function of the current target playout
   // delay, similar to the Sender's kickstart interval logic.
-  static constexpr std::chrono::milliseconds kNackFeedbackInterval =
-      std::chrono::milliseconds(30);
+  static constexpr std::chrono::milliseconds kNackFeedbackInterval{30};
 };
 
 }  // namespace openscreen::cast

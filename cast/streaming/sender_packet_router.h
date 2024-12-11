@@ -118,8 +118,7 @@ class SenderPacketRouter : public BandwidthEstimator,
   // this value was determined is lost knowledge, but is likely the result of
   // experimentation with various network and operating system configurations.
   // This value came from the original Chrome Cast Streaming implementation.
-  static constexpr std::chrono::milliseconds kDefaultBurstInterval =
-      std::chrono::milliseconds(10);
+  static constexpr std::chrono::milliseconds kDefaultBurstInterval{10};
 
   // A special time_point value representing "never."
   static constexpr Clock::time_point kNever = Clock::time_point::max();
