@@ -29,7 +29,6 @@ if (!is_win) {
       "dns_sd_watcher_client.h",
       "message_demuxer.cc",
       "network_service_manager.cc",
-      "osp_constants.h",
       "presentation/presentation_connection.cc",
       "presentation/presentation_controller.cc",
       "presentation/presentation_id.cc",

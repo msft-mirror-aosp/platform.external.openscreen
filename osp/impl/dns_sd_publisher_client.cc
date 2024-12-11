@@ -10,7 +10,7 @@
 #include "discovery/dnssd/public/dns_sd_instance.h"
 #include "discovery/dnssd/public/dns_sd_txt_record.h"
 #include "discovery/public/dns_sd_service_factory.h"
-#include "osp/impl/osp_constants.h"
+#include "osp/public/osp_constants.h"
 #include "osp/public/service_info.h"
 #include "platform/base/macros.h"
 #include "util/osp_logging.h"

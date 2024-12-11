@@ -12,7 +12,7 @@
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 #include "discovery/dnssd/public/dns_sd_txt_record.h"
 #include "discovery/public/dns_sd_service_factory.h"
-#include "osp/impl/osp_constants.h"
+#include "osp/public/osp_constants.h"
 #include "platform/base/error.h"
 #include "platform/base/interface_info.h"
 #include "util/osp_logging.h"

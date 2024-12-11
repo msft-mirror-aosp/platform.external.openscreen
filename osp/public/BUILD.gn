@@ -19,6 +19,7 @@ if (!is_win) {
       "message_demuxer.h",
       "network_metrics.h",
       "network_service_manager.h",
+      "osp_constants.h",
       "presentation/presentation_common.h",
       "presentation/presentation_connection.h",
       "presentation/presentation_controller.h",
