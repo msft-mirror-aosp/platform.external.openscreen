@@ -56,7 +56,7 @@ TEST(MdnsDomainNameTest, Construct) {
   name2_stream << name2;
   EXPECT_EQ(name2_stream.str(), "MyDevice._mYSERvice.local");
 
-  std::vector<std::string_view> labels{"OtherDevice", "_MYservice", "LOcal"};
+  std::vector<std::string_view> labels = {"OtherDevice", "_MYservice", "LOcal"};
   DomainName name3(labels);
   EXPECT_FALSE(name3.empty());
   EXPECT_EQ(name3.MaxWireSize(), size_t{30});
@@ -388,7 +388,7 @@ TEST(MdnsNsecRecordRdataTest, Construct) {
   // - DnsTypes kNSEC = 255
   // So 32 bits are required for the bitfield, for a total of 34 bits.
   rdata = NsecRecordRdata(domain, DnsType::kANY);
-  std::vector<uint8_t> results{0x00, 32};
+  std::vector<uint8_t> results = {0x00, 32};
   for (int i = 1; i < 32; i++) {
     results.push_back(0x00);
   }

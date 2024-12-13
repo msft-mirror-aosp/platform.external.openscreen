@@ -177,7 +177,7 @@ class DiscoveryE2ETest : public testing::Test {
     OSP_CHECK(dnssd_service_);
     OSP_CHECK(publisher_);
 
-    std::vector<ReceiverInfo> record_set{std::move(records)...};
+    std::vector<ReceiverInfo> record_set = {std::move(records)...};
     for (ReceiverInfo& record : record_set) {
       task_runner_->PostTask([this, r = std::move(record)]() {
         auto error = publisher_->UpdateRegistration(r);
@@ -192,7 +192,7 @@ class DiscoveryE2ETest : public testing::Test {
     OSP_CHECK(dnssd_service_);
     OSP_CHECK(publisher_);
 
-    std::vector<ReceiverInfo> record_set{std::move(records)...};
+    std::vector<ReceiverInfo> record_set = {std::move(records)...};
     for (ReceiverInfo& record : record_set) {
       task_runner_->PostTask([this, r = std::move(record)]() {
         auto error = publisher_->Register(r);

@@ -71,7 +71,7 @@ class ConnectionTest : public ::testing::Test {
   }
 
   std::vector<uint8_t> MakeEchoResponse(const std::vector<uint8_t>& data) {
-    std::vector<uint8_t> response{13, 14, 15};
+    std::vector<uint8_t> response = {13, 14, 15};
     response.insert(response.end(), data.begin(), data.end());
     return response;
   }
@@ -189,7 +189,7 @@ TEST_F(ConnectionTest, ConnectAndSend) {
       OnStringMessage(static_cast<std::string_view>(expected_response)));
   quic_bridge_.RunTasksUntilIdle();
 
-  std::vector<uint8_t> data{0, 3, 2, 4, 4, 6, 1};
+  std::vector<uint8_t> data = {0, 3, 2, 4, 4, 6, 1};
   const std::vector<uint8_t> expected_data = data;
   const std::vector<uint8_t> expected_response_data =
       MakeEchoResponse(expected_data);

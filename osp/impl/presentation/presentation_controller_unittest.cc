@@ -307,7 +307,8 @@ class ControllerTest : public ::testing::Test {
 };
 
 TEST_F(ControllerTest, ReceiverWatchMoves) {
-  std::vector<std::string> urls{"one fish", "two fish", "red fish", "gnu fish"};
+  std::vector<std::string> urls = {"one fish", "two fish", "red fish",
+                                   "gnu fish"};
   MockReceiverObserver mock_observer;
 
   Controller::ReceiverWatch watch1(controller_.get(), urls, &mock_observer);
