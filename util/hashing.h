@@ -11,7 +11,7 @@
 namespace openscreen {
 
 // This value is taken from absl::Hash implementation.
-constexpr uint64_t kDefaultSeed = UINT64_C(0xc3a5c85c97cb3127);
+inline constexpr uint64_t kDefaultSeed = UINT64_C(0xc3a5c85c97cb3127);
 
 // Computes the aggregate hash of the provided hashable objects.
 // Seed must initially use a large prime between 2^63 and 2^64 as a starting

@@ -20,7 +20,7 @@ namespace {
 
 using ::testing::_;
 
-const auto kTaskRunnerSleepTime = milliseconds(1);
+constexpr auto kTaskRunnerSleepTime = milliseconds(1);
 constexpr Clock::duration kWaitTimeout = milliseconds(1000);
 
 void WaitUntilCondition(std::function<bool()> predicate) {

@@ -21,8 +21,8 @@ using std::chrono::seconds;
 namespace openscreen::osp {
 namespace {
 
-static constexpr Clock::duration kWatchDuration = seconds(20);
-static constexpr Clock::duration kWatchRefreshPadding = seconds(2);
+constexpr Clock::duration kWatchDuration = seconds(20);
+constexpr Clock::duration kWatchRefreshPadding = seconds(2);
 
 std::vector<std::string>::iterator PartitionUrlsBySetMembership(
     std::vector<std::string>* urls,

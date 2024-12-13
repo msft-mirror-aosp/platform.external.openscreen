@@ -28,8 +28,8 @@ using ::testing::NiceMock;
 
 namespace {
 
-const char kTestUrl1[] = "https://example.foo";
-const char kTestUrl2[] = "https://example.bar";
+constexpr char kTestUrl1[] = "https://example.foo";
+constexpr char kTestUrl2[] = "https://example.bar";
 
 class MockServiceListenerDelegate final : public ServiceListenerImpl::Delegate {
  public:
