@@ -198,7 +198,7 @@ deps = {
 
   'third_party/tinycbor/src':
     Var('chromium_git') + '/external/github.com/intel/tinycbor.git' +
-    '@' +  'd393c16f3eb30d0c47e6f9d92db62272f0ec4dc7',  # Version 0.6.0
+    '@' +  '9441b2ca882f95849c93de03f2c754196db13154',  # Version 0.7.0
 
   # Abseil recommends living at head; we take a revision from one of the LTS
   # tags.  Chromium has forked abseil for reasons and it seems to be rolled

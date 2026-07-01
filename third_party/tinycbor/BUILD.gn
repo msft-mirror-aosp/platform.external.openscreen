@@ -4,6 +4,37 @@
 
 import("//build_overrides/build.gni")
 
+generated_file("tinycbor_export_h") {
+  outputs = [ "$target_gen_dir/tinycbor-export.h" ]
+  contents = [
+    "#ifndef CBOR_API",
+    "#define CBOR_API",
+    "#endif",
+    "",
+  ]
+}
+
+action("tinycbor_version_h") {
+  script = "generate_version_header.py"
+  sources = [
+    "src/CMakeLists.txt",
+    "src/src/tinycbor-version.h.in",
+  ]
+  outputs = [ "$target_gen_dir/tinycbor-version.h" ]
+  args = [
+    "--cmakelists",
+    rebase_path("src/CMakeLists.txt", root_build_dir),
+    "--template",
+    rebase_path("src/src/tinycbor-version.h.in", root_build_dir),
+    "--output",
+    rebase_path(outputs[0], root_build_dir),
+  ]
+}
+
+config("tinycbor_config") {
+  include_dirs = [ target_gen_dir ]
+}
+
 config("tinycbor_internal_config") {
   defines = [ "WITHOUT_OPEN_MEMSTREAM" ]
   cflags = [ "-w" ]  # Disable all warnings.
@@ -23,12 +54,21 @@ source_set("tinycbor") {
     "src/src/cbor.h",
     "src/src/cborencoder.c",
     "src/src/cborencoder_close_container_checked.c",
+    "src/src/cborencoder_float.c",
     "src/src/cborerrorstrings.c",
     "src/src/cborparser.c",
+    "src/src/cborparser_dup_string.c",
+    "src/src/cborparser_float.c",
     "src/src/cborpretty.c",
     "src/src/cborvalidation.c",
     "src/src/utf8_p.h",
   ]
 
+  public_deps = [
+    ":tinycbor_export_h",
+    ":tinycbor_version_h",
+  ]
+
+  public_configs = [ ":tinycbor_config" ]
   configs += [ ":tinycbor_internal_config" ]
 }

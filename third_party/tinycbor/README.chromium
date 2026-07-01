@@ -2,11 +2,11 @@ Name: Tiny CBOR
 Short Name: tinycbor
 URL: https://chromium.googlesource.com/external/github.com/intel/tinycbor.git
 License: MIT
-License File: src/LICENSE
+License File: LICENSE
 Security Critical: yes
 Update Mechanism: Manual
 Shipped: yes
-Version: 0.6.0
+Version: 0.7.0
 Revision: d393c16f3eb30d0c47e6f9d92db62272f0ec4dc7
 
 Description:

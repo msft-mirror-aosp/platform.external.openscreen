@@ -14,8 +14,10 @@ openscreen_source_set("msgs") {
   public = [ target_gen_dir + "/osp_messages.h" ]
   sources = [ target_gen_dir + "/osp_messages.cc" ]
 
-  public_deps = [ ":cddl_gen" ]
-  deps = [ "../../third_party/tinycbor" ]
+  public_deps = [
+    ":cddl_gen",
+    "../../third_party/tinycbor",
+  ]
 
   remove_configs = [ "//build/config/compiler:chromium_code" ]
   configs = [ "//build/config/compiler:no_chromium_code" ]
