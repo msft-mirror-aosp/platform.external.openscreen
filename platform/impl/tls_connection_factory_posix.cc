@@ -36,6 +36,9 @@ namespace {
 
 ErrorOr<std::vector<uint8_t>> GetDEREncodedPeerCertificate(const SSL& ssl) {
   X509* const peer_cert = SSL_get_peer_certificate(&ssl);
+  if (!peer_cert) {
+    return Error::Code::kErrCertsMissing;
+  }
   ErrorOr<std::vector<uint8_t>> der_peer_cert =
       ExportX509CertificateToDer(*peer_cert);
   X509_free(peer_cert);
