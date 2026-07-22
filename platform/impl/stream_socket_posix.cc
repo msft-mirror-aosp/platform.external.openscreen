@@ -109,6 +109,12 @@ Error StreamSocketPosix::Bind() {
     return CloseOnError(Error::Code::kSocketInvalidState);
   }
 
+  constexpr int reuse_addr = 1;
+  if (setsockopt(handle_.fd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr,
+                 sizeof(reuse_addr)) != 0) {
+    return CloseOnError(Error::Code::kSocketOptionSettingFailure);
+  }
+
   if (bind(handle_.fd, local_address_.value().address(),
            local_address_.value().size()) != 0) {
     return CloseOnError(
