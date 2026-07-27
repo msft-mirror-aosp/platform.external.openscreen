@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import("//build_overrides/build.gni")
-import("//third_party/libprotobuf-mutator/fuzzable_proto_library.gni")
 import("//third_party/protobuf/proto_library.gni")
 import("../../gni/openscreen.gni")
 import("../../testing/libfuzzer/fuzzer_test.gni")
@@ -13,18 +12,18 @@ import("../../testing/libfuzzer/fuzzer_test.gni")
 
 visibility = [ "./*" ]
 
-fuzzable_proto_library("remoting_proto") {
+proto_library("remoting_proto") {
   # Used in //components/cast_streaming in Chromium.
   visibility += [ "*" ]
   sources = [ "remoting.proto" ]
 }
 
-fuzzable_proto_library("input_proto") {
+proto_library("input_proto") {
   visibility += [ "*" ]
   sources = [ "input.proto" ]
 }
 
-fuzzable_proto_library("sender_stats_proto") {
+proto_library("sender_stats_proto") {
   visibility += [ "*" ]  # Used by Android.
   sources = [ "sender_stats.proto" ]
 }
