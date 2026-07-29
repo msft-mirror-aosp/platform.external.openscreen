@@ -28,14 +28,14 @@ using ::testing::_;
 class CastPlatformClientTest : public ::testing::Test {
  public:
   void SetUp() override {
-    socket_ = fake_cast_socket_pair_.socket.get();
+    const int socket_id = fake_cast_socket_pair_.socket->socket_id();
     router_.TakeSocket(&mock_error_handler_,
                        std::move(fake_cast_socket_pair_.socket));
 
     receiver_.v4_address = IPAddress{192, 168, 0, 17};
     receiver_.port = 4434;
     receiver_.unique_id = "receiverId1";
-    platform_client_.AddOrUpdateReceiver(receiver_, socket_->socket_id());
+    platform_client_.AddOrUpdateReceiver(receiver_, socket_id);
   }
 
  protected:
@@ -44,10 +44,9 @@ class CastPlatformClientTest : public ::testing::Test {
     return fake_cast_socket_pair_.mock_peer_client;
   }
 
+  FakeCastSocketPair fake_cast_socket_pair_;
   MockSocketErrorHandler mock_error_handler_;
   VirtualConnectionRouter router_;
-  FakeCastSocketPair fake_cast_socket_pair_;
-  raw_ptr<CastSocket> socket_ = nullptr;
   FakeClock clock_{Clock::now()};
   FakeTaskRunner task_runner_{clock_};
   CastPlatformClient platform_client_{router_, &FakeClock::now, task_runner_};

@@ -251,6 +251,7 @@ TEST_F(VirtualConnectionRouterTest, CloseSocketRemovesVirtualConnections) {
   EXPECT_CALL(mock_error_handler_, OnClose(local_socket_.get())).Times(1);
 
   int id = local_socket_->socket_id();
+  local_socket_ = nullptr;
   local_router_.CloseSocket(id);
   EXPECT_FALSE(local_router_.GetConnectionData(
       VirtualConnection{"receiver-1234", "sender-4321", id}));

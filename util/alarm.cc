@@ -41,10 +41,11 @@ class Alarm::CancelableFunctor {
 
   void operator()() noexcept {
     if (alarm_) {
-      OSP_CHECK_EQ(alarm_->queued_fire_, this);
-      alarm_->queued_fire_ = nullptr;
-      alarm_->TryInvoke();
+      Alarm* alarm = alarm_;
+      OSP_CHECK_EQ(alarm->queued_fire_, this);
+      alarm->queued_fire_ = nullptr;
       alarm_ = nullptr;
+      alarm->TryInvoke();
     }
   }
 

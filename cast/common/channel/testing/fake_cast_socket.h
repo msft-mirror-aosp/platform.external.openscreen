@@ -36,30 +36,27 @@ struct FakeCastSocket {
       : FakeCastSocket({{10, 0, 1, 7}, 1234}, {{10, 0, 1, 9}, 4321}) {}
   FakeCastSocket(const IPEndpoint& local_endpoint,
                  const IPEndpoint& remote_endpoint)
-      : FakeCastSocket(local_endpoint,
-                       remote_endpoint,
-                       std::make_unique<MockTlsConnection>(local_endpoint,
-                                                           remote_endpoint)) {}
-
-  FakeCastSocket(const IPEndpoint& local_endpoint,
-                 const IPEndpoint& remote_endpoint,
-                 std::unique_ptr<MockTlsConnection> conn)
       : local_endpoint(local_endpoint),
         remote_endpoint(remote_endpoint),
-        mock_client(),
-        socket(
-            [&] {
-              connection = conn.get();
-              return std::move(conn);
-            }(),
-            &mock_client) {}
+        moved_connection(std::make_unique<MockTlsConnection>(local_endpoint,
+                                                             remote_endpoint)),
+        moved_connection_ptr(moved_connection.get()),
+        socket(std::move(moved_connection), &mock_client),
+        connection(moved_connection_ptr) {
+    moved_connection_ptr = nullptr;
+  }
 
- public:
   IPEndpoint local_endpoint;
   IPEndpoint remote_endpoint;
+
+  // `moved_connection` and `moved_connection_ptr` are temporarily used in the
+  // constructor to initialize `socket` and `connection` in the right order.
+  // They are always null outside of the constructor.
+  std::unique_ptr<MockTlsConnection> moved_connection;
+  raw_ptr<MockTlsConnection> moved_connection_ptr;
   MockCastSocketClient mock_client;
-  raw_ptr<MockTlsConnection> connection;
   CastSocket socket;
+  raw_ptr<MockTlsConnection> connection;
 };
 
 // Two FakeCastSockets that are piped together via their MockTlsConnection
