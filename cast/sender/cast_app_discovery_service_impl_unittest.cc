@@ -76,10 +76,10 @@ class CastAppDiscoveryServiceImplTest : public ::testing::Test {
     return subscription;
   }
 
-  FakeCastSocketPair fake_cast_socket_pair_;
   int32_t socket_id_;
   MockSocketErrorHandler mock_error_handler_;
   VirtualConnectionRouter router_;
+  FakeCastSocketPair fake_cast_socket_pair_;
   FakeClock clock_{Clock::now()};
   FakeTaskRunner task_runner_{clock_};
   CastPlatformClient platform_client_{router_, &FakeClock::now, task_runner_};

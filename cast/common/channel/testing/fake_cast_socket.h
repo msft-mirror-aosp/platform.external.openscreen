@@ -36,18 +36,29 @@ struct FakeCastSocket {
       : FakeCastSocket({{10, 0, 1, 7}, 1234}, {{10, 0, 1, 9}, 4321}) {}
   FakeCastSocket(const IPEndpoint& local_endpoint,
                  const IPEndpoint& remote_endpoint)
+      : FakeCastSocket(local_endpoint,
+                       remote_endpoint,
+                       std::make_unique<MockTlsConnection>(local_endpoint,
+                                                           remote_endpoint)) {}
+
+  FakeCastSocket(const IPEndpoint& local_endpoint,
+                 const IPEndpoint& remote_endpoint,
+                 std::unique_ptr<MockTlsConnection> conn)
       : local_endpoint(local_endpoint),
         remote_endpoint(remote_endpoint),
-        moved_connection(std::make_unique<MockTlsConnection>(local_endpoint,
-                                                             remote_endpoint)),
-        connection(moved_connection.get()),
-        socket(std::move(moved_connection), &mock_client) {}
+        mock_client(),
+        socket(
+            [&] {
+              connection = conn.get();
+              return std::move(conn);
+            }(),
+            &mock_client) {}
 
+ public:
   IPEndpoint local_endpoint;
   IPEndpoint remote_endpoint;
-  std::unique_ptr<MockTlsConnection> moved_connection;
-  raw_ptr<MockTlsConnection> connection;
   MockCastSocketClient mock_client;
+  raw_ptr<MockTlsConnection> connection;
   CastSocket socket;
 };
 
@@ -67,35 +78,36 @@ struct FakeCastSocketPair {
     auto moved_connection =
         std::make_unique<::testing::NiceMock<MockTlsConnection>>(
             local_endpoint, remote_endpoint);
-    connection = moved_connection.get();
+    auto* connection = moved_connection.get();
     socket =
         std::make_unique<CastSocket>(std::move(moved_connection), &mock_client);
 
     auto moved_peer = std::make_unique<::testing::NiceMock<MockTlsConnection>>(
         remote_endpoint, local_endpoint);
-    peer_connection = moved_peer.get();
+    auto* peer_connection = moved_peer.get();
     peer_socket =
         std::make_unique<CastSocket>(std::move(moved_peer), &mock_peer_client);
 
-    ON_CALL(*connection, Send(_)).WillByDefault([this](ByteView data) {
-      peer_connection->OnRead(std::vector<uint8_t>(data.begin(), data.end()));
-      return true;
-    });
-    ON_CALL(*peer_connection, Send(_)).WillByDefault([this](ByteView data) {
-      connection->OnRead(std::vector<uint8_t>(data.begin(), data.end()));
-      return true;
-    });
+    ON_CALL(*connection, Send(_))
+        .WillByDefault([peer_connection](ByteView data) {
+          peer_connection->OnRead(
+              std::vector<uint8_t>(data.begin(), data.end()));
+          return true;
+        });
+    ON_CALL(*peer_connection, Send(_))
+        .WillByDefault([connection](ByteView data) {
+          connection->OnRead(std::vector<uint8_t>(data.begin(), data.end()));
+          return true;
+        });
   }
   ~FakeCastSocketPair() = default;
 
   IPEndpoint local_endpoint;
   IPEndpoint remote_endpoint;
 
-  raw_ptr<::testing::NiceMock<MockTlsConnection>> connection;
   MockCastSocketClient mock_client;
   std::unique_ptr<CastSocket> socket;
 
-  raw_ptr<::testing::NiceMock<MockTlsConnection>> peer_connection;
   MockCastSocketClient mock_peer_client;
   std::unique_ptr<CastSocket> peer_socket;
 };

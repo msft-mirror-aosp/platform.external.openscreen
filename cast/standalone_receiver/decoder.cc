@@ -134,7 +134,7 @@ bool Decoder::Initialize() {
     return false;
   }
 
-  context_ = MakeUniqueAVCodecContext(codec_);
+  context_ = MakeUniqueAVCodecContext(codec_.get());
   if (!context_) {
     HandleInitializationError("failed to allocate codec context",
                               AVERROR(ENOMEM));
@@ -151,7 +151,7 @@ bool Decoder::Initialize() {
   // max here, just to be safe.
   context_->thread_count =
       std::min(std::max<int>(std::thread::hardware_concurrency(), 1), 8);
-  const int open_result = avcodec_open2(context_.get(), codec_, nullptr);
+  const int open_result = avcodec_open2(context_.get(), codec_.get(), nullptr);
   if (open_result < 0) {
     HandleInitializationError("failed to open codec", open_result);
     return false;

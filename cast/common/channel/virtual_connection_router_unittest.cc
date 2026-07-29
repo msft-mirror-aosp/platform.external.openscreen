@@ -50,14 +50,14 @@ class VirtualConnectionRouterTest : public ::testing::Test {
   }
 
  protected:
-  FakeCastSocketPair fake_cast_socket_pair_;
-  raw_ptr<CastSocket> local_socket_;
-  raw_ptr<CastSocket> remote_socket_;
-
   MockSocketErrorHandler mock_error_handler_;
 
   VirtualConnectionRouter local_router_;
   VirtualConnectionRouter remote_router_;
+
+  FakeCastSocketPair fake_cast_socket_pair_;
+  raw_ptr<CastSocket> local_socket_;
+  raw_ptr<CastSocket> remote_socket_;
 
   VirtualConnection vc1_{"local1", "peer1", 75};
   VirtualConnection vc2_{"local2", "peer2", 76};

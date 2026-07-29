@@ -159,11 +159,11 @@ class StatisticsAnalyzerTest : public ::testing::Test {
   }
 
  protected:
-  raw_ptr<NiceMock<FakeClockOffsetEstimator>> fake_estimator_;
   StrictMock<FakeSenderStatsClient> stats_client_;
   FakeClock fake_clock_;
   FakeTaskRunner fake_task_runner_;
   std::unique_ptr<StatisticsAnalyzer> analyzer_;
+  raw_ptr<NiceMock<FakeClockOffsetEstimator>> fake_estimator_;
   raw_ptr<StatisticsCollector> collector_ = nullptr;
 };
 

@@ -44,10 +44,10 @@ class CastPlatformClientTest : public ::testing::Test {
     return fake_cast_socket_pair_.mock_peer_client;
   }
 
-  FakeCastSocketPair fake_cast_socket_pair_;
-  raw_ptr<CastSocket> socket_ = nullptr;
   MockSocketErrorHandler mock_error_handler_;
   VirtualConnectionRouter router_;
+  FakeCastSocketPair fake_cast_socket_pair_;
+  raw_ptr<CastSocket> socket_ = nullptr;
   FakeClock clock_{Clock::now()};
   FakeTaskRunner task_runner_{clock_};
   CastPlatformClient platform_client_{router_, &FakeClock::now, task_runner_};

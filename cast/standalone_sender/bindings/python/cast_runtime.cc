@@ -25,7 +25,7 @@ CastRuntime::CastRuntime() {
                               std::move(task_runner));
 
   event_loop_thread_ =
-      std::thread([runner = task_runner_] { runner->RunUntilStopped(); });
+      std::thread([runner = task_runner_.get()] { runner->RunUntilStopped(); });
 }
 
 CastRuntime::~CastRuntime() {

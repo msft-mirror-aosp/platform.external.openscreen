@@ -137,13 +137,13 @@ class ConnectionNamespaceHandlerTest : public ::testing::Test {
         });
   }
 
-  FakeCastSocketPair fake_cast_socket_pair_;
   MockSocketErrorHandler mock_error_handler_;
-  raw_ptr<CastSocket> socket_;
-
   NiceMock<MockVirtualConnectionPolicy> vc_policy_;
   VirtualConnectionRouter router_;
   ConnectionNamespaceHandler connection_namespace_handler_{router_, vc_policy_};
+
+  FakeCastSocketPair fake_cast_socket_pair_;
+  raw_ptr<CastSocket> socket_;
 
   const std::string sender_id_ = "sender-5678";
   const std::string receiver_id_ = "receiver-3245";

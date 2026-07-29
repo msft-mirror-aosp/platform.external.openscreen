@@ -134,7 +134,7 @@ class VirtualConnectionRouter final : public CastSocket::Client {
       connections_;
 
   std::map<int, SocketWithHandler> sockets_;
-  std::map<std::string /* local_id */, CastMessageHandler*> endpoints_;
+  std::map<std::string /* local_id */, raw_ptr<CastMessageHandler>> endpoints_;
 };
 
 }  // namespace openscreen::cast

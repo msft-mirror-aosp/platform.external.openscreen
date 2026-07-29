@@ -123,13 +123,13 @@ class DeviceAuthTest : public ::testing::Test {
   }
 
   const raw_ref<const std::string> data_path_{GetSpecificTestDataPath()};
-  FakeCastSocketPair fake_cast_socket_pair_;
   MockSocketErrorHandler mock_error_handler_;
-  raw_ptr<CastSocket> socket_;
-
   StaticCredentialsProvider creds_;
   VirtualConnectionRouter router_;
   DeviceAuthNamespaceHandler auth_handler_{creds_};
+
+  FakeCastSocketPair fake_cast_socket_pair_;
+  raw_ptr<CastSocket> socket_;
 };
 
 TEST_F(DeviceAuthTest, MANUAL_SerializeTestData) {
