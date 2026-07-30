@@ -13,5 +13,4 @@ fuzzable_proto_library("channel_proto") {
     "authority_keys.proto",
     "cast_channel.proto",
   ]
-  use_experimental_fuzzable_proto = true
 }
