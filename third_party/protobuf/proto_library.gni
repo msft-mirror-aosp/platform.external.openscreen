@@ -106,6 +106,8 @@
 #       exporting symbols from a component, this is required to prevent those
 #       symbols from being stripped. If you're not using dllexports in
 #       cc_generator_options, it's usually best to leave this false.
+#   force_component (Default=false)
+#       When set true the generated code will be compiled as a component.
 #
 #   defines (optional)
 #       Defines to supply to the source set that compiles the generated source
@@ -646,6 +648,8 @@ template("proto_library") {
               invoker.component_build_force_source_set && is_component_build)) {
     # Option to disable building a library in component build.
     _library_type = "source_set"
+  } else if (defined(invoker.force_component) && invoker.force_component) {
+    _library_type = "component"
   } else {
     _library_type = "static_library"
   }

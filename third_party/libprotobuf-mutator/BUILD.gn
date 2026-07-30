@@ -68,3 +68,8 @@ if (use_libfuzzer) {
     sources = [ "dummy.cc" ]
   }
 }
+
+group("protobuf_full_for_fuzzing") {
+  testonly = true
+  public_deps = [ "//third_party/protobuf:protobuf_full" ]
+}

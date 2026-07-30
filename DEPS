@@ -139,7 +139,7 @@ deps = {
   'third_party/libprotobuf-mutator/src': {
     'url': Var('chromium_git') +
       '/external/github.com/google/libprotobuf-mutator.git' +
-      '@' + 'a304ec48dcf15d942607032151f7e9ee504b5dcf',
+      '@' + 'c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90',
     'condition': 'not build_with_chromium',
   },
 
