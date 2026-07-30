@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "third_party/libprotobuf-mutator/src/src/libfuzzer/libfuzzer_macro.h"
-#include "third_party/libprotobuf-mutator/test_fuzzer/test_fuzzer_input.pb.h"
+#include "third_party/libprotobuf-mutator/test_fuzzer/test_fuzzer_input_fuzzable.pb.h"
 
-DEFINE_PROTO_FUZZER(const lpm_test_fuzzer::TestFuzzerInput& input) {
+DEFINE_PROTO_FUZZER(const fuzzable::lpm_test_fuzzer::TestFuzzerInput& input) {
   std::cout << input.imported().imported_publicly().input() << std::endl;
 }

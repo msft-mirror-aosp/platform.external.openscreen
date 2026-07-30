@@ -11,7 +11,6 @@ import("//third_party/protobuf/proto_library.gni")
 # Used by //components/cast_certificate in Chromium.
 fuzzable_proto_library("certificate_proto") {
   sources = [ "revocation.proto" ]
-  use_experimental_fuzzable_proto = true
 }
 
 # Used by //components/media_router/common/providers/cast/{certificate,channel}
