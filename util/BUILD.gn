@@ -111,6 +111,10 @@ openscreen_source_set("util") {
     sources += [ "scoped_wake_lock_mac.cc" ]
   }
 
+  if (is_linux) {
+    sources += [ "scoped_wake_lock_linux.cc" ]
+  }
+
   # When building with Chromium, we depend on base for its implementation of
   # raw_ptr and PartitionAlloc.
   if (build_with_chromium) {
@@ -164,4 +168,8 @@ openscreen_source_set("unittests") {
     "../third_party/googletest:gtest",
     "../third_party/jsoncpp",
   ]
+
+  if (is_linux) {
+    sources += [ "scoped_wake_lock_linux_unittest.cc" ]
+  }
 }

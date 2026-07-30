@@ -55,9 +55,9 @@ bool MirroringApplication::Launch(const std::string& app_id,
     return false;
   }
 
-#if BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_LINUX)
   wake_lock_ = ScopedWakeLock::Create(*task_runner_);
-#endif  // BUILDFLAG(IS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_LINUX)
   environment_ = std::make_unique<Environment>(
       &Clock::now, *task_runner_,
       IPEndpoint{interface_address_, kDefaultCastStreamingPort});
