@@ -227,6 +227,10 @@ bool CompoundRtcpParser::ParseApplicationDefined(
     RtcpSubtype subtype,
     ByteView in,
     std::vector<RtcpReceiverFrameLogMessage>& messages) {
+  if (in.size() < 2 * sizeof(uint32_t)) {
+    return false;
+  }
+
   const uint32_t sender_ssrc = ConsumeField<uint32_t>(in);
   const uint32_t name = ConsumeField<uint32_t>(in);
 

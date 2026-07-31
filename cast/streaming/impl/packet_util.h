@@ -10,6 +10,7 @@
 #include "cast/streaming/ssrc.h"
 #include "platform/base/span.h"
 #include "util/big_endian.h"
+#include "util/osp_logging.h"
 
 namespace openscreen::cast {
 
@@ -17,6 +18,7 @@ namespace openscreen::cast {
 // just after the field.
 template <typename Integer>
 inline Integer ConsumeField(ByteView& in) {
+  OSP_CHECK_GE(in.size(), sizeof(Integer));
   const Integer result = ReadBigEndian<Integer>(in.data());
   in = in.subspan(sizeof(Integer));
   return result;

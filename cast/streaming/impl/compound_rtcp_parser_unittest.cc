@@ -307,6 +307,20 @@ TEST_F(CompoundRtcpParserTest,
   EXPECT_FALSE(parser()->Parse(kPacketWithInvalidPacketSize, FrameId::first()));
 }
 
+TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ShortPayload) {
+  // clang-format off
+  const uint8_t kShortAppPacket[] = {
+      0b10000000 | 2,          // Version=2, Padding=no, Subtype=ReceiverLog.
+      204,                     // RTCP Packet type of application defined.
+      0x00, 0x01,              // Length of remainder of packet in 32-bit words (only 4 bytes).
+      0x00, 0x00, 0x00, 0x02,  // Receiver SSRC (4 bytes total payload).
+  };
+  // clang-format on
+
+  // Should return false because payload is shorter than 2 * sizeof(uint32_t).
+  EXPECT_FALSE(parser()->Parse(kShortAppPacket, FrameId::first()));
+}
+
 // Tests that RTCP packets containing chronologically-old data are ignored. This
 // test's methodology simulates a real-world possibility: A receiver sends a
 // "Picture Loss Indicator" in one RTCP packet, and then it sends another packet
