@@ -291,6 +291,7 @@ openscreen_source_set("unittests") {
         "impl/tls_connection_factory_posix_unittest.cc",
         "impl/tls_data_router_posix_unittest.cc",
         "impl/tls_write_buffer_unittest.cc",
+        "impl/udp_socket_posix_unittest.cc",
         "impl/udp_socket_reader_posix_unittest.cc",
       ]
     }

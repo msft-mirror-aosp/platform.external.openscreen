@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -134,6 +135,14 @@ class SenderSession final {
     // environments. This feature is off by default to allow embedders to opt
     // in and experiment as desired.
     bool enable_dscp = false;
+
+    // Optional override for the UDP socket receive buffer size.
+    // If set to > 0, sets SO_RCVBUF on the socket.
+    std::optional<size_t> udp_receive_buffer_size;
+
+    // Optional override for the UDP socket send buffer size.
+    // If set to > 0, sets SO_SNDBUF on the socket.
+    std::optional<size_t> udp_send_buffer_size;
   };
 
   // The SenderSession assumes that the passed in client, environment, and

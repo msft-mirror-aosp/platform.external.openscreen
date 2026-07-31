@@ -131,6 +131,17 @@ class UdpSocket {
   // Sets the DSCP value to use for all messages sent from this socket.
   virtual void SetDscp(DscpMode mode) = 0;
 
+  // Optional: Sets the size of the receive and send buffers in bytes.
+  // Implementations may ignore this if not supported by the underlying
+  // platform.
+  // Note:
+  // 1. Passing 0 or very small sizes may be clamped by the OS to a minimum
+  //    system-defined buffer size.
+  // 2. Once set, there is no platform mechanism to revert an open socket's
+  //    buffer size to the system default.
+  virtual void SetReceiveBufferSize(size_t size) {}
+  virtual void SetSendBufferSize(size_t size) {}
+
  protected:
   UdpSocket();
 };

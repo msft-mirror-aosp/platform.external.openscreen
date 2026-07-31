@@ -99,6 +99,18 @@ void Environment::SetDscp(UdpSocket::DscpMode mode) {
   }
 }
 
+void Environment::SetReceiveBufferSize(size_t size) {
+  if (socket_) {
+    socket_->SetReceiveBufferSize(size);
+  }
+}
+
+void Environment::SetSendBufferSize(size_t size) {
+  if (socket_) {
+    socket_->SetSendBufferSize(size);
+  }
+}
+
 void Environment::SendPacket(ByteView packet, PacketMetadata metadata) {
   OSP_CHECK(remote_endpoint_.address);
   OSP_CHECK_NE(remote_endpoint_.port, 0);

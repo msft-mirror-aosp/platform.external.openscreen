@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -606,6 +607,43 @@ void UdpSocketPosix::SetDscp(UdpSocket::DscpMode mode) {
 
   OSP_DVLOG << __func__ << ": successfully set DSCP to "
             << static_cast<int>(mode);
+}
+
+void UdpSocketPosix::SetReceiveBufferSize(size_t size) {
+  OSP_CHECK(task_runner_->IsRunningOnTaskRunner());
+  if (is_closed()) {
+    OnError(Error::Code::kSocketClosedFailure);
+    return;
+  }
+  if (size > static_cast<size_t>(std::numeric_limits<int>::max())) {
+    OSP_LOG_WARN << "Requested SO_RCVBUF size exceeds int max: " << size;
+    return;
+  }
+  // UDP is connectionless and allows setting SO_RCVBUF / SO_SNDBUF at any time
+  // after socket creation.  Changes take effect immediately for subsequent
+  // datagrams.
+  const int int_size = static_cast<int>(size);
+  if (setsockopt(handle_.fd, SOL_SOCKET, SO_RCVBUF, &int_size,
+                 sizeof(int_size)) == -1) {
+    OSP_LOG_WARN << "Failed to set SO_RCVBUF to " << size;
+  }
+}
+
+void UdpSocketPosix::SetSendBufferSize(size_t size) {
+  OSP_CHECK(task_runner_->IsRunningOnTaskRunner());
+  if (is_closed()) {
+    OnError(Error::Code::kSocketClosedFailure);
+    return;
+  }
+  if (size > static_cast<size_t>(std::numeric_limits<int>::max())) {
+    OSP_LOG_WARN << "Requested SO_SNDBUF size exceeds int max: " << size;
+    return;
+  }
+  const int int_size = static_cast<int>(size);
+  if (setsockopt(handle_.fd, SOL_SOCKET, SO_SNDBUF, &int_size,
+                 sizeof(int_size)) == -1) {
+    OSP_LOG_WARN << "Failed to set SO_SNDBUF to " << size;
+  }
 }
 
 void UdpSocketPosix::OnError(Error::Code error_code) {

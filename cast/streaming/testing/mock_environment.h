@@ -24,6 +24,11 @@ class MockEnvironment : public Environment {
               SendPacket,
               (ByteView packet, PacketMetadata metadata),
               (override));
+
+  // Used for intercepting socket buffer size configuration from the
+  // implementation under test.
+  MOCK_METHOD(void, SetReceiveBufferSize, (size_t), (override));
+  MOCK_METHOD(void, SetSendBufferSize, (size_t), (override));
 };
 
 }  // namespace openscreen::cast

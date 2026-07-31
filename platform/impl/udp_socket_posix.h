@@ -45,6 +45,8 @@ class UdpSocketPosix : public UdpSocket {
                           NetworkInterfaceIndex ifindex) override;
   void SendMessage(ByteView data, const IPEndpoint& dest) override;
   void SetDscp(DscpMode mode) override;
+  void SetReceiveBufferSize(size_t size) override;
+  void SetSendBufferSize(size_t size) override;
 
   const SocketHandle& GetHandle() const;
 

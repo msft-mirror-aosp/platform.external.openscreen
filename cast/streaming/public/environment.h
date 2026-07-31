@@ -128,6 +128,12 @@ class Environment : public UdpSocket::Client {
   // Sets the DSCP value for the underlying UDP socket.
   void SetDscp(UdpSocket::DscpMode mode);
 
+  // Sets the receive and send buffer sizes for the underlying UDP socket.
+  // These should typically be called during session initialization before
+  // streaming begins.
+  virtual void SetReceiveBufferSize(size_t size);
+  virtual void SetSendBufferSize(size_t size);
+
   // Sends the given `packet` to the remote endpoint, best-effort.
   // set_remote_endpoint() must be called beforehand with a valid IPEndpoint.
   //

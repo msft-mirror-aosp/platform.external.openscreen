@@ -352,6 +352,13 @@ SenderSession::SenderSession(Configuration config)
                         [this](ErrorOr<ReceiverMessage> message) {
                           this->OnInputMessage(std::move(message));
                         });
+
+  if (config_.udp_receive_buffer_size.has_value()) {
+    config_.environment->SetReceiveBufferSize(*config_.udp_receive_buffer_size);
+  }
+  if (config_.udp_send_buffer_size.has_value()) {
+    config_.environment->SetSendBufferSize(*config_.udp_send_buffer_size);
+  }
 }
 
 SenderSession::~SenderSession() {

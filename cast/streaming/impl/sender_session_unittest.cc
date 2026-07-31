@@ -297,6 +297,26 @@ class SenderSessionTest : public ::testing::Test {
   FakeTaskRunner task_runner_;
 };
 
+TEST_F(SenderSessionTest, ConfiguresUdpBufferSizes) {
+  auto message_port = std::make_unique<SimpleMessagePort>("receiver-12345");
+  auto environment = MakeEnvironment();
+
+  EXPECT_CALL(*environment, SetReceiveBufferSize(1024u));
+  EXPECT_CALL(*environment, SetSendBufferSize(2048u));
+
+  SenderSession::Configuration config{IPAddress::kV4LoopbackAddress(),
+                                      client_,
+                                      environment.get(),
+                                      message_port.get(),
+                                      "sender-12345",
+                                      "receiver-12345",
+                                      /* use_android_rtp_hack */ true,
+                                      /* use_dscp */ true};
+  config.udp_receive_buffer_size = 1024;
+  config.udp_send_buffer_size = 2048;
+  auto session = std::make_unique<SenderSession>(std::move(config));
+}
+
 TEST_F(SenderSessionTest, ComplainsIfNoConfigsToOffer) {
   const Error error = session_->Negotiate(std::vector<AudioCaptureConfig>{},
                                           std::vector<VideoCaptureConfig>{});
