@@ -13,6 +13,7 @@
 
 #include "cast/standalone_sender/connection_settings.h"
 #include "cast/standalone_sender/constants.h"
+#include "cast/standalone_sender/file_sender.h"
 #include "cast/standalone_sender/simulated_capturer.h"
 #include "cast/standalone_sender/streaming_opus_encoder.h"
 #include "cast/standalone_sender/streaming_video_encoder.h"
@@ -23,11 +24,10 @@ namespace openscreen::cast {
 
 // Plays the media file at a given path over and over again, transcoding and
 // streaming its audio/video.
-class LoopingFileSender final : public SimulatedAudioCapturer::Client,
+class LoopingFileSender final : public FileSender,
+                                public SimulatedAudioCapturer::Client,
                                 public SimulatedVideoCapturer::Client {
  public:
-  using ShutdownCallback = std::function<void()>;
-
   LoopingFileSender(Environment& environment,
                     ConnectionSettings settings,
                     const SenderSession* session,
@@ -36,9 +36,9 @@ class LoopingFileSender final : public SimulatedAudioCapturer::Client,
 
   ~LoopingFileSender() final;
 
-  void SetPlaybackRate(double rate);
+  void SetPlaybackRate(double rate) override;
 
-  void OnInputMessage(InputMessage message);
+  void OnInputMessage(InputMessage message) override;
 
  private:
   void UpdateEncoderBitrates();

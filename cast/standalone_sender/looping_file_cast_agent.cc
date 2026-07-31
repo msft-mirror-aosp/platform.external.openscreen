@@ -12,7 +12,6 @@
 #include "build/build_config.h"
 #include "cast/common/channel/message_util.h"
 #include "cast/common/public/cast_streaming_app_ids.h"
-#include "cast/standalone_sender/looping_file_sender.h"
 #include "cast/streaming/public/capture_recommendations.h"
 #include "cast/streaming/public/constants.h"
 #include "cast/streaming/public/offer_messages.h"
@@ -451,7 +450,7 @@ void LoopingFileCastAgent::OnPlaybackRateChange(double rate) {
 
 void LoopingFileCastAgent::StartFileSender() {
   OSP_CHECK(current_negotiation_);
-  file_sender_ = std::make_unique<LoopingFileSender>(
+  file_sender_ = FileSender::Create(
       *environment_, connection_settings_.value(), current_session_.get(),
       std::move(*current_negotiation_), [this]() { shutdown_callback_(); });
   current_negotiation_.reset();

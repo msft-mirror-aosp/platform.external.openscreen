@@ -110,8 +110,8 @@ void StreamingPlaybackController::OnError(const ReceiverSession* session,
 
 void StreamingPlaybackController::Initialize(
     ReceiverSession::ConfiguredReceivers receivers) {
+  OSP_LOG_INFO << "Successfully negotiated a session, creating players.";
 #if defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
-  OSP_LOG_INFO << "Successfully negotiated a session, creating SDL players.";
   if (receivers.video_receiver && !receivers.video_config.resolutions.empty()) {
     const auto& res = receivers.video_config.resolutions[0];
     SDL_RenderSetLogicalSize(renderer_.get(), res.width, res.height);
@@ -135,10 +135,26 @@ void StreamingPlaybackController::Initialize(
   }
 #else
   if (receivers.audio_receiver) {
+    if (receivers.audio_config.codec == AudioCodec::kOpus) {
+      OSP_LOG_INFO << "Found codec: opus (known to FFMPEG as opus)";
+    }
     audio_player_ = std::make_unique<DummyPlayer>(*receivers.audio_receiver);
   }
 
   if (receivers.video_receiver) {
+    switch (receivers.video_config.codec) {
+      case VideoCodec::kVp8:
+        OSP_LOG_INFO << "Found codec: vp8 (known to FFMPEG as vp8)";
+        break;
+      case VideoCodec::kVp9:
+        OSP_LOG_INFO << "Found codec: vp9 (known to FFMPEG as vp9)";
+        break;
+      case VideoCodec::kAv1:
+        OSP_LOG_INFO << "Found codec: libaom-av1 (known to FFMPEG as av1)";
+        break;
+      default:
+        break;
+    }
     video_player_ = std::make_unique<DummyPlayer>(*receivers.video_receiver);
   }
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
@@ -208,7 +224,7 @@ void StreamingPlaybackController::HandleMouseButtonEvent(
   message.set_viewport_width(w);
   message.set_viewport_height(h);
 
-  const_cast<ReceiverSession*>(session_)->SendInputMessage(message);
+  const_cast<ReceiverSession*>(session_.get())->SendInputMessage(message);
 }
 #endif
 

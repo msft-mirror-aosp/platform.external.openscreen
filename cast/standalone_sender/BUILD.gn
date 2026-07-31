@@ -47,21 +47,24 @@ if (!build_with_chromium) {
     ]
     deps = []
 
-    sources = []
+    sources = [
+      "connection_settings.h",
+      "file_sender.cc",
+      "file_sender.h",
+      "looping_file_cast_agent.cc",
+      "looping_file_cast_agent.h",
+      "receiver_chooser.cc",
+      "receiver_chooser.h",
+      "remoting_sender.cc",
+      "remoting_sender.h",
+    ]
     include_dirs = []
     lib_dirs = []
     libs = []
     if (have_external_libs) {
       sources += [
-        "connection_settings.h",
-        "looping_file_cast_agent.cc",
-        "looping_file_cast_agent.h",
         "looping_file_sender.cc",
         "looping_file_sender.h",
-        "receiver_chooser.cc",
-        "receiver_chooser.h",
-        "remoting_sender.cc",
-        "remoting_sender.h",
         "simulated_capturer.cc",
         "simulated_capturer.h",
         "streaming_encoder_util.cc",
@@ -91,6 +94,11 @@ if (!build_with_chromium) {
         lib_dirs += libaom_lib_dirs
         libs += libaom_libs
       }
+    } else {
+      sources += [
+        "synthetic_file_sender.cc",
+        "synthetic_file_sender.h",
+      ]
     }
 
     configs = [ "../common:certificate_config" ]

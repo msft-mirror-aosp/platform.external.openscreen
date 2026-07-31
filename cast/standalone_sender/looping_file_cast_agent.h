@@ -19,7 +19,7 @@
 #include "cast/common/public/trust_store.h"
 #include "cast/sender/public/sender_socket_factory.h"
 #include "cast/standalone_sender/connection_settings.h"
-#include "cast/standalone_sender/looping_file_sender.h"
+#include "cast/standalone_sender/file_sender.h"
 #include "cast/standalone_sender/remoting_sender.h"
 #include "cast/streaming/public/environment.h"
 #include "cast/streaming/public/sender_session.h"
@@ -187,7 +187,7 @@ class LoopingFileCastAgent final
   // Receiver.
   std::unique_ptr<Environment> environment_;
   std::unique_ptr<SenderSession> current_session_;
-  std::unique_ptr<LoopingFileSender> file_sender_;
+  std::unique_ptr<FileSender> file_sender_;
 
   // Remoting specific member variables.
   std::unique_ptr<RemotingSender> remoting_sender_;
