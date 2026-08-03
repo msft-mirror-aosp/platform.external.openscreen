@@ -74,6 +74,7 @@ template("fuzzable_proto_library") {
                              "proto_in_dir",
                              "proto_out_dir",
                              "component_build_force_source_set",
+                             "use_experimental_fuzzable_proto",
                              "import_dirs",
                            ])
 
@@ -136,8 +137,46 @@ template("fuzzable_proto_library") {
     defines += [ "IS_${_export_macro_name}_IMPL=1" ]
   }
 
-  # fuzzable_proto_library should behave like a proto_library.
-  proto_library(target_name) {
-    forward_variables_from(invoker, "*")
+  # TODO(https://crbug.com/505034799): Remove when chromium migrates to new fuzzable protos
+  if (use_libfuzzer) {
+    proto_library("proto_library_" + target_name) {
+      forward_variables_from(invoker,
+                             "*",
+                             [ "use_experimental_fuzzable_proto" ])
+      assert(current_toolchain == host_toolchain)
+
+      cc_generator_options = "speed"
+      extra_configs = [ "//third_party/protobuf:protobuf_config" ]
+    }
+
+    # Inspired by proto_library.gni's handling of
+    # component_build_force_source_set.
+    if (defined(component_build_force_source_set) &&
+        component_build_force_source_set && is_component_build) {
+      link_target_type = "source_set"
+    } else {
+      link_target_type = "static_library"
+    }
+
+    # By making target a static_library or source_set, we can add protobuf_full
+    # to public_deps.
+    target(link_target_type, target_name) {
+      if (defined(invoker.testonly)) {
+        testonly = invoker.testonly
+      }
+      sources = [ "//third_party/libprotobuf-mutator/dummy.cc" ]
+      public_deps = [
+        ":proto_library_" + target_name,
+        "//third_party/libprotobuf-mutator:protobuf_full",
+      ]
+    }
+  } else {
+    # fuzzable_proto_library should behave like a proto_library when
+    # !use_libfuzzer.
+    proto_library(target_name) {
+      forward_variables_from(invoker,
+                             "*",
+                             [ "use_experimental_fuzzable_proto" ])
+    }
   }
 }

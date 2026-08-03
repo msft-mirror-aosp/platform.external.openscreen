@@ -44,7 +44,7 @@ if (use_libfuzzer) {
     sources = [ "test_fuzzer/test_fuzzer.cc" ]
     deps = [
       ":libprotobuf-mutator",
-      ":lpm_test_fuzzer_proto_fuzzable",
+      ":lpm_test_fuzzer_proto",
     ]
   }
 }
