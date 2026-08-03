@@ -108,6 +108,13 @@ constexpr char kReceiverRtcpDscp[] = "receiverRtcpDscp";
 // If this optional field is present the receiver supports the specific
 // RTP extensions (such as adaptive playout delay).
 constexpr char kRtpExtensions[] = "rtpExtensions";
+constexpr char kDataTransport[] = "dataTransport";
+constexpr char kProtocol[] = "protocol";
+constexpr char kPort[] = "port";
+constexpr char kCertificateFingerprint[] = "certificateFingerprint";
+
+EnumNameTable<DataTransportProtocol, 1> kDataTransportProtocolNames{
+    {{"webtransport", DataTransportProtocol::kWebTransport}}};
 
 EnumNameTable<AspectRatioConstraint, 2> kAspectRatioConstraintNames{
     {{kScalingReceiver, AspectRatioConstraint::kVariable},
@@ -409,6 +416,56 @@ Json::Value DisplayDescription::ToJson() const {
   return root;
 }
 
+ErrorOr<Answer::DataTransportConfig> Answer::DataTransportConfig::TryParse(
+    const Json::Value& value) {
+  if (!value.isObject()) {
+    return Error(Error::Code::kJsonParseError, "null dataTransport");
+  }
+
+  Answer::DataTransportConfig out;
+  std::string protocol_str;
+  if (!json::TryParseString(value[kProtocol], &protocol_str)) {
+    return Error(Error::Code::kJsonParseError,
+                 "Invalid dataTransport protocol field");
+  }
+  const ErrorOr<DataTransportProtocol> protocol =
+      GetEnum(kDataTransportProtocolNames, protocol_str);
+  if (protocol.is_error()) {
+    return Error(Error::Code::kJsonParseError,
+                 "Invalid dataTransport protocol");
+  }
+  out.protocol = protocol.value();
+
+  if (!json::TryParseInt(value[kPort], &out.port)) {
+    return Error(Error::Code::kJsonParseError, "Invalid dataTransport port");
+  }
+
+  if (!json::TryParseString(value[kCertificateFingerprint],
+                            &out.certificate_fingerprint)) {
+    return Error(Error::Code::kJsonParseError,
+                 "Invalid dataTransport certificateFingerprint");
+  }
+
+  if (!out.IsValid()) {
+    return Error(Error::Code::kJsonParseError, "Invalid dataTransport");
+  }
+  return out;
+}
+
+bool Answer::DataTransportConfig::IsValid() const {
+  return protocol != DataTransportProtocol::kUnknown && kUdpPortMin <= port &&
+         port <= kUdpPortMax && !certificate_fingerprint.empty();
+}
+
+Json::Value Answer::DataTransportConfig::ToJson() const {
+  OSP_CHECK(IsValid());
+  Json::Value out;
+  out[kProtocol] = GetEnumName(kDataTransportProtocolNames, protocol).value();
+  out[kPort] = port;
+  out[kCertificateFingerprint] = certificate_fingerprint;
+  return out;
+}
+
 ErrorOr<Answer> Answer::TryParse(const Json::Value& root) {
   if (!root.isObject()) {
     return Error(Error::Code::kJsonParseError, "Answer is not a JSON object");
@@ -441,6 +498,16 @@ ErrorOr<Answer> Answer::TryParse(const Json::Value& root) {
   json::TryParseIntArray(root[kReceiverRtcpDscp], &out.receiver_rtcp_dscp);
   json::TryParseNestedStringArray(root[kRtpExtensions], &out.rtp_extensions);
 
+  if (root.isMember(kDataTransport)) {
+    auto transport_or_error =
+        Answer::DataTransportConfig::TryParse(root[kDataTransport]);
+    if (transport_or_error.is_value()) {
+      out.data_transport = std::move(transport_or_error.value());
+    } else {
+      return transport_or_error.error();
+    }
+  }
+
   if (!out.IsValid()) {
     return Error(Error::Code::kJsonParseError, "Invalid answer");
   }
@@ -463,6 +530,9 @@ bool Answer::IsValid() const {
     return false;
   }
   if (display.has_value() && !display->IsValid()) {
+    return false;
+  }
+  if (data_transport.has_value() && !data_transport->IsValid()) {
     return false;
   }
   return kUdpPortMin <= udp_port && udp_port <= kUdpPortMax;
@@ -491,6 +561,9 @@ Json::Value Answer::ToJson() const {
   }
   if (!rtp_extensions.empty()) {
     root[kRtpExtensions] = json::NestedStringArrayToJson(rtp_extensions);
+  }
+  if (data_transport.has_value()) {
+    root[kDataTransport] = data_transport->ToJson();
   }
   return root;
 }

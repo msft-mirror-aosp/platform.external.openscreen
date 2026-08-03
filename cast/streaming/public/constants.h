@@ -117,6 +117,8 @@ enum class StreamType { kUnknown, kAudio, kVideo };
 enum class CastMode : uint8_t { kMirroring, kRemoting };
 std::ostream& operator<<(std::ostream& os, CastMode mode);
 
+enum class DataTransportProtocol { kUnknown, kWebTransport };
+
 }  // namespace openscreen::cast
 
 #endif  // CAST_STREAMING_PUBLIC_CONSTANTS_H_

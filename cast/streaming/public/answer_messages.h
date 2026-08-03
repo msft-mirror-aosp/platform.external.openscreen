@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "cast/streaming/public/constants.h"
 #include "cast/streaming/resolution.h"
 #include "cast/streaming/ssrc.h"
 #include "json/value.h"
@@ -98,6 +99,24 @@ struct DisplayDescription {
 };
 
 struct Answer {
+  // Configuration for establishing a data transport connection (e.g.,
+  // WebTransport), specifying the accepted protocol, port, and certificate
+  // fingerprint.
+  struct DataTransportConfig {
+    static ErrorOr<DataTransportConfig> TryParse(const Json::Value& value);
+    Json::Value ToJson() const;
+    bool IsValid() const;
+
+    bool operator==(const DataTransportConfig& other) const {
+      return protocol == other.protocol && port == other.port &&
+             certificate_fingerprint == other.certificate_fingerprint;
+    }
+
+    DataTransportProtocol protocol = DataTransportProtocol::kUnknown;
+    int port = 0;
+    std::string certificate_fingerprint;
+  };
+
   static ErrorOr<Answer> TryParse(const Json::Value& value);
   Json::Value ToJson() const;
   bool IsValid() const;
@@ -115,6 +134,10 @@ struct Answer {
 
   // RTP extensions should be empty, but not null.
   std::vector<std::vector<std::string>> rtp_extensions = {};
+
+  // Optional configuration for an accepted data transport (e.g., WebTransport).
+  // Included in the ANSWER when data channel negotiation succeeds.
+  std::optional<DataTransportConfig> data_transport;
 };
 
 }  // namespace openscreen::cast

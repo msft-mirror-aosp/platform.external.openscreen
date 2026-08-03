@@ -754,4 +754,53 @@ TEST(OfferTest, ErrorOnMixedDscpValues) {
                        Error::Code::kJsonParseError);
 }
 
+TEST(OfferTest, CanParseValidOfferWithDataTransport) {
+  ErrorOr<Json::Value> root = json::Parse(R"({
+    "castMode": "mirroring",
+    "supportedStreams": [],
+    "dataTransport": {
+      "protocol": "webtransport"
+    }
+  })");
+  ASSERT_TRUE(root.is_value()) << root.error();
+
+  const auto offer_or_error = Offer::TryParse(std::move(root.value()));
+  ASSERT_TRUE(offer_or_error.is_value());
+  EXPECT_TRUE(offer_or_error.value().data_transport.has_value());
+  EXPECT_EQ(offer_or_error.value().data_transport->protocol,
+            DataTransportProtocol::kWebTransport);
+
+  // Serialization check.
+  Json::Value serialized = offer_or_error.value().ToJson();
+  EXPECT_TRUE(serialized.isMember("dataTransport"));
+  EXPECT_EQ(serialized["dataTransport"]["protocol"].asString(), "webtransport");
+}
+
+TEST(OfferTest, ErrorOnInvalidDataTransport) {
+  ExpectFailureOnParse(R"({
+    "castMode": "mirroring",
+    "supportedStreams": [],
+    "dataTransport": {
+      "protocol": ""
+    }
+  })",
+                       Error::Code::kJsonParseError);
+
+  ExpectFailureOnParse(R"({
+    "castMode": "mirroring",
+    "supportedStreams": [],
+    "dataTransport": {
+      "protocol": "QUIC"
+    }
+  })",
+                       Error::Code::kJsonParseError);
+
+  ExpectFailureOnParse(R"({
+    "castMode": "mirroring",
+    "supportedStreams": [],
+    "dataTransport": null
+  })",
+                       Error::Code::kJsonParseError);
+}
+
 }  // namespace openscreen::cast

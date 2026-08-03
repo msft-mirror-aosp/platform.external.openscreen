@@ -13,6 +13,7 @@
 #include "util/chrono_helpers.h"
 #include "util/json/json_serialization.h"
 #include "util/no_destructor.h"
+#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -635,6 +636,67 @@ TEST(AnswerMessagesTest, DisplayDescriptionIsValid) {
   EXPECT_FALSE(has_invalid_aspect_ratio.IsValid());
   EXPECT_FALSE(has_aspect_ratio_constraint.IsValid());
   EXPECT_TRUE(has_constraint_and_dimensions.IsValid());
+}
+
+std::string GenerateAnswerWithDataTransport(std::string_view protocol,
+                                            int port,
+                                            std::string_view fingerprint) {
+  static constexpr char kTemplate[] = R"({{
+    "castMode": "mirroring",
+    "udpPort": 1234,
+    "sendIndexes": [1, 3],
+    "ssrcs": [1233324, 2234222],
+    "dataTransport": {{
+      "protocol": "{}",
+      "port": {},
+      "certificateFingerprint": "{}"
+    }}
+  }})";
+  return StringFormat(kTemplate, protocol, port, fingerprint);
+}
+
+TEST(AnswerTest, CanParseValidAnswerWithDataTransport) {
+  ErrorOr<Json::Value> root = json::Parse(
+      GenerateAnswerWithDataTransport("webtransport", 4321, "abcde12345"));
+  ASSERT_TRUE(root.is_value()) << root.error();
+
+  const auto answer_or_error = Answer::TryParse(std::move(root.value()));
+  ASSERT_TRUE(answer_or_error.is_value());
+  EXPECT_TRUE(answer_or_error.value().data_transport.has_value());
+  EXPECT_EQ(answer_or_error.value().data_transport->protocol,
+            DataTransportProtocol::kWebTransport);
+  EXPECT_EQ(answer_or_error.value().data_transport->port, 4321);
+  EXPECT_EQ(answer_or_error.value().data_transport->certificate_fingerprint,
+            "abcde12345");
+
+  // Serialization check.
+  Json::Value serialized = answer_or_error.value().ToJson();
+  EXPECT_TRUE(serialized.isMember("dataTransport"));
+  EXPECT_EQ(serialized["dataTransport"]["protocol"].asString(), "webtransport");
+  EXPECT_EQ(serialized["dataTransport"]["port"].asInt(), 4321);
+  EXPECT_EQ(serialized["dataTransport"]["certificateFingerprint"].asString(),
+            "abcde12345");
+}
+
+TEST(AnswerTest, ErrorOnInvalidDataTransport) {
+  ErrorOr<Json::Value> root = json::Parse(
+      GenerateAnswerWithDataTransport("webtransport", -1, "abcde12345"));
+  ASSERT_TRUE(root.is_value()) << root.error();
+  EXPECT_TRUE(Answer::TryParse(std::move(root.value())).is_error());
+
+  root = json::Parse(
+      GenerateAnswerWithDataTransport("webtransport", 65536, "abcde12345"));
+  ASSERT_TRUE(root.is_value()) << root.error();
+  EXPECT_TRUE(Answer::TryParse(std::move(root.value())).is_error());
+
+  root = json::Parse(GenerateAnswerWithDataTransport("webtransport", 4321, ""));
+  ASSERT_TRUE(root.is_value()) << root.error();
+  EXPECT_TRUE(Answer::TryParse(std::move(root.value())).is_error());
+
+  root =
+      json::Parse(GenerateAnswerWithDataTransport("QUIC", 4321, "abcde12345"));
+  ASSERT_TRUE(root.is_value()) << root.error();
+  EXPECT_TRUE(Answer::TryParse(std::move(root.value())).is_error());
 }
 
 // Instead of being tested here, Answer's IsValid is checked in all other

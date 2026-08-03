@@ -75,6 +75,9 @@ bool CodecParameterIsValid(AudioCodec codec,
 EnumNameTable<CastMode, 2> kCastModeNames{
     {{"mirroring", CastMode::kMirroring}, {"remoting", CastMode::kRemoting}}};
 
+EnumNameTable<DataTransportProtocol, 1> kDataTransportProtocolNames{
+    {{"webtransport", DataTransportProtocol::kWebTransport}}};
+
 bool TryParseRtpPayloadType(const Json::Value& value, RtpPayloadType* out) {
   int t;
   if (!json::TryParseInt(value, &t)) {
@@ -392,6 +395,36 @@ bool VideoStream::IsValid() const {
   return max_bit_rate > 0 && max_frame_rate.is_positive();
 }
 
+ErrorOr<DataTransport> DataTransport::TryParse(const Json::Value& value) {
+  if (!value.isObject()) {
+    return Error(Error::Code::kJsonParseError, "null dataTransport");
+  }
+  std::string protocol_str;
+  if (!json::TryParseString(value["protocol"], &protocol_str)) {
+    return Error(Error::Code::kJsonParseError, "Invalid dataTransport field");
+  }
+  const ErrorOr<DataTransportProtocol> protocol =
+      GetEnum(kDataTransportProtocolNames, protocol_str);
+  if (protocol.is_error()) {
+    return Error(Error::Code::kJsonParseError,
+                 "Invalid dataTransport protocol");
+  }
+  DataTransport out;
+  out.protocol = protocol.value();
+  return out;
+}
+
+Json::Value DataTransport::ToJson() const {
+  OSP_CHECK(IsValid());
+  Json::Value out;
+  out["protocol"] = GetEnumName(kDataTransportProtocolNames, protocol).value();
+  return out;
+}
+
+bool DataTransport::IsValid() const {
+  return protocol != DataTransportProtocol::kUnknown;
+}
+
 // static
 ErrorOr<Offer> Offer::TryParse(const Json::Value& root) {
   if (!root.isObject()) {
@@ -449,7 +482,7 @@ ErrorOr<Offer> Offer::TryParse(const Json::Value& root) {
 
     if (!error.ok()) {
       if (error.code() == Error::Code::kUnknownCodec) {
-        OSP_VLOG << "Dropping audio stream due to unknown codec: " << error;
+        OSP_VLOG << "Dropping stream due to unknown codec: " << error;
         continue;
       } else {
         return error;
@@ -457,8 +490,22 @@ ErrorOr<Offer> Offer::TryParse(const Json::Value& root) {
     }
   }
 
-  return Offer{cast_mode.value(CastMode::kMirroring), std::move(audio_streams),
-               std::move(video_streams)};
+  std::optional<DataTransport> data_transport;
+  if (root.isMember("dataTransport")) {
+    auto transport_or_error = DataTransport::TryParse(root["dataTransport"]);
+    if (transport_or_error.is_value()) {
+      data_transport = std::move(transport_or_error.value());
+    } else {
+      return transport_or_error.error();
+    }
+  }
+
+  Offer offer{cast_mode.value(CastMode::kMirroring), std::move(audio_streams),
+              std::move(video_streams), std::move(data_transport)};
+  if (!offer.IsValid()) {
+    return Error(Error::Code::kJsonParseError, "Invalid offer");
+  }
+  return offer;
 }
 
 Json::Value Offer::ToJson() const {
@@ -475,13 +522,19 @@ Json::Value Offer::ToJson() const {
   }
 
   root[kSupportedStreams] = std::move(streams);
+
+  if (data_transport.has_value()) {
+    root["dataTransport"] = data_transport->ToJson();
+  }
+
   return root;
 }
 
 bool Offer::IsValid() const {
   return std::ranges::all_of(
              audio_streams, [](const AudioStream& a) { return a.IsValid(); }) &&
-         std::ranges::all_of(video_streams,
-                             [](const VideoStream& v) { return v.IsValid(); });
+         std::ranges::all_of(
+             video_streams, [](const VideoStream& v) { return v.IsValid(); }) &&
+         (!data_transport.has_value() || data_transport->IsValid());
 }
 }  // namespace openscreen::cast

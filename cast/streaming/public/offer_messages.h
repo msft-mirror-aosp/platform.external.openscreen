@@ -100,6 +100,14 @@ struct VideoStream {
   std::string error_recovery_mode;
 };
 
+struct DataTransport {
+  static ErrorOr<DataTransport> TryParse(const Json::Value& root);
+  Json::Value ToJson() const;
+  bool IsValid() const;
+
+  DataTransportProtocol protocol;
+};
+
 struct Offer {
   static ErrorOr<Offer> TryParse(const Json::Value& root);
   Json::Value ToJson() const;
@@ -108,6 +116,7 @@ struct Offer {
   CastMode cast_mode = CastMode::kMirroring;
   std::vector<AudioStream> audio_streams;
   std::vector<VideoStream> video_streams;
+  std::optional<DataTransport> data_transport;
 };
 
 }  // namespace openscreen::cast
