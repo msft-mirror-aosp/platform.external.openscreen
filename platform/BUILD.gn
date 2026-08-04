@@ -65,6 +65,7 @@ openscreen_source_set("api") {
     "api/trace_event.h",
     "api/trace_logging_platform.h",
     "api/udp_socket.h",
+    "api/web_transport.h",
   ]
   sources = [
     "api/task_runner_deleter.cc",
