@@ -9,6 +9,9 @@ include_rules = [
   # Allowed to use quiche module.
   '+quiche/common',
   '+quiche/quic',
+  # Allowed to use platform QUIC adapters.
+  '+platform/impl/quic',
+
   # Allowed to use boringssl module.
   '+openssl/base.h',
   '+openssl/bio.h',

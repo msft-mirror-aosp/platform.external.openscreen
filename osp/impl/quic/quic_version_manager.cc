@@ -4,7 +4,7 @@
 
 #include "osp/impl/quic/quic_version_manager.h"
 
-#include "osp/impl/quic/quic_constants.h"
+#include "platform/impl/quic/quic_constants.h"
 #include "quiche/quic/core/quic_versions.h"
 
 namespace openscreen::osp {

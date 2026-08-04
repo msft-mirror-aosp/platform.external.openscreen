@@ -1,19 +1,20 @@
-// Copyright 2024 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "osp/impl/quic/quic_packet_writer_impl.h"
+#include "platform/impl/quic/quic_packet_writer_impl.h"
 
 #include <limits>
 
-#include "osp/impl/quic/quic_utils.h"
 #include "platform/base/span.h"
+#include "platform/impl/quic/quic_utils.h"
 #include "util/osp_logging.h"
 
-namespace openscreen::osp {
+namespace openscreen {
 
-PacketWriterImpl::PacketWriterImpl(UdpSocket* socket) : socket_(socket) {
-  OSP_CHECK(socket_);
+PacketWriterImpl::PacketWriterImpl(UdpSocket* socket) {
+  OSP_CHECK(socket);
+  socket_ = socket;
 }
 
 PacketWriterImpl::~PacketWriterImpl() = default;
@@ -71,4 +72,4 @@ quic::WriteResult PacketWriterImpl::Flush() {
   return quic::WriteResult(quic::WRITE_STATUS_OK, 0);
 }
 
-}  // namespace openscreen::osp
+}  // namespace openscreen

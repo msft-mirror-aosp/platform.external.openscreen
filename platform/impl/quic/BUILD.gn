@@ -1,0 +1,27 @@
+# Copyright 2026 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../gni/openscreen.gni")
+
+openscreen_source_set("quic_adapters") {
+  public = [
+    "quic_alarm_factory_impl.h",
+    "quic_constants.h",
+    "quic_packet_writer_impl.h",
+    "quic_utils.h",
+  ]
+  sources = [
+    "quic_alarm_factory_impl.cc",
+    "quic_packet_writer_impl.cc",
+    "quic_utils.cc",
+  ]
+
+  public_deps = [ "../../../third_party/quiche" ]
+
+  deps = [
+    "../../../platform",
+    "../../../third_party/abseil",
+    "../../../util",
+  ]
+}

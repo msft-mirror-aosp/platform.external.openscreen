@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "osp/impl/quic/quic_connection_impl.h"
-#include "osp/impl/quic/quic_constants.h"
 #include "osp/impl/quic/quic_stream_impl.h"
+#include "platform/impl/quic/quic_constants.h"
 #include "quiche/quic/core/quic_constants.h"
 #include "util/osp_logging.h"
 

@@ -1,15 +1,15 @@
-// Copyright 2024 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef OSP_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
-#define OSP_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
+#ifndef PLATFORM_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
+#define PLATFORM_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
 
 #include "platform/api/udp_socket.h"
 #include "quiche/quic/core/quic_packet_writer.h"
 #include "util/raw_ptr.h"
 
-namespace openscreen::osp {
+namespace openscreen {
 
 class PacketWriterImpl final : public quic::QuicPacketWriter {
  public:
@@ -47,6 +47,6 @@ class PacketWriterImpl final : public quic::QuicPacketWriter {
   raw_ptr<UdpSocket> socket_ = nullptr;
 };
 
-}  // namespace openscreen::osp
+}  // namespace openscreen
 
-#endif  // OSP_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
+#endif  // PLATFORM_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_

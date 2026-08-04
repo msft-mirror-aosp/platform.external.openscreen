@@ -1,13 +1,13 @@
-// Copyright 2024 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef OSP_IMPL_QUIC_QUIC_CONSTANTS_H_
-#define OSP_IMPL_QUIC_QUIC_CONSTANTS_H_
+#ifndef PLATFORM_IMPL_QUIC_QUIC_CONSTANTS_H_
+#define PLATFORM_IMPL_QUIC_QUIC_CONSTANTS_H_
 
 #include <cstddef>
 
-namespace openscreen::osp {
+namespace openscreen {
 
 // ALPN required for QUIC connections made by OSP.
 // Spec: https://w3c.github.io/openscreenprotocol/#tls-13
@@ -21,6 +21,6 @@ inline constexpr char kSourceAddressTokenSecret[] = "secret";
 // current event loop. When reaches 0, it means can't create sessions for now.
 inline constexpr size_t kMaxConnectionsToCreate = 256;
 
-}  // namespace openscreen::osp
+}  // namespace openscreen
 
-#endif  // OSP_IMPL_QUIC_QUIC_CONSTANTS_H_
+#endif  // PLATFORM_IMPL_QUIC_QUIC_CONSTANTS_H_

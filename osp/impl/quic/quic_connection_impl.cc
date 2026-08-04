@@ -4,7 +4,7 @@
 
 #include "osp/impl/quic/quic_connection_impl.h"
 
-#include "osp/impl/quic/quic_utils.h"
+#include "platform/impl/quic/quic_utils.h"
 #include "quiche/quic/core/quic_packets.h"
 #include "util/osp_logging.h"
 #include "util/trace_logging.h"

@@ -37,8 +37,6 @@ if (!is_win) {
       "open_screen_server_session.h",
       "open_screen_session_base.cc",
       "open_screen_session_base.h",
-      "quic_alarm_factory_impl.cc",
-      "quic_alarm_factory_impl.h",
       "quic_client.cc",
       "quic_connection_factory_base.cc",
       "quic_connection_factory_base.h",
@@ -46,11 +44,8 @@ if (!is_win) {
       "quic_connection_factory_server.cc",
       "quic_connection_impl.cc",
       "quic_connection_impl.h",
-      "quic_constants.h",
       "quic_dispatcher_impl.cc",
       "quic_dispatcher_impl.h",
-      "quic_packet_writer_impl.cc",
-      "quic_packet_writer_impl.h",
       "quic_protocol_connection.cc",
       "quic_protocol_connection.h",
       "quic_server.cc",
@@ -60,8 +55,6 @@ if (!is_win) {
       "quic_stream_impl.h",
       "quic_stream_manager.cc",
       "quic_stream_manager.h",
-      "quic_utils.cc",
-      "quic_utils.h",
       "quic_version_manager.cc",
       "quic_version_manager.h",
     ]
@@ -70,6 +63,7 @@ if (!is_win) {
 
     deps = [
       "../../../platform",
+      "../../../platform/impl/quic:quic_adapters",
       "../../../third_party/abseil",
       "../../../third_party/boringssl",
       "../../../third_party/quiche",

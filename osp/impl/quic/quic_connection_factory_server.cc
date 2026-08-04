@@ -9,13 +9,13 @@
 #include <vector>
 
 #include "osp/impl/quic/open_screen_server_session.h"
-#include "osp/impl/quic/quic_alarm_factory_impl.h"
-#include "osp/impl/quic/quic_constants.h"
 #include "osp/impl/quic/quic_dispatcher_impl.h"
-#include "osp/impl/quic/quic_packet_writer_impl.h"
 #include "osp/impl/quic/quic_server.h"
-#include "osp/impl/quic/quic_utils.h"
 #include "osp/impl/quic/quic_version_manager.h"
+#include "platform/impl/quic/quic_alarm_factory_impl.h"
+#include "platform/impl/quic/quic_constants.h"
+#include "platform/impl/quic/quic_packet_writer_impl.h"
+#include "platform/impl/quic/quic_utils.h"
 #include "quiche/quic/core/quic_default_connection_helper.h"
 #include "util/osp_logging.h"
 #include "util/std_util.h"

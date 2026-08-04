@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "osp/impl/quic/quic_alarm_factory_impl.h"
+#include "platform/impl/quic/quic_alarm_factory_impl.h"
 #include "quiche/quic/core/quic_default_clock.h"
 #include "quiche/quic/core/quic_default_connection_helper.h"
 

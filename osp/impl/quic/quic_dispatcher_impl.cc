@@ -10,9 +10,9 @@
 
 #include "osp/impl/quic/open_screen_server_session.h"
 #include "osp/impl/quic/quic_connection_impl.h"
-#include "osp/impl/quic/quic_packet_writer_impl.h"
 #include "osp/impl/quic/quic_server.h"
-#include "osp/impl/quic/quic_utils.h"
+#include "platform/impl/quic/quic_packet_writer_impl.h"
+#include "platform/impl/quic/quic_utils.h"
 #include "quiche/quic/core/crypto/quic_compressed_certs_cache.h"
 #include "quiche/quic/core/crypto/quic_crypto_server_config.h"
 #include "quiche/quic/core/quic_versions.h"

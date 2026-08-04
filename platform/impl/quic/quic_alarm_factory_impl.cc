@@ -1,8 +1,8 @@
-// Copyright 2024 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "osp/impl/quic/quic_alarm_factory_impl.h"
+#include "platform/impl/quic/quic_alarm_factory_impl.h"
 
 #include <memory>
 #include <utility>
@@ -12,7 +12,7 @@
 #include "util/osp_logging.h"
 #include "util/raw_ptr.h"
 
-namespace openscreen::osp {
+namespace openscreen {
 
 namespace {
 
@@ -81,4 +81,4 @@ quic::QuicAlarm* QuicAlarmFactoryImpl::CreateAlarm(
       quic::QuicArenaScopedPtr<quic::QuicAlarm::Delegate>(delegate));
 }
 
-}  // namespace openscreen::osp
+}  // namespace openscreen
