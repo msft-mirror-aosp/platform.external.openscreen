@@ -129,33 +129,58 @@ void ReceiverImpl::RequestKeyFrame() {
   }
 }
 
+std::optional<int> ReceiverImpl::AdvanceToFrameIfReady(
+    FrameId f,
+    FrameId immediate_next_frame,
+    const PendingFrame& entry) {
+  if (entry.collector.is_complete()) {
+    const EncodedFrame& metadata = entry.collector.PeekFrameMetadata();
+
+    const bool is_next_frame = f == immediate_next_frame;
+    const bool is_independent =
+        metadata.dependency != EncodedFrame::Dependency::kDependent;
+    const bool is_ready = is_next_frame || is_independent;
+    if (is_ready) {
+      // Found a frame after skipping past some frames. Drop the ones being
+      // skipped, advancing `last_frame_consumed_` before returning.
+      // TODO(crbug.com/472513637): we may not always want to drop all
+      // dependent frames just because we have a complete independent frame.
+      if (!is_next_frame) {
+        RECEIVER_LOG(WARN) << "Skipping incomplete frames before keyframe "
+                           << f;
+        DropAllFramesBefore(f);
+      }
+      TRACE_FLOW_STEP(TraceCategory::kReceiver, "Frame.Ready", f);
+      return static_cast<int>(entry.collector.GetFramePayloadSize());
+    }
+  }
+  return std::nullopt;
+}
+
 std::optional<size_t> ReceiverImpl::AdvanceToNextFrame() {
   TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   const FrameId immediate_next_frame = last_frame_consumed_ + 1;
+
+  if (config_.allow_skip_to_keyframe) {
+    // Scan the queue for a frame that is ready to be consumed: either the next
+    // expected frame, or an independent keyframe. This prevents blocking if the
+    // next frame is incomplete, but a newer keyframe has already arrived.
+    for (FrameId f = immediate_next_frame; f <= latest_frame_expected_; ++f) {
+      if (auto payload_size = AdvanceToFrameIfReady(f, immediate_next_frame,
+                                                    GetQueueEntry(f))) {
+        return payload_size;
+      }
+    }
+  }
 
   // Scan the queue for the next frame that should be consumed. Typically, this
   // is the very next frame; but if it is incomplete and already late for
   // playout, consider skipping-ahead.
   for (FrameId f = immediate_next_frame; f <= latest_frame_expected_; ++f) {
     PendingFrame& entry = GetQueueEntry(f);
-    if (entry.collector.is_complete()) {
-      const EncodedFrame& metadata = entry.collector.PeekFrameMetadata();
-
-      const bool is_next_frame = f == immediate_next_frame;
-      const bool is_independent =
-          metadata.dependency != EncodedFrame::Dependency::kDependent;
-      const bool is_ready = is_next_frame || is_independent;
-      if (is_ready) {
-        // Found a frame after skipping past some frames. Drop the ones being
-        // skipped, advancing `last_frame_consumed_` before returning.
-        // TODO(crbug.com/472513637): we may not always want to drop all
-        // dependent frames just because we have a complete independent frame.
-        if (!is_next_frame) {
-          DropAllFramesBefore(f);
-        }
-        TRACE_FLOW_STEP(TraceCategory::kReceiver, "Frame.Ready", f);
-        return static_cast<int>(entry.collector.GetFramePayloadSize());
-      }
+    if (auto payload_size =
+            AdvanceToFrameIfReady(f, immediate_next_frame, entry)) {
+      return payload_size;
     }
 
     // Do not consider skipping past this frame if its estimated capture time is
@@ -174,6 +199,14 @@ std::optional<size_t> ReceiverImpl::AdvanceToNextFrame() {
                               player_processing_time_;
     if (process_time > now_()) {
       ScheduleFrameReadyCheck(process_time);
+      break;
+    }
+
+    // Stop scanning since we cannot play out any frames until we receive the
+    // missing packets or a new keyframe. If skipping to keyframes is enabled,
+    // the first pass already verified no keyframes exist in the queue, so we
+    // break. If disabled, we preserve original behavior and continue scanning.
+    if (config_.allow_skip_to_keyframe) {
       break;
     }
   }
@@ -501,10 +534,12 @@ milliseconds ReceiverImpl::ResolveTargetPlayoutDelay(FrameId frame_id) const {
   // Extra precaution: Ensure all possible playout delay changes are known. In
   // other words, every unconsumed frame in the queue, up to (and including)
   // `frame_id`, must have an assigned estimated_capture_time.
-  for (FrameId f = first_possible; f <= frame_id; ++f) {
-    OSP_CHECK(GetQueueEntry(f).estimated_capture_time)
-        << " don't know whether there was a playout delay change for frame "
-        << f;
+  if (!config_.allow_skip_to_keyframe) {
+    for (FrameId f = first_possible; f <= frame_id; ++f) {
+      OSP_CHECK(GetQueueEntry(f).estimated_capture_time)
+          << " don't know whether there was a playout delay change for frame "
+          << f;
+    }
   }
 #endif
 
@@ -544,9 +579,9 @@ void ReceiverImpl::DropAllFramesBefore(FrameId first_kept_frame) {
   // Reset each of the frames being dropped, pretending that they were consumed.
   for (FrameId f = first_to_drop; f < first_kept_frame; ++f) {
     PendingFrame& entry = GetQueueEntry(f);
-    // Pedantic sanity-check: Ensure the "target playout delay change" data
-    // dependency was satisfied. See comments in AdvanceToNextFrame().
-    OSP_CHECK(entry.estimated_capture_time);
+    if (!config_.allow_skip_to_keyframe) {
+      OSP_CHECK(entry.estimated_capture_time);
+    }
     entry.collector.Reset();
   }
   last_frame_consumed_ = first_kept_frame - 1;

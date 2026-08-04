@@ -26,7 +26,8 @@ struct SessionConfig final {
                 std::array<uint8_t, 16> aes_iv_mask,
                 bool is_pli_enabled = false,
                 StreamType stream_type = StreamType::kUnknown,
-                bool are_receiver_event_logs_enabled = true);
+                bool are_receiver_event_logs_enabled = true,
+                bool allow_skip_to_keyframe = false);
   SessionConfig(const SessionConfig& other);
   SessionConfig(SessionConfig&& other) noexcept;
   SessionConfig& operator=(const SessionConfig& other);
@@ -64,6 +65,10 @@ struct SessionConfig final {
   // Whether RTCP event logs from the Receiver are enabled. These are used for
   // generating statistics. It is recommended that this generally be true.
   bool are_receiver_event_logs_enabled = true;
+
+  // Optional optimization to skip incomplete/late frames on packet loss.
+  // Default is false (preserves original behavior).
+  bool allow_skip_to_keyframe = false;
 };
 
 }  // namespace openscreen::cast

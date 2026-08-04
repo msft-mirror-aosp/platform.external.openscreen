@@ -26,7 +26,8 @@ SessionConfig::SessionConfig(Ssrc sender_ssrc,
                              std::array<uint8_t, 16> aes_iv_mask,
                              bool is_pli_enabled,
                              StreamType stream_type,
-                             bool are_receiver_event_logs_enabled)
+                             bool are_receiver_event_logs_enabled,
+                             bool allow_skip_to_keyframe)
     : sender_ssrc(sender_ssrc),
       receiver_ssrc(receiver_ssrc),
       rtp_timebase(rtp_timebase),
@@ -36,7 +37,8 @@ SessionConfig::SessionConfig(Ssrc sender_ssrc,
       aes_iv_mask(std::move(aes_iv_mask)),
       is_pli_enabled(is_pli_enabled),
       stream_type(stream_type),
-      are_receiver_event_logs_enabled(are_receiver_event_logs_enabled) {}
+      are_receiver_event_logs_enabled(are_receiver_event_logs_enabled),
+      allow_skip_to_keyframe(allow_skip_to_keyframe) {}
 
 SessionConfig::SessionConfig(const SessionConfig& other) = default;
 SessionConfig::SessionConfig(SessionConfig&& other) noexcept = default;

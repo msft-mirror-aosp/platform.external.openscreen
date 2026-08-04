@@ -135,6 +135,12 @@ class ReceiverImpl : public Receiver,
   // frames.
   void DropAllFramesBefore(FrameId first_kept_frame);
 
+  // Checks if the given frame is ready for consumption. If ready, drops any
+  // skipped frames and returns the payload size.
+  std::optional<int> AdvanceToFrameIfReady(FrameId f,
+                                           FrameId immediate_next_frame,
+                                           const PendingFrame& entry);
+
   // Sets the `consumption_alarm_` to check whether any frames are ready,
   // including possibly skipping over late frames in order to make not-yet-late
   // frames become ready. The default argument value means "without delay."
