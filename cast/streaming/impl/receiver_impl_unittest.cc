@@ -311,6 +311,8 @@ class MockConsumer : public Receiver::Consumer {
 struct ReceiverOptions {
   bool is_pli_enabled = true;
   bool allow_skipping = false;
+  std::optional<std::chrono::milliseconds> receiver_proactive_pli_interval =
+      std::nullopt;
 };
 
 class ReceiverTest : public testing::Test {
@@ -328,15 +330,15 @@ class ReceiverTest : public testing::Test {
 
   void ConstructReceiver(ReceiverOptions options = {}) {
     receiver_.reset();
-    receiver_ = std::make_unique<ReceiverImpl>(
-        env_, packet_router_,
-        SessionConfig(kSenderSsrc, kReceiverSsrc, kRtpTimebase,
-                      /* .channels = */ 2, kTargetPlayoutDelay, kAesKey,
-                      kCastIvMask,
-                      /* .is_pli_enabled = */ options.is_pli_enabled,
-                      StreamType::kUnknown,
-                      /* .are_receiver_event_logs_enabled = */ true,
-                      options.allow_skipping));
+    SessionConfig config(
+        kSenderSsrc, kReceiverSsrc, kRtpTimebase,
+        /* .channels = */ 2, kTargetPlayoutDelay, kAesKey, kCastIvMask,
+        /* .is_pli_enabled = */ options.is_pli_enabled, StreamType::kUnknown,
+        /* .are_receiver_event_logs_enabled = */ true, options.allow_skipping);
+    config.receiver_proactive_pli_interval =
+        options.receiver_proactive_pli_interval;
+    receiver_ =
+        std::make_unique<ReceiverImpl>(env_, packet_router_, std::move(config));
     env_.SetSocketSubscriber(&socket_subscriber_);
     ON_CALL(env_, SendPacket(_, _))
         .WillByDefault([this](ByteView packet, PacketMetadata metadata) {

@@ -50,7 +50,8 @@ SenderImpl::SenderImpl(Environment& environment,
       rtp_timebase_(config.rtp_timebase),
       crypto_(config.aes_secret_key, config.aes_iv_mask),
       statistics_dispatcher_(environment),
-      target_playout_delay_(config.target_playout_delay) {
+      target_playout_delay_(config.target_playout_delay),
+      now_(environment.now_function()) {
   OSP_CHECK_NE(rtcp_session_.sender_ssrc(), rtcp_session_.receiver_ssrc());
   OSP_CHECK_GT(rtp_timebase_, 0);
   OSP_CHECK_GT(target_playout_delay_, milliseconds::zero());
@@ -187,6 +188,7 @@ openscreen::cast::Sender::EnqueueFrameResult SenderImpl::EnqueueFrame(
       static_cast<size_t>(last_enqueued_frame_id_ - checkpoint_frame_id_));
   if (slot.frame->dependency == EncodedFrame::Dependency::kKeyFrame) {
     last_enqueued_key_frame_id_ = slot.frame->frame_id;
+    last_enqueued_key_frame_time_ = now_();
   }
   TRACE_FLOW_STEP(TraceCategory::kSender, "Frame.Enqueued", frame.frame_id);
 
@@ -415,14 +417,34 @@ void SenderImpl::OnCastReceiverFrameLogMessages(
 void SenderImpl::OnReceiverIndicatesPictureLoss() {
   TRACE_DEFAULT_SCOPED1(TraceCategory::kSender, "last_received_frame_id",
                         picture_lost_at_frame_id_.ToString());
+  OSP_LOG_INFO << "Sender received PLI. checkpoint=" << checkpoint_frame_id_
+               << ", last_enqueued_keyframe=" << last_enqueued_key_frame_id_;
   // The Receiver will continue the PLI notifications until it has received a
   // key frame. Thus, if a key frame is already in-flight, don't make a state
   // change that would cause this Sender to force another expensive key frame.
-  if (checkpoint_frame_id_ < last_enqueued_key_frame_id_) {
+  bool keyframe_timed_out = false;
+  if (config_.sender_keyframe_cooldown &&
+      last_enqueued_key_frame_time_ != SenderPacketRouter::kNever) {
+    const auto time_since_last_keyframe =
+        now_() - last_enqueued_key_frame_time_;
+    keyframe_timed_out =
+        time_since_last_keyframe > *config_.sender_keyframe_cooldown;
+    if (keyframe_timed_out) {
+      OSP_LOG_INFO << "Keyframe in flight timed out: "
+                   << time_since_last_keyframe;
+    }
+  }
+
+  if (checkpoint_frame_id_ < last_enqueued_key_frame_id_ &&
+      !keyframe_timed_out) {
+    OSP_LOG_INFO << "Sender ignoring PLI: keyframe already in flight";
     return;
   }
 
-  picture_lost_at_frame_id_ = checkpoint_frame_id_;
+  picture_lost_at_frame_id_ =
+      std::max(checkpoint_frame_id_, last_enqueued_key_frame_id_);
+  OSP_LOG_INFO << "Sender accepted PLI. picture_lost_at_frame_id updated to "
+               << picture_lost_at_frame_id_;
 
   if (observer_) {
     observer_->OnPictureLost();

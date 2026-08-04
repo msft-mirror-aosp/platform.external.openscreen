@@ -197,6 +197,10 @@ class ReceiverImpl : public Receiver,
   // after the consumer has seen a key frame that would clear the condition.
   FrameId last_key_frame_received_;
 
+  // The local time at which the last Picture Loss Indicator (PLI) was sent.
+  // Initialized to the minimum possible time-point to represent "never".
+  Clock::time_point last_pli_send_time_{Clock::time_point::min()};
+
   // The frame queue (circular), which tracks which frames are in-flight, stores
   // data for partially-received frames, and holds onto completed frames until
   // the consumer consumes them. After the frame has been consumed, its capture

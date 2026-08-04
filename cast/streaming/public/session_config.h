@@ -69,6 +69,15 @@ struct SessionConfig final {
   // Optional optimization to skip incomplete/late frames on packet loss.
   // Default is false (preserves original behavior).
   bool allow_skip_to_keyframe = false;
+
+  // Optional override for the keyframe timeout.
+  // If > 0, overrides the default.
+  std::optional<std::chrono::milliseconds> sender_keyframe_cooldown;
+
+  // The interval to rate-limit proactive PLI requests for late frames.
+  // If > 0, proactive PLIs will be sent for late frames. Note that PLI requests
+  // still require `is_pli_enabled` to be true.
+  std::optional<std::chrono::milliseconds> receiver_proactive_pli_interval;
 };
 
 }  // namespace openscreen::cast

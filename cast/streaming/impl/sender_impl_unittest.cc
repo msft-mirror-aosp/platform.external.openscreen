@@ -11,6 +11,7 @@
 #include <chrono>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
@@ -342,17 +343,18 @@ class SenderTest : public testing::Test {
         sender_packet_router_(sender_environment_,
                               kNumPacketsPerBurst,
                               kBurstInterval),
-        sender_(sender_environment_,
-                sender_packet_router_,
-                {/* .sender_ssrc = */ kSenderSsrc,
-                 /* .receiver_ssrc = */ kReceiverSsrc,
-                 /* .rtp_timebase = */ kRtpTimebase,
-                 /* .channels = */ 2,
-                 /* .target_playout_delay = */ kTargetPlayoutDelay,
-                 /* .aes_secret_key = */ kAesKey,
-                 /* .aes_iv_mask = */ kCastIvMask,
-                 /* .is_pli_enabled = */ true},
-                kRtpPayloadType),
+        sender_(std::make_unique<SenderImpl>(
+            sender_environment_,
+            sender_packet_router_,
+            SessionConfig{/* .sender_ssrc = */ kSenderSsrc,
+                          /* .receiver_ssrc = */ kReceiverSsrc,
+                          /* .rtp_timebase = */ kRtpTimebase,
+                          /* .channels = */ 2,
+                          /* .target_playout_delay = */ kTargetPlayoutDelay,
+                          /* .aes_secret_key = */ kAesKey,
+                          /* .aes_iv_mask = */ kCastIvMask,
+                          /* .is_pli_enabled = */ true},
+            kRtpPayloadType)),
         receiver_to_sender_pipe_(task_runner_, sender_packet_router_),
         receiver_(receiver_to_sender_pipe_),
         sender_to_receiver_pipe_(task_runner_, receiver_) {
@@ -368,7 +370,7 @@ class SenderTest : public testing::Test {
 
   ~SenderTest() override = default;
 
-  SenderImpl* sender() { return &sender_; }
+  SenderImpl* sender() { return sender_.get(); }
   MockReceiver* receiver() { return &receiver_; }
 
   void SetReceiverToSenderNetworkDelay(Clock::duration delay) {
@@ -486,12 +488,12 @@ class SenderTest : public testing::Test {
     }
   }
 
- private:
+ protected:
   FakeClock fake_clock_;
   FakeTaskRunner task_runner_;
   NiceMock<MockEnvironment> sender_environment_;
   SenderPacketRouter sender_packet_router_;
-  SenderImpl sender_;
+  std::unique_ptr<SenderImpl> sender_;
   SimulatedNetworkPipe receiver_to_sender_pipe_;
   NiceMock<MockReceiver> receiver_;
   SimulatedNetworkPipe sender_to_receiver_pipe_;
@@ -1027,6 +1029,54 @@ TEST_F(SenderTest, ManagesReceiverPictureLossWorkflow) {
   EXPECT_FALSE(sender()->NeedsKeyFrame());
 
   ExpectFramesReceivedCorrectly(frames, receiver()->TakeCompleteFrames());
+}
+
+TEST_F(SenderTest, ForcesKeyFrameOnPictureLossIfKeyFrameTimedOut) {
+  sender_.reset();
+  SessionConfig config = {/* .sender_ssrc = */ kSenderSsrc,
+                          /* .receiver_ssrc = */ kReceiverSsrc,
+                          /* .rtp_timebase = */ kRtpTimebase,
+                          /* .channels = */ 2,
+                          /* .target_playout_delay = */ kTargetPlayoutDelay,
+                          /* .aes_secret_key = */ kAesKey,
+                          /* .aes_iv_mask = */ kCastIvMask,
+                          /* .is_pli_enabled = */ true};
+  config.sender_keyframe_cooldown = std::chrono::milliseconds(3000);
+
+  SenderImpl custom_sender(sender_environment_, sender_packet_router_, config,
+                           kRtpPayloadType);
+
+  StrictMock<MockObserver> observer;
+  custom_sender.SetObserver(&observer);
+
+  // Send a key frame
+  EncodedFrameWithBuffer key_frame;
+  PopulateFrameWithDefaults(FrameId::first(), FakeClock::now() - kCaptureDelay,
+                            0, 24 /* bytes */, &key_frame);
+  key_frame.dependency = EncodedFrame::Dependency::kKeyFrame;
+  key_frame.referenced_frame_id = key_frame.frame_id;
+  ASSERT_EQ(Sender::OK, custom_sender.EnqueueFrame(key_frame));
+  SimulateExecution(kFrameDuration);
+
+  // Simulate loss and send PLI -> ignored since keyframe is in flight and
+  // hasn't timed out.
+  EXPECT_CALL(observer, OnPictureLost()).Times(0);
+  receiver()->SetPictureLossIndicator(true);
+  receiver()->TransmitRtcpFeedbackPacket();
+  SimulateExecution();  // RTCP transmitted to Sender.
+  Mock::VerifyAndClearExpectations(&observer);
+
+  // Advance time past the timeout.
+  SimulateExecution(std::chrono::milliseconds(3001));
+
+  // Simulate PLI again -> this time it's NOT ignored, because the keyframe
+  // timed out.
+  EXPECT_CALL(observer, OnPictureLost()).Times(1);
+  receiver()->SetPictureLossIndicator(true);
+  receiver()->TransmitRtcpFeedbackPacket();
+  SimulateExecution();
+  Mock::VerifyAndClearExpectations(&observer);
+  EXPECT_TRUE(custom_sender.NeedsKeyFrame());
 }
 
 // Tests that the Receiver should get a Sender Report just before the first RTP

@@ -227,6 +227,8 @@ class SenderImpl final : public Sender,
   // count stats.
   RtcpSenderReport pending_sender_report_;
 
+  ClockNowFunctionPtr now_;
+
   // These are used to determine whether a key frame needs to be sent to the
   // Receiver. When the Receiver provides a picture loss notification, the
   // current checkpoint frame ID is stored in `picture_lost_at_frame_id_`. Then,
@@ -237,6 +239,8 @@ class SenderImpl final : public Sender,
   // key frame that will make that happen.
   FrameId picture_lost_at_frame_id_ = FrameId::leader();
   FrameId last_enqueued_key_frame_id_ = FrameId::leader();
+  Clock::time_point last_enqueued_key_frame_time_{Clock::time_point::min()};
+  Clock::time_point last_pli_request_time_{Clock::time_point::min()};
 
   // The current observer (optional).
   raw_ptr<Observer> observer_ = nullptr;

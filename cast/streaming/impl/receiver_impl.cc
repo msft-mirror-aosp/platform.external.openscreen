@@ -201,6 +201,20 @@ std::optional<size_t> ReceiverImpl::AdvanceToNextFrame() {
       ScheduleFrameReadyCheck(process_time);
       break;
     }
+    // The frame is incomplete and its playout deadline has passed. If
+    // configured, request a picture loss indicator (PLI) to trigger a new
+    // keyframe from the sender. Rate-limit these requests to avoid spamming the
+    // delayed).
+    if (config_.receiver_proactive_pli_interval) {
+      if (now_() >=
+          last_pli_send_time_ + *config_.receiver_proactive_pli_interval) {
+        RECEIVER_LOG(INFO) << "Deadline passed for incomplete frame " << f
+                           << ". Requesting keyframe (rate limited interval "
+                           << *config_.receiver_proactive_pli_interval << ").";
+        RequestKeyFrame();
+        last_pli_send_time_ = now_();
+      }
+    }
 
     // Stop scanning since we cannot play out any frames until we receive the
     // missing packets or a new keyframe. If skipping to keyframes is enabled,
