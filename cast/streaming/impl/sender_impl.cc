@@ -289,6 +289,7 @@ ByteBuffer SenderImpl::GetRtpPacketForImmediateSend(Clock::time_point send_time,
   // frames, and the Receiver may not be aware of the existence of the latest
   // frame(s). Kickstarting is the only way the Receiver can discover the newer
   // frames it doesn't know about.
+  bool should_kickstart = false;
   if (!chosen) {
     const ChosenPacketAndWhen kickstart = ChooseKickstartPacket();
     if (kickstart.when > send_time) {
@@ -299,6 +300,20 @@ ByteBuffer SenderImpl::GetRtpPacketForImmediateSend(Clock::time_point send_time,
     }
     chosen = kickstart;
     OSP_CHECK(chosen);
+    should_kickstart = true;
+  }
+
+  const bool is_retransmission =
+      chosen.slot->packet_sent_times[chosen.packet_id] !=
+      SenderPacketRouter::kNever;
+
+  if (should_kickstart) {
+    OSP_LOG_INFO << "Sending KICKSTART for frame "
+                 << chosen.slot->frame->frame_id
+                 << ", packet_id=" << chosen.packet_id;
+  } else if (is_retransmission) {
+    OSP_LOG_INFO << "RETRANSMITTING frame " << chosen.slot->frame->frame_id
+                 << ", packet_id=" << chosen.packet_id;
   }
 
   const ByteBuffer result = rtp_packetizer_.GeneratePacket(
@@ -545,6 +560,7 @@ void SenderImpl::OnReceiverIsMissingPackets(std::vector<PacketNack> nacks) {
 
   // Iterate over all the NACKs...
   bool need_to_send = false;
+  int total_retransmitted_count = 0;
   for (auto nack_it = nacks.begin(); nack_it != nacks.end();) {
     // Find the slot associated with the NACK's frame ID.
     const FrameId frame_id = nack_it->frame_id;
@@ -572,10 +588,15 @@ void SenderImpl::OnReceiverIsMissingPackets(std::vector<PacketNack> nacks) {
 
     latest_expected_frame_id_ = std::max(latest_expected_frame_id_, frame_id);
 
+    int retransmitted_count = 0;
+    int ignored_count = 0;
     const auto HandleIndividualNack = [&](FramePacketId packet_id) {
       if (slot->packet_sent_times[packet_id] <= too_recent_a_send_time) {
         slot->send_flags.Set(packet_id);
         need_to_send = true;
+        retransmitted_count++;
+      } else {
+        ignored_count++;
       }
     };
     const FramePacketId range_end = slot->packet_sent_times.size();
@@ -585,17 +606,28 @@ void SenderImpl::OnReceiverIsMissingPackets(std::vector<PacketNack> nacks) {
       }
       ++nack_it;
     } else {
-      do {
+      for (; nack_it != nacks.end() && nack_it->frame_id == frame_id;
+           ++nack_it) {
         if (nack_it->packet_id < range_end) {
           HandleIndividualNack(nack_it->packet_id);
         } else {
           OSP_LOG_WARN
               << "Ignoring NACK for packet that doesn't exist in frame "
-              << frame_id << ": " << static_cast<int>(nack_it->packet_id);
+              << frame_id << ": " << nack_it->packet_id;
         }
-        ++nack_it;
-      } while (nack_it != nacks.end() && nack_it->frame_id == frame_id);
+      }
     }
+
+    if (retransmitted_count > 0 || ignored_count > 0) {
+      OSP_DLOG_INFO << "Frame " << frame_id
+                    << " NACKed. Retransmitted packets: " << retransmitted_count
+                    << ", Ignored (too recent): " << ignored_count;
+    }
+    total_retransmitted_count += retransmitted_count;
+  }
+
+  if (total_retransmitted_count > 0 && observer_) {
+    observer_->OnPacketsRetransmitted(total_retransmitted_count);
   }
 
   if (need_to_send) {

@@ -330,8 +330,9 @@ class MockReceiver : public Environment::PacketConsumer {
 
 class MockObserver : public Sender::Observer {
  public:
-  MOCK_METHOD1(OnFrameCanceled, void(FrameId frame_id));
-  MOCK_METHOD0(OnPictureLost, void());
+  MOCK_METHOD(void, OnFrameCanceled, (FrameId frame_id), (override));
+  MOCK_METHOD(void, OnPictureLost, (), (override));
+  MOCK_METHOD(void, OnPacketsRetransmitted, (int count), (override));
 };
 
 class SenderTest : public testing::Test {
@@ -1261,7 +1262,11 @@ TEST_F(SenderTest, ResendsIndividuallyNackedPackets) {
   receiver()->SetIgnoreList({});
 
   // The NACKs reach the Sender, and it acts on them by retransmitting.
+  StrictMock<MockObserver> observer;
+  sender()->SetObserver(&observer);
+  EXPECT_CALL(observer, OnPacketsRetransmitted(3));
   SimulateExecution(kOneWayNetworkDelay);
+  sender()->SetObserver(nullptr);
 
   // As each retransmitted packet arrives at the Receiver, advance the
   // checkpoint forward to notify the Sender of frames that are now completely
@@ -1319,6 +1324,7 @@ TEST_F(SenderTest, ResendsMissingFrames) {
 
   StrictMock<MockObserver> observer;
   sender()->SetObserver(&observer);
+  EXPECT_CALL(observer, OnPacketsRetransmitted(4));
 
   // The expectations below track the story and execute simulated Receiver
   // responses. The Sender will have three frames enqueued by its client, and

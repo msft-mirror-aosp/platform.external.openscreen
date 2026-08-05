@@ -73,6 +73,10 @@ class Sender {
     // NeedsKeyFrame().
     virtual void OnPictureLost() = 0;
 
+    // Called when the Sender retransmits missing packets (NACKs).
+    // `count` is the number of packets retransmitted.
+    virtual void OnPacketsRetransmitted(int count) {}
+
    protected:
     virtual ~Observer();
   };
