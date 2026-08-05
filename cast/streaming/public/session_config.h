@@ -8,6 +8,7 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <optional>
 
 #include "cast/streaming/public/constants.h"
 #include "cast/streaming/ssrc.h"
@@ -78,6 +79,9 @@ struct SessionConfig final {
   // If > 0, proactive PLIs will be sent for late frames. Note that PLI requests
   // still require `is_pli_enabled` to be true.
   std::optional<std::chrono::milliseconds> receiver_proactive_pli_interval;
+
+  // Optional override for the maximum in-flight media duration.
+  std::optional<std::chrono::milliseconds> max_in_flight_media_duration;
 };
 
 }  // namespace openscreen::cast

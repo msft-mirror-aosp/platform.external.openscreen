@@ -81,6 +81,7 @@ Clock::duration SenderImpl::GetInFlightMediaDuration(
   }
 
   const PendingFrameSlot& oldest_slot = get_slot_for(checkpoint_frame_id_ + 1);
+
   // Note: The oldest slot's frame cannot have been canceled because the
   // protocol does not allow ACK'ing this particular frame without also moving
   // the checkpoint forward. See "CST2 feedback" discussion in rtp_defines.h.
@@ -91,6 +92,9 @@ Clock::duration SenderImpl::GetInFlightMediaDuration(
 }
 
 Clock::duration SenderImpl::GetMaxInFlightMediaDuration() const {
+  if (config_.max_in_flight_media_duration) {
+    return config_.max_in_flight_media_duration.value();
+  }
   // The Sender keeps only enough media in-flight to drive the loss-detection
   // and retransmit feedback loop, which takes on the order of two network
   // round-trips (one to detect a loss via NACK, one to retransmit). A small
@@ -163,8 +167,16 @@ openscreen::cast::Sender::EnqueueFrameResult SenderImpl::EnqueueFrame(
 
   // Check whether enqueuing the frame would exceed the current maximum media
   // duration limit.
-  if (GetInFlightMediaDuration(frame.rtp_timestamp) >
-      GetMaxInFlightMediaDuration()) {
+  const auto in_flight_duration = GetInFlightMediaDuration(frame.rtp_timestamp);
+  const auto max_duration = GetMaxInFlightMediaDuration();
+  if (in_flight_duration > max_duration) {
+    OSP_LOG_WARN << "MAX_DURATION_IN_FLIGHT check failed: frame_id="
+                 << frame.frame_id
+                 << ", in_flight_duration=" << in_flight_duration
+                 << ", max_duration=" << max_duration
+                 << ", target_playout_delay=" << target_playout_delay_
+                 << ", round_trip_time=" << round_trip_time_
+                 << ", SSRC=" << config_.sender_ssrc;
     return MAX_DURATION_IN_FLIGHT;
   }
 

@@ -1394,5 +1394,17 @@ TEST_F(SenderTest, ResendsMissingFrames) {
   ExpectFramesReceivedCorrectly(frames, receiver()->TakeCompleteFrames());
 }
 
+TEST_F(SenderTest, ConfiguresMaxInFlightMediaDuration) {
+  SessionConfig config(kSenderSsrc, kReceiverSsrc + 1, kRtpTimebase, 2,
+                       kTargetPlayoutDelay, kAesKey, kCastIvMask, true);
+  config.max_in_flight_media_duration = std::chrono::milliseconds(250);
+
+  const SenderImpl custom_sender(sender_environment_, sender_packet_router_,
+                                 config, kRtpPayloadType);
+
+  EXPECT_EQ(custom_sender.GetMaxInFlightMediaDuration(),
+            std::chrono::milliseconds(250));
+}
+
 }  // namespace
 }  // namespace openscreen::cast
