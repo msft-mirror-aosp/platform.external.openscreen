@@ -115,7 +115,7 @@ ScopedWakeLockLinux::ScopedWakeLockLinux(TaskRunner& task_runner)
   if (reference_count_++ == 0) {
     AcquireWakeLockLocked();
   }
-  task_runner_.PostTask([this] { ScheduleHeartbeat(); });
+  ScheduleHeartbeat();
 }
 
 ScopedWakeLockLinux::~ScopedWakeLockLinux() {

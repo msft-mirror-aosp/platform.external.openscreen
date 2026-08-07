@@ -22,13 +22,18 @@ void SetWakeLockClockForTesting(ClockNowFunctionPtr clock_fn);
 
 namespace {
 
-class ScopedWakeLockTest : public ::testing::Test {
+class ScopedWakeLockLinuxTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Create unique temp file paths.
+    // Create unique temp file paths per process and test case.
     auto temp_dir = std::filesystem::temp_directory_path();
-    lock_path_ = (temp_dir / "openscreen_wakelock_test_lock").string();
-    unlock_path_ = (temp_dir / "openscreen_wakelock_test_unlock").string();
+    const ::testing::TestInfo* const test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    std::string prefix = "openscreen_wakelock_test_" +
+                         std::to_string(getpid()) + "_" +
+                         (test_info ? test_info->name() : "test");
+    lock_path_ = (temp_dir / (prefix + "_lock")).string();
+    unlock_path_ = (temp_dir / (prefix + "_unlock")).string();
 
     // Clean up any leftover files.
     std::filesystem::remove(lock_path_);
@@ -74,7 +79,7 @@ class ScopedWakeLockTest : public ::testing::Test {
   std::string expected_lock_name_;
 };
 
-TEST_F(ScopedWakeLockTest, AcquireAndRelease) {
+TEST_F(ScopedWakeLockLinuxTest, AcquireAndRelease) {
   {
     ScopedWakeLockPtr lock = ScopedWakeLock::Create(task_runner_);
     EXPECT_TRUE(lock);
@@ -92,7 +97,7 @@ TEST_F(ScopedWakeLockTest, AcquireAndRelease) {
   EXPECT_EQ(ReadFile(unlock_path_), expected_lock_name_);
 }
 
-TEST_F(ScopedWakeLockTest, ReferenceCounting) {
+TEST_F(ScopedWakeLockLinuxTest, ReferenceCounting) {
   {
     ScopedWakeLockPtr lock1 = ScopedWakeLock::Create(task_runner_);
     EXPECT_EQ(ReadFile(lock_path_), expected_lock_name_ + " 10000000000");
@@ -117,7 +122,7 @@ TEST_F(ScopedWakeLockTest, ReferenceCounting) {
   EXPECT_EQ(ReadFile(unlock_path_), expected_lock_name_);
 }
 
-TEST_F(ScopedWakeLockTest, HeartbeatRenewal) {
+TEST_F(ScopedWakeLockLinuxTest, HeartbeatRenewal) {
   ScopedWakeLockPtr lock = ScopedWakeLock::Create(task_runner_);
   std::string expected_content = expected_lock_name_ + " 10000000000";
   EXPECT_EQ(ReadFile(lock_path_), expected_content);
@@ -144,7 +149,7 @@ TEST_F(ScopedWakeLockTest, HeartbeatRenewal) {
   task_runner_.RunTasksUntilIdle();
 }
 
-TEST_F(ScopedWakeLockTest, HeartbeatStopsOnRelease) {
+TEST_F(ScopedWakeLockLinuxTest, HeartbeatStopsOnRelease) {
   {
     ScopedWakeLockPtr lock = ScopedWakeLock::Create(task_runner_);
     EXPECT_FALSE(ReadFile(lock_path_).empty());
