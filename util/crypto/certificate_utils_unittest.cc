@@ -55,5 +55,26 @@ TEST(CertificateUtilTest, ExportsAndImportsCertificate) {
   EXPECT_NE(0, X509_verify(imported.value().get(), pkey.get()));
 }
 
+TEST(CertificateUtilTest, ImportRSAPrivateKeyInvalidData) {
+  EXPECT_EQ(Error::Code::kParameterInvalid,
+            ImportRSAPrivateKey(nullptr, 100).error().code());
+  EXPECT_EQ(Error::Code::kParameterInvalid,
+            ImportRSAPrivateKey(reinterpret_cast<const uint8_t*>("foo"), 0)
+                .error()
+                .code());
+
+  const uint8_t kInvalidKeyData[] = {0x00, 0x01, 0x02, 0x03};
+  ErrorOr<bssl::UniquePtr<EVP_PKEY>> result =
+      ImportRSAPrivateKey(kInvalidKeyData, sizeof(kInvalidKeyData));
+  EXPECT_TRUE(result.is_error());
+  EXPECT_EQ(Error::Code::kRSAKeyParseError, result.error().code());
+}
+
+TEST(CertificateUtilTest, GetSpkiTlvHandlesEmptyCert) {
+  bssl::UniquePtr<X509> empty_cert(X509_new());
+  ASSERT_TRUE(empty_cert);
+  EXPECT_TRUE(GetSpkiTlv(empty_cert.get()).empty());
+}
+
 }  // namespace
 }  // namespace openscreen

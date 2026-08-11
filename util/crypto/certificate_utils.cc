@@ -98,9 +98,16 @@ bssl::UniquePtr<X509> CreateCertificateInternal(
   }
 
   bssl::UniquePtr<ASN1_BIT_STRING> x(ASN1_BIT_STRING_new());
-  ASN1_BIT_STRING_set_bit(x.get(), KeyUsageBits::kDigitalSignature, 1);
+  if (ASN1_BIT_STRING_set_bit(x.get(), KeyUsageBits::kDigitalSignature, 1) ==
+      0) {
+    OSP_DVLOG << "Failed to set digital signature key usage";
+    return nullptr;
+  }
   if (make_ca) {
-    ASN1_BIT_STRING_set_bit(x.get(), KeyUsageBits::kKeyCertSign, 1);
+    if (ASN1_BIT_STRING_set_bit(x.get(), KeyUsageBits::kKeyCertSign, 1) == 0) {
+      OSP_DVLOG << "Failed to set key cert sign key usage";
+      return nullptr;
+    }
   }
   if (X509_add1_ext_i2d(certificate.get(), NID_key_usage, x.get(), 0, 0) != 1) {
     OSP_DVLOG << "Failed to set key usage extension";
@@ -216,17 +223,23 @@ ErrorOr<bssl::UniquePtr<EVP_PKEY>> ImportRSAPrivateKey(
     return Error::Code::kParameterInvalid;
   }
 
-  RSA* rsa = RSA_private_key_from_bytes(der_rsa_private_key, key_length);
+  bssl::UniquePtr<RSA> rsa(
+      RSA_private_key_from_bytes(der_rsa_private_key, key_length));
   if (!rsa) {
     return Error::Code::kRSAKeyParseError;
   }
   bssl::UniquePtr<EVP_PKEY> pkey(EVP_PKEY_new());
-  EVP_PKEY_assign_RSA(pkey.get(), rsa);
+  if (EVP_PKEY_assign_RSA(pkey.get(), rsa.release()) == 0) {
+    return Error::Code::kRSAKeyParseError;
+  }
   return pkey;
 }
 
 std::string GetSpkiTlv(X509* cert) {
   X509_PUBKEY* key = X509_get_X509_PUBKEY(cert);
+  if (!key) {
+    return {};
+  }
   int len = i2d_X509_PUBKEY(key, nullptr);
   if (len <= 0) {
     return {};
