@@ -93,10 +93,9 @@ class ClockOffsetEstimatorImpl final : public ClockOffsetEstimator {
   // relationship.
   class BoundCalculator {
    public:
-    typedef std::pair<std::optional<Clock::time_point>,
-                      std::optional<Clock::time_point>>
-        TimeTickPair;
-    typedef std::map<uint64_t, TimeTickPair> EventMap;
+    using TimeTickPair = std::pair<std::optional<Clock::time_point>,
+                                   std::optional<Clock::time_point>>;
+    using EventMap = std::map<uint64_t, TimeTickPair>;
 
     BoundCalculator();
     BoundCalculator(BoundCalculator&&) noexcept;
