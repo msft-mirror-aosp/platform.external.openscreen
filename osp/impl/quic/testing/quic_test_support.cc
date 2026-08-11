@@ -93,8 +93,7 @@ MessageDemuxer& FakeQuicBridge::GetReceiverDemuxer() {
 void FakeQuicBridge::RunTasksUntilIdle() {
   PostClientPacket();
   PostServerPacket();
-  task_runner_->PostTask(
-      std::bind(&FakeQuicBridge::PostPacketsUntilIdle, this));
+  task_runner_->PostTask([this] { PostPacketsUntilIdle(); });
   task_runner_->RunTasksUntilIdle();
 }
 
