@@ -6,27 +6,55 @@
 #define UTIL_STRING_PARSE_H_
 
 #include <charconv>
+#include <concepts>
 #include <optional>
 #include <string_view>
 #include <system_error>
+#include <utility>
 
-#include "platform/base/type_util.h"
+namespace openscreen {
 
-namespace openscreen::string_parse {
-
-// Parses `number` into the numeric type `result` and returns true if
-// successful.  `number` must be an ASCII representation of an integer or
-// floating point value, and `result` must be compatible with the resulting
-// value.  If `number` cannot be parsed, then returns false.
-template <typename T, typename = internal::EnableIfArithmetic<T>>
-bool ParseAsciiNumber(std::string_view number, T& result) {
-  if (number.empty())
+// Parses `number` into the integer type `result` and returns true if
+// successful and the entire string was consumed. `number` must be an ASCII
+// representation of an integer. If `number` cannot be parsed or contains
+// trailing invalid characters, returns false.
+template <typename T>
+  requires(std::integral<T>)
+bool ParseAsciiNumber(std::string_view number, T& result, int base = 10) {
+  if (number.empty()) {
     return false;
-  auto [unused_ptr, error_code] =
-      std::from_chars(number.data(), &number.back() + 1, result);
-  return error_code == std::errc();
+  }
+  auto [ptr, error_code] = std::from_chars(
+      number.data(), number.data() + number.size(), result, base);
+  return error_code == std::errc() && ptr == number.data() + number.size();
 }
 
-}  // namespace openscreen::string_parse
+// Parses `number` into the floating-point type `result` and returns true if
+// successful and the entire string was consumed.
+template <typename T>
+  requires(std::floating_point<T>)
+bool ParseAsciiNumber(std::string_view number,
+                      T& result,
+                      std::chars_format fmt = std::chars_format::general) {
+  if (number.empty()) {
+    return false;
+  }
+  auto [ptr, error_code] = std::from_chars(
+      number.data(), number.data() + number.size(), result, fmt);
+  return error_code == std::errc() && ptr == number.data() + number.size();
+}
+
+// Parses `number` into `std::optional<T>`. Returns std::nullopt on failure.
+template <typename T, typename... Args>
+  requires(std::integral<T> || std::floating_point<T>)
+std::optional<T> ParseAsciiNumber(std::string_view number, Args&&... args) {
+  T result{};
+  if (ParseAsciiNumber(number, result, std::forward<Args>(args)...)) {
+    return result;
+  }
+  return std::nullopt;
+}
+
+}  // namespace openscreen
 
 #endif  // UTIL_STRING_PARSE_H_

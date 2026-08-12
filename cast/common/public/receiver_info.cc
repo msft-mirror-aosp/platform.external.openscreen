@@ -144,7 +144,7 @@ ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
   constexpr int kMinVersion = 2;   // According to spec.
   constexpr int kMaxVersion = 99;  // Implied by spec (field is max of 2 bytes).
   int version;
-  if (!string_parse::ParseAsciiNumber(version_value.value(), version) ||
+  if (!ParseAsciiNumber(version_value.value(), version) ||
       version < kMinVersion || version > kMaxVersion) {
     return {Error::Code::kParameterInvalid,
             "Invalid Cast protocol version in record."};
@@ -157,8 +157,7 @@ ErrorOr<ReceiverInfo> DnsSdInstanceEndpointToReceiverInfo(
     return {Error::Code::kParameterInvalid,
             "Missing receiver capabilities in record."};
   }
-  if (!string_parse::ParseAsciiNumber(capabilities_value.value(),
-                                      record.capabilities)) {
+  if (!ParseAsciiNumber(capabilities_value.value(), record.capabilities)) {
     return {Error::Code::kParameterInvalid,
             "Invalid receiver capabilities field in record."};
   }

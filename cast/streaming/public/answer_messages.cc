@@ -168,8 +168,8 @@ ErrorOr<AspectRatio> AspectRatio::TryParse(const Json::Value& value) {
   }
 
   AspectRatio out;
-  if (!string_parse::ParseAsciiNumber(fields[0], out.width) ||
-      !string_parse::ParseAsciiNumber(fields[1], out.height)) {
+  if (!ParseAsciiNumber(fields[0], out.width) ||
+      !ParseAsciiNumber(fields[1], out.height)) {
     return Error(Error::Code::kJsonParseError, "Invalid aspect ratio values");
   }
   if (!out.IsValid()) {

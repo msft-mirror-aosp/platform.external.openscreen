@@ -180,8 +180,7 @@ std::optional<Arguments> ParseArgs(int argc, char* argv[]) {
         args.use_android_rtp_hack = true;
         break;
       case 'm':
-        if (!string_parse::ParseAsciiNumber(get_opt::optarg,
-                                            args.max_bitrate) ||
+        if (!ParseAsciiNumber(get_opt::optarg, args.max_bitrate) ||
             args.max_bitrate < kMinRequiredBitrate) {
           OSP_LOG_ERROR << "Invalid --max-bitrate specified: "
                         << get_opt::optarg << " is less than "

@@ -29,12 +29,12 @@ ErrorOr<SimpleFraction> SimpleFraction::FromString(std::string_view value) {
 
   int numerator;
   int denominator = 1;
-  if (!string_parse::ParseAsciiNumber(fields[0], numerator)) {
+  if (!ParseAsciiNumber(fields[0], numerator)) {
     return Error::Code::kParameterInvalid;
   }
 
   if (fields.size() == 2) {
-    if (!string_parse::ParseAsciiNumber(fields[1], denominator)) {
+    if (!ParseAsciiNumber(fields[1], denominator)) {
       return Error::Code::kParameterInvalid;
     }
   }
