@@ -229,9 +229,11 @@ DnsDataGraphImpl::Node::~Node() {
     OSP_DCHECK(
         !ContainsIf(parents_, [this](Node* parent) { return parent != this; }));
 
-    // Erase all childrens' parent pointers to this node.
-    for (Node* child : children_) {
-      RemoveChild(child);
+    // Erase all childrens' parent pointers to this node. Pop from the back
+    // rather than iterating `children_` directly, since RemoveChild() erases
+    // from that same vector and would otherwise invalidate the loop.
+    while (!children_.empty()) {
+      RemoveChild(children_.back());
     }
 
     OSP_CHECK(graph_->on_node_deletion_);
