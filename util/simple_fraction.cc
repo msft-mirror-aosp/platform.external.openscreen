@@ -5,6 +5,7 @@
 #include "util/simple_fraction.h"
 
 #include <cmath>
+#include <format>
 #include <limits>
 #include <string>
 #include <vector>
@@ -12,7 +13,6 @@
 #include "util/osp_logging.h"
 #include "util/string_parse.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen {
 
@@ -46,7 +46,7 @@ std::string SimpleFraction::ToString() const {
   if (denominator_ == 1) {
     return std::to_string(numerator_);
   }
-  return StringFormat("{}/{}", numerator_, denominator_);
+  return std::format("{}/{}", numerator_, denominator_);
 }
 
 }  // namespace openscreen

@@ -4,6 +4,7 @@
 
 #include "cast/streaming/public/answer_messages.h"
 
+#include <format>
 #include <string_view>
 #include <utility>
 
@@ -14,7 +15,6 @@
 #include "util/osp_logging.h"
 #include "util/string_parse.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -403,8 +403,8 @@ Json::Value DisplayDescription::ToJson() const {
   Json::Value root;
   if (aspect_ratio.has_value()) {
     root[kAspectRatio] =
-        StringFormat("{}{}{}", aspect_ratio->width, kAspectRatioDelimiter,
-                     aspect_ratio->height);
+        std::format("{}{}{}", aspect_ratio->width, kAspectRatioDelimiter,
+                    aspect_ratio->height);
   }
   if (dimensions.has_value()) {
     root[kDimensions] = dimensions->ToJson();

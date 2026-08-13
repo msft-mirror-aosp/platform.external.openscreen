@@ -15,7 +15,7 @@
 #include "platform/base/tls_listen_options.h"
 #include "util/crypto/random_bytes.h"
 #include "util/osp_logging.h"
-#include "util/stringprintf.h"
+#include "util/string_util.h"
 
 namespace openscreen::cast {
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <csignal>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -25,7 +26,6 @@
 #include "third_party/getopt/getopt.h"
 #include "util/chrono_helpers.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 #include "util/trace_logging.h"
 #include "util/uuid.h"
 
@@ -85,7 +85,7 @@ options:
 
 )";
 
-  std::cerr << StringFormat(kTemplate, argv0);
+  std::cerr << std::format(kTemplate, argv0);
 }
 
 InterfaceInfo GetInterfaceInfoFromName(const char* name) {

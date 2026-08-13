@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <format>
 #include <ostream>
 
 #include "util/big_endian.h"
@@ -14,7 +15,6 @@
 #include "util/hashing.h"
 #include "util/osp_logging.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen {
 
@@ -82,12 +82,12 @@ Uuid Uuid::FormatRandomDataAsV4Impl(ByteView input) {
 
   Uuid uuid;
   uuid.lowercase_ =
-      StringFormat("{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
-                   static_cast<uint32_t>(first_u64 >> 32),
-                   static_cast<uint32_t>((first_u64 >> 16) & 0x0000'ffff),
-                   static_cast<uint32_t>(first_u64 & 0x0000'ffff),
-                   static_cast<uint32_t>(second_u64 >> 48),
-                   second_u64 & 0x0000'ffff'ffff'ffffULL);
+      std::format("{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
+                  static_cast<uint32_t>(first_u64 >> 32),
+                  static_cast<uint32_t>((first_u64 >> 16) & 0x0000'ffff),
+                  static_cast<uint32_t>(first_u64 & 0x0000'ffff),
+                  static_cast<uint32_t>(second_u64 >> 48),
+                  second_u64 & 0x0000'ffff'ffff'ffffULL);
   return uuid;
 }
 

@@ -6,6 +6,7 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -28,7 +29,6 @@
 #include "util/chrono_helpers.h"
 #include "util/string_parse.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 #if defined(USE_PERFETTO)
 #include "platform/impl/perfetto_trace_logging_platform.h"
@@ -93,8 +93,8 @@ options:
 
 )";
 
-  std::cerr << StringFormat(kTemplate, argv0, argv0, kDefaultCastPort,
-                            kDefaultCastPort, kDefaultMaxBitrate);
+  std::cerr << std::format(kTemplate, argv0, argv0, kDefaultCastPort,
+                           kDefaultCastPort, kDefaultMaxBitrate);
 }
 
 // Attempts to parse `string_form` into an IPEndpoint. The format is a

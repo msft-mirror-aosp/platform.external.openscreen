@@ -4,6 +4,7 @@
 
 #include "cast/standalone_sender/looping_file_cast_agent.h"
 
+#include <format>
 #include <optional>
 #include <string>
 #include <utility>
@@ -18,7 +19,6 @@
 #include "json/value.h"
 #include "platform/api/tls_connection_factory.h"
 #include "util/json/json_helpers.h"
-#include "util/stringprintf.h"
 #include "util/trace_logging.h"
 
 namespace openscreen::cast {
@@ -303,8 +303,8 @@ void LoopingFileCastAgent::OnReceiverMessagingOpened(bool success) {
   router_.Send(*platform_remote_connection_,
                MakeSimpleUTF8Message(
                    kReceiverNamespace,
-                   StringFormat(kLaunchMessageTemplate, next_request_id_++,
-                                GetStreamingAppId())));
+                   std::format(kLaunchMessageTemplate, next_request_id_++,
+                               GetStreamingAppId())));
 }
 
 void LoopingFileCastAgent::CreateAndStartSession() {
@@ -499,7 +499,7 @@ void LoopingFileCastAgent::Shutdown() {
       OSP_LOG_INFO << "Stopping the Cast Receiver's Mirroring App...";
       static constexpr char kStopMessageTemplate[] =
           R"({{"type":"STOP", "requestId":{}, "sessionId":"{}"}})";
-      std::string stop_json = StringFormat(
+      std::string stop_json = std::format(
           kStopMessageTemplate, next_request_id_++, app_session_id_.c_str());
       router_.Send(
           VirtualConnection{kPlatformSenderId, kPlatformReceiverId,

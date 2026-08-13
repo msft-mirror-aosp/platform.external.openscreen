@@ -13,6 +13,7 @@
 #include <time.h>
 
 #include <chrono>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -24,7 +25,6 @@
 #include "util/crypto/pem_helpers.h"
 #include "util/osp_logging.h"
 #include "util/raw_ptr.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 namespace {
@@ -384,9 +384,9 @@ BoringSSLTrustStore::FindCertificatePath(
     intermediate_certs.emplace_back(ParseX509Der(der_certs[i]));
     if (!intermediate_certs.back()) {
       return Error(Error::Code::kErrCertsParse,
-                   StringFormat("FindCertificatePath: Failed to parse "
-                                "intermediate certificate {} of {}",
-                                i, der_certs.size()));
+                   std::format("FindCertificatePath: Failed to parse "
+                               "intermediate certificate {} of {}",
+                               i, der_certs.size()));
     }
   }
 

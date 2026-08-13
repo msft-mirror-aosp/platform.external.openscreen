@@ -5,13 +5,13 @@
 #include "cast/streaming/public/statistics.h"
 
 #include <algorithm>
+#include <format>
 #include <iomanip>
 #include <iostream>
 
 #include "util/enum_name_table.h"
 #include "util/json/json_helpers.h"
 #include "util/json/json_serialization.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -154,7 +154,7 @@ std::string SimpleHistogram::GetBucketName(size_t index) const {
   // are calculated.
   const int bucket_min = min + width * (index - 1);
   const int bucket_max = min + index * width - 1;
-  return StringFormat("{}-{}", bucket_min, bucket_max);
+  return std::format("{}-{}", bucket_min, bucket_max);
 }
 
 Json::Value SenderStats::ToJson() const {

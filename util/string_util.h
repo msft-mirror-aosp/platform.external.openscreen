@@ -5,6 +5,9 @@
 #ifndef UTIL_STRING_UTIL_H_
 #define UTIL_STRING_UTIL_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include <algorithm>
 #include <concepts>
 #include <functional>
@@ -17,6 +20,8 @@
 #include <string_view>
 #include <utility>
 #include <vector>
+
+#include "platform/base/span.h"
 
 // String query and manipulation utilities.
 //
@@ -328,6 +333,26 @@ template <std::input_iterator Iterator>
                                Iterator end,
                                std::string_view delimiter = ", ") {
   return Join(std::ranges::subrange{begin, end}, delimiter);
+}
+
+// Returns a lowercase hex string representation of the given `bytes`.
+inline std::string HexEncode(ByteView bytes) {
+  static constexpr char kHexChars[] = "0123456789abcdef";
+  if (bytes.empty()) {
+    return {};
+  }
+  std::string result;
+  result.resize(bytes.size() * 2);
+  char* dest = result.data();
+  for (uint8_t byte : bytes) {
+    *dest++ = kHexChars[(byte >> 4) & 0x0F];
+    *dest++ = kHexChars[byte & 0x0F];
+  }
+  return result;
+}
+
+inline std::string HexEncode(const uint8_t* bytes, size_t len) {
+  return HexEncode(ByteView(bytes, len));
 }
 
 }  // namespace openscreen

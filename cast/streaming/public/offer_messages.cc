@@ -7,6 +7,7 @@
 #include <inttypes.h>
 
 #include <algorithm>
+#include <format>
 #include <limits>
 #include <ranges>
 #include <string>
@@ -21,7 +22,6 @@
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -299,9 +299,9 @@ ErrorOr<AudioStream> AudioStream::TryParse(const Json::Value& value) {
   out.codec = codec.value();
   if (!CodecParameterIsValid(codec.value(), out.stream.codec_parameter)) {
     return Error(Error::Code::kInvalidCodecParameter,
-                 StringFormat("Invalid audio codec parameter ({} for codec {})",
-                              out.stream.codec_parameter.c_str(),
-                              CodecToString(codec.value())));
+                 std::format("Invalid audio codec parameter ({} for codec {})",
+                             out.stream.codec_parameter.c_str(),
+                             CodecToString(codec.value())));
   }
   return out;
 }
@@ -345,9 +345,9 @@ ErrorOr<VideoStream> VideoStream::TryParse(const Json::Value& value) {
   out.codec = codec.value();
   if (!CodecParameterIsValid(codec.value(), out.stream.codec_parameter)) {
     return Error(Error::Code::kInvalidCodecParameter,
-                 StringFormat("Invalid video codec parameter ({} for codec {})",
-                              out.stream.codec_parameter.c_str(),
-                              CodecToString(codec.value())));
+                 std::format("Invalid video codec parameter ({} for codec {})",
+                             out.stream.codec_parameter.c_str(),
+                             CodecToString(codec.value())));
   }
 
   out.max_frame_rate = SimpleFraction{kDefaultMaxFrameRate, 1};

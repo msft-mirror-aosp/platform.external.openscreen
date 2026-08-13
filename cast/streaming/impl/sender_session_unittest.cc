@@ -5,6 +5,7 @@
 #include "cast/streaming/public/sender_session.h"
 
 #include <cstdio>
+#include <format>
 #include <functional>
 #include <memory>
 #include <utility>
@@ -23,7 +24,6 @@
 #include "platform/test/fake_task_runner.h"
 #include "util/chrono_helpers.h"
 #include "util/no_destructor.h"
-#include "util/stringprintf.h"
 
 using ::testing::_;
 using ::testing::InSequence;
@@ -282,10 +282,10 @@ class SenderSessionTest : public ::testing::Test {
           "ssrcs": [{}, {}]
         }}
   }})";
-    return StringFormat(kAnswerTemplate, offer["seqNum"].asInt(),
-                        mode == CastMode::kMirroring ? "mirroring" : "remoting",
-                        audio_index, video_index, audio_ssrc + 1,
-                        video_ssrc + 1);
+    return std::format(kAnswerTemplate, offer["seqNum"].asInt(),
+                       mode == CastMode::kMirroring ? "mirroring" : "remoting",
+                       audio_index, video_index, audio_ssrc + 1,
+                       video_ssrc + 1);
   }
 
  protected:

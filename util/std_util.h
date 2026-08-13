@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen {
 

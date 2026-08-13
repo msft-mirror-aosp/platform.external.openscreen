@@ -251,4 +251,18 @@ TEST(StringUtilTest, JoinGenericContainers) {
   EXPECT_EQ("x-y-z", Join(array_input, "-"));
 }
 
+TEST(StringUtilTest, HexEncode) {
+  const uint8_t kSomeMemoryLocation = 0;
+  EXPECT_EQ("", HexEncode(&kSomeMemoryLocation, 0));
+  EXPECT_EQ("", HexEncode(ByteView{}));
+
+  const uint8_t kMessage[] = "Hello world!";
+  const char kMessageInHex[] = "48656c6c6f20776f726c642100";
+  EXPECT_EQ(kMessageInHex, HexEncode(kMessage, sizeof(kMessage)));
+  EXPECT_EQ(kMessageInHex, HexEncode(ByteView(kMessage, sizeof(kMessage))));
+
+  const uint8_t kAllBytes[] = {0x00, 0x0F, 0x10, 0xAB, 0xCD, 0xEF, 0xFF};
+  EXPECT_EQ("000f10abcdefff", HexEncode(kAllBytes, sizeof(kAllBytes)));
+}
+
 }  // namespace openscreen

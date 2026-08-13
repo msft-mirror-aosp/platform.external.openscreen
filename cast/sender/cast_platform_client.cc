@@ -14,7 +14,6 @@
 #include "cast/common/public/receiver_info.h"
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 

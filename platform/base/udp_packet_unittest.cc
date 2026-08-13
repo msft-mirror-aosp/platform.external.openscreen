@@ -8,7 +8,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "util/stringprintf.h"
+#include "util/string_util.h"
 
 namespace openscreen {
 

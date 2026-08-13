@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "util/stringprintf.h"
-
 namespace openscreen::cast {
 
 discovery::DnsSdTxtRecord CreateValidTxt() {

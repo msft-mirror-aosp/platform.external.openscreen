@@ -4,6 +4,7 @@
 
 #include "cast/streaming/public/receiver_message.h"
 
+#include <format>
 #include <utility>
 #include <variant>
 
@@ -17,7 +18,6 @@
 #include "util/json/json_serialization.h"
 #include "util/osp_logging.h"
 #include "util/string_util.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -123,8 +123,8 @@ Error ReceiverError::ToError() const {
     return Error(*openscreen_code, description);
   }
 
-  std::string full_description = StringFormat("Error code: {}, description: {}",
-                                              code, description.c_str());
+  std::string full_description =
+      std::format("Error code: {}, description: {}", code, description.c_str());
   return Error(Error::Code::kUnknownError, std::move(full_description));
 }
 

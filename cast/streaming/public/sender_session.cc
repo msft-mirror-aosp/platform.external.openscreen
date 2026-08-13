@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <algorithm>
+#include <format>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -25,9 +26,8 @@
 #include "util/crypto/random_bytes.h"
 #include "util/json/json_helpers.h"
 #include "util/json/json_serialization.h"
-#include "util/osp_logging.h"
 #include "util/no_destructor.h"
-#include "util/stringprintf.h"
+#include "util/osp_logging.h"
 
 namespace openscreen::cast {
 
@@ -536,7 +536,7 @@ void SenderSession::OnCapabilitiesResponse(ErrorOr<ReceiverMessage> message) {
   }
 
   if (remoting_version > kSupportedRemotingVersion) {
-    std::string error_message = StringFormat(
+    std::string error_message = std::format(
         "Receiver is using too new of a version for remoting ({} > {})",
         remoting_version, kSupportedRemotingVersion);
     config_.client.OnError(this, Error(Error::Code::kRemotingNotSupported,

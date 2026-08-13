@@ -5,6 +5,7 @@
 #include "cast/streaming/public/answer_messages.h"
 
 #include <chrono>
+#include <format>
 #include <string_view>
 #include <utility>
 
@@ -13,7 +14,6 @@
 #include "util/chrono_helpers.h"
 #include "util/json/json_serialization.h"
 #include "util/no_destructor.h"
-#include "util/stringprintf.h"
 
 namespace openscreen::cast {
 
@@ -652,7 +652,7 @@ std::string GenerateAnswerWithDataTransport(std::string_view protocol,
       "certificateFingerprint": "{}"
     }}
   }})";
-  return StringFormat(kTemplate, protocol, port, fingerprint);
+  return std::format(kTemplate, protocol, port, fingerprint);
 }
 
 TEST(AnswerTest, CanParseValidAnswerWithDataTransport) {
