@@ -4,8 +4,9 @@
 
 #include "discovery/dnssd/public/dns_sd_txt_record.h"
 
-#include <cctype>
 #include <utility>
+
+#include "util/string_util.h"
 
 namespace openscreen::discovery {
 
@@ -155,8 +156,8 @@ bool DnsSdTxtRecord::CaseInsensitiveComparison::operator()(
   }
 
   for (size_t i = 0; i < lhs.size(); i++) {
-    int lhs_char = tolower(lhs[i]);
-    int rhs_char = tolower(rhs[i]);
+    char lhs_char = ascii_tolower(lhs[i]);
+    char rhs_char = ascii_tolower(rhs[i]);
 
     if (lhs_char != rhs_char) {
       return lhs_char < rhs_char;

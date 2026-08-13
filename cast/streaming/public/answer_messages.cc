@@ -162,7 +162,7 @@ ErrorOr<AspectRatio> AspectRatio::TryParse(const Json::Value& value) {
   }
 
   std::vector<std::string_view> fields =
-      string_util::Split(parsed_value, kAspectRatioDelimiter);
+      Split(parsed_value, kAspectRatioDelimiter);
   if (fields.size() != 2) {
     return Error(Error::Code::kJsonParseError, "Invalid aspect ratio format");
   }

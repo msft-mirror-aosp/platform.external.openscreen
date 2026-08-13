@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "util/string_util.h"
 #include "util/stringprintf.h"
 
 namespace openscreen {
@@ -22,12 +23,6 @@ template <typename T, size_t N>
 constexpr size_t countof(T (&array)[N]) {
   return N;
 }
-
-// Removes ALL whitespace in place from the string, based on the present C
-// locale. This includes spaces, tabs, and returns. This is useful for string
-// comparisons where whitespace doesn't matter, or, in the case of JSON
-// serialization, is dependent on build configuration and other settings.
-std::string& RemoveWhitespace(std::string& s);
 
 template <typename Key, typename Value>
 void RemoveValueFromMap(std::map<Key, Value*>* map, Value* value) {

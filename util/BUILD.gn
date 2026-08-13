@@ -76,8 +76,6 @@ openscreen_source_set("util") {
     "read_file.cc",
     "scoped_wake_lock.cc",
     "simple_fraction.cc",
-    "std_util.cc",
-    "string_util.cc",
     "stringprintf.cc",
     "trace_logging/macro_support.h",
     "trace_logging/scoped_trace_operations.cc",

@@ -63,13 +63,12 @@ ErrorOr<ServiceKey> ServiceKey::TryCreate(const DomainName& names) {
 
   std::string service_name = *it++;
   const std::string protocol = *it++;
-  const std::string service_id = service_name.append(".").append(protocol);
+  const std::string service_id = StrCat(service_name, ".", protocol);
   if (!IsServiceValid(service_id)) {
     return Error::Code::kParameterInvalid;
   }
 
-  const std::string domain_id =
-      string_util::Join(it, names.labels().end(), ".");
+  const std::string domain_id = Join(it, names.labels().end(), ".");
   if (!IsDomainValid(domain_id)) {
     return Error::Code::kParameterInvalid;
   }

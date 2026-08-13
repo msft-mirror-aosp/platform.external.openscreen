@@ -43,11 +43,10 @@ std::string GetCanonicalUuidInternal(std::string_view input, bool strict) {
       }
       lowercase[i] = '-';
     } else {
-      if (strict ? !string_util::ascii_islowerhex(current)
-                 : !string_util::ascii_ishex(current)) {
+      if (strict ? !ascii_islowerhex(current) : !ascii_ishex(current)) {
         return {};
       }
-      lowercase[i] = static_cast<char>(string_util::ascii_tolower(current));
+      lowercase[i] = static_cast<char>(ascii_tolower(current));
     }
   }
 

@@ -11,7 +11,6 @@
 #include <string.h>
 
 #include "util/osp_logging.h"
-#include "util/string_util.h"
 
 namespace openscreen {
 

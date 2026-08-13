@@ -16,7 +16,7 @@ PresentationID::PresentationID(std::string presentation_id)
   // of at least 16 ASCII characters.
   bool is_valid = presentation_id.length() >= 16;
   for (const char& c : presentation_id) {
-    is_valid &= string_util::ascii_isprint(c);
+    is_valid &= ascii_isprint(c);
   }
 
   if (is_valid) {

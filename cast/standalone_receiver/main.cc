@@ -243,7 +243,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
   }
 
   const std::string receiver_id =
-      string_util::StrCat({"Standalone Receiver on ", args->interface_name});
+      StrCat("Standalone Receiver on ", args->interface_name);
   ErrorOr<GeneratedCredentials> creds = GenerateCredentials(
       receiver_id, args->private_key_path, args->developer_certificate_path);
   OSP_CHECK(creds.is_value()) << creds.error();

@@ -22,7 +22,7 @@ ErrorOr<SimpleFraction> SimpleFraction::FromString(std::string_view value) {
     return Error::Code::kParameterInvalid;
   }
 
-  std::vector<std::string_view> fields = string_util::Split(value, '/');
+  std::vector<std::string_view> fields = Split(value, '/');
   if (fields.size() != 1 && fields.size() != 2) {
     return Error::Code::kParameterInvalid;
   }

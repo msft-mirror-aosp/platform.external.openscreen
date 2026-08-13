@@ -6,96 +6,186 @@
 #define UTIL_STRING_UTIL_H_
 
 #include <algorithm>
-#include <cstring>
+#include <concepts>
+#include <functional>
 #include <initializer_list>
-#include <numeric>
+#include <iterator>
+#include <optional>
 #include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 // String query and manipulation utilities.
-// TODO(jophba): remove nested string_util namespace.
-namespace openscreen::string_util {
-
-namespace internal {
-
-extern const unsigned char kPropertyBits[256];
-extern const char kToLower[256];
-extern const char kToUpper[256];
-
-}  // namespace internal
+//
+// NOTE: Open Screen provides its own ascii_* classification and conversion
+// utilities instead of using <cctype> (e.g. std::isalpha, std::isdigit,
+// std::tolower) for the following reasons:
+// 1. Safety: <cctype> functions invoke undefined behavior when passed signed
+//    char values < 0 (such as UTF-8 continuation bytes), requiring tedious
+//    static_cast<unsigned char>(c).
+// 2. Locale Independence: Network protocols, DNS-SD, mDNS, and JSON require
+//    strict 7-bit US-ASCII behavior independent of the host OS/C locale.
+// 3. Constexpr & Performance: These functions are constexpr, branchless, and
+//    inline, avoiding runtime locale checks and enabling SIMD
+//    auto-vectorization.
+namespace openscreen {
 
 // Determines whether `c` is a valid ASCII alphabetic character code.
-inline bool ascii_isalpha(unsigned char c) {
-  return (internal::kPropertyBits[c] & 0x01) != 0;
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_isalpha(Char c) {
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 }
 
 // Determines whether `c` is a valid ASCII decimal digit (i.e. [0-9]).
-inline bool ascii_isdigit(unsigned char c) {
-  return '0' <= c && c <= '9';
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_isdigit(Char c) {
+  return c >= '0' && c <= '9';
 }
 
 // Determines whether `c` is a valid ASCII lower case hexadecimal digit
-// (i.e. [a-fA-F0-9]).
-inline bool ascii_islowerhex(unsigned char c) {
-  return ascii_isdigit(c) || ('a' <= c && c <= 'f');
+// (i.e. [a-f0-9]).
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_islowerhex(Char c) {
+  return ascii_isdigit(c) || (c >= 'a' && c <= 'f');
 }
 
 // Determines whether `c` is a valid ASCII hexadecimal digit (i.e. [a-fA-F0-9]).
-inline bool ascii_ishex(unsigned char c) {
-  return ascii_islowerhex(c) || ('A' <= c && c <= 'F');
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_ishex(Char c) {
+  return ascii_islowerhex(c) || (c >= 'A' && c <= 'F');
 }
 
-// Determines whether `c` is a valid, printable ASCII digit.
-inline bool ascii_isprint(unsigned char c) {
-  return c >= 32 && c < 127;
+// Determines whether `c` is a valid, printable ASCII character.
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_isprint(Char c) {
+  return c >= ' ' && c <= '~';
 }
 
 // Determines whether `c` is a whitespace character
 // (space, tab, vertical tab, formfeed, linefeed, or carriage return).
-inline bool ascii_isspace(unsigned char c) {
-  return (internal::kPropertyBits[c] & 0x08) != 0;
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr bool ascii_isspace(Char c) {
+  return c == ' ' || (c >= '\t' && c <= '\r');
 }
 
 // If `c` is an upper case ASCII character, returns its lower case equivalent.
 // Otherwise, returns `c` unchanged.
-inline char ascii_tolower(unsigned char c) {
-  return internal::kToLower[c];
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr Char ascii_tolower(Char c) {
+  return (c >= 'A' && c <= 'Z') ? static_cast<Char>(c + ('a' - 'A')) : c;
 }
 
-// Converts `s` to lowercase.
-void AsciiStrToLower(std::string& s);
+// If `c` is a lower case ASCII character, returns its upper case equivalent.
+// Otherwise, returns `c` unchanged.
+template <typename Char>
+  requires(std::integral<Char>)
+constexpr Char ascii_toupper(Char c) {
+  return (c >= 'a' && c <= 'z') ? static_cast<Char>(c - ('a' - 'A')) : c;
+}
+
+// Converts `s` to lowercase in-place.
+inline void AsciiStrToLower(std::string& s) {
+  for (char& c : s) {
+    c = ascii_tolower(c);
+  }
+}
 
 // Creates a lowercase string from a given string_view.
-std::string AsciiStrToLower(std::string_view s);
-
-inline char ascii_toupper(unsigned char c) {
-  return internal::kToUpper[c];
+[[nodiscard]] inline std::string AsciiStrToLower(std::string_view s) {
+  std::string result(s);
+  AsciiStrToLower(result);
+  return result;
 }
 
-// Converts `s` to uppercase.
-void AsciiStrToUpper(std::string& s);
+// Converts `s` to uppercase in-place.
+inline void AsciiStrToUpper(std::string& s) {
+  for (char& c : s) {
+    c = ascii_toupper(c);
+  }
+}
 
-// Creates a uppercase string from a given string_view.
-std::string AsciiStrToUpper(std::string_view s);
+// Creates an uppercase string from a given string_view.
+[[nodiscard]] inline std::string AsciiStrToUpper(std::string_view s) {
+  std::string result(s);
+  AsciiStrToUpper(result);
+  return result;
+}
 
 // Returns whether given ASCII strings `a` and `b` are equal, ignoring
 // case in the comparison.
-[[nodiscard]] bool EqualsIgnoreCase(std::string_view a, std::string_view b);
+[[nodiscard]] constexpr bool EqualsIgnoreCase(std::string_view a,
+                                              std::string_view b) {
+  return std::ranges::equal(
+      a, b, std::equal_to<>{}, [](char c) { return ascii_tolower(c); },
+      [](char c) { return ascii_tolower(c); });
+}
 
 // Returns std::string_view with whitespace stripped from the beginning of the
 // given string_view.
-inline std::string_view StripLeadingAsciiWhitespace(std::string_view str) {
-  auto it = std::find_if_not(str.cbegin(), str.cend(), ascii_isspace);
-  return str.substr(static_cast<size_t>(it - str.begin()));
+[[nodiscard]] constexpr std::string_view StripLeadingAsciiWhitespace(
+    std::string_view str) {
+  while (!str.empty() && ascii_isspace(str.front())) {
+    str.remove_prefix(1);
+  }
+  return str;
+}
+
+// Returns std::string_view with whitespace stripped from the end of the
+// given string_view.
+[[nodiscard]] constexpr std::string_view StripTrailingAsciiWhitespace(
+    std::string_view str) {
+  while (!str.empty() && ascii_isspace(str.back())) {
+    str.remove_suffix(1);
+  }
+  return str;
+}
+
+// Returns std::string_view with whitespace stripped from both ends of the
+// given string_view.
+[[nodiscard]] constexpr std::string_view StripAsciiWhitespace(
+    std::string_view str) {
+  return StripTrailingAsciiWhitespace(StripLeadingAsciiWhitespace(str));
+}
+
+// Removes all ASCII whitespace from `s` in-place.
+inline std::string& RemoveWhitespace(std::string& s) {
+  std::erase_if(s, [](char c) { return ascii_isspace(c); });
+  return s;
+}
+
+// Appends string pieces into an existing destination string.
+inline void StrAppend(std::string& dest,
+                      std::initializer_list<std::string_view> pieces) {
+  size_t additional_length = 0;
+  for (const auto& piece : pieces) {
+    additional_length += piece.size();
+  }
+  dest.reserve(dest.size() + additional_length);
+  for (const auto& piece : pieces) {
+    dest.append(piece);
+  }
+}
+
+template <typename... Args>
+  requires(sizeof...(Args) > 0 &&
+           (std::convertible_to<Args, std::string_view> && ...))
+inline void StrAppend(std::string& dest, const Args&... args) {
+  StrAppend(dest, {std::string_view(args)...});
 }
 
 // Concatenates arguments into a single string.
 [[nodiscard]] constexpr std::string StrCat(
     std::initializer_list<std::string_view> pieces) {
-  // Prefer a loop over std::accumulate since it is not constexpr in C++20.
   size_t length = 0;
   for (const auto& piece : pieces) {
     length += piece.size();
@@ -109,34 +199,137 @@ inline std::string_view StripLeadingAsciiWhitespace(std::string_view str) {
   return result;
 }
 
-// Splits `value` into tokens separated by `delim`.  Leading and trailing
-// delimeters are stripped, and multiple consecutive delimeters are treated as
-// one.
-[[nodiscard]] std::vector<std::string_view> Split(std::string_view value,
-                                                  char delim);
+template <typename... Args>
+  requires(sizeof...(Args) > 0 &&
+           (std::convertible_to<Args, std::string_view> && ...))
+[[nodiscard]] std::string StrCat(const Args&... args) {
+  return StrCat({std::string_view(args)...});
+}
 
+enum class SplitResult {
+  kDiscardEmpty,
+  kKeepEmpty,
+};
+
+// Splits `value` into tokens separated by `delim`.
+// When `result_type` is `kDiscardEmpty` (default), leading and trailing
+// delimiters are stripped, and multiple consecutive delimiters are treated as
+// one. When `result_type` is `kKeepEmpty`, all delimiters are preserved,
+// including empty tokens.
+[[nodiscard]] inline std::vector<std::string_view> Split(
+    std::string_view value,
+    char delim,
+    SplitResult result_type = SplitResult::kDiscardEmpty) {
+  std::vector<std::string_view> tokens;
+  if (value.empty()) {
+    return tokens;
+  }
+
+  size_t start = 0;
+  while (start <= value.size()) {
+    size_t end = value.find(delim, start);
+    if (end == std::string_view::npos) {
+      std::string_view token = value.substr(start);
+      if (result_type == SplitResult::kKeepEmpty || !token.empty()) {
+        tokens.push_back(token);
+      }
+      break;
+    }
+    std::string_view token = value.substr(start, end - start);
+    if (result_type == SplitResult::kKeepEmpty || !token.empty()) {
+      tokens.push_back(token);
+    }
+    start = end + 1;
+  }
+  return tokens;
+}
+
+// Splits a string at the first instance of `delim`. Returns std::nullopt if
+// `delim` is not found.
+[[nodiscard]] constexpr std::optional<
+    std::pair<std::string_view, std::string_view>>
+SplitFirst(std::string_view value, char delim) {
+  size_t pos = value.find(delim);
+  if (pos == std::string_view::npos) {
+    return std::nullopt;
+  }
+  return std::pair{value.substr(0, pos), value.substr(pos + 1)};
+}
+
+// Splits a string at the last instance of `delim`. Returns std::nullopt if
+// `delim` is not found.
+[[nodiscard]] constexpr std::optional<
+    std::pair<std::string_view, std::string_view>>
+SplitLast(std::string_view value, char delim) {
+  size_t pos = value.rfind(delim);
+  if (pos == std::string_view::npos) {
+    return std::nullopt;
+  }
+  return std::pair{value.substr(0, pos), value.substr(pos + 1)};
+}
+
+// Joins a range of strings or string_views with `delimiter`.
 template <std::ranges::input_range R>
-[[nodiscard]] std::string Join(R&& range, std::string_view delimeter = ", ") {
-  if (std::ranges::empty(range)) {
+  requires(
+      std::convertible_to<std::ranges::range_reference_t<R>, std::string_view>)
+[[nodiscard]] std::string Join(R&& range, std::string_view delimiter = ", ") {
+  auto it = std::ranges::begin(range);
+  auto end = std::ranges::end(range);
+  if (it == end) {
+    return {};
+  }
+
+  size_t total_length = 0;
+  size_t count = 0;
+  if constexpr (std::ranges::forward_range<R>) {
+    for (auto cur = it; cur != end; ++cur) {
+      total_length += std::string_view(*cur).size();
+      ++count;
+    }
+    if (count > 1) {
+      total_length += (count - 1) * delimiter.size();
+    }
+  }
+
+  std::string result;
+  if (total_length > 0) {
+    result.reserve(total_length);
+  }
+  result.append(std::string_view(*it));
+  ++it;
+  for (; it != end; ++it) {
+    result.append(delimiter);
+    result.append(std::string_view(*it));
+  }
+  return result;
+}
+
+// Fallback Join for ranges of other streamable types (e.g. integers).
+template <std::ranges::input_range R>
+[[nodiscard]] std::string Join(R&& range, std::string_view delimiter = ", ") {
+  auto it = std::ranges::begin(range);
+  auto end = std::ranges::end(range);
+  if (it == end) {
     return {};
   }
   std::stringstream ss;
-  ss << range.front();
-  for (auto element : range | std::views::drop(1)) {
-    ss << delimeter << element;
+  ss << *it;
+  ++it;
+  for (; it != end; ++it) {
+    ss << delimiter << *it;
   }
   return ss.str();
 }
 
-// Returns a string made by concatenating the strings iterated by `[begin,
-// end)`, each separated by `delim`.
-template <typename Iterator>
+// Returns a string made by concatenating the elements iterated by `[begin,
+// end)`, each separated by `delimiter`.
+template <std::input_iterator Iterator>
 [[nodiscard]] std::string Join(Iterator begin,
                                Iterator end,
-                               std::string_view delimeter = ", ") {
-  return Join(std::ranges::subrange{begin, end}, delimeter);
+                               std::string_view delimiter = ", ") {
+  return Join(std::ranges::subrange{begin, end}, delimiter);
 }
 
-}  // namespace openscreen::string_util
+}  // namespace openscreen
 
 #endif  // UTIL_STRING_UTIL_H_

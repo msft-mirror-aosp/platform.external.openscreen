@@ -5,11 +5,11 @@
 #include "discovery/dnssd/public/dns_sd_instance.h"
 
 #include <algorithm>
-#include <cctype>
 #include <utility>
 #include <vector>
 
 #include "util/osp_logging.h"
+#include "util/string_util.h"
 
 namespace openscreen::discovery {
 namespace {
@@ -131,10 +131,10 @@ bool IsServiceValid(const std::string& service) {
         return false;
       }
       last_char_hyphen = true;
-    } else if (std::isalpha(service[i])) {
+    } else if (ascii_isalpha(service[i])) {
       last_char_hyphen = false;
       seen_letter = true;
-    } else if (std::isdigit(service[i])) {
+    } else if (ascii_isdigit(service[i])) {
       last_char_hyphen = false;
     } else {
       return false;

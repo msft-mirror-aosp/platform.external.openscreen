@@ -22,7 +22,6 @@
 #include "platform/base/ip_address.h"
 #include "util/hashing.h"
 #include "util/osp_logging.h"
-#include "util/string_util.h"
 
 namespace openscreen::discovery {
 

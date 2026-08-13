@@ -116,48 +116,46 @@ class CastNonce {
 Error MapToOpenscreenError(const Error& verify_error, bool crl_required) {
   switch (verify_error.code()) {
     case Error::Code::kErrCertsMissing:
-      return Error(Error::Code::kCastV2PeerCertEmpty,
-                   string_util::StrCat({"Failed to locate certificates: ",
-                                        verify_error.message()}));
+      return Error(
+          Error::Code::kCastV2PeerCertEmpty,
+          StrCat("Failed to locate certificates: ", verify_error.message()));
     case Error::Code::kErrCertsParse:
-      return Error(Error::Code::kErrCertsParse,
-                   string_util::StrCat({"Failed to parse certificates: ",
-                                        verify_error.message()}));
+      return Error(
+          Error::Code::kErrCertsParse,
+          StrCat("Failed to parse certificates: ", verify_error.message()));
     case Error::Code::kErrCertsDateInvalid:
-      return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   string_util::StrCat({"Failed date validity check: ",
-                                        verify_error.message()}));
+      return Error(
+          Error::Code::kCastV2CertNotSignedByTrustedCa,
+          StrCat("Failed date validity check: ", verify_error.message()));
     case Error::Code::kErrCertsVerifyGeneric:
       return Error(
           Error::Code::kCastV2CertNotSignedByTrustedCa,
-          string_util::StrCat(
-              {"Failed with a generic certificate verification error: ",
-               verify_error.message()}));
+          StrCat("Failed with a generic certificate verification error: ",
+                 verify_error.message()));
     case Error::Code::kErrCertsRestrictions:
-      return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   string_util::StrCat({"Failed certificate restrictions: ",
-                                        verify_error.message()}));
+      return Error(
+          Error::Code::kCastV2CertNotSignedByTrustedCa,
+          StrCat("Failed certificate restrictions: ", verify_error.message()));
     case Error::Code::kErrCertsVerifyUntrustedCert:
       return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
-                   string_util::StrCat({"Failed with untrusted certificate: ",
-                                        verify_error.message()}));
+                   StrCat("Failed with untrusted certificate: ",
+                          verify_error.message()));
     case Error::Code::kErrCrlInvalid:
       // This error is only encountered if `crl_required` is true.
       OSP_CHECK(crl_required);
-      return Error(Error::Code::kErrCrlInvalid,
-                   string_util::StrCat({"Failed to provide a valid CRL: ",
-                                        verify_error.message()}));
+      return Error(
+          Error::Code::kErrCrlInvalid,
+          StrCat("Failed to provide a valid CRL: ", verify_error.message()));
     case Error::Code::kErrCertsRevoked:
       return Error(Error::Code::kErrCertsRevoked,
-                   string_util::StrCat({"Failed certificate revocation check: ",
-                                        verify_error.message()}));
+                   StrCat("Failed certificate revocation check: ",
+                          verify_error.message()));
     case Error::Code::kNone:
       return Error::None();
     default:
-      return Error(
-          Error::Code::kCastV2CertNotSignedByTrustedCa,
-          string_util::StrCat({"Failed verifying cast device certificate: ",
-                               verify_error.message()}));
+      return Error(Error::Code::kCastV2CertNotSignedByTrustedCa,
+                   StrCat("Failed verifying cast device certificate: ",
+                          verify_error.message()));
   }
 }
 

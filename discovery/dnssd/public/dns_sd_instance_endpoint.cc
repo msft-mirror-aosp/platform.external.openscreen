@@ -5,7 +5,6 @@
 #include "discovery/dnssd/public/dns_sd_instance_endpoint.h"
 
 #include <algorithm>
-#include <cctype>
 #include <utility>
 #include <vector>
 

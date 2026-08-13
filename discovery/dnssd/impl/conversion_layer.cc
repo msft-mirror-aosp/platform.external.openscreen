@@ -23,11 +23,10 @@ namespace {
 void AddServiceInfoToLabels(const std::string& service,
                             const std::string& domain,
                             std::vector<std::string>* labels) {
-  std::vector<std::string_view> service_labels =
-      string_util::Split(service, '.');
+  std::vector<std::string_view> service_labels = Split(service, '.');
   labels->insert(labels->end(), service_labels.begin(), service_labels.end());
 
-  std::vector<std::string_view> domain_labels = string_util::Split(domain, '.');
+  std::vector<std::string_view> domain_labels = Split(domain, '.');
   labels->insert(labels->end(), domain_labels.begin(), domain_labels.end());
 }
 

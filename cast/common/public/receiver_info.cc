@@ -5,7 +5,6 @@
 #include "cast/common/public/receiver_info.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cinttypes>
 #include <string>
 #include <vector>
@@ -43,8 +42,7 @@ std::string CalculateInstanceId(const ReceiverInfo& info) {
   // '-' character if not empty. Strip all hyphens from the receiver ID prior
   // to appending it.
   std::string receiver_id(info.unique_id);
-  receiver_id.erase(std::remove(receiver_id.begin(), receiver_id.end(), '-'),
-                    receiver_id.end());
+  std::erase(receiver_id, '-');
 
   if (!instance_name.empty()) {
     instance_name.push_back('-');

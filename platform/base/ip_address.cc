@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <charconv>
 #include <cinttypes>
 #include <cstdio>

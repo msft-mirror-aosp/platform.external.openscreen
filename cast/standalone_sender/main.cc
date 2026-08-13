@@ -124,8 +124,8 @@ std::optional<VideoCodec> ParseCodec(std::string_view arg) {
   const auto parsed = StringToVideoCodec(arg);
   if (!parsed || std::ranges::find(kSupportedCodecs, parsed.value()) ==
                      std::ranges::end(kSupportedCodecs)) {
-    OSP_LOG_ERROR << "Invalid --codec specified: " << arg << " is not one of: "
-                  << string_util::Join(kSupportedCodecs, " ");
+    OSP_LOG_ERROR << "Invalid --codec specified: " << arg
+                  << " is not one of: " << Join(kSupportedCodecs, " ");
     return std::nullopt;
   }
   return parsed.value();

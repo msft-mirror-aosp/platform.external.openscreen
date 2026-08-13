@@ -38,6 +38,7 @@
 #include "third_party/tinycbor/src/src/cbor.h"
 #include "util/raw_ptr.h"
 #include "util/raw_ref.h"
+#include "util/string_util.h"
 #include "util/trace_logging.h"
 
 namespace {
@@ -369,13 +370,10 @@ struct CommandLineSplit {
 };
 
 CommandLineSplit SeparateCommandFromArguments(const std::string& line) {
-  size_t split_index = line.find_first_of(' ');
-  // NOTE: `split_index` can be std::string::npos because not all commands
-  // accept arguments.
-  std::string command = line.substr(0, split_index);
-  std::string argument_tail =
-      split_index < line.size() ? line.substr(split_index + 1) : std::string();
-  return {std::move(command), std::move(argument_tail)};
+  if (const auto split = SplitFirst(line, ' ')) {
+    return {std::string(split->first), std::string(split->second)};
+  }
+  return {line, {}};
 }
 
 struct CommandWaitResult {
@@ -431,15 +429,14 @@ void RunControllerPollLoop(Controller* controller) {
           {std::string(command_result.command_line.argument_tail)},
           &receiver_observer);
     } else if (command_result.command_line.command == "start") {
-      const std::string_view& argument_tail =
-          command_result.command_line.argument_tail;
-      size_t next_split = argument_tail.find_first_of(' ');
-      const std::string& instance_name = receiver_observer.GetInstanceName(
-          std::string(argument_tail.substr(next_split + 1)));
-      const std::string url =
-          static_cast<std::string>(argument_tail.substr(0, next_split));
-      connect_request = controller->StartPresentation(
-          url, instance_name, &request_delegate, &connection_delegate);
+      if (const auto split =
+              SplitFirst(command_result.command_line.argument_tail, ' ')) {
+        const std::string& instance_name =
+            receiver_observer.GetInstanceName(std::string(split->second));
+        connect_request = controller->StartPresentation(
+            std::string(split->first), instance_name, &request_delegate,
+            &connection_delegate);
+      }
     } else if (command_result.command_line.command == "msg") {
       request_delegate.connection()->SendString(
           command_result.command_line.argument_tail);

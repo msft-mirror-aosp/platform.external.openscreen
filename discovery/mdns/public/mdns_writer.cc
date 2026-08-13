@@ -23,8 +23,7 @@ std::vector<uint64_t> ComputeDomainNameSubhashes(const DomainName& name) {
   uint64_t hash_value = kDefaultSeed;
   std::vector<uint64_t> subhashes(labels.size());
   for (size_t i = labels.size(); i-- > 0;) {
-    hash_value = ComputeAggregateHash(hash_value,
-                                      string_util::AsciiStrToLower(labels[i]));
+    hash_value = ComputeAggregateHash(hash_value, AsciiStrToLower(labels[i]));
     subhashes[i] = hash_value;
   }
   return subhashes;

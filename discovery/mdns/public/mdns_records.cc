@@ -5,7 +5,6 @@
 #include "discovery/mdns/public/mdns_records.h"
 
 #include <algorithm>
-#include <cctype>
 #include <limits>
 #include <ostream>
 #include <sstream>
@@ -30,8 +29,8 @@ inline int CompareIgnoreCase(const std::string& x, const std::string& y) {
     if (i == y.size()) {
       return 1;
     }
-    const char& x_char = std::tolower(x[i]);
-    const char& y_char = std::tolower(y[i]);
+    const char x_char = ascii_tolower(x[i]);
+    const char y_char = ascii_tolower(y[i]);
     if (x_char < y_char) {
       return -1;
     } else if (y_char < x_char) {
@@ -170,8 +169,8 @@ size_t DomainName::MaxWireSize() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const DomainName& domain_name) {
-  return os << string_util::Join(domain_name.labels_.cbegin(),
-                                 domain_name.labels_.cend(), ".");
+  return os << Join(domain_name.labels_.cbegin(), domain_name.labels_.cend(),
+                    ".");
 }
 
 // static

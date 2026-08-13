@@ -40,9 +40,9 @@ void ReplyIfTimedOut(
       // replies vector.
       SenderSessionMessenger::ReplyCallback callback = std::move(it->second);
       replies->erase(it);
-      callback(Error(Error::Code::kMessageTimeout,
-                     string_util::StrCat({"message timed out; max delay of ",
-                                          ToString(kReplyTimeout)})));
+      callback(Error(
+          Error::Code::kMessageTimeout,
+          StrCat("message timed out; max delay of ", ToString(kReplyTimeout))));
       return;
     }
   }

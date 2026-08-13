@@ -130,8 +130,8 @@ bool TryParseAesHexBytes(const Json::Value& value,
       sscanf(hex_string.c_str(), "%16" SCNx64 "%16" SCNx64 "%n", &quads[0],
              &quads[1], &chars_scanned) == kNumScanFields &&
       chars_scanned == kAesStringLength &&
-      std::none_of(hex_string.begin(), hex_string.end(),
-                   [](char c) { return std::isspace(c); })) {
+      std::ranges::none_of(hex_string,
+                           [](char c) { return ascii_isspace(c); })) {
     WriteBigEndian(quads[0], out->data());
     WriteBigEndian(quads[1], out->data() + 8);
     return true;

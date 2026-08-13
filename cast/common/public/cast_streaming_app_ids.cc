@@ -115,34 +115,26 @@ bool IsCastStreamingAppId(std::string_view app_id) {
 }
 
 bool IsCastStreamingAudioVideoAppId(std::string_view app_id) {
-  return string_util::EqualsIgnoreCase(app_id,
-                                       GetCastStreamingAudioVideoAppId());
+  return EqualsIgnoreCase(app_id, GetCastStreamingAudioVideoAppId());
 }
 
 bool IsCastStreamingAudioOnlyAppId(std::string_view app_id) {
-  return string_util::EqualsIgnoreCase(app_id,
-                                       GetCastStreamingAudioOnlyAppId());
+  return EqualsIgnoreCase(app_id, GetCastStreamingAudioOnlyAppId());
 }
 
 bool IsCastStreamingReceiverAppId(std::string_view app_id) {
-  if (string_util::EqualsIgnoreCase(app_id,
-                                    GetCastStreamingAudioVideoAppId()) ||
-      string_util::EqualsIgnoreCase(app_id, GetCastStreamingAudioOnlyAppId()) ||
-      string_util::EqualsIgnoreCase(app_id,
-                                    GetAndroidMirroringAudioVideoAppId()) ||
-      string_util::EqualsIgnoreCase(app_id,
-                                    GetAndroidMirroringAudioOnlyAppId()) ||
-      string_util::EqualsIgnoreCase(app_id,
-                                    GetAndroidAppStreamingAudioVideoAppId()) ||
-      string_util::EqualsIgnoreCase(app_id,
-                                    GetIosAppStreamingAudioVideoAppId())) {
+  if (EqualsIgnoreCase(app_id, GetCastStreamingAudioVideoAppId()) ||
+      EqualsIgnoreCase(app_id, GetCastStreamingAudioOnlyAppId()) ||
+      EqualsIgnoreCase(app_id, GetAndroidMirroringAudioVideoAppId()) ||
+      EqualsIgnoreCase(app_id, GetAndroidMirroringAudioOnlyAppId()) ||
+      EqualsIgnoreCase(app_id, GetAndroidAppStreamingAudioVideoAppId()) ||
+      EqualsIgnoreCase(app_id, GetIosAppStreamingAudioVideoAppId())) {
     return true;
   }
 
-  return ContainsIf(kRemoteDisplayAppStreamingAudioVideoAppIds,
-                    [app_id](std::string_view id) {
-                      return string_util::EqualsIgnoreCase(id, app_id);
-                    });
+  return ContainsIf(
+      kRemoteDisplayAppStreamingAudioVideoAppIds,
+      [app_id](std::string_view id) { return EqualsIgnoreCase(id, app_id); });
 }
 
 std::vector<std::string> GetCastStreamingAppIds() {

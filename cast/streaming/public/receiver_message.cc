@@ -46,7 +46,7 @@ ReceiverMessage::Type GetMessageType(const Json::Value& root) {
   if (!json::TryParseString(root[kMessageType], &type)) {
     return ReceiverMessage::Type::kUnknown;
   }
-  string_util::AsciiStrToUpper(type);
+  AsciiStrToUpper(type);
 
   ErrorOr<ReceiverMessage::Type> parsed = GetEnum(kMessageTypeNames, type);
   return parsed.value(ReceiverMessage::Type::kUnknown);

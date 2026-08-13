@@ -64,10 +64,9 @@ class LoggingTest : public ::testing::Test {
     // NOTE: This is somewhat brittle; it relies on details of how
     // logging_posix.cc formats log messages.
     while (expected_it != expected_messages.end()) {
-      EXPECT_TRUE(actual_it->starts_with(
-          string_util::StrCat({"[", expected_it->level})));
-      EXPECT_TRUE(actual_it->ends_with(
-          string_util::StrCat({"] ", expected_it->message, "\n"})));
+      EXPECT_TRUE(actual_it->starts_with(StrCat("[", expected_it->level)));
+      EXPECT_TRUE(
+          actual_it->ends_with(StrCat("] ", expected_it->message, "\n")));
       actual_it++;
       expected_it++;
     }

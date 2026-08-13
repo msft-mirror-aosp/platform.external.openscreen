@@ -528,8 +528,7 @@ void SenderImpl::OnReceiverCheckpoint(FrameId frame_id,
 
 void SenderImpl::OnReceiverHasFrames(std::vector<FrameId> acks) {
   OSP_DCHECK(!acks.empty() && AreElementsSortedAndUnique(acks));
-  TRACE_DEFAULT_SCOPED1(TraceCategory::kSender, "frame_ids",
-                        string_util::Join(acks));
+  TRACE_DEFAULT_SCOPED1(TraceCategory::kSender, "frame_ids", Join(acks));
 
   if (acks.back() > last_enqueued_frame_id_) {
     TRACE_SET_RESULT(Error::Code::kParameterOutOfRange);

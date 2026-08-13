@@ -95,11 +95,11 @@ TEST(UuidTest, EqualityAndRoundTrip) {
       "deadbeef-dead-4eef-bead-beefdeadbeef";
 
   const Uuid from_lower =
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToLower(kCanonicalStr));
+      Uuid::ParseCaseInsensitive(AsciiStrToLower(kCanonicalStr));
   EXPECT_EQ(kCanonicalStr, from_lower.AsLowercaseString());
 
   const Uuid from_upper =
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToUpper(kCanonicalStr));
+      Uuid::ParseCaseInsensitive(AsciiStrToUpper(kCanonicalStr));
   EXPECT_EQ(kCanonicalStr, from_upper.AsLowercaseString());
 
   EXPECT_EQ(from_lower, from_upper);
@@ -112,19 +112,15 @@ TEST(UuidTest, UnorderedSet) {
   std::unordered_set<Uuid, UuidHash> guid_set;
 
   static constexpr char kUuid1[] = "01234567-89ab-cdef-fedc-ba9876543210";
-  guid_set.insert(
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToLower(kUuid1)));
+  guid_set.insert(Uuid::ParseCaseInsensitive(AsciiStrToLower(kUuid1)));
   EXPECT_EQ(1u, guid_set.size());
-  guid_set.insert(
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToUpper(kUuid1)));
+  guid_set.insert(Uuid::ParseCaseInsensitive(AsciiStrToUpper(kUuid1)));
   EXPECT_EQ(1u, guid_set.size());
 
   static constexpr char kUuid2[] = "deadbeef-dead-beef-dead-beefdeadbeef";
-  guid_set.insert(
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToLower(kUuid2)));
+  guid_set.insert(Uuid::ParseCaseInsensitive(AsciiStrToLower(kUuid2)));
   EXPECT_EQ(2u, guid_set.size());
-  guid_set.insert(
-      Uuid::ParseCaseInsensitive(string_util::AsciiStrToUpper(kUuid2)));
+  guid_set.insert(Uuid::ParseCaseInsensitive(AsciiStrToUpper(kUuid2)));
   EXPECT_EQ(2u, guid_set.size());
 }
 
