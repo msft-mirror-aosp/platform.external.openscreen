@@ -83,16 +83,24 @@ MdnsServiceImpl::MdnsServiceImpl(TaskRunner& task_runner,
   }
 
   receiver_.Start();
+  auto bind_socket = [this] {
+    // Initialize all sockets to start sending/receiving data. Now that the
+    // above objects have all been created, it they should be able to safely do
+    // so. NOTE: Although only one of these sockets is used for sending, both
+    // will be used for reading on the mDNS v4 and v6 addresses and ports.
+    if (socket_v4_) {
+      socket_v4_->Bind();
+    }
+    if (socket_v6_) {
+      socket_v6_->Bind();
+    }
+  };
 
-  // Initialize all sockets to start sending/receiving data. Now that the above
-  // objects have all been created, it they should be able to safely do so.
-  // NOTE: Although only one of these sockets is used for sending, both will be
-  // used for reading on the mDNS v4 and v6 addresses and ports.
-  if (socket_v4_) {
-    socket_v4_->Bind();
-  }
-  if (socket_v6_) {
-    socket_v6_->Bind();
+  if (task_runner_->IsRunningOnTaskRunner()) {
+    bind_socket();
+  } else {
+    // Bind() needs to be called within the task runner.
+    task_runner_->PostTask(std::move(bind_socket));
   }
 }
 
