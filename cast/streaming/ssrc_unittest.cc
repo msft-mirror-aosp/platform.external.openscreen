@@ -19,7 +19,7 @@ TEST(SsrcTest, GeneratesUniqueAndPrioritizedSsrcs) {
   }
 
   // Three different higher-priority SSRCs should have been generated.
-  SortAndDedupeElements(&priority_ssrcs);
+  SortAndDedupeElements(priority_ssrcs);
   EXPECT_EQ(3u, priority_ssrcs.size());
 
   std::vector<Ssrc> normal_ssrcs;
@@ -28,7 +28,7 @@ TEST(SsrcTest, GeneratesUniqueAndPrioritizedSsrcs) {
   }
 
   // Three different normal SSRCs should have been generated.
-  SortAndDedupeElements(&normal_ssrcs);
+  SortAndDedupeElements(normal_ssrcs);
   EXPECT_EQ(3u, normal_ssrcs.size());
 
   // All six SSRCs, together, should be unique.
@@ -36,7 +36,7 @@ TEST(SsrcTest, GeneratesUniqueAndPrioritizedSsrcs) {
   all_ssrcs.insert(all_ssrcs.end(), priority_ssrcs.begin(),
                    priority_ssrcs.end());
   all_ssrcs.insert(all_ssrcs.end(), normal_ssrcs.begin(), normal_ssrcs.end());
-  SortAndDedupeElements(&all_ssrcs);
+  SortAndDedupeElements(all_ssrcs);
   EXPECT_EQ(6u, all_ssrcs.size());
 
   // ComparePriority() should return values indicating the appropriate

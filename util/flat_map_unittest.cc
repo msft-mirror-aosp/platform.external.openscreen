@@ -31,6 +31,12 @@ TEST(FlatMapTest, Find) {
   EXPECT_EQ("baz", map.find(10000)->second);
   EXPECT_EQ("", map.find(0)->second);
   EXPECT_EQ(map.end(), map.find(2));
+
+  EXPECT_TRUE(map.contains(-1));
+  EXPECT_TRUE(map.contains(123));
+  EXPECT_TRUE(map.contains(10000));
+  EXPECT_TRUE(map.contains(0));
+  EXPECT_FALSE(map.contains(2));
 }
 
 // Since it is backed by a vector, we don't expose an operator[] due

@@ -4,14 +4,15 @@
 
 #include "util/std_util.h"
 
+#include <array>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "gtest/gtest.h"
+#include "util/string_util.h"
 
 namespace openscreen {
-
-TEST(StdUtilTest, CountOf) {
-  constexpr int three_ints[3] = {1, 2, 3};
-  EXPECT_EQ(static_cast<size_t>(3), countof(three_ints));
-}
 
 TEST(StdUtilTest, Data) {
   std::string non_empty("Where no one has gone before");
@@ -32,26 +33,6 @@ TEST(StdUtilTest, RemoveWhitespace) {
   EXPECT_EQ("Portland", fancy_portland);
 }
 
-TEST(StdUtilTest, RemoveValueFromMap) {
-  std::string capitol1("Olympia");
-  std::string capitol2("Eugene");
-  std::string capitol3("Springfield");
-  std::string capitol4("Sacramento");
-
-  std::map<std::string, std::string*> capitol_map;
-  capitol_map.insert(std::make_pair("Washington", &capitol1));
-  capitol_map.insert(std::make_pair("Oregon", &capitol2));
-  capitol_map.insert(std::make_pair("Massachusetts", &capitol3));
-  capitol_map.insert(std::make_pair("Illinois", &capitol3));
-
-  RemoveValueFromMap(&capitol_map, &capitol1);
-  RemoveValueFromMap(&capitol_map, &capitol3);
-  RemoveValueFromMap(&capitol_map, &capitol4);
-
-  EXPECT_EQ(static_cast<size_t>(1), capitol_map.size());
-  EXPECT_TRUE(capitol_map.find("Oregon") != capitol_map.end());
-}
-
 TEST(StdUtilTest, AreElementSortedAndUnique) {
   EXPECT_TRUE(AreElementsSortedAndUnique(std::vector<std::string>({})));
   EXPECT_TRUE(AreElementsSortedAndUnique(std::vector<std::string>({"Joey"})));
@@ -65,20 +46,24 @@ TEST(StdUtilTest, AreElementSortedAndUnique) {
 
 TEST(StdUtilTest, SortAndDedupeElements) {
   auto empty_vector = std::vector<std::string>({});
-  SortAndDedupeElements(&empty_vector);
+  SortAndDedupeElements(empty_vector);
   EXPECT_TRUE(empty_vector.empty());
 
   auto singleton_vector = std::vector<std::string>({"Joey"});
-  SortAndDedupeElements(&singleton_vector);
+  SortAndDedupeElements(singleton_vector);
   EXPECT_EQ(singleton_vector, std::vector<std::string>({"Joey"}));
 
   auto all_friends =
       std::vector<std::string>({"Joey", "Rachel", "Monica", "Chandler",
                                 "Phoebe", "Ross", "Rachel", "Joey"});
-  SortAndDedupeElements(&all_friends);
+  SortAndDedupeElements(all_friends);
   EXPECT_EQ(all_friends,
             std::vector<std::string>(
                 {"Chandler", "Joey", "Monica", "Phoebe", "Rachel", "Ross"}));
+
+  std::vector<int> nums = {5, 2, 8, 2, 5, 1};
+  SortAndDedupeElements(nums);
+  EXPECT_EQ(nums, (std::vector<int>{1, 2, 5, 8}));
 }
 
 TEST(StdUtilTest, Append) {
@@ -101,6 +86,11 @@ TEST(StdUtilTest, Contains) {
       {"Joey", "Rachel", "Monica", "Chandler", "Phoebe", "Ross"});
   EXPECT_TRUE(Contains(friends, "Rachel"));
   EXPECT_FALSE(Contains(friends, "Ursula"));
+
+  // Associative container with .contains()
+  std::set<std::string> friend_set = {"Joey", "Monica", "Chandler"};
+  EXPECT_TRUE(Contains(friend_set, "Joey"));
+  EXPECT_FALSE(Contains(friend_set, "Ross"));
 }
 
 TEST(StdUtilTest, ContainsIf) {
@@ -111,5 +101,9 @@ TEST(StdUtilTest, ContainsIf) {
   EXPECT_FALSE(
       ContainsIf(friends, [](const auto& f) { return f == "Ursula"; }));
 }
+
+static_assert(AreElementsSortedAndUnique(std::array<int, 4>{1, 3, 5, 7}));
+static_assert(!AreElementsSortedAndUnique(std::array<int, 4>{1, 3, 3, 7}));
+static_assert(!AreElementsSortedAndUnique(std::array<int, 4>{1, 5, 3, 7}));
 
 }  // namespace openscreen

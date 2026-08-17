@@ -5,7 +5,7 @@
 #include "cast/streaming/public/statistics.h"
 
 #include "gtest/gtest.h"
-#include "util/std_util.h"
+#include "util/string_util.h"
 
 namespace openscreen::cast {
 

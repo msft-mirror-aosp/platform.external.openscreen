@@ -5,41 +5,42 @@
 #ifndef UTIL_HASHING_H_
 #define UTIL_HASHING_H_
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <utility>
-#include <vector>
 
 namespace openscreen {
 
 // This value is taken from absl::Hash implementation.
-inline constexpr uint64_t kDefaultSeed = UINT64_C(0xc3a5c85c97cb3127);
+inline constexpr size_t kDefaultSeed =
+    static_cast<size_t>(UINT64_C(0xc3a5c85c97cb3127));
 
 // Computes the aggregate hash of the provided hashable objects.
-// Seed must initially use a large prime between 2^63 and 2^64 as a starting
-// value, or the result of a previous call to this function.
+// Seed must initially use a large prime as a starting value, or the result of a
+// previous call to this function.
 template <typename... T>
-uint64_t ComputeAggregateHash(uint64_t original_seed, const T&... objs) {
-  auto hash_combiner = [](uint64_t current_seed,
-                          uint64_t hash_value) -> uint64_t {
-    static const uint64_t kMultiplier = UINT64_C(0x9ddfea08eb382d69);
-    uint64_t a = (hash_value ^ current_seed) * kMultiplier;
+constexpr size_t ComputeAggregateHash(size_t original_seed, const T&... objs) {
+  constexpr auto hash_combiner = [](size_t current_seed,
+                                    size_t hash_value) -> size_t {
+    constexpr uint64_t kMultiplier = UINT64_C(0x9ddfea08eb382d69);
+    uint64_t a = (static_cast<uint64_t>(hash_value) ^
+                  static_cast<uint64_t>(current_seed)) *
+                 kMultiplier;
     a ^= (a >> 47);
-    uint64_t b = (current_seed ^ a) * kMultiplier;
+    uint64_t b = (static_cast<uint64_t>(current_seed) ^ a) * kMultiplier;
     b ^= (b >> 47);
     b *= kMultiplier;
-    return b;
+    return static_cast<size_t>(b);
   };
 
-  uint64_t result = original_seed;
-  std::vector<uint64_t> hashes = {std::hash<T>()(objs)...};
-  for (uint64_t hash : hashes) {
-    result = hash_combiner(result, hash);
-  }
+  size_t result = original_seed;
+  ((result = hash_combiner(result, std::hash<T>{}(objs))), ...);
   return result;
 }
 
 template <typename... T>
-uint64_t ComputeAggregateHash(const T&... objs) {
+constexpr size_t ComputeAggregateHash(const T&... objs) {
   return ComputeAggregateHash(kDefaultSeed, objs...);
 }
 
