@@ -69,8 +69,9 @@ bool MirroringApplication::Launch(const std::string& app_id,
       std::make_unique<StreamingPlaybackController>(this, enable_input_events_);
 #endif  // defined(CAST_STANDALONE_RECEIVER_HAVE_EXTERNAL_LIBS)
   ReceiverConstraints constraints;
-  constraints.video_codecs.insert(constraints.video_codecs.begin(),
-                                  {VideoCodec::kAv1, VideoCodec::kVp9});
+  constraints.video_codecs = {VideoCodec::kHevc, VideoCodec::kAv1,
+                              VideoCodec::kH264, VideoCodec::kVp9,
+                              VideoCodec::kVp8};
   constraints.remoting = std::make_unique<RemotingConstraints>();
   constraints.enable_dscp = enable_dscp_;
   constraints.supports_input_events = enable_input_events_;

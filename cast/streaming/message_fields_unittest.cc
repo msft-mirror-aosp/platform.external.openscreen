@@ -23,11 +23,15 @@ TEST(MessageFieldsTest, CanParseEnumToString) {
 TEST(MessageFieldsTest, CanStringToEnum) {
   EXPECT_EQ(AudioCodec::kOpus, StringToAudioCodec("opus").value());
   EXPECT_EQ(VideoCodec::kHevc, StringToVideoCodec("hevc").value());
+  EXPECT_EQ(VideoCodec::kH264, StringToVideoCodec("h264").value());
+  EXPECT_FALSE(StringToVideoCodec("h265").is_value());
 }
 
 TEST(MessageFieldsTest, Identity) {
   EXPECT_STREQ("opus", CodecToString(StringToAudioCodec("opus").value()));
   EXPECT_STREQ("vp8", CodecToString(StringToVideoCodec("vp8").value()));
+  EXPECT_STREQ("h264", CodecToString(StringToVideoCodec("h264").value()));
+  EXPECT_STREQ("hevc", CodecToString(StringToVideoCodec("hevc").value()));
 }
 
 }  // namespace

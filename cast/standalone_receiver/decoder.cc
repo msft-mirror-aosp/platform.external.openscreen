@@ -68,6 +68,10 @@ void Decoder::Decode(FrameId frame_id, const Decoder::Buffer& buffer) {
   // Parse the buffer for the required metadata and the packet to send to the
   // decoder.
   ByteView input = buffer.AsByteView();
+  if (input.empty() || !input.data()) {
+    OnError("empty decoder buffer", AVERROR_INVALIDDATA, frame_id);
+    return;
+  }
   const int bytes_consumed = av_parser_parse2(
       parser_.get(), context_.get(), &packet_->data, &packet_->size,
       input.data(), input.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
@@ -75,7 +79,7 @@ void Decoder::Decode(FrameId frame_id, const Decoder::Buffer& buffer) {
     OnError("av_parser_parse2", bytes_consumed, frame_id);
     return;
   }
-  if (!packet_->data) {
+  if (!packet_->data || packet_->size <= 0) {
     OnError("av_parser_parse2 found no packet", AVERROR_BUFFER_TOO_SMALL,
             frame_id);
     return;
@@ -103,6 +107,14 @@ void Decoder::Decode(FrameId frame_id, const Decoder::Buffer& buffer) {
     const FrameId decoded_frame_id = DidReceiveFrameFromDecoder();
     if (receive_frame_result < 0) {
       OnError("avcodec_receive_frame", receive_frame_result, decoded_frame_id);
+      // Flush any remaining frames stuck in the decode queue to prevent
+      // FrameId desynchronization on subsequent frames.
+      while (!frames_decoding_.empty()) {
+        const FrameId dropped_id = DidReceiveFrameFromDecoder();
+        OnError("avcodec_receive_frame dropped pending frame",
+                receive_frame_result, dropped_id);
+      }
+      avcodec_flush_buffers(context_.get());
       return;
     }
     TRACE_FLOW_STEP(TraceCategory::kStandaloneReceiver, "Frame.Decode.End",
@@ -133,6 +145,9 @@ bool Decoder::Initialize() {
                               AVERROR(ENOMEM));
     return false;
   }
+  // Treat each input buffer delivered to the parser as a complete access unit
+  // / frame, preventing 1-frame buffering delays during live streaming.
+  parser_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
 
   context_ = MakeUniqueAVCodecContext(codec_.get());
   if (!context_) {
@@ -151,6 +166,10 @@ bool Decoder::Initialize() {
   // max here, just to be safe.
   context_->thread_count =
       std::min(std::max<int>(std::thread::hardware_concurrency(), 1), 8);
+  // Allow slice-threading for low-latency H.264/HEVC while retaining
+  // frame-threading support for VP8/VP9.
+  context_->thread_type = FF_THREAD_SLICE | FF_THREAD_FRAME;
+  context_->flags |= AV_CODEC_FLAG_LOW_DELAY;
   const int open_result = avcodec_open2(context_.get(), codec_.get(), nullptr);
   if (open_result < 0) {
     HandleInitializationError("failed to open codec", open_result);
