@@ -34,14 +34,37 @@ TEST(JsonSerializationTest, ValidEmptyDocumentParsedCorrectly) {
   EXPECT_EQ(actual.value().getMemberNames().size(), 0u);
 }
 
-// Jsoncpp has its own suite of tests ensure that things are parsed correctly,
-// so we only do some rudimentary checks here to make sure we didn't mangle
-// the value.
 TEST(JsonSerializationTest, ValidDocumentParsedCorrectly) {
   const auto actual = json::Parse(R"({"foo": "bar", "baz": 1337})");
 
   EXPECT_TRUE(actual.is_value());
   EXPECT_EQ(actual.value().getMemberNames().size(), 2u);
+  EXPECT_EQ(actual.value()["foo"].asString(), "bar");
+  EXPECT_EQ(actual.value()["baz"].asInt(), 1337);
+}
+
+TEST(JsonSerializationTest, ComplexNestedDocumentParsedCorrectly) {
+  const auto actual = json::Parse(
+      R"({
+        "string": "hello world",
+        "int": 42,
+        "bool": true,
+        "null_val": null,
+        "array": [1, "two", false],
+        "nested": {"key": "val"}
+      })");
+
+  EXPECT_TRUE(actual.is_value());
+  const auto& val = actual.value();
+  EXPECT_EQ(val["string"].asString(), "hello world");
+  EXPECT_EQ(val["int"].asInt(), 42);
+  EXPECT_EQ(val["bool"].asBool(), true);
+  EXPECT_TRUE(val["null_val"].isNull());
+  EXPECT_EQ(val["array"].size(), 3u);
+  EXPECT_EQ(val["array"][0].asInt(), 1);
+  EXPECT_EQ(val["array"][1].asString(), "two");
+  EXPECT_EQ(val["array"][2].asBool(), false);
+  EXPECT_EQ(val["nested"]["key"].asString(), "val");
 }
 
 TEST(JsonSerializationTest, EmptyArrayReturnsBrackets) {
@@ -67,4 +90,25 @@ TEST(JsonSerializationTest, ValidValueReturnsString) {
   EXPECT_TRUE(actual.is_value());
   EXPECT_EQ(actual.value(), "31337");
 }
+
+TEST(JsonSerializationTest, BooleanValuesStringified) {
+  EXPECT_EQ(json::Stringify(Json::Value(true)).value(), "true");
+  EXPECT_EQ(json::Stringify(Json::Value(false)).value(), "false");
+}
+
+TEST(JsonSerializationTest, ArrayAndObjectRoundTrip) {
+  const auto parsed = json::Parse(R"({"numbers":[1,2,3],"tag":"test"})");
+  ASSERT_TRUE(parsed.is_value());
+  const auto serialized = json::Stringify(parsed.value());
+  ASSERT_TRUE(serialized.is_value());
+
+  const auto reparsed = json::Parse(serialized.value());
+  ASSERT_TRUE(reparsed.is_value());
+  EXPECT_EQ(reparsed.value()["tag"].asString(), "test");
+  EXPECT_EQ(reparsed.value()["numbers"].size(), 3u);
+  EXPECT_EQ(reparsed.value()["numbers"][0].asInt(), 1);
+  EXPECT_EQ(reparsed.value()["numbers"][1].asInt(), 2);
+  EXPECT_EQ(reparsed.value()["numbers"][2].asInt(), 3);
+}
+
 }  // namespace openscreen

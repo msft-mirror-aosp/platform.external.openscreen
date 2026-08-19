@@ -76,3 +76,7 @@
 	path = third_party/perfetto/src
 	url = https://chromium.googlesource.com/external/github.com/google/perfetto
 	gclient-condition = not build_with_chromium
+[submodule "third_party/rust"]
+	path = third_party/rust
+	url = https://chromium.googlesource.com/chromium/src/third_party/rust
+	gclient-condition = not build_with_chromium

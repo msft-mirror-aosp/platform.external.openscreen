@@ -421,6 +421,12 @@ deps = {
       '@' + '1d9994a93c6ada2fb261dc72984fa07683a6c86e',
     'condition': 'not build_with_chromium',
   },
+
+  'third_party/rust': {
+    'url': Var('chromium_git') + '/chromium/src/third_party/rust' +
+      '@' + '9200834b7dde809b652b9f0d4561c2bc0e9067c8',
+    'condition': 'not build_with_chromium',
+  },
 }
 
 hooks = [
@@ -434,6 +440,21 @@ hooks = [
                 '--output', 'tools/clang/scripts/update.py' ],
     # NOTE: This file appears in .gitignore, as it is not a part of the
     # openscreen repo.
+  },
+  {
+    'name': 'rust_update_script',
+    'pattern': '.',
+    'condition': 'not build_with_chromium',
+    'action': [ 'python3', 'tools/download-chromium-file.py',
+                '--revision', Var('chrome_version'),
+                '--path', 'tools/rust/update_rust.py',
+                '--output', 'tools/rust/update_rust.py' ],
+  },
+  {
+    'name': 'rust_toolchain',
+    'pattern': '.',
+    'condition': 'not build_with_chromium',
+    'action': [ 'python3', 'tools/rust/update_rust.py' ],
   },
   {
     'name': 'licenses_script',

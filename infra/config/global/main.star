@@ -213,6 +213,7 @@ def get_properties(
     if is_gcc:
         properties["is_clang"] = False
         properties["use_custom_libcxx"] = False
+        properties["enable_rust"] = False
     if is_asan:
         properties["is_asan"] = True
     if is_msan:

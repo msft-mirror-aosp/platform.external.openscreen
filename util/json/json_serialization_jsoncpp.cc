@@ -4,6 +4,10 @@
 
 #include "util/json/json_serialization.h"
 
+#if defined(USE_JSON_SERDE)
+#error "USE_JSON_SERDE defined for json_serialization_jsoncpp.cc"
+#endif
+
 #include <memory>
 #include <sstream>
 #include <string>

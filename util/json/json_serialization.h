@@ -11,14 +11,14 @@
 #include "json/value.h"
 #include "platform/base/error.h"
 
-namespace openscreen {
+namespace openscreen::json {
 
-namespace json {
-
+// Parses a JSON document into a Json::Value AST.
 ErrorOr<Json::Value> Parse(std::string_view value);
+
+// Serializes a Json::Value AST into a JSON string.
 ErrorOr<std::string> Stringify(const Json::Value& value);
 
-}  // namespace json
-}  // namespace openscreen
+}  // namespace openscreen::json
 
 #endif  // UTIL_JSON_JSON_SERIALIZATION_H_

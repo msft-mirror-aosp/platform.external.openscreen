@@ -11,6 +11,7 @@ gclient_args.gni
 buildtools/
 clang-format
 third_party/rust-toolchain/
+third_party/rust/
 tools/clang/scripts/update.py
 yajsv
 yajsv.exe
@@ -44,3 +45,4 @@ GEMINI.md
 claude.json
 tools/licenses/
 tools/protoc_wrapper/
+tools/rust/

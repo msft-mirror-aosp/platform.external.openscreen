@@ -2,20 +2,53 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/rust.gni")
 import("//build_overrides/build.gni")
 import("../gni/openscreen.gni")
-
-visibility = [ "../*" ]
 
 declare_args() {
   # Enables trace logging in build. This is true by default, but may be disabled
   # for a slight performance increase.
   enable_trace_logging = true
+
+  # Enables the Rust serde_json_lenient backend for JSON parsing and serialization.
+  use_json_serde = enable_rust
 }
+
+assert(!use_json_serde || enable_rust,
+       "use_json_serde requires enable_rust = true.")
+
+if (use_json_serde) {
+  import("//build/rust/rust_static_library.gni")
+}
+
+visibility = [ "../*" ]
 
 config("trace_logging_config") {
   if (enable_trace_logging) {
     defines = [ "ENABLE_TRACE_LOGGING" ]
+  }
+}
+
+config("json_serde_config") {
+  if (use_json_serde) {
+    defines = [ "USE_JSON_SERDE" ]
+  }
+}
+
+if (use_json_serde) {
+  rust_static_library("json_serde") {
+    crate_root = "json/serde_json.rs"
+    allow_unsafe = true
+    sources = [ "json/serde_json.rs" ]
+    cxx_bindings = [ "json/serde_json.rs" ]
+    deps = [
+      "//third_party/jsoncpp",
+      "//third_party/rust/serde/v1:lib",
+      "//third_party/rust/serde_json_lenient/v0_2:lib",
+    ]
+    configs += openscreen_add_public_configs
+    configs += [ ":json_serde_config" ]
   }
 }
 
@@ -70,7 +103,6 @@ openscreen_source_set("util") {
     "crypto/rsa_private_key.cc",
     "crypto/secure_hash.cc",
     "crypto/sha2.cc",
-    "json/json_serialization.cc",
     "json/json_value.cc",
     "read_file.cc",
     "scoped_wake_lock.cc",
@@ -81,14 +113,6 @@ openscreen_source_set("util") {
     "uuid.cc",
   ]
 
-  public_deps = [
-    "../platform:api",
-    "../platform:base",
-    "../platform:logging",
-    "../third_party/boringssl",
-    "../third_party/jsoncpp",
-  ]
-
   deps = [
     "../third_party/boringssl",
 
@@ -97,7 +121,28 @@ openscreen_source_set("util") {
     "//third_party/modp_b64",
   ]
 
-  public_configs = [ ":trace_logging_config" ]
+  if (use_json_serde) {
+    sources += [
+      "json/json_serialization_serde.cc",
+      "json/json_serialization_serde_internal.h",
+    ]
+    deps += [ ":json_serde" ]
+  } else {
+    sources += [ "json/json_serialization_jsoncpp.cc" ]
+  }
+
+  public_deps = [
+    "../platform:api",
+    "../platform:base",
+    "../platform:logging",
+    "../third_party/boringssl",
+    "../third_party/jsoncpp",
+  ]
+
+  public_configs = [
+    ":trace_logging_config",
+    ":json_serde_config",
+  ]
 
   if (is_mac) {
     frameworks = [
