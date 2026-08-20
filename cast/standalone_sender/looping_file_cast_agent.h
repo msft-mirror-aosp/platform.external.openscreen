@@ -26,6 +26,7 @@
 #include "platform/base/error.h"
 #include "platform/base/interface_info.h"
 #include "platform/impl/task_runner.h"
+#include "util/alarm.h"
 #include "util/scoped_wake_lock.h"
 
 namespace Json {
@@ -58,10 +59,24 @@ namespace openscreen::cast {
 //
 // Normal shutdown happens when either:
 //
-//   1. Receiver-side, the Mirroring App is shut down. This will cause the
-//      ShutdownCallback passed to the constructor to be invoked.
-//   2. This LoopingFileCastAgent is destroyed (automatic shutdown is part of
-//      the destruction procedure).
+//   1. Receiver-side, the Mirroring App is shut down. This is discovered via
+//      a RECEIVER_STATUS message and torn down locally immediately -- there is
+//      nothing left to ask the receiver to do.
+//   2. Sender-side, RequestStop() is called. This sends a STOP request to the
+//      Cast Receiver and gives it a bounded opportunity to confirm (also via a
+//      RECEIVER_STATUS message, handled the same way as case 1) before tearing
+//      down the connection locally. Callers that want to be sure the receiver
+//      was told to stop (e.g. before exiting the process) should call
+//      RequestStop() and wait for the ShutdownCallback, rather than simply
+//      destroying the agent.
+//   3. This LoopingFileCastAgent is destroyed without a prior call to
+//      RequestStop(). This is a safety net: it makes a best-effort, immediate
+//      attempt to notify the Cast Receiver, but -- since destruction cannot
+//      wait around for a reply -- it does not guarantee the STOP request
+//      reached the receiver.
+//
+// In all cases, the ShutdownCallback passed to the constructor is invoked once
+// local teardown has completed.
 class LoopingFileCastAgent final
     : public SenderSocketFactory::Client,
       public VirtualConnectionRouter::SocketErrorHandler,
@@ -81,9 +96,18 @@ class LoopingFileCastAgent final
   ~LoopingFileCastAgent();
 
   // Connect to a Cast Receiver, and start the workflow to establish a
-  // mirroring/streaming session. Destroy the LoopingFileCastAgent to shutdown
-  // and disconnect.
+  // mirroring session.
   void Connect(ConnectionSettings settings);
+
+  // Asks the Cast Receiver to stop the current mirroring session (if any),
+  // and disconnects. If a session is active, this sends a STOP request and
+  // gives the receiver a bounded opportunity to confirm it (via a subsequent
+  // RECEIVER_STATUS showing the app is no longer running) before the
+  // connection is forcibly torn down via Shutdown(); otherwise it calls
+  // Shutdown() immediately, since there is nothing to ask the receiver to do.
+  // `shutdown_callback` is invoked once Shutdown() completes. Safe to call
+  // multiple times.
+  void RequestStop();
 
  private:
   // SenderSocketFactory::Client overrides.
@@ -151,9 +175,13 @@ class LoopingFileCastAgent final
   // if the receiver is already ready.
   void StartFileSender();
 
-  // Helper for stopping the current session, and/or unwinding a remote
-  // connection request (pre-session). This ensures LoopingFileCastAgent is in a
-  // terminal shutdown state.
+  // Tears down the local session/connections/socket and invokes
+  // `shutdown_callback_`. Does not send anything to the Cast Receiver --
+  // callers that want to ask the receiver to stop should call RequestStop()
+  // instead, which sends the STOP request and then calls this once it's
+  // confirmed or has timed out. Idempotent, and safe to call re-entrantly
+  // (e.g. it re-enters itself via CloseSocket() synchronously invoking
+  // OnClose()).
   void Shutdown();
 
   // Member variables set as part of construction.
@@ -209,6 +237,21 @@ class LoopingFileCastAgent final
 
   // Last reported statistics, logged as part of shutdown.
   std::optional<SenderStats> last_reported_statistics_;
+
+  // Set to true the first time RequestStop() does anything meaningful (sends
+  // STOP and arms `stop_ack_timeout_`, or falls through to call Shutdown()
+  // directly). Guards against a second, independent call to RequestStop() --
+  // e.g. from two different error paths firing in close succession -- seeing
+  // `app_session_id_` already cleared by the first call and falling through
+  // to Shutdown() immediately, which would close the socket before the first
+  // call's STOP message has had a chance to actually reach the wire.
+  bool stop_requested_ = false;
+
+  // Governs the bounded wait, started by RequestStop(), for the Cast
+  // Receiver to confirm a STOP request before Shutdown() forcibly tears down
+  // the connection. Scoped to this object's lifetime: if this is destroyed
+  // while the timeout is still pending, it is automatically canceled.
+  Alarm stop_ack_timeout_;
 };
 
 }  // namespace openscreen::cast

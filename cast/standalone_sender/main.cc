@@ -307,9 +307,20 @@ int StandaloneSenderMain(int argc, char* argv[]) {
   // SIGTERM are signaled.
   task_runner->RunUntilSignaled();
 
-  // Spin the TaskRunner to destroy the `cast_agent` and execute any lingering
-  // destruction/shutdown tasks.
+  // Request a graceful shutdown first: if a mirroring session is active,
+  // this sends a STOP request to the Cast Receiver and gives it a bounded
+  // opportunity to confirm before the connection is torn down, so the
+  // receiver reliably stops mirroring instead of the STOP message racing
+  // with immediate socket teardown. `RunUntilStopped()` keeps the event loop
+  // spinning until shutdown completes (either the receiver confirms, or the
+  // internal timeout elapses) and invokes the ShutdownCallback.
   OSP_LOG_INFO << "Shutting down...";
+  task_runner->PostTask([&] { cast_agent->RequestStop(); });
+  task_runner->RunUntilStopped();
+
+  // Spin the TaskRunner to destroy the `cast_agent` and execute any lingering
+  // destruction/shutdown tasks. Shutdown has already fully completed above,
+  // so this is just releasing already-idle resources.
   task_runner->PostTask([&] {
     cast_agent.reset();
     task_runner->RequestStopSoon();
