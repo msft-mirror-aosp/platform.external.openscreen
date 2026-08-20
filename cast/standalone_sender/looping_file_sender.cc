@@ -9,6 +9,9 @@
 #if defined(CAST_STANDALONE_SENDER_HAVE_LIBAOM)
 #include "cast/standalone_sender/streaming_av1_encoder.h"
 #endif
+#if defined(CAST_STANDALONE_SENDER_HAVE_FFMPEG)
+#include "cast/standalone_sender/streaming_ffmpeg_encoder.h"
+#endif
 #include "cast/standalone_sender/streaming_vpx_encoder.h"
 #include "platform/base/trivial_clock_traits.h"
 #include "util/osp_logging.h"
@@ -40,7 +43,9 @@ LoopingFileSender::LoopingFileSender(Environment& environment,
   }
   OSP_CHECK(senders.video_config.codec == VideoCodec::kVp8 ||
             senders.video_config.codec == VideoCodec::kVp9 ||
-            senders.video_config.codec == VideoCodec::kAv1);
+            senders.video_config.codec == VideoCodec::kAv1 ||
+            senders.video_config.codec == VideoCodec::kH264 ||
+            senders.video_config.codec == VideoCodec::kHevc);
   OSP_LOG_INFO << "Max allowed media bitrate (audio + video) will be "
                << settings_.max_bitrate;
   bandwidth_being_utilized_ = settings_.max_bitrate / 2;
@@ -324,9 +329,18 @@ std::unique_ptr<StreamingVideoEncoder> LoopingFileSender::CreateVideoEncoder(
                        "LibAOM not installed.";
       return nullptr;
 #endif
+    case VideoCodec::kH264:
+    case VideoCodec::kHevc:
+#if defined(CAST_STANDALONE_SENDER_HAVE_FFMPEG)
+      return std::make_unique<StreamingFfmpegEncoder>(params, task_runner,
+                                                      std::move(sender));
+#else
+      OSP_LOG_FATAL
+          << "H.264/HEVC codec selected, but could not be used because "
+             "FFmpeg not installed.";
+      return nullptr;
+#endif
     default:
-      // Since we only support VP8, VP9, and AV1, any other codec value here
-      // should be due only to developer error.
       OSP_LOG_ERROR << "Unsupported codec " << CodecToString(params.codec);
       OSP_NOTREACHED();
   }

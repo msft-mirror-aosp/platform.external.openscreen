@@ -25,8 +25,6 @@ using clock_operators::operator<<;
 
 namespace {
 
-constexpr int kBytesPerKilobyte = 1024;
-
 // Lower and upper bounds to the frame duration passed to vpx_codec_encode(), to
 // ensure sanity. Note that the upper-bound is especially important in cases
 // where the video paused for some lengthy amount of time.

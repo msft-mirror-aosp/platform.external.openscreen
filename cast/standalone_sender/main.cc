@@ -60,7 +60,7 @@ options:
           TV receivers. See https://crbug.com/631828.
 
     -c, --codec: Specifies the video codec to be used. Can be one of:
-                 vp8, vp9, av1. Defaults to vp8 if not specified.
+                 vp8, vp9, av1, h264, hevc. Defaults to vp8 if not specified.
 
     -d, --developer-certificate=path-to-cert
           Specifies the path to a self-signed developer certificate that will
@@ -118,8 +118,9 @@ IPEndpoint ParseAsEndpoint(const char* string_form) {
 
 std::optional<VideoCodec> ParseCodec(std::string_view arg) {
   // We can only support codecs that have a corresponding encoder library.
-  static constexpr std::array<VideoCodec, 3> kSupportedCodecs = {
-      {VideoCodec::kVp8, VideoCodec::kVp9, VideoCodec::kAv1}};
+  static constexpr std::array<VideoCodec, 5> kSupportedCodecs = {
+      {VideoCodec::kVp8, VideoCodec::kVp9, VideoCodec::kAv1, VideoCodec::kH264,
+       VideoCodec::kHevc}};
 
   const auto parsed = StringToVideoCodec(arg);
   if (!parsed || std::ranges::find(kSupportedCodecs, parsed.value()) ==

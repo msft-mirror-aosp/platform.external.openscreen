@@ -48,6 +48,9 @@ inline constexpr int kMaxUnackedFrames = 120;
 // The network must support a packet size of at least this many bytes.
 inline constexpr int kRequiredNetworkPacketSize = 256;
 
+// 1 kilobyte in bytes.
+inline constexpr int kBytesPerKilobyte = 1024;
+
 // The spec declares RTP timestamps must always have a timebase of 90000 ticks
 // per second for video.
 inline constexpr int kRtpVideoTimebase = 90000;
