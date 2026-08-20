@@ -50,6 +50,7 @@ class QuicConnectionFactoryServer : public QuicConnectionFactoryBase {
 
   virtual void SetServerDelegate(ServerDelegate* delegate,
                                  const std::vector<IPEndpoint>& endpoints);
+  virtual void Shutdown();
   ServerDelegate* server_delegate() { return server_delegate_; }
 
  private:

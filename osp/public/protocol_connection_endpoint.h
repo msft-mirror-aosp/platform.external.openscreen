@@ -36,19 +36,20 @@ class ProtocolConnectionEndpoint {
   virtual ~ProtocolConnectionEndpoint();
 
   // Returns false if GetState() != kStopped, otherwise returns true and the
-  // service will start.
+  // service will start. Must be called on the platform TaskRunner thread.
   virtual bool Start() = 0;
 
   // Returns false if GetState() != (kRunning|kSuspended), otherwise returns
-  // true and the service will stop.
+  // true and the service will stop. Must be called on the platform TaskRunner
+  // thread.
   virtual bool Stop() = 0;
 
   // Returns false if GetState() != kRunning, otherwise returns true and the
-  // service will suspend.
+  // service will suspend. Must be called on the platform TaskRunner thread.
   virtual bool Suspend() = 0;
 
   // Returns false if GetState() != kSuspended, otherwise retruns ture and the
-  // service will start again.
+  // service will start again. Must be called on the platform TaskRunner thread.
   virtual bool Resume() = 0;
 
   // Returns current state of the service.

@@ -562,9 +562,9 @@ void Controller::OnConnectionDestroyed(Connection* connection) {
 
 void Controller::BuildConnection(std::string_view instance_name) {
   std::string name(instance_name);
-  auto requset_entry = connect_requests_by_instance_name_.find(name);
-  if (requset_entry != connect_requests_by_instance_name_.end()) {
-    OSP_LOG_WARN << "There is alreay a request in progress for connecting to "
+  auto request_entry = connect_requests_by_instance_name_.find(name);
+  if (request_entry != connect_requests_by_instance_name_.end()) {
+    OSP_LOG_WARN << "There is already a request in progress for connecting to "
                  << instance_name;
     return;
   }

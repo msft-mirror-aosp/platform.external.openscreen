@@ -111,25 +111,28 @@ class ServicePublisher final {
 
   // Starts publishing this service using the config object.
   // Returns true if state() == kStopped and the service will be started, false
-  // otherwise.
+  // otherwise. Must be called on the platform TaskRunner thread.
   bool Start();
 
   // Starts publishing this service, but then immediately suspends the
   // publisher. No announcements will be sent until Resume() is called. Returns
   // true if state() == kStopped and the service will be started, false
-  // otherwise.
+  // otherwise. Must be called on the platform TaskRunner thread.
   bool StartAndSuspend();
 
   // Stops publishing this service.
-  // Returns true if state() != (kStopped|kStopping).
+  // Returns true if state() != (kStopped|kStopping). Must be called on the
+  // platform TaskRunner thread.
   bool Stop();
 
   // Suspends publishing, for example, if the service is in a power saving
   // mode. Returns true if state() == (kRunning|kStarting), meaning the
-  // suspension will take effect.
+  // suspension will take effect. Must be called on the platform TaskRunner
+  // thread.
   bool Suspend();
 
-  // Resumes publishing.  Returns true if state() == kSuspended.
+  // Resumes publishing.  Returns true if state() == kSuspended. Must be called
+  // on the platform TaskRunner thread.
   bool Resume();
 
   void AddObserver(Observer& observer);

@@ -58,3 +58,35 @@ Then `cat` them in separate terminals while the demo is running.
    presentation.
  - `msg <string>`: Sends a string message on the open presentation connection.
  - `term`: Terminate the running presentation.
+
+## Interactive Terminal UI
+
+For convenience, an interactive curses-based split-screen terminal UI wrapper is
+provided in `osp_demo_ui.py`. It automatically manages the named pipes (`FIFOs`)
+and displays logs in a scrolling top pane while providing an interactive command
+prompt in the bottom pane.
+
+Run Controller mode:
+``` bash
+$ python3 osp/demo/osp_demo_ui.py
+```
+
+Run Receiver mode:
+``` bash
+$ python3 osp/demo/osp_demo_ui.py DemoReceiver
+```
+
+Optional arguments:
+ - `-o, --out-dir`: Path to build output directory relative to repo root (e.g. `out/Default`).
+ - `-b, --binary`: Explicit path to `osp_demo` executable.
+
+## Testing & Verification
+
+Whenever modifying demo code or underlying OSP protocols, verify that demo startup
+and command handling pass the smoke test:
+
+``` bash
+$ python3 osp/demo/osp_demo_smoke_test.py [path/to/osp_demo]
+```
+If omitted, the test defaults to `./out/Default/osp_demo`.
+

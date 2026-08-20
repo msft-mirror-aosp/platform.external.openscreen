@@ -104,33 +104,36 @@ class ServiceListener final {
 
   // Starts listening for receivers using the config object.
   // Returns true if state() == kStopped and the service will be started, false
-  // otherwise.
+  // otherwise. Must be called on the platform TaskRunner thread.
   bool Start();
 
   // Starts the listener in kSuspended mode.  This could be used to enable
   // immediate search via SearchNow() in the future.
   // Returns true if state() == kStopped and the service will be started, false
-  // otherwise.
+  // otherwise. Must be called on the platform TaskRunner thread.
   bool StartAndSuspend();
 
   // Stops listening and cancels any search in progress.
-  // Returns true if state() != (kStopped|kStopping).
+  // Returns true if state() != (kStopped|kStopping). Must be called on the
+  // platform TaskRunner thread.
   bool Stop();
 
   // Suspends background listening. For example, the tab wanting receiver
   // availability might go in the background, meaning we can suspend listening
   // to save power.
   // Returns true if state() == (kRunning|kSearching|kStarting), meaning the
-  // suspension will take effect.
+  // suspension will take effect. Must be called on the platform TaskRunner
+  // thread.
   bool Suspend();
 
   // Resumes listening.  Returns true if state() == (kSuspended|kSearching).
+  // Must be called on the platform TaskRunner thread.
   bool Resume();
 
   // Asks the listener to search for receivers now, even if the listener is
   // is currently suspended.  If a background search is already in
   // progress, this has no effect.  Returns true if state() ==
-  // (kRunning|kSuspended).
+  // (kRunning|kSuspended). Must be called on the platform TaskRunner thread.
   bool SearchNow();
 
   void AddObserver(Observer& observer);

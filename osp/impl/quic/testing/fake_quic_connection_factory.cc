@@ -190,9 +190,14 @@ void FakeServerQuicConnectionFactory::SetServerDelegate(
   if (delegate) {
     OSP_CHECK_EQ(1u, endpoints.size())
         << "fake bridge doesn't support multiple server endpoints";
+    bridge_->SetServerDelegate(delegate, endpoints[0]);
+  } else {
+    Shutdown();
   }
-  bridge_->SetServerDelegate(delegate,
-                             endpoints.empty() ? IPEndpoint{} : endpoints[0]);
+}
+
+void FakeServerQuicConnectionFactory::Shutdown() {
+  bridge_->SetServerDelegate(nullptr, IPEndpoint{});
 }
 
 // No need to deal with this, because we don't maintain QuicConnection list

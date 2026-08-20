@@ -123,6 +123,7 @@ class FakeServerQuicConnectionFactory final
   // QuicConnectionFactoryServer overrides.
   void SetServerDelegate(ServerDelegate* delegate,
                          const std::vector<IPEndpoint>& endpoints) override;
+  void Shutdown() override;
   void OnConnectionClosed(QuicConnection* connection) override;
 
   bool idle() const { return idle_; }

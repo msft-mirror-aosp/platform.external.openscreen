@@ -32,10 +32,21 @@ QuicConnectionFactoryServer::QuicConnectionFactoryServer(
 
 QuicConnectionFactoryServer::~QuicConnectionFactoryServer() = default;
 
+void QuicConnectionFactoryServer::Shutdown() {
+  server_delegate_ = nullptr;
+  dispatchers_.clear();
+  crypto_server_config_.reset();
+}
+
 void QuicConnectionFactoryServer::SetServerDelegate(
     ServerDelegate* delegate,
     const std::vector<IPEndpoint>& endpoints) {
   OSP_CHECK(!delegate != !server_delegate_);
+
+  if (!delegate) {
+    Shutdown();
+    return;
+  }
 
   server_delegate_ = delegate;
   dispatchers_.reserve(dispatchers_.size() + endpoints.size());

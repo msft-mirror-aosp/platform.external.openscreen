@@ -47,7 +47,7 @@ bool QuicServer::Stop() {
   bool result = StopImpl();
   if (result) {
     static_cast<QuicConnectionFactoryServer*>(connection_factory_.get())
-        ->SetServerDelegate(nullptr, {});
+        ->Shutdown();
   }
   return result;
 }
