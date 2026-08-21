@@ -153,6 +153,9 @@ vars = {
   # this condition. Tracking bug for removing this condition: b/349365433
   'non_git_source': 'True',
 
+  # CPython 3 CIPD package version for Siso hermetic toolchain.
+  'cpython3_version': 'version:3@3.11.9.chromium.38',
+
   # This can be overridden, e.g. with custom_vars, to build clang from HEAD
   # instead of downloading the prebuilt pinned revision.
   'llvm_force_head_revision': False,
@@ -211,6 +214,30 @@ deps = {
     ],
     'dep_type': 'cipd',
     'condition': 'host_os == "win"',
+  },
+
+  # Always download Linux x64 package regardless of host OS for RBE workers.
+  'third_party/cpython3/linux-amd64': {
+    'packages': [
+      {
+        'package': 'infra/3pp/tools/cpython3/linux-amd64',
+        'version': Var('cpython3_version'),
+      },
+    ],
+    'condition': 'not build_with_chromium and non_git_source',
+    'dep_type': 'cipd',
+  },
+
+  # Host platform package.
+  'third_party/cpython3/host': {
+    'packages': [
+      {
+        'package': 'infra/3pp/tools/cpython3/${{platform}}',
+        'version': Var('cpython3_version'),
+      },
+    ],
+    'condition': 'not build_with_chromium and non_git_source',
+    'dep_type': 'cipd',
   },
 
   'third_party/ninja': {

@@ -10,6 +10,8 @@ gclient_args.gni
 *sysroot
 buildtools/
 clang-format
+/third_party/cpython3/host
+/third_party/cpython3/linux-amd64
 third_party/rust-toolchain/
 third_party/rust/
 tools/clang/scripts/update.py
