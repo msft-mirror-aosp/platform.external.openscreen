@@ -54,7 +54,7 @@ RECEIVER_BINARY_NAME = 'cast_receiver'
 EXPECTED_RECEIVER_MESSAGES = [
     'CastService is running.',
     'Found codec: opus (known to FFMPEG as opus)',
-    'Successfully negotiated a session, creating SDL players.',
+    'Successfully negotiated a session, creating players.',
 ]
 
 
