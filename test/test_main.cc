@@ -52,13 +52,11 @@ GlobalTestState InitFromArgs(int argc, char** argv) {
       {"tracing", no_argument, nullptr, 't'},
       {"verbose", no_argument, nullptr, 'v'},
       {"help", no_argument, nullptr, 'h'},
-      {"gtest_internal_run_death_test", required_argument, nullptr, 'd'},
-      {"gtest_filter", required_argument, nullptr, 'f'},
       {nullptr, 0, nullptr, 0}};
 
   GlobalTestState state;
   int ch = -1;
-  while ((ch = getopt_long(argc, argv, "tvhdf", kArgumentOptions, nullptr)) !=
+  while ((ch = getopt_long(argc, argv, "tvh", kArgumentOptions, nullptr)) !=
          -1) {
     switch (ch) {
 #ifdef ENABLE_TRACE_LOGGING
@@ -96,11 +94,17 @@ GlobalTestState InitFromArgs(int argc, char** argv) {
 // to provide a main implementation that supports setting flags and other
 // state that we want shared between all tests.
 int main(int argc, char** argv) {
+  // InitGoogleTest() strips its own recognized --gtest_* flags from argv in
+  // place, so it must run before InitFromArgs()'s getopt_long() pass below.
+  // Otherwise flags it doesn't know about (e.g. --gtest_list_tests) get
+  // misparsed as clusters of short options here, since getopt_long() doesn't
+  // treat an unrecognized "--long-option" as a no-op.
+  testing::InitGoogleTest(&argc, argv);
+
   auto state = InitFromArgs(argc, argv);
   if (!state.args_are_valid) {
     return 1;
   }
 
-  testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
