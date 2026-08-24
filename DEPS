@@ -47,7 +47,35 @@ vars = {
 
   # GN CIPD package version.
   'gn_version': 'git_revision:c5a0003bcc2ac3f8d128aaffd700def6068e9a76',
+
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling clang-format
+  # and whatever else without interference from each other.
   'clang_format_revision': '37f6e68a107df43b7d7e044fd36a13cbae3413f2',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling libprotobuf-mutator
+  # and whatever else without interference from each other.
+  'libprotobuf_mutator_revision': 'c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling googletest
+  # and whatever else without interference from each other.
+  'googletest_revision': 'eb2d85edd0bff7a712b6aff147cd9f789f0d7d0b',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling libfuzzer
+  # and whatever else without interference from each other.
+  'libfuzzer_revision': 'bea408a6e01f0f7e6c82a43121fe3af4506c932e',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling modp_b64
+  # and whatever else without interference from each other.
+  'modp_b64_revision': '7c1b3276e72757e854b5b642284aa367436a4723',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling perfetto
+  # and whatever else without interference from each other.
+  'perfetto_revision': '1d9994a93c6ada2fb261dc72984fa07683a6c86e',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling tinycbor
+  # and whatever else without interference from each other.
+  'tinycbor_revision': '9441b2ca882f95849c93de03f2c754196db13154',
 
   # Chrome version to pull clang update.py script from. This is necessary
   # because this script does experience breaking changes, such as removing
@@ -139,7 +167,7 @@ deps = {
   'third_party/libprotobuf-mutator/src': {
     'url': Var('chromium_git') +
       '/external/github.com/google/libprotobuf-mutator.git' +
-      '@' + 'c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90',
+      '@' + Var('libprotobuf_mutator_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -169,7 +197,7 @@ deps = {
   'third_party/googletest/src': {
     'url': Var('chromium_git') +
       '/external/github.com/google/googletest.git' +
-      '@' + 'eb2d85edd0bff7a712b6aff147cd9f789f0d7d0b',  # 2025-08-28
+      '@' + Var('googletest_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -198,7 +226,7 @@ deps = {
 
   'third_party/tinycbor/src':
     Var('chromium_git') + '/external/github.com/intel/tinycbor.git' +
-    '@' +  '9441b2ca882f95849c93de03f2c754196db13154',  # Version 0.7.0
+    '@' + Var('tinycbor_revision'),
 
   # Abseil recommends living at head; we take a revision from one of the LTS
   # tags.  Chromium has forked abseil for reasons and it seems to be rolled
@@ -213,7 +241,7 @@ deps = {
   'third_party/libfuzzer/src': {
     'url': Var('chromium_git') +
       '/external/github.com/llvm/llvm-project/compiler-rt/lib/fuzzer.git' +
-      '@' + 'bea408a6e01f0f7e6c82a43121fe3af4506c932e',
+      '@' + Var('libfuzzer_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -400,8 +428,8 @@ deps = {
   },
 
   'third_party/modp_b64': {
-    'url': Var('chromium_git') + '/chromium/src/third_party/modp_b64'
-    '@' + '7c1b3276e72757e854b5b642284aa367436a4723',  # 2024-11-18
+    'url': Var('chromium_git') + '/chromium/src/third_party/modp_b64' +
+      '@' + Var('modp_b64_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -418,7 +446,7 @@ deps = {
 
   'third_party/perfetto/src': {
     'url': Var('chromium_git') + '/external/github.com/google/perfetto.git' +
-      '@' + '1d9994a93c6ada2fb261dc72984fa07683a6c86e',
+      '@' + Var('perfetto_revision'),
     'condition': 'not build_with_chromium',
   },
 
