@@ -45,9 +45,22 @@ vars = {
   'checkout_configuration': 'default',
   'checkout_instrumented_libraries': 'checkout_linux and checkout_configuration == "default"',
 
-  # GN CIPD package version.
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling gn
+  # and whatever else without interference from each other.
   'gn_version': 'git_revision:58933a7cdbc90f70f2381f0c72e76d29be1d43a9',
-
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling ninja
+  # and whatever else without interference from each other.
+  'ninja_version': 'version:2@1.12.1.chromium.4',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling buildtools
+  # and whatever else without interference from each other.
+  'buildtools_revision': '4277578aa9c45906e51ad33cac1a5a7ad5288010',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling build
+  # and whatever else without interference from each other.
+  'build_revision': '034cc53eb28fdbcceb4dc1fa9d218d1d7d35c651',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clang-format
   # and whatever else without interference from each other.
@@ -57,29 +70,77 @@ vars = {
   # and whatever else without interference from each other.
   'libprotobuf_mutator_revision': 'c1c950eae0440c3808f2b8bd7c57d0c6a42c1a90',
   # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling zlib
+  # and whatever else without interference from each other.
+  'zlib_revision': '51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling jsoncpp
+  # and whatever else without interference from each other.
+  'jsoncpp_revision': '9af09c4a4abe5928d1f7a6e7ec1c73a565bb362e',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling pybind11
+  # and whatever else without interference from each other.
+  'pybind11_revision': 'd03662f0984f652b60e7ddce53d3868002275197',
+  # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling googletest
   # and whatever else without interference from each other.
   'googletest_revision': 'eb2d85edd0bff7a712b6aff147cd9f789f0d7d0b',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling boringssl
+  # and whatever else without interference from each other.
+  'boringssl_revision': '26e8a8acb91a0cfbd2f95bf7245e2eb87d533a2f',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling quiche
+  # and whatever else without interference from each other.
+  'quiche_revision': 'b8a4aa531a029737bcd741f85314e89775b923b2',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling instrumented_libs
+  # and whatever else without interference from each other.
+  'instrumented_libs_revision': 'd15c278eed5d38d9acf2d8054cf37baba93cef8e',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling tinycbor
+  # and whatever else without interference from each other.
+  'tinycbor_revision': '49d3a238cf4b7b7ff8cba1836803af60ca9c7dc5',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling abseil
+  # and whatever else without interference from each other.
+  'abseil_revision': '1fc748ff47859c3a041b9c2d7cfa5dfb22ae4ec6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libfuzzer
   # and whatever else without interference from each other.
   'libfuzzer_revision': 'bea408a6e01f0f7e6c82a43121fe3af4506c932e',
   # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling libc++
+  # and whatever else without interference from each other.
+  'libcxx_revision': '97b436da4c33663581d394f4ee0a5977fc38c2f4',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling libc++abi
+  # and whatever else without interference from each other.
+  'libcxxabi_revision': 'fc1897a2c12aa27e703c3ed48b62eba8abf4ce19',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling llvm-libc
+  # and whatever else without interference from each other.
+  'llvm_libc_revision': '9da4c296d17f1fdddbef1bafc70a618e6228cc6b',
+  # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling modp_b64
   # and whatever else without interference from each other.
   'modp_b64_revision': '7c1b3276e72757e854b5b642284aa367436a4723',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling googleurl
+  # and whatever else without interference from each other.
+  'googleurl_revision': '94ff147fe0b96b4cca5d6d316b9af6210c0b8051',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling perfetto
   # and whatever else without interference from each other.
   'perfetto_revision': '1d9994a93c6ada2fb261dc72984fa07683a6c86e',
   # Three lines of non-changing comments so that
-  # the commit queue can handle CLs rolling tinycbor
+  # the commit queue can handle CLs rolling rust
   # and whatever else without interference from each other.
-  'tinycbor_revision': '49d3a238cf4b7b7ff8cba1836803af60ca9c7dc5',
+  'rust_revision': '9200834b7dde809b652b9f0d4561c2bc0e9067c8',
 
-  # Chrome version to pull clang update.py script from. This is necessary
-  # because this script does experience breaking changes, such as removing
-  # command line arguments, that need to be handled intentionally by a roll.
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling clang update.py
+  # and whatever else without interference from each other.
   'chrome_version': '02efa700fe6ba2c66553083b86a1dc8abd7010d9',
 
   # 'magic' text to tell depot_tools that git submodules should be accepted
@@ -104,14 +165,14 @@ deps = {
   # IMPORTANT: Read the instructions at docs/roll_deps.md
   'buildtools': {
     'url': Var('chromium_git') + '/chromium/src/buildtools' +
-      '@' + '4277578aa9c45906e51ad33cac1a5a7ad5288010',
+      '@' + Var('buildtools_revision'),
   },
 
   # A mirror of the corresponding folder in Chromium maintained here:
   # https://chromium.googlesource.com/chromium/src/build/+/refs/heads/main
   'build': {
     'url': Var('chromium_git') + '/chromium/src/build' +
-      '@' + '034cc53eb28fdbcceb4dc1fa9d218d1d7d35c651',
+      '@' + Var('build_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -157,7 +218,7 @@ deps = {
       # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/ninja
       {
         'package': 'infra/3pp/tools/ninja/${{platform}}',
-        'version': 'version:2@1.12.1.chromium.4',
+        'version': Var('ninja_version'),
       }
     ],
     'dep_type': 'cipd',
@@ -174,21 +235,21 @@ deps = {
   'third_party/zlib/src': {
     'url': Var('github') +
       '/madler/zlib.git' +
-      '@' + '51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf', # version 1.3.1
+      '@' + Var('zlib_revision'), # version 1.3.1
     'condition': 'not build_with_chromium',
   },
 
   'third_party/jsoncpp/src': {
     'url': Var('chromium_git') +
       '/external/github.com/open-source-parsers/jsoncpp.git' +
-      '@' + '9af09c4a4abe5928d1f7a6e7ec1c73a565bb362e',
+      '@' + Var('jsoncpp_revision'),
     'condition': 'not build_with_chromium',
   },
 
   'third_party/pybind11/src': {
     'url': Var('github') +
       '/pybind/pybind11.git' +
-      '@' + 'd03662f0984f652b60e7ddce53d3868002275197', # 3.0.4
+      '@' + Var('pybind11_revision'), # 3.0.4
     'condition': 'not build_with_chromium',
   },
 
@@ -205,7 +266,7 @@ deps = {
   # `Revision:` field when updating this dependency.
   'third_party/boringssl/src': {
     'url' : Var('boringssl_git') + '/boringssl.git' +
-      '@' + '26e8a8acb91a0cfbd2f95bf7245e2eb87d533a2f',
+      '@' + Var('boringssl_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -214,13 +275,13 @@ deps = {
   # maintainers may be needed for some breaking changes.
   'third_party/quiche/src': {
     'url': Var('quiche_git') + '/quiche.git' +
-      '@' + 'b8a4aa531a029737bcd741f85314e89775b923b2',  # 2026-05-07
+      '@' + Var('quiche_revision'),  # 2026-05-07
     'condition': 'not build_with_chromium',
   },
 
   'third_party/instrumented_libs': {
     'url': Var('chromium_git') + '/chromium/third_party/instrumented_libraries.git' +
-      '@' + 'd15c278eed5d38d9acf2d8054cf37baba93cef8e',
+      '@' + Var('instrumented_libs_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -234,7 +295,7 @@ deps = {
   'third_party/abseil/src': {
     'url': Var('chromium_git') +
       '/external/github.com/abseil/abseil-cpp.git' + '@' +
-      '1fc748ff47859c3a041b9c2d7cfa5dfb22ae4ec6',
+      Var('abseil_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -248,14 +309,14 @@ deps = {
   # IMPORTANT: Read the instructions at docs/roll_deps.md
   'third_party/libc++/src': {
     'url': Var('chromium_git') +
-    '/external/github.com/llvm/llvm-project/libcxx.git' + '@' + '97b436da4c33663581d394f4ee0a5977fc38c2f4',
+    '/external/github.com/llvm/llvm-project/libcxx.git' + '@' + Var('libcxx_revision'),
     'condition': 'not build_with_chromium',
   },
 
   # IMPORTANT: Read the instructions at docs/roll_deps.md
   'third_party/libc++abi/src': {
     'url': Var('chromium_git') +
-    '/external/github.com/llvm/llvm-project/libcxxabi.git' + '@' + 'fc1897a2c12aa27e703c3ed48b62eba8abf4ce19',
+    '/external/github.com/llvm/llvm-project/libcxxabi.git' + '@' + Var('libcxxabi_revision'),
     'condition': 'not build_with_chromium',
   },
   'third_party/llvm-build/Release+Asserts': {
@@ -429,7 +490,7 @@ deps = {
 
   'third_party/llvm-libc/src': {
     'url': Var('chromium_git') +
-      '/external/github.com/llvm/llvm-project/libc.git' + '@' + '9da4c296d17f1fdddbef1bafc70a618e6228cc6b',
+      '/external/github.com/llvm/llvm-project/libc.git' + '@' + Var('llvm_libc_revision'),
     'condition': 'not build_with_chromium',
   },
 
@@ -446,7 +507,7 @@ deps = {
   # `Revision:` field when updating this dependency.
   'third_party/googleurl/src': {
     'url': Var('quiche_git') + '/googleurl.git' +
-      '@' + '94ff147fe0b96b4cca5d6d316b9af6210c0b8051',  #2025-11-11
+      '@' + Var('googleurl_revision'),  #2025-11-11
     'condition': 'not build_with_chromium',
   },
 
@@ -458,7 +519,7 @@ deps = {
 
   'third_party/rust': {
     'url': Var('chromium_git') + '/chromium/src/third_party/rust' +
-      '@' + '9200834b7dde809b652b9f0d4561c2bc0e9067c8',
+      '@' + Var('rust_revision'),
     'condition': 'not build_with_chromium',
   },
 }
