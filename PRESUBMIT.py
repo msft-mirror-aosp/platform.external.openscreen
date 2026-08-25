@@ -33,9 +33,9 @@ import licenses  # pylint: disable=wrong-import-position
 
 
 class _LicensesArgs:
-    extra_third_party_dirs = None
-    extra_allowed_dirs = None
-    exclude_dirs = None
+    extra_third_party_dirs = []
+    extra_allowed_dirs = []
+    exclude_dirs = []
     scan_root = _REPO_PATH
     target_os = None
     gn_out_dir = None
@@ -63,6 +63,7 @@ def _check_licenses(input_api, output_api):
         os.path.join('third_party', 'perfetto', 'src', 'protos',
                      'third_party'),
         os.path.join('third_party', 'protobuf', 'third_party'),
+        os.path.join('third_party', 'rust'),
     ])
 
     if any(s.LocalPath().startswith('third_party')

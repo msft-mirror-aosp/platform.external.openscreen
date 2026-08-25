@@ -79,8 +79,8 @@ static_library("protobuf_lite") {
   # Remove coverage and Sanitizers other than ASan for a performance boost when
   # fuzzing. ASan can't be removed here because of a bug preventing unsanitized
   # code from using libc++, which protobuf_full uses.
-  configs -= not_fuzzed_remove_nonasan_configs
-  configs += [ "//build/config/sanitizers:not_fuzzed" ]
+  configs -= not_fuzzed_remove_configs
+  configs += not_fuzzed_needs_asan_add_configs
 
   if (is_win) {
     configs -= [ "//build/config/win:lean_and_mean" ]
@@ -128,8 +128,8 @@ static_library("protobuf_full") {
       "//gpu:gl_lpm_shader_to_string_unittest",
       "//third_party/sqlite:sqlite3_lpm_corpus_gen",
 
-      # The protobuf-based Mojo LPM fuzzer needs protobuf_full and is not included
-      # in Chrome.
+      # The protobuf-based Mojo LPM fuzzer needs protobuf_full and is not
+      # included in Chrome.
       "//mojo/public/tools/fuzzers:mojolpm",
 
       # The root store tool is not part of Chrome itself, and needs to parse
@@ -184,8 +184,8 @@ static_library("protobuf_full") {
   # Remove coverage and Sanitizers other than ASan for a performance boost when
   # fuzzing. ASan can't be removed here because of a bug preventing unsanitized
   # code from using libc++, which protobuf_full uses.
-  configs -= not_fuzzed_remove_nonasan_configs
-  configs += [ "//build/config/sanitizers:not_fuzzed" ]
+  configs -= not_fuzzed_remove_configs
+  configs += not_fuzzed_needs_asan_add_configs
 
   if (is_win) {
     configs -= [ "//build/config/win:lean_and_mean" ]
@@ -358,8 +358,9 @@ group("py_proto") {
   ]
 }
 
-# Note: This exists for Cronet in AOSP where we can't import prebuilts. We import
-# the raw sources and compile them using a specialized pipeline. See crbug.com/419480317.
+# Note: This exists for Cronet in AOSP where we can't import prebuilts. We
+# import the raw sources and compile them using a specialized pipeline. See
+# crbug.com/419480317.
 if (is_android && is_cronet_for_aosp_build) {
   android_library("proto_runtime_lite_java") {
     sources = javaproto_sources

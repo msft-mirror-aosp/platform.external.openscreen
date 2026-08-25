@@ -44,8 +44,6 @@ if (build_with_chromium) {
   source_set("internal") {
     sources = [
       "src/absl/base/internal/atomic_hook.h",
-      "src/absl/base/internal/inline_variable.h",
-      "src/absl/base/internal/invoke.h",
       "src/absl/base/internal/raw_logging.cc",
       "src/absl/base/internal/raw_logging.h",
       "src/absl/container/internal/common.h",
@@ -128,6 +126,8 @@ if (build_with_chromium) {
 
   source_set("abseil_quiche_and_protobuf_internal") {
     sources = [
+      "src/absl/base/internal/cpu_detect.cc",
+      "src/absl/base/internal/cpu_detect.h",
       "src/absl/base/internal/cycleclock.cc",
       "src/absl/base/internal/cycleclock.h",
       "src/absl/base/internal/low_level_alloc.cc",
@@ -149,8 +149,6 @@ if (build_with_chromium) {
       "src/absl/container/internal/hashtablez_sampler_force_weak_definition.cc",
       "src/absl/container/internal/raw_hash_set.cc",
       "src/absl/container/internal/raw_hash_set.h",
-      "src/absl/crc/internal/cpu_detect.cc",
-      "src/absl/crc/internal/cpu_detect.h",
       "src/absl/crc/internal/crc.cc",
       "src/absl/crc/internal/crc.h",
       "src/absl/crc/internal/crc_cord_state.cc",
@@ -230,7 +228,6 @@ if (build_with_chromium) {
       "src/absl/strings/internal/cord_rep_consume.h",
       "src/absl/strings/internal/cord_rep_crc.cc",
       "src/absl/strings/internal/cord_rep_crc.h",
-      "src/absl/strings/internal/cord_rep_ring.h",
       "src/absl/strings/internal/cordz_functions.cc",
       "src/absl/strings/internal/cordz_functions.h",
       "src/absl/strings/internal/cordz_handle.cc",

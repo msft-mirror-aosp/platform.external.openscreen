@@ -10,15 +10,30 @@ as a gclient hook.
 """
 
 import argparse
-import curlish
+import base64
 import os
 import sys
+import urllib.request
+import urllib.error
 
-URL_TEMPLATE = 'https://raw.githubusercontent.com/chromium/chromium/{}/{}'
+GITILES_URL_TEMPLATE = 'https://chromium.googlesource.com/chromium/src/+/{}/{}?format=TEXT'
 
 
-def get_url(revision, path):
-    return URL_TEMPLATE.format(revision or "main", path)
+def download_file(revision: str, path: str, output_path: str) -> bool:
+    url = GITILES_URL_TEMPLATE.format(revision or 'main', path)
+    print(f'  -> Downloading from "{url}" to "{output_path}"...')
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            content = base64.b64decode(resp.read())
+        dir_path = os.path.dirname(os.path.abspath(output_path))
+        os.makedirs(dir_path, exist_ok=True)
+        with open(output_path, 'wb') as f:
+            f.write(content)
+        return True
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        print(f'ERROR: Failed to download {url}: {e}', file=sys.stderr)
+        return False
 
 
 def main():
@@ -35,10 +50,7 @@ def main():
                         help='path within the Chromium repository')
     args = parser.parse_args()
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-
-    return 0 if curlish.curlish(get_url(args.revision, args.path),
-                                args.output) else 1
+    return 0 if download_file(args.revision, args.path, args.output) else 1
 
 
 if __name__ == '__main__':
