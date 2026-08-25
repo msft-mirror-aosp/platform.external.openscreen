@@ -42,8 +42,8 @@ class CastSenderBridge {
   // `file_path`: Absolute local path to the video container.
   // `remote_transport_id`: Destination receiver transport ID. When non-empty,
   //                        bypasses receiver app LAUNCH and routes directly.
-  // `session_id`: Pre-launched receiver app session ID. Used for clean STOP.
-  // `codec_name`: Supported video encoder codec string.
+  // `codec_name`: Supported video encoder codec string (e.g. vp8, vp9, av1,
+  //               h264, hevc).
   // `max_bitrate`: Peak aggregate bitrate (audio + video) across RTP streams.
   // `should_include_audio`: If false, negotiates a video-only mirroring
   // session.

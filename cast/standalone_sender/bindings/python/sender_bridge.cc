@@ -61,11 +61,35 @@ bool CastSenderBridge::StreamVideo(const StreamConfig& config, bool is_debug) {
     return false;
   }
 
+  // Return false if vp8/vp9 codec is requested but LibVPX is not supported
+#if !defined(CAST_STANDALONE_SENDER_HAVE_LIBVPX)
+  if (parsed_codec.value() == VideoCodec::kVp8 ||
+      parsed_codec.value() == VideoCodec::kVp9) {
+    OSP_LOG_ERROR
+        << "VP8/VP9 codec requested but LibVPX is not installed in this build.";
+    std::lock_guard<std::mutex> lock(mutex_);
+    state_ = State::kInitializing;
+    return false;
+  }
+#endif
+
   // Return false if av1 codec is requested but not supported
 #if !defined(CAST_STANDALONE_SENDER_HAVE_LIBAOM)
   if (parsed_codec.value() == VideoCodec::kAv1) {
     OSP_LOG_ERROR
         << "AV1 codec requested but LibAOM is not installed in this build.";
+    std::lock_guard<std::mutex> lock(mutex_);
+    state_ = State::kInitializing;
+    return false;
+  }
+#endif
+
+  // Return false if h264/hevc codec is requested but FFmpeg is not supported
+#if !defined(CAST_STANDALONE_SENDER_HAVE_FFMPEG)
+  if (parsed_codec.value() == VideoCodec::kH264 ||
+      parsed_codec.value() == VideoCodec::kHevc) {
+    OSP_LOG_ERROR << "H264/HEVC codec requested but FFmpeg is not installed in "
+                     "this build.";
     std::lock_guard<std::mutex> lock(mutex_);
     state_ = State::kInitializing;
     return false;

@@ -6,7 +6,9 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
+#include "cast/standalone_sender/bindings/python/cast_runtime.h"
 #include "gtest/gtest.h"
 #include "platform/test/fake_clock.h"
 #include "platform/test/fake_task_runner.h"
@@ -39,8 +41,36 @@ TEST_F(SenderBridgeTest, StreamVideoFailsOnInvalidCodec) {
   CastSenderBridge::StreamConfig config;
   config.file_path = "test.mp4";
   config.codec_name = "invalid_codec";
-
   EXPECT_FALSE(bridge_.StreamVideo(config, /*is_debug=*/false));
+
+  // Verify non-standard h265 alias is rejected in favor of standard hevc.
+  config.codec_name = "h265";
+  EXPECT_FALSE(bridge_.StreamVideo(config, /*is_debug=*/false));
+}
+
+TEST_F(SenderBridgeTest, StreamVideoAcceptsAllSupportedCodecs) {
+  CastRuntime runtime;
+  const std::vector<std::string> kCodecs = {
+#if defined(CAST_STANDALONE_SENDER_HAVE_LIBVPX)
+      "vp8",  "vp9",
+#endif
+#if defined(CAST_STANDALONE_SENDER_HAVE_LIBAOM)
+      "av1",
+#endif
+#if defined(CAST_STANDALONE_SENDER_HAVE_FFMPEG)
+      "h264", "hevc",
+#endif
+  };
+
+  for (const auto& codec : kCodecs) {
+    CastSenderBridge bridge(runtime.task_runner(),
+                            IPAddress::Parse("127.0.0.1").value(), 8009, "");
+    CastSenderBridge::StreamConfig config;
+    config.file_path = "test.mp4";
+    config.codec_name = codec;
+    EXPECT_TRUE(bridge.StreamVideo(config, /*is_debug=*/false))
+        << "Failed for codec: " << codec;
+  }
 }
 
 TEST_F(SenderBridgeTest, TeardownSafeWhenNotStreaming) {

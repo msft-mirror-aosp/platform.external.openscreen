@@ -64,12 +64,16 @@ class VideoCodec(IntEnum):
     VP8 = 0
     VP9 = 1
     AV1 = 2
+    H264 = 3
+    HEVC = 4
 
 
 VIDEO_CODEC_SPECIFIC_RECEIVER_MESSAGES = [
     'Found codec: vp8 (known to FFMPEG as vp8)',
     'Found codec: vp9 (known to FFMPEG as vp9)',
     'Found codec: libaom-av1 (known to FFMPEG as av1)',
+    'Found codec: h264 (known to FFMPEG as h264)',
+    'Found codec: hevc (known to FFMPEG as hevc)',
 ]
 
 EXPECTED_SENDER_MESSAGES = [
@@ -289,9 +293,12 @@ class StandaloneCastTest(unittest.TestCase):
                 command.append('vp8')
             elif codec == VideoCodec.VP9:
                 command.append('vp9')
-            else:
-                self.assertTrue(codec == VideoCodec.AV1)
+            elif codec == VideoCodec.AV1:
                 command.append('av1')
+            elif codec == VideoCodec.H264:
+                command.append('h264')
+            elif codec == VideoCodec.HEVC:
+                command.append('hevc')
 
         # pylint: disable = consider-using-with
         return subprocess.Popen(command,
@@ -422,6 +429,16 @@ class StandaloneCastTest(unittest.TestCase):
         """Tests that the AV1 flag works with standard settings."""
         output = self.get_output([], VideoCodec.AV1)
         self.check_logs(output, VideoCodec.AV1)
+
+    def test_h264_flag(self):
+        """Tests that the H264 flag works with standard settings."""
+        output = self.get_output([], VideoCodec.H264)
+        self.check_logs(output, VideoCodec.H264)
+
+    def test_hevc_flag(self):
+        """Tests that the HEVC flag works with standard settings."""
+        output = self.get_output([], VideoCodec.HEVC)
+        self.check_logs(output, VideoCodec.HEVC)
 
 
 def _parse_args():
