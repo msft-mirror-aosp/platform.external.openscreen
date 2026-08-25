@@ -75,7 +75,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling tinycbor
   # and whatever else without interference from each other.
-  'tinycbor_revision': '9441b2ca882f95849c93de03f2c754196db13154',
+  'tinycbor_revision': '49d3a238cf4b7b7ff8cba1836803af60ca9c7dc5',
 
   # Chrome version to pull clang update.py script from. This is necessary
   # because this script does experience breaking changes, such as removing

@@ -4,10 +4,10 @@ URL: https://chromium.googlesource.com/external/github.com/intel/tinycbor.git
 License: MIT
 License File: LICENSE
 Security Critical: yes
-Update Mechanism: Manual
+Update Mechanism: Autoroll
 Shipped: yes
-Version: 0.7.0
-Revision: d393c16f3eb30d0c47e6f9d92db62272f0ec4dc7
+Version: N/A
+Revision: 49d3a238cf4b7b7ff8cba1836803af60ca9c7dc5
 
 Description:
 This directory contains the source code of TinyCBOR, which is a binary object
