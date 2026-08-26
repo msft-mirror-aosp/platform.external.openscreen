@@ -79,13 +79,6 @@ to start your `cast_receiver` binary. That should look something like this:
 Pay attention to the command output as it runs -- it should prompt with any
 breaking errors.
 
-### Note on discovery and macOS
-
-Currently, the discovery component only works on Linux, as we have not written
-a Bonjour integration for macOS. When running the `cast_receiver` on macOS,
-you must disable mDNS using the `-x` flag. Note that this means that you
-**cannot connect to `cast_receiver` instances on macOS using discovery**.
-
 ## 5. Connecting with a libcast sender
 
 ### 5a. Option 1: Using the discovery component
@@ -145,13 +138,12 @@ occur in these environments.
 Also, sometimes you just wanna test the Open Screen receiver and make sure all
 of the flows are working.
 
-### Warning: **Linux required ahead**
+### Note: Windows is not yet supported
 
-You **must be running the cast receiver on a Linux device**. The libcast
-standalone receiver does not have the ability to do discovery on macOS due to
-the discovery code not being configured to work with Bonjour (yet). Other
-platforms, like Windows, have the potential for support in the future but are
-currently missing dependencies.
+The `cast_receiver` and `cast_sender` binaries currently build and run on
+Linux and macOS only. Windows has the potential for support in the future,
+but is currently missing platform-layer dependencies (e.g. network interface
+enumeration and socket support in `platform/`).
 
 ### Connecting with Chrome
 
