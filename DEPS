@@ -124,7 +124,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling modp_b64
   # and whatever else without interference from each other.
-  'modp_b64_revision': '7c1b3276e72757e854b5b642284aa367436a4723',
+  'modp_b64_revision': '50685101d51ef9aabbd60c94f52d9e026d39c509',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling googleurl
   # and whatever else without interference from each other.
