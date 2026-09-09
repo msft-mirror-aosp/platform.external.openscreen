@@ -191,6 +191,15 @@ def assemble_gn_args(args):
             gn_args_list.append("{}={}".format(k, v))
     return gn_args_list
 
+DEFAULT_BUILD_TARGETS = [
+    "gn_all",
+    "openscreen_unittests",
+    "e2e_tests",
+    "fuzzer_tests_all",
+    "cast_sender",
+    "cast_receiver",
+]
+
 def get_properties(
         target_cpu,
         is_debug = True,
@@ -203,7 +212,8 @@ def get_properties(
         chromium = False,
         is_presubmit = False,
         is_component_build = None,
-        is_ci = None):
+        is_ci = None,
+        build_targets = DEFAULT_BUILD_TARGETS):
     """Property generator method, used to configure the build system.
 
     Args:
@@ -221,6 +231,7 @@ def get_properties(
       is_presubmit: if True, this is a presubmit run.
       is_component_build: if set, enables or disables component builds.
       is_ci: If set, it adds is_ci flag to the properties.
+      build_targets: A list of build targets to compile with ninja.
 
     Returns:
         A collection of properties for the build system.
@@ -252,6 +263,9 @@ def get_properties(
         properties["repo_name"] = "openscreen"
         properties["runhooks"] = "true"
         return properties
+
+    if build_targets != None:
+        properties["build_targets"] = build_targets
 
     # Open Screen standalone builders pass GN arguments as a list of strings.
     gn_args_dict = {
@@ -479,7 +493,7 @@ try_and_ci_builders(
     "win_x64",
     WINDOWS_VERSION,
     "x86-64",
-    get_properties("x64"),
+    get_properties("x64", build_targets = ["gn_all"]),
 )
 try_and_ci_builders(
     "chromium_linux_x64",

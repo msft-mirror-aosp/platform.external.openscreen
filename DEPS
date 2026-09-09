@@ -591,6 +591,13 @@ hooks = [
     'action': [ 'python3', 'tools/rust/update_rust.py' ],
   },
   {
+    # Update the Windows toolchain if necessary.
+    'name': 'win_toolchain',
+    'pattern': '.',
+    'condition': 'checkout_win and not build_with_chromium',
+    'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
+  },
+  {
     'name': 'licenses_script',
     'pattern': '.',
     'condition': 'not build_with_chromium',
@@ -616,6 +623,14 @@ hooks = [
                 '--revision', Var('chrome_version'),
                 '--path', 'tools/protoc_wrapper/protoc_wrapper.py',
                 '--output', 'tools/protoc_wrapper/protoc_wrapper.py' ],
+  },
+  {
+    # Update LASTCHANGE.
+    'name': 'lastchange',
+    'pattern': '.',
+    'condition': 'checkout_win and not build_with_chromium',
+    'action': ['python3', 'tools/lastchange.py',
+               '-o', 'build/util/LASTCHANGE'],
   },
 ]
 

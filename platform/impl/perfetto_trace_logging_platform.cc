@@ -4,8 +4,12 @@
 
 #include "platform/impl/perfetto_trace_logging_platform.h"
 
-#include <fcntl.h>
+#if defined(_WIN32)
+#include <process.h>
+#define getpid _getpid
+#else
 #include <unistd.h>
+#endif
 
 #include <chrono>
 #include <fstream>

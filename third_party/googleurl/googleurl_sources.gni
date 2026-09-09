@@ -140,8 +140,6 @@ googleurl_sources = [
 googleurl_sources_win = [
   "src/base/strings/strcat_win.cc",
   "src/base/strings/strcat_win.h",
-  "src/base/strings/string_number_conversions_win.cc",
-  "src/base/strings/string_number_conversions_win.h",
   "src/base/strings/string_split_win.cc",
   "src/base/strings/string_split_win.h",
   "src/base/strings/string_util_win.cc",

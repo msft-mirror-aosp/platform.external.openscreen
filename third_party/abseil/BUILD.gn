@@ -267,6 +267,13 @@ if (build_with_chromium) {
       "src/absl/synchronization/internal/waiter_base.h",
     ]
 
+    if (is_win) {
+      sources += [
+        "src/absl/synchronization/internal/win32_waiter.cc",
+        "src/absl/synchronization/internal/win32_waiter.h",
+      ]
+    }
+
     deps = [ ":abseil" ]
     public_configs = [ ":abseil_config" ]
     configs += [ ":private_abseil_quiche_and_protobuf_config" ]
@@ -305,6 +312,14 @@ if (build_with_chromium) {
       "src/absl/time/internal/cctz/src/time_zone_posix.h",
       "src/absl/time/internal/cctz/src/zone_info_source.cc",
     ]
+
+    if (is_win) {
+      sources += [
+        "src/absl/time/internal/cctz/src/time_zone_name_win.cc",
+        "src/absl/time/internal/cctz/src/time_zone_name_win.h",
+      ]
+    }
+
     deps = [ ":abseil" ]
     public_configs = [ ":abseil_config" ]
     configs += [

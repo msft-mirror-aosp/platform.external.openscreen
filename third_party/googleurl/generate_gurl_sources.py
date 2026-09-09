@@ -14,6 +14,8 @@ EXCLUDED_FILES = [
     "src/url/origin.cc",
     "src/base/strings/abseil_string_number_conversions.cc",
     "src/base/strings/string_number_conversions.cc",
+    "src/base/strings/string_number_conversions_win.cc",
+    "src/base/strings/string_number_conversions_win.h",
     "src/base/strings/safe_sprintf.cc",
     "src/base/strings/stringprintf.cc",
     "src/base/strings/to_string.cc",
