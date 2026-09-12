@@ -68,7 +68,8 @@ class CastAppDiscoveryServiceImplTest : public ::testing::Test {
     *sender_id = "";
     EXPECT_CALL(peer_client(), OnMessage(_, _))
         .WillOnce([request_id, sender_id](CastSocket*, CastMessage message) {
-          VerifyAppAvailabilityRequest(message, "AAA", request_id, sender_id);
+          VerifyAppAvailabilityRequest(message, "AAAAAAAA", request_id,
+                                       sender_id);
         });
 
     AddOrUpdateReceiver(receiver_, socket_id_);
@@ -86,9 +87,9 @@ class CastAppDiscoveryServiceImplTest : public ::testing::Test {
   CastAppDiscoveryServiceImpl app_discovery_service_{platform_client_,
                                                      &FakeClock::now};
 
-  CastMediaSource source_a_1_{"cast:AAA?clientId=1", {"AAA"}};
-  CastMediaSource source_a_2_{"cast:AAA?clientId=2", {"AAA"}};
-  CastMediaSource source_b_1_{"cast:BBB?clientId=1", {"BBB"}};
+  CastMediaSource source_a_1_{"cast:AAAAAAAA?clientId=1", {"AAAAAAAA"}};
+  CastMediaSource source_a_2_{"cast:AAAAAAAA?clientId=2", {"AAAAAAAA"}};
+  CastMediaSource source_b_1_{"cast:BBBBBBBB?clientId=1", {"BBBBBBBB"}};
 
   ReceiverInfo receiver_;
 };
@@ -105,7 +106,7 @@ TEST_F(CastAppDiscoveryServiceImplTest, StartObservingAvailability) {
   auto subscription2 = StartObservingAvailability(source_a_2_, &receivers2);
 
   CastMessage availability_response =
-      CreateAppAvailableResponseChecked(request_id, sender_id, "AAA");
+      CreateAppAvailableResponseChecked(request_id, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   ASSERT_EQ(receivers1.size(), 1u);
   ASSERT_EQ(receivers2.size(), 1u);
@@ -128,7 +129,7 @@ TEST_F(CastAppDiscoveryServiceImplTest, ReAddAvailQueryUsesCachedValue) {
   auto subscription1 = StartSourceA1Query(&receivers1, &request_id, &sender_id);
 
   CastMessage availability_response =
-      CreateAppAvailableResponseChecked(request_id, sender_id, "AAA");
+      CreateAppAvailableResponseChecked(request_id, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   ASSERT_EQ(receivers1.size(), 1u);
   EXPECT_EQ(receivers1[0].unique_id, "receiverId1");
@@ -151,7 +152,7 @@ TEST_F(CastAppDiscoveryServiceImplTest, AvailQueryUpdatedOnReceiverUpdate) {
 
   // Result set now includes `receiver_`.
   CastMessage availability_response =
-      CreateAppAvailableResponseChecked(request_id, sender_id, "AAA");
+      CreateAppAvailableResponseChecked(request_id, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   ASSERT_EQ(receivers1.size(), 1u);
   EXPECT_EQ(receivers1[0].unique_id, "receiverId1");
@@ -185,10 +186,10 @@ TEST_F(CastAppDiscoveryServiceImplTest, Refresh) {
         std::string app_id;
         int request_id = -1;
         VerifyAppAvailabilityRequest(message, &app_id, &request_id, &sender_id);
-        if (app_id == "AAA") {
+        if (app_id == "AAAAAAAA") {
           EXPECT_EQ(request_idA, -1);
           request_idA = request_id;
-        } else if (app_id == "BBB") {
+        } else if (app_id == "BBBBBBBB") {
           EXPECT_EQ(request_idB, -1);
           request_idB = request_id;
         } else {
@@ -199,10 +200,10 @@ TEST_F(CastAppDiscoveryServiceImplTest, Refresh) {
   AddOrUpdateReceiver(receiver_, socket_id_);
 
   CastMessage availability_response =
-      CreateAppAvailableResponseChecked(request_idA, sender_id, "AAA");
+      CreateAppAvailableResponseChecked(request_idA, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   availability_response =
-      CreateAppUnavailableResponseChecked(request_idB, sender_id, "BBB");
+      CreateAppUnavailableResponseChecked(request_idB, sender_id, "BBBBBBBB");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   ASSERT_EQ(receivers1.size(), 1u);
   ASSERT_EQ(receivers2.size(), 0u);
@@ -217,7 +218,8 @@ TEST_F(CastAppDiscoveryServiceImplTest, Refresh) {
   clock_.Advance(std::chrono::minutes(2));
   EXPECT_CALL(peer_client(), OnMessage(_, _))
       .WillOnce([&request_idB, &sender_id](CastSocket*, CastMessage message) {
-        VerifyAppAvailabilityRequest(message, "BBB", &request_idB, &sender_id);
+        VerifyAppAvailabilityRequest(message, "BBBBBBBB", &request_idB,
+                                     &sender_id);
       });
   app_discovery_service_.Refresh();
 }
@@ -233,7 +235,8 @@ TEST_F(CastAppDiscoveryServiceImplTest,
   std::string sender_id = "";
   EXPECT_CALL(peer_client(), OnMessage(_, _))
       .WillOnce([&request_idA, &sender_id](CastSocket*, CastMessage message) {
-        VerifyAppAvailabilityRequest(message, "AAA", &request_idA, &sender_id);
+        VerifyAppAvailabilityRequest(message, "AAAAAAAA", &request_idA,
+                                     &sender_id);
       });
   std::vector<ReceiverInfo> receivers1;
   auto subscription1 = StartObservingAvailability(source_a_1_, &receivers1);
@@ -241,7 +244,8 @@ TEST_F(CastAppDiscoveryServiceImplTest,
   int request_idB = -1;
   EXPECT_CALL(peer_client(), OnMessage(_, _))
       .WillOnce([&request_idB, &sender_id](CastSocket*, CastMessage message) {
-        VerifyAppAvailabilityRequest(message, "BBB", &request_idB, &sender_id);
+        VerifyAppAvailabilityRequest(message, "BBBBBBBB", &request_idB,
+                                     &sender_id);
       });
   std::vector<ReceiverInfo> receivers2;
   auto subscription2 = StartObservingAvailability(source_b_1_, &receivers2);
@@ -267,10 +271,10 @@ TEST_F(CastAppDiscoveryServiceImplTest,
         std::string app_id;
         int request_id = -1;
         VerifyAppAvailabilityRequest(message, &app_id, &request_id, &sender_id);
-        if (app_id == "AAA") {
+        if (app_id == "AAAAAAAA") {
           EXPECT_EQ(request_idA, -1);
           request_idA = request_id;
-        } else if (app_id == "BBB") {
+        } else if (app_id == "BBBBBBBB") {
           EXPECT_EQ(request_idB, -1);
           request_idB = request_id;
         } else {
@@ -288,7 +292,7 @@ TEST_F(CastAppDiscoveryServiceImplTest, StartObservingAvailabilityCachedValue) {
   auto subscription1 = StartSourceA1Query(&receivers1, &request_id, &sender_id);
 
   CastMessage availability_response =
-      CreateAppAvailableResponseChecked(request_id, sender_id, "AAA");
+      CreateAppAvailableResponseChecked(request_id, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
   ASSERT_EQ(receivers1.size(), 1u);
   EXPECT_EQ(receivers1[0].unique_id, "receiverId1");
@@ -318,12 +322,13 @@ TEST_F(CastAppDiscoveryServiceImplTest, AvailabilityUnknownOrUnavailable) {
   request_id = -1;
   EXPECT_CALL(peer_client(), OnMessage(_, _))
       .WillOnce([&request_id, &sender_id](CastSocket*, CastMessage message) {
-        VerifyAppAvailabilityRequest(message, "AAA", &request_id, &sender_id);
+        VerifyAppAvailabilityRequest(message, "AAAAAAAA", &request_id,
+                                     &sender_id);
       });
   AddOrUpdateReceiver(receiver_, socket_id_);
 
   CastMessage availability_response =
-      CreateAppUnavailableResponseChecked(request_id, sender_id, "AAA");
+      CreateAppUnavailableResponseChecked(request_id, sender_id, "AAAAAAAA");
   EXPECT_TRUE(peer_socket().Send(availability_response).ok());
 
   // Known availability so no request sent.
@@ -338,7 +343,8 @@ TEST_F(CastAppDiscoveryServiceImplTest, AvailabilityUnknownOrUnavailable) {
   request_id = -1;
   EXPECT_CALL(peer_client(), OnMessage(_, _))
       .WillOnce([&request_id, &sender_id](CastSocket*, CastMessage message) {
-        VerifyAppAvailabilityRequest(message, "AAA", &request_id, &sender_id);
+        VerifyAppAvailabilityRequest(message, "AAAAAAAA", &request_id,
+                                     &sender_id);
       });
 
   AddOrUpdateReceiver(receiver_, socket_id_);

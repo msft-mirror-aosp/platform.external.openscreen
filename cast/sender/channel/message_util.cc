@@ -4,17 +4,44 @@
 
 #include "cast/sender/channel/message_util.h"
 
+#include <ranges>
 #include <string>
 #include <utility>
 
 #include "cast/sender/channel/cast_auth_util.h"
 #include "util/json/json_serialization.h"
+#include "util/json/json_value.h"
+#include "util/string_util.h"
 
 namespace openscreen::cast {
 
 using proto::AuthChallenge;
 using proto::CastMessage;
 using proto::DeviceAuthMessage;
+
+bool IsValidAppId(std::string_view app_id) {
+  constexpr size_t kAppIdLength = 8;
+  return app_id.size() == kAppIdLength &&
+         std::ranges::all_of(app_id, ascii_ishex<char>);
+}
+
+ErrorOr<CastMessage> CreateReceiverMessage(std::string_view sender_id,
+                                           const Json::Value& dict) {
+  CastMessage message;
+  message.set_payload_type(proto::CastMessage_PayloadType_STRING);
+  ErrorOr<std::string> serialized = json::Stringify(dict);
+  if (serialized.is_error()) {
+    return serialized.error();
+  }
+  message.set_payload_utf8(serialized.value());
+
+  message.set_protocol_version(proto::CastMessage_ProtocolVersion_CASTV2_1_0);
+  message.set_source_id(sender_id);
+  message.set_destination_id(kPlatformReceiverId);
+  message.set_namespace_(kReceiverNamespace);
+
+  return message;
+}
 
 CastMessage CreateAuthChallengeMessage(const AuthContext& auth_context) {
   CastMessage message;
@@ -37,9 +64,13 @@ CastMessage CreateAuthChallengeMessage(const AuthContext& auth_context) {
   return message;
 }
 
-ErrorOr<CastMessage> CreateAppAvailabilityRequest(const std::string& sender_id,
+ErrorOr<CastMessage> CreateAppAvailabilityRequest(std::string_view sender_id,
                                                   int request_id,
-                                                  const std::string& app_id) {
+                                                  std::string_view app_id) {
+  if (!IsValidAppId(app_id)) {
+    return Error(Error::Code::kParameterInvalid, "Invalid app ID");
+  }
+
   Json::Value dict(Json::ValueType::objectValue);
   dict[kMessageKeyType] = Json::Value(
       CastMessageTypeToString(CastMessageType::kGetAppAvailability));
@@ -48,20 +79,38 @@ ErrorOr<CastMessage> CreateAppAvailabilityRequest(const std::string& sender_id,
   dict[kMessageKeyAppId] = std::move(app_id_value);
   dict[kMessageKeyRequestId] = Json::Value(request_id);
 
-  CastMessage message;
-  message.set_payload_type(proto::CastMessage_PayloadType_STRING);
-  ErrorOr<std::string> serialized = json::Stringify(dict);
-  if (serialized.is_error()) {
-    return serialized.error();
-  }
-  message.set_payload_utf8(serialized.value());
-
-  message.set_protocol_version(proto::CastMessage_ProtocolVersion_CASTV2_1_0);
-  message.set_source_id(sender_id);
-  message.set_destination_id(kPlatformReceiverId);
-  message.set_namespace_(kReceiverNamespace);
-
-  return message;
+  return CreateReceiverMessage(sender_id, dict);
 }
 
+ErrorOr<CastMessage> CreateLaunchRequest(std::string_view sender_id,
+                                         int request_id,
+                                         std::string_view app_id,
+                                         Json::Value app_params) {
+  if (!IsValidAppId(app_id)) {
+    return Error(Error::Code::kParameterInvalid, "Invalid app ID");
+  }
+
+  Json::Value dict(Json::ValueType::objectValue);
+  dict[kMessageKeyType] =
+      Json::Value(CastMessageTypeToString(CastMessageType::kLaunch));
+  dict[kMessageKeyAppId] = Json::Value(app_id);
+  dict[kMessageKeyRequestId] = Json::Value(request_id);
+  if (!app_params.isNull()) {
+    dict[kMessageKeyAppParams] = std::move(app_params);
+  }
+
+  return CreateReceiverMessage(sender_id, dict);
+}
+
+ErrorOr<CastMessage> CreateStopRequest(std::string_view sender_id,
+                                       int request_id,
+                                       std::string_view session_id) {
+  Json::Value dict(Json::ValueType::objectValue);
+  dict[kMessageKeyType] =
+      Json::Value(CastMessageTypeToString(CastMessageType::kStop));
+  dict[kMessageKeySessionId] = Json::Value(session_id);
+  dict[kMessageKeyRequestId] = Json::Value(request_id);
+
+  return CreateReceiverMessage(sender_id, dict);
+}
 }  // namespace openscreen::cast

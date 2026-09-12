@@ -89,6 +89,7 @@ inline constexpr char kMessageKeyAppParams[] = "appParams";
 inline constexpr char kMessageKeyApplications[] = "applications";
 inline constexpr char kMessageKeyControlType[] = "controlType";
 inline constexpr char kMessageKeyDisplayName[] = "displayName";
+inline constexpr char kMessageKeyExtendedError[] = "extendedError";
 inline constexpr char kMessageKeyIsIdleScreen[] = "isIdleScreen";
 inline constexpr char kMessageKeyLaunchedFromCloud[] = "launchedFromCloud";
 inline constexpr char kMessageKeyLevel[] = "level";
@@ -97,6 +98,7 @@ inline constexpr char kMessageKeyName[] = "name";
 inline constexpr char kMessageKeyNamespaces[] = "namespaces";
 inline constexpr char kMessageKeyReason[] = "reason";
 inline constexpr char kMessageKeyStatus[] = "status";
+inline constexpr char kMessageKeyStatusText[] = "statusText";
 inline constexpr char kMessageKeyStepInterval[] = "stepInterval";
 inline constexpr char kMessageKeyUniversalAppId[] = "universalAppId";
 inline constexpr char kMessageKeyUserEq[] = "userEq";
@@ -111,6 +113,11 @@ inline constexpr char kMessageValueInvalidCommand[] = "INVALID_COMMAND";
 inline constexpr char kMessageValueNotFound[] = "NOT_FOUND";
 inline constexpr char kMessageValueSystemError[] = "SYSTEM_ERROR";
 inline constexpr char kMessageValueUserAllowed[] = "USER_ALLOWED";
+inline constexpr char kMessageValueUserPendingAuthorization[] =
+    "USER_PENDING_AUTHORIZATION";
+inline constexpr char kMessageValueUserNotAllowed[] = "USER_NOT_ALLOWED";
+inline constexpr char kMessageValueNotificationDisabled[] =
+    "USER_NOTIFICATIONS_DISABLED";
 
 // JSON message key strings specific to DEVICE_INFO messages.
 inline constexpr char kMessageKeyControlNotifications[] =

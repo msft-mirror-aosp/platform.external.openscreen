@@ -94,6 +94,7 @@ openscreen_source_set("unittests") {
     "cast_app_discovery_service_impl_unittest.cc",
     "cast_platform_client_unittest.cc",
     "channel/cast_auth_util_unittest.cc",
+    "channel/message_util_unittest.cc",
   ]
 
   deps = [

@@ -10,10 +10,12 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "cast/common/channel/cast_message_handler.h"
 #include "cast/sender/channel/message_util.h"
+#include "platform/base/error.h"
 #include "util/alarm.h"
 #include "util/json/json_value.h"
 #include "util/raw_ref.h"
@@ -33,7 +35,25 @@ class VirtualConnectionRouter;
 class CastPlatformClient final : public CastMessageHandler {
  public:
   using AppAvailabilityCallback =
-      std::function<void(const std::string& app_id, AppAvailabilityResult)>;
+      std::function<void(std::string_view app_id, AppAvailabilityResult)>;
+
+  // Session details parsed from the RECEIVER_STATUS that confirms a
+  // successful LaunchSession() call.
+  struct ReceiverStatus {
+    std::string session_id;
+    std::string app_id;
+    std::string transport_id;
+    std::string display_name;
+    std::string status_text;
+    std::vector<std::string> namespaces;
+    bool is_idle_screen = false;
+  };
+
+  // Called with the launched session's details on success, or an Error
+  // otherwise.
+  using LaunchSessionCallback = std::function<void(ErrorOr<ReceiverStatus>)>;
+  // Called with Error::None() on success, or a descriptive Error otherwise.
+  using StopSessionCallback = std::function<void(const Error&)>;
 
   CastPlatformClient(VirtualConnectionRouter& router,
                      ClockNowFunctionPtr clock,
@@ -42,9 +62,41 @@ class CastPlatformClient final : public CastMessageHandler {
 
   // Requests availability information for `app_id` from the receiver identified
   // by `receiver_id`.  `callback` will be called exactly once with a result.
-  std::optional<int> RequestAppAvailability(const std::string& receiver_id,
-                                            const std::string& app_id,
+  std::optional<int> RequestAppAvailability(std::string_view receiver_id,
+                                            std::string_view app_id,
                                             AppAvailabilityCallback callback);
+
+  // Requests that the receiver identified by `receiver_id` launch `app_id`,
+  // passing `app_params` as the app-specific launch parameters (may be null).
+  // `callback` will be called exactly once with the result. LAUNCH_STATUS
+  // reply carries no session details. Only RECEIVER_STATUS does, whether it
+  // follows a LAUNCH_STATUS or arrives directly with a `requestId` that already
+  // matches this request.
+  //
+  // Returns std::nullopt if the request could not be started (unknown
+  // receiver, a launch is already pending for this receiver, or the request
+  // message could not be constructed); in that case `callback` has already
+  // been invoked synchronously with the failure and will not be called
+  // again. Otherwise, returns the id of the pending request, which may be
+  // passed to CancelRequest().
+  std::optional<int> LaunchSession(std::string_view receiver_id,
+                                   std::string_view app_id,
+                                   const Json::Value& app_params,
+                                   LaunchSessionCallback callback);
+
+  // Requests that the receiver identified by `receiver_id` stop the session
+  // given by `session_id`. Receivers do not send a response type
+  // dedicated to confirming a stop; success is instead signaled by a
+  // follow-up RECEIVER_STATUS in which `session_id` is no longer among the
+  // running applications. An explicit rejection is reported directly on some
+  // receivers. Some receivers return plain RECEIVER_STATUS instead of rejecting
+  // a mismatched session id, same as a match. `callback` is called with
+  // Error::None() once the stop is confirmed this way, or with an Error if the
+  // receiver rejects the request or the request times out without a
+  // confirmation.
+  std::optional<int> StopSession(std::string_view receiver_id,
+                                 std::string_view session_id,
+                                 StopSessionCallback callback);
 
   // Notifies this object about general receiver connectivity or property
   // changes.
@@ -61,8 +113,24 @@ class CastPlatformClient final : public CastMessageHandler {
     AppAvailabilityCallback callback;
   };
 
+  struct LaunchRequest {
+    int request_id;
+    std::unique_ptr<Alarm> timeout;
+    LaunchSessionCallback callback;
+  };
+
+  struct StopRequest {
+    int request_id;
+    std::string session_id;
+    std::unique_ptr<Alarm> timeout;
+    StopSessionCallback callback;
+  };
+
   struct PendingRequests {
     std::vector<AvailabilityRequest> availability;
+    // At most one launch and stop may be pending per receiver at a time
+    std::optional<LaunchRequest> launch_request;
+    std::optional<StopRequest> stop_request;
   };
 
   // CastMessageHandler overrides.
@@ -70,11 +138,33 @@ class CastPlatformClient final : public CastMessageHandler {
                  CastSocket* socket,
                  proto::CastMessage message) override;
 
-  void HandleResponse(const std::string& receiver_id,
+  void HandleResponse(std::string_view receiver_id,
                       int request_id,
                       const Json::Value& message);
 
+  // Each of these returns true if `request_id` matched a pending request of
+  // its kind in `pending_requests` or false if it didn't match, so
+  // HandleResponse() can try the next kind.
+  bool HandleAppAvailabilityResponse(PendingRequests& pending_requests,
+                                     int request_id,
+                                     const Json::Value& message);
+  bool HandleLaunchResponse(PendingRequests& pending_requests,
+                            int request_id,
+                            const Json::Value& message);
+  bool HandleStopResponse(PendingRequests& pending_requests,
+                          int request_id,
+                          const Json::Value& message);
+
   void CancelAppAvailabilityRequest(int request_id);
+
+  // Alarm callback for a LaunchSession() request that received no response
+  // within the timeout window.
+  void HandleLaunchTimeout(int request_id);
+
+  // Alarm callback for a StopSession() request that received no confirming
+  // RECEIVER_STATUS (or rejection) within the timeout window. Treated as a
+  // failure; silence is not success.
+  void HandleStopTimeout(int request_id);
 
   static int GetNextRequestId();
 
@@ -82,8 +172,11 @@ class CastPlatformClient final : public CastMessageHandler {
 
   const std::string sender_id_;
   const raw_ref<VirtualConnectionRouter> virtual_conn_router_;
-  std::map<std::string /* receiver_id */, int> socket_id_by_receiver_id_;
-  std::map<std::string /* receiver_id */, PendingRequests>
+  // `std::less<>` makes lookups transparent, so a `std::string_view` key can
+  // be used to `find()` without materializing a temporary `std::string`.
+  std::map<std::string /* receiver_id */, int, std::less<>>
+      socket_id_by_receiver_id_;
+  std::map<std::string /* receiver_id */, PendingRequests, std::less<>>
       pending_requests_by_receiver_id_;
 
   const ClockNowFunctionPtr clock_;

@@ -5,6 +5,7 @@
 #include "cast/sender/cast_platform_client.h"
 
 #include <memory>
+#include <optional>
 #include <random>
 #include <string_view>
 #include <utility>
@@ -18,7 +19,83 @@
 namespace openscreen::cast {
 
 namespace {
-constexpr std::chrono::seconds kRequestTimeout = std::chrono::seconds(5);
+constexpr std::chrono::seconds kRequestTimeout = std::chrono::seconds(60);
+
+// Returns true if `session_id` is listed among the running applications in
+// a RECEIVER_STATUS message's payload. Receivers confirm a successful
+// STOP by omitting the stopped session from a follow-up RECEIVER_STATUS
+// rather than with a dedicated response type.
+bool IsSessionStillRunning(const Json::Value& message,
+                           const std::string_view session_id) {
+  const Json::Value* status =
+      message.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyStatus));
+  if (!status || !status->isObject()) {
+    return false;
+  }
+  const Json::Value* applications =
+      status->find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyApplications));
+  if (!applications || !applications->isArray()) {
+    return false;
+  }
+  for (const Json::Value& app : *applications) {
+    std::optional<std::string_view> id = MaybeGetString(
+        app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeySessionId));
+    if (id && id.value() == session_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Parses the session details from RECEIVER_STATUS's `status` object.
+std::optional<CastPlatformClient::ReceiverStatus> ParseReceiverStatus(
+    const Json::Value& status) {
+  const Json::Value* applications =
+      status.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyApplications));
+  if (!applications || !applications->isArray() || applications->size() != 1) {
+    return std::nullopt;
+  }
+  const Json::Value& app = (*applications)[0];
+  std::optional<std::string_view> session_id =
+      MaybeGetString(app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeySessionId));
+  std::optional<std::string_view> app_id =
+      MaybeGetString(app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyAppId));
+  std::optional<std::string_view> transport_id = MaybeGetString(
+      app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyTransportId));
+  std::optional<std::string_view> display_name = MaybeGetString(
+      app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyDisplayName));
+  if (!session_id || !app_id || !transport_id || !display_name) {
+    return std::nullopt;
+  }
+
+  CastPlatformClient::ReceiverStatus result;
+  result.session_id = std::string(*session_id);
+  result.app_id = std::string(*app_id);
+  result.transport_id = std::string(*transport_id);
+  result.display_name = std::string(*display_name);
+  result.status_text = std::string(
+      MaybeGetString(app, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyStatusText))
+          .value_or(""));
+
+  const Json::Value* is_idle_screen =
+      app.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyIsIdleScreen));
+  result.is_idle_screen =
+      is_idle_screen && is_idle_screen->isBool() && is_idle_screen->asBool();
+
+  const Json::Value* namespaces =
+      app.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyNamespaces));
+  if (namespaces && namespaces->isArray()) {
+    for (const Json::Value& ns : *namespaces) {
+      std::optional<std::string_view> name =
+          MaybeGetString(ns, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyName));
+      if (name) {
+        result.namespaces.emplace_back(*name);
+      }
+    }
+  }
+  return result;
+}
+
 }  // namespace
 
 CastPlatformClient::CastPlatformClient(VirtualConnectionRouter& router,
@@ -41,12 +118,20 @@ CastPlatformClient::~CastPlatformClient() {
       avail_request.callback(avail_request.app_id,
                              AppAvailabilityResult::kUnknown);
     }
+    if (pending_requests.second.launch_request) {
+      pending_requests.second.launch_request->callback(Error(
+          Error::Code::kOperationCancelled, "CastPlatformClient destroyed"));
+    }
+    if (pending_requests.second.stop_request) {
+      pending_requests.second.stop_request->callback(Error(
+          Error::Code::kOperationCancelled, "CastPlatformClient destroyed"));
+    }
   }
 }
 
 std::optional<int> CastPlatformClient::RequestAppAvailability(
-    const std::string& receiver_id,
-    const std::string& app_id,
+    std::string_view receiver_id,
+    std::string_view app_id,
     AppAvailabilityCallback callback) {
   auto entry = socket_id_by_receiver_id_.find(receiver_id);
   if (entry == socket_id_by_receiver_id_.end()) {
@@ -58,16 +143,117 @@ std::optional<int> CastPlatformClient::RequestAppAvailability(
   int request_id = GetNextRequestId();
   ErrorOr<proto::CastMessage> message =
       CreateAppAvailabilityRequest(sender_id_, request_id, app_id);
-  OSP_CHECK(message);
+  if (!message) {
+    callback(app_id, AppAvailabilityResult::kUnknown);
+    return std::nullopt;
+  }
 
   PendingRequests& pending_requests =
-      pending_requests_by_receiver_id_[receiver_id];
+      pending_requests_by_receiver_id_[std::string(receiver_id)];
   auto timeout = std::make_unique<Alarm>(clock_, *task_runner_);
   timeout->ScheduleFromNow(
       [this, request_id]() { CancelAppAvailabilityRequest(request_id); },
       kRequestTimeout);
-  pending_requests.availability.push_back(AvailabilityRequest{
-      request_id, app_id, std::move(timeout), std::move(callback)});
+  pending_requests.availability.push_back(
+      AvailabilityRequest{request_id, std::string(app_id), std::move(timeout),
+                          std::move(callback)});
+
+  VirtualConnection virtual_conn{sender_id_, kPlatformReceiverId, socket_id};
+  if (!virtual_conn_router_->GetConnectionData(virtual_conn)) {
+    virtual_conn_router_->AddConnection(virtual_conn,
+                                        VirtualConnection::AssociatedData{});
+  }
+
+  virtual_conn_router_->Send(std::move(virtual_conn),
+                             std::move(message.value()));
+
+  return request_id;
+}
+
+std::optional<int> CastPlatformClient::LaunchSession(
+    std::string_view receiver_id,
+    std::string_view app_id,
+    const Json::Value& app_params,
+    LaunchSessionCallback callback) {
+  auto entry = socket_id_by_receiver_id_.find(receiver_id);
+  if (entry == socket_id_by_receiver_id_.end()) {
+    callback(Error(Error::Code::kItemNotFound, "Unknown receiver"));
+    return std::nullopt;
+  }
+  int socket_id = entry->second;
+
+  auto pending_entry = pending_requests_by_receiver_id_.find(receiver_id);
+  if (pending_entry != pending_requests_by_receiver_id_.end() &&
+      pending_entry->second.launch_request) {
+    callback(Error(Error::Code::kItemAlreadyExists,
+                   "Launch already in progress for this receiver"));
+    return std::nullopt;
+  }
+
+  int request_id = GetNextRequestId();
+  ErrorOr<proto::CastMessage> message =
+      CreateLaunchRequest(sender_id_, request_id, app_id, app_params);
+  if (!message) {
+    callback(message.error());
+    return std::nullopt;
+  }
+
+  PendingRequests& pending_requests =
+      pending_requests_by_receiver_id_[std::string(receiver_id)];
+  auto timeout = std::make_unique<Alarm>(clock_, *task_runner_);
+  timeout->ScheduleFromNow(
+      [this, request_id]() { HandleLaunchTimeout(request_id); },
+      kRequestTimeout);
+  pending_requests.launch_request =
+      LaunchRequest{request_id, std::move(timeout), std::move(callback)};
+
+  VirtualConnection virtual_conn{sender_id_, kPlatformReceiverId, socket_id};
+  if (!virtual_conn_router_->GetConnectionData(virtual_conn)) {
+    virtual_conn_router_->AddConnection(virtual_conn,
+                                        VirtualConnection::AssociatedData{});
+  }
+
+  virtual_conn_router_->Send(std::move(virtual_conn),
+                             std::move(message.value()));
+
+  return request_id;
+}
+
+std::optional<int> CastPlatformClient::StopSession(
+    std::string_view receiver_id,
+    std::string_view session_id,
+    StopSessionCallback callback) {
+  auto entry = socket_id_by_receiver_id_.find(receiver_id);
+  if (entry == socket_id_by_receiver_id_.end()) {
+    callback(Error(Error::Code::kItemNotFound, "Unknown receiver"));
+    return std::nullopt;
+  }
+  int socket_id = entry->second;
+
+  auto pending_entry = pending_requests_by_receiver_id_.find(receiver_id);
+  if (pending_entry != pending_requests_by_receiver_id_.end() &&
+      pending_entry->second.stop_request) {
+    callback(Error(Error::Code::kItemAlreadyExists,
+                   "Stop already in progress for this receiver"));
+    return std::nullopt;
+  }
+
+  int request_id = GetNextRequestId();
+  ErrorOr<proto::CastMessage> message =
+      CreateStopRequest(sender_id_, request_id, session_id);
+  if (!message) {
+    callback(message.error());
+    return std::nullopt;
+  }
+
+  PendingRequests& pending_requests =
+      pending_requests_by_receiver_id_[std::string(receiver_id)];
+  auto timeout = std::make_unique<Alarm>(clock_, *task_runner_);
+  timeout->ScheduleFromNow(
+      [this, request_id]() { HandleStopTimeout(request_id); }, kRequestTimeout);
+  pending_requests.stop_request =
+      StopRequest{request_id, std::string(session_id), std::move(timeout),
+                  std::move(callback)};
 
   VirtualConnection virtual_conn{sender_id_, kPlatformReceiverId, socket_id};
   if (!virtual_conn_router_->GetConnectionData(virtual_conn)) {
@@ -95,23 +281,42 @@ void CastPlatformClient::RemoveReceiver(const ReceiverInfo& receiver) {
       availability.callback(availability.app_id,
                             AppAvailabilityResult::kUnknown);
     }
+    if (pending_requests_it->second.launch_request) {
+      pending_requests_it->second.launch_request->callback(
+          Error(Error::Code::kOperationCancelled, "Receiver disconnected"));
+    }
+    if (pending_requests_it->second.stop_request) {
+      pending_requests_it->second.stop_request->callback(
+          Error(Error::Code::kOperationCancelled, "Receiver disconnected"));
+    }
     pending_requests_by_receiver_id_.erase(pending_requests_it);
   }
   socket_id_by_receiver_id_.erase(receiver.unique_id);
 }
 
+// Note: unlike a timeout or a receiver disconnect, an explicit cancellation
+// does not invoke the request's callback. The caller already knows it asked
+// for the request to go away, so there's no error to report and calling back
+// into code that may no longer expect it could be surprising.
 void CastPlatformClient::CancelRequest(int request_id) {
   for (auto entry = pending_requests_by_receiver_id_.begin();
        entry != pending_requests_by_receiver_id_.end(); ++entry) {
     auto& pending_requests = entry->second;
-    auto it = std::find_if(pending_requests.availability.begin(),
-                           pending_requests.availability.end(),
-                           [request_id](const AvailabilityRequest& request) {
-                             return request.request_id == request_id;
-                           });
-    if (it != pending_requests.availability.end()) {
-      pending_requests.availability.erase(it);
-      break;
+    auto avail_it = std::ranges::find(pending_requests.availability, request_id,
+                                      &AvailabilityRequest::request_id);
+    if (avail_it != pending_requests.availability.end()) {
+      pending_requests.availability.erase(avail_it);
+      return;
+    }
+    if (pending_requests.launch_request &&
+        pending_requests.launch_request->request_id == request_id) {
+      pending_requests.launch_request.reset();
+      return;
+    }
+    if (pending_requests.stop_request &&
+        pending_requests.stop_request->request_id == request_id) {
+      pending_requests.stop_request.reset();
+      return;
     }
   }
 }
@@ -132,20 +337,24 @@ void CastPlatformClient::OnMessage(VirtualConnectionRouter* router,
   Json::Value& dict = dict_or_error.value();
   std::optional<int> request_id =
       MaybeGetInt(dict, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyRequestId));
+  if (!request_id) {
+    // A successful LAUNCH_STATUS response echoes the original request id as
+    // `launchRequestId` rather than `requestId` (see
+    // ApplicationAgent::HandleLaunch() on the receiver side).
+    request_id = MaybeGetInt(
+        dict, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyLaunchRequestId));
+  }
   if (request_id) {
-    auto socket_map_entry = std::find_if(
-        socket_id_by_receiver_id_.begin(), socket_id_by_receiver_id_.end(),
-        [socket_id =
-             ToCastSocketId(socket)](const std::pair<std::string, int>& entry) {
-          return entry.second == socket_id;
-        });
+    auto socket_map_entry =
+        std::ranges::find(socket_id_by_receiver_id_, ToCastSocketId(socket),
+                          [](const auto& entry) { return entry.second; });
     if (socket_map_entry != socket_id_by_receiver_id_.end()) {
       HandleResponse(socket_map_entry->first, request_id.value(), dict);
     }
   }
 }
 
-void CastPlatformClient::HandleResponse(const std::string& receiver_id,
+void CastPlatformClient::HandleResponse(std::string_view receiver_id,
                                         int request_id,
                                         const Json::Value& message) {
   auto entry = pending_requests_by_receiver_id_.find(receiver_id);
@@ -153,45 +362,159 @@ void CastPlatformClient::HandleResponse(const std::string& receiver_id,
     return;
   }
   PendingRequests& pending_requests = entry->second;
-  auto it = std::find_if(pending_requests.availability.begin(),
-                         pending_requests.availability.end(),
-                         [request_id](const AvailabilityRequest& request) {
-                           return request.request_id == request_id;
-                         });
-  if (it != pending_requests.availability.end()) {
-    // TODO(btolsch): Can all of this manual parsing/checking be cleaned up into
-    // a single parsing API along with other message handling?
-    const Json::Value* maybe_availability =
-        message.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyAvailability));
-    if (maybe_availability && maybe_availability->isObject()) {
-      std::optional<std::string_view> result =
-          MaybeGetString(*maybe_availability, &it->app_id[0],
-                         &it->app_id[0] + it->app_id.size());
-      if (result) {
-        AppAvailabilityResult availability_result =
-            AppAvailabilityResult::kUnknown;
-        if (result.value() == kMessageValueAppAvailable) {
-          availability_result = AppAvailabilityResult::kAvailable;
-        } else if (result.value() == kMessageValueAppUnavailable) {
-          availability_result = AppAvailabilityResult::kUnavailable;
-        } else {
-          OSP_VLOG << "Invalid availability result: " << result.value();
-        }
-        it->callback(it->app_id, availability_result);
+  if (HandleAppAvailabilityResponse(pending_requests, request_id, message)) {
+    return;
+  }
+  if (HandleLaunchResponse(pending_requests, request_id, message)) {
+    return;
+  }
+  HandleStopResponse(pending_requests, request_id, message);
+}
+
+bool CastPlatformClient::HandleAppAvailabilityResponse(
+    PendingRequests& pending_requests,
+    int request_id,
+    const Json::Value& message) {
+  auto it = std::ranges::find(pending_requests.availability, request_id,
+                              &AvailabilityRequest::request_id);
+  if (it == pending_requests.availability.end()) {
+    return false;
+  }
+  // TODO(btolsch): Can all of this manual parsing/checking be cleaned up into
+  // a single parsing API along with other message handling?
+  const Json::Value* maybe_availability =
+      message.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyAvailability));
+  if (maybe_availability && maybe_availability->isObject()) {
+    std::optional<std::string_view> result =
+        MaybeGetString(*maybe_availability, &it->app_id[0],
+                       &it->app_id[0] + it->app_id.size());
+    if (result) {
+      AppAvailabilityResult availability_result =
+          AppAvailabilityResult::kUnknown;
+      if (result.value() == kMessageValueAppAvailable) {
+        availability_result = AppAvailabilityResult::kAvailable;
+      } else if (result.value() == kMessageValueAppUnavailable) {
+        availability_result = AppAvailabilityResult::kUnavailable;
+      } else {
+        OSP_VLOG << "Invalid availability result: " << result.value();
       }
+      it->callback(it->app_id, availability_result);
     }
-    pending_requests.availability.erase(it);
+  }
+  pending_requests.availability.erase(it);
+  return true;
+}
+
+bool CastPlatformClient::HandleLaunchResponse(PendingRequests& pending_requests,
+                                              int request_id,
+                                              const Json::Value& message) {
+  if (!pending_requests.launch_request ||
+      pending_requests.launch_request->request_id != request_id) {
+    return false;
+  }
+  LaunchRequest& launch = *pending_requests.launch_request;
+  // Some receivers confirm LAUNCH with a LAUNCH_STATUS reply, followed by a
+  // separate RECEIVER_STATUS that also echoes the same request id; other
+  // receivers skip LAUNCH_STATUS entirely and confirm success with a single
+  // RECEIVER_STATUS whose `requestId` already matches this LAUNCH request
+  // instead. The third branch below accepts either case.
+  if (HasType(message, CastMessageType::kLaunchStatus)) {
+    // LAUNCH_STATUS carries no `applications` list regardless of whether
+    // `status` is USER_PENDING_AUTHORIZATION or USER_ALLOWED. Keep waiting for
+    // the RECEIVER_STATUS that actually carries the launched session's details,
+    // or the timeout.
+  } else if (HasType(message, CastMessageType::kLaunchError)) {
+    std::optional<std::string_view> extended_error = MaybeGetString(
+        message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyExtendedError));
+    std::optional<std::string_view> reason = MaybeGetString(
+        message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyReason));
+    std::string_view error_message =
+        (extended_error == kMessageValueUserNotAllowed ||
+         extended_error == kMessageValueNotificationDisabled)
+            ? *extended_error
+            : reason.value_or("Launch failed");
+    launch.callback(
+        Error(Error::Code::kUnknownError, std::string(error_message)));
+    pending_requests.launch_request.reset();
+  } else if (HasType(message, CastMessageType::kReceiverStatus)) {
+    const Json::Value* maybe_status =
+        message.find(JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyStatus));
+    if (maybe_status && maybe_status->isObject()) {
+      std::optional<ReceiverStatus> receiver_status =
+          ParseReceiverStatus(*maybe_status);
+      if (receiver_status) {
+        launch.callback(*std::move(receiver_status));
+      } else {
+        launch.callback(Error(Error::Code::kUnknownError,
+                              "Malformed RECEIVER_STATUS for launched "
+                              "session"));
+      }
+      pending_requests.launch_request.reset();
+    }
+  }
+  return true;
+}
+
+bool CastPlatformClient::HandleStopResponse(PendingRequests& pending_requests,
+                                            int request_id,
+                                            const Json::Value& message) {
+  if (!pending_requests.stop_request ||
+      pending_requests.stop_request->request_id != request_id) {
+    return false;
+  }
+  StopRequest& stop = *pending_requests.stop_request;
+  if (HasType(message, CastMessageType::kReceiverStatus)) {
+    if (IsSessionStillRunning(message, stop.session_id)) {
+      // The target session is still listed as running, so this status
+      // update doesn't confirm the stop -- keep waiting for a later message
+      // or the timeout, rather than resolving prematurely.
+      return true;
+    }
+    stop.callback(Error::None());
+    pending_requests.stop_request.reset();
+    return true;
+  }
+  // Any other response types are treated as a failure.
+  std::optional<std::string_view> reason = MaybeGetString(
+      message, JSON_EXPAND_FIND_CONSTANT_ARGS(kMessageKeyReason));
+  stop.callback(Error(Error::Code::kParameterInvalid,
+                      std::string(reason.value_or("Stop failed"))));
+  pending_requests.stop_request.reset();
+  return true;
+}
+
+void CastPlatformClient::HandleLaunchTimeout(int request_id) {
+  for (auto& entry : pending_requests_by_receiver_id_) {
+    PendingRequests& pending_requests = entry.second;
+    if (pending_requests.launch_request &&
+        pending_requests.launch_request->request_id == request_id) {
+      pending_requests.launch_request->callback(
+          Error(Error::Code::kOperationCancelled, "Launch timed out"));
+      pending_requests.launch_request.reset();
+      return;
+    }
+  }
+}
+
+void CastPlatformClient::HandleStopTimeout(int request_id) {
+  for (auto& entry : pending_requests_by_receiver_id_) {
+    PendingRequests& pending_requests = entry.second;
+    if (pending_requests.stop_request &&
+        pending_requests.stop_request->request_id == request_id) {
+      // Silence does not imply success (see StopSession()'s comment.)
+      pending_requests.stop_request->callback(
+          Error(Error::Code::kOperationCancelled, "Stop timed out"));
+      pending_requests.stop_request.reset();
+      return;
+    }
   }
 }
 
 void CastPlatformClient::CancelAppAvailabilityRequest(int request_id) {
   for (auto& entry : pending_requests_by_receiver_id_) {
     PendingRequests& pending_requests = entry.second;
-    auto it = std::find_if(pending_requests.availability.begin(),
-                           pending_requests.availability.end(),
-                           [request_id](const AvailabilityRequest& request) {
-                             return request.request_id == request_id;
-                           });
+    auto it = std::ranges::find(pending_requests.availability, request_id,
+                                &AvailabilityRequest::request_id);
     if (it != pending_requests.availability.end()) {
       it->callback(it->app_id, AppAvailabilityResult::kUnknown);
       pending_requests.availability.erase(it);
