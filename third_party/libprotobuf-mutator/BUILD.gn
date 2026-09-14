@@ -11,13 +11,20 @@ config("include_config") {
     "src/",
     "//",
   ]
+}
+
+config("private_config") {
+  cflags = [ "-Wno-shadow" ]
   cflags_cc = [ "-Wno-exit-time-destructors" ]
 }
 
 source_set("libprotobuf-mutator") {
   testonly = true
 
-  configs += [ ":include_config" ]
+  configs += [
+    ":include_config",
+    ":private_config",
+  ]
   public_configs = [ ":include_config" ]
   sources = [
     "src/src/binary_format.cc",
