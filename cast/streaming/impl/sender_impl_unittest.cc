@@ -1454,5 +1454,18 @@ TEST_F(SenderTest, IgnoresOutOfRangeIndividualAcks) {
   EXPECT_EQ(1u, sender()->GetInFlightFrameCount());
 }
 
+TEST_F(SenderTest, GetLastRtpTimestamp) {
+  auto* router_sender = static_cast<SenderPacketRouter::Sender*>(sender());
+  EXPECT_EQ(router_sender->GetLastRtpTimestamp(), RtpTimeTicks());
+
+  EncodedFrameWithBuffer frame;
+  PopulateFrameWithDefaults(FrameId::first(), FakeClock::now() - kCaptureDelay,
+                            0, 100, &frame);
+  frame.rtp_timestamp = RtpTimeTicks() + RtpTimeDelta::FromTicks(12345);
+  ASSERT_EQ(Sender::OK, sender()->EnqueueFrame(frame));
+
+  EXPECT_EQ(router_sender->GetLastRtpTimestamp(), frame.rtp_timestamp);
+}
+
 }  // namespace
 }  // namespace openscreen::cast

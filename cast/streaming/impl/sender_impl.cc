@@ -355,7 +355,7 @@ Clock::time_point SenderImpl::GetRtpResumeTime() {
 }
 
 RtpTimeTicks SenderImpl::GetLastRtpTimestamp() const {
-  return {};
+  return pending_sender_report_.rtp_timestamp;
 }
 
 StreamType SenderImpl::GetStreamType() const {
