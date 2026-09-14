@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-use simple_dns::rdata::RData;
-use simple_dns::{Name, Packet, PacketFlag, Question, ResourceRecord, CLASS};
+use simple_dns::rdata::{NsecTypeBitMap, RData, A, AAAA, NSEC, NULL, PTR, SRV, TXT};
+use simple_dns::{
+    CharacterString, Label, Name, Packet, PacketFlag, Question, ResourceRecord, CLASS, QCLASS,
+    QTYPE,
+};
 
 #[cxx::bridge(namespace = "openscreen::discovery")]
 pub mod ffi {
@@ -35,7 +38,6 @@ pub mod ffi {
         pub rclass: u16,
         pub is_cache_flush: bool,
         pub ttl_seconds: u32,
-        pub rdata_type: u16,
         pub rdata_bytes: Vec<u8>,
         pub ptr_target_labels: Vec<String>,
         pub srv_priority: u16,
@@ -57,11 +59,18 @@ pub mod ffi {
     extern "Rust" {
         fn parse_header(buffer: &[u8], header: &mut DnsHeader) -> bool;
         fn parse_message(buffer: &[u8], message: &mut DnsMessage) -> bool;
+        fn write_message(message: &DnsMessage, out: &mut Vec<u8>) -> bool;
     }
 }
 
 fn name_to_labels(name: &Name) -> Vec<String> {
     name.iter().map(|l| l.to_string()).collect()
+}
+
+fn labels_to_name(labels: &[String]) -> Result<Name<'static>, ()> {
+    let name_labels: Vec<Label<'static>> =
+        labels.iter().map(|l| Label::new_unchecked(l.as_bytes().to_vec())).collect();
+    Ok(Name::new_with_labels(&name_labels).into_owned())
 }
 
 fn class_to_u16(class: CLASS) -> u16 {
@@ -93,7 +102,6 @@ fn convert_record(rr: &ResourceRecord) -> ffi::DnsRecord {
         rclass: rclass_raw & 0x7FFF,
         is_cache_flush: rr.cache_flush,
         ttl_seconds: rr.ttl,
-        rdata_type: rtype_raw,
         ..Default::default()
     };
 
@@ -142,6 +150,82 @@ fn convert_record(rr: &ResourceRecord) -> ffi::DnsRecord {
     record
 }
 
+const TYPE_A: u16 = 1;
+const TYPE_PTR: u16 = 12;
+const TYPE_TXT: u16 = 16;
+const TYPE_AAAA: u16 = 28;
+const TYPE_SRV: u16 = 33;
+const TYPE_NSEC: u16 = 47;
+
+fn convert_record_rdata(r: &ffi::DnsRecord) -> Option<RData<'static>> {
+    match r.rtype {
+        TYPE_A => {
+            if r.rdata_bytes.len() != 4 {
+                return None;
+            }
+            let bytes: [u8; 4] = r.rdata_bytes.as_slice().try_into().ok()?;
+            Some(RData::A(A { address: u32::from_be_bytes(bytes) }))
+        }
+        TYPE_AAAA => {
+            if r.rdata_bytes.len() != 16 {
+                return None;
+            }
+            let bytes: [u8; 16] = r.rdata_bytes.as_slice().try_into().ok()?;
+            Some(RData::AAAA(AAAA { address: u128::from_be_bytes(bytes) }))
+        }
+        TYPE_PTR => {
+            let target = labels_to_name(&r.ptr_target_labels).ok()?;
+            Some(RData::PTR(PTR(target)))
+        }
+        TYPE_SRV => {
+            let target = labels_to_name(&r.srv_target_labels).ok()?;
+            Some(RData::SRV(SRV {
+                priority: r.srv_priority,
+                weight: r.srv_weight,
+                port: r.srv_port,
+                target,
+            }))
+        }
+        TYPE_TXT => {
+            let mut txt = TXT::new();
+            let mut offset = 0;
+            while offset < r.rdata_bytes.len() {
+                let len = r.rdata_bytes[offset] as usize;
+                offset += 1;
+                if offset + len > r.rdata_bytes.len() {
+                    return None;
+                }
+                let cs = CharacterString::new(&r.rdata_bytes[offset..offset + len]).ok()?;
+                txt.add_char_string(cs.into_owned());
+                offset += len;
+            }
+            Some(RData::TXT(txt))
+        }
+        TYPE_NSEC => {
+            let next_name = labels_to_name(&r.nsec_next_labels).ok()?;
+            let mut type_bit_maps = Vec::new();
+            let mut offset = 0;
+            while offset + 2 <= r.rdata_bytes.len() {
+                let window_block = r.rdata_bytes[offset];
+                offset += 1;
+                let bitmap_len = r.rdata_bytes[offset] as usize;
+                offset += 1;
+                if offset + bitmap_len > r.rdata_bytes.len() {
+                    return None;
+                }
+                let bitmap = r.rdata_bytes[offset..offset + bitmap_len].to_vec();
+                offset += bitmap_len;
+                type_bit_maps.push(NsecTypeBitMap { window_block, bitmap: bitmap.into() });
+            }
+            Some(RData::NSEC(NSEC { next_name, type_bit_maps }))
+        }
+        _ => {
+            let null_data = NULL::new(&r.rdata_bytes).ok()?;
+            Some(RData::NULL(r.rtype, null_data.into_owned()))
+        }
+    }
+}
+
 pub fn parse_header(buffer: &[u8], header: &mut ffi::DnsHeader) -> bool {
     let Ok(packet) = Packet::parse(buffer) else {
         return false;
@@ -178,5 +262,66 @@ pub fn parse_message(buffer: &[u8], message: &mut ffi::DnsMessage) -> bool {
     *message =
         ffi::DnsMessage { header, questions, answers, authority_records, additional_records };
 
+    true
+}
+
+pub fn write_message(message: &ffi::DnsMessage, out: &mut Vec<u8>) -> bool {
+    let mut packet = if message.header.is_response {
+        Packet::new_reply(message.header.id)
+    } else {
+        Packet::new_query(message.header.id)
+    };
+    if message.header.is_authoritative {
+        packet.set_flags(PacketFlag::AUTHORITATIVE_ANSWER);
+    }
+    if message.header.is_truncated {
+        packet.set_flags(PacketFlag::TRUNCATION);
+    }
+
+    for q in &message.questions {
+        let Ok(qname) = labels_to_name(&q.name_labels) else {
+            return false;
+        };
+        let Ok(qtype) = QTYPE::try_from(q.qtype) else {
+            return false;
+        };
+        let Ok(qclass) = QCLASS::try_from(q.qclass) else {
+            return false;
+        };
+        packet.questions.push(Question::new(qname, qtype, qclass, q.is_unicast_response));
+    }
+
+    let convert_rr = |r: &ffi::DnsRecord| -> Option<ResourceRecord<'static>> {
+        let name = labels_to_name(&r.name_labels).ok()?;
+        let class = CLASS::try_from(r.rclass).ok()?;
+        let rdata = convert_record_rdata(r)?;
+        Some(
+            ResourceRecord::new(name, class, r.ttl_seconds, rdata)
+                .with_cache_flush(r.is_cache_flush),
+        )
+    };
+
+    let add_records = |src: &[ffi::DnsRecord], dest: &mut Vec<ResourceRecord<'static>>| -> bool {
+        dest.reserve(src.len());
+        for r in src {
+            match convert_rr(r) {
+                Some(rr) => dest.push(rr),
+                None => return false,
+            }
+        }
+        true
+    };
+
+    if !add_records(&message.answers, &mut packet.answers)
+        || !add_records(&message.authority_records, &mut packet.name_servers)
+        || !add_records(&message.additional_records, &mut packet.additional_records)
+    {
+        return false;
+    }
+
+    let Ok(bytes) = packet.build_bytes_vec_compressed() else {
+        return false;
+    };
+    *out = bytes;
     true
 }

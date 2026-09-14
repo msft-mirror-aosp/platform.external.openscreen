@@ -58,7 +58,6 @@ openscreen_source_set("public") {
     "mdns/public/mdns_record_changed_callback.h",
     "mdns/public/mdns_records.h",
     "mdns/public/mdns_service.h",
-    "mdns/public/mdns_writer.h",
     "public/dns_sd_service_factory.h",
     "public/dns_sd_service_publisher.h",
     "public/dns_sd_service_watcher.h",
@@ -70,18 +69,29 @@ openscreen_source_set("public") {
     "dnssd/public/dns_sd_txt_record.cc",
     "mdns/public/mdns_records.cc",
     "mdns/public/mdns_service.cc",
-    "mdns/public/mdns_writer.cc",
   ]
   public_deps = [ "../platform" ]
   deps = [ "../util" ]
   public_configs = [ ":mdns_rust_config" ]
   if (use_rust_mdns_parser) {
-    public += [ "mdns/public/simple_mdns_reader.h" ]
-    sources += [ "mdns/public/simple_mdns_reader.cc" ]
+    public += [
+      "mdns/public/simple_mdns_reader.h",
+      "mdns/public/simple_mdns_writer.h",
+    ]
+    sources += [
+      "mdns/public/simple_mdns_reader.cc",
+      "mdns/public/simple_mdns_writer.cc",
+    ]
     deps += [ ":mdns_rust" ]
   } else {
-    public += [ "mdns/public/mdns_reader.h" ]
-    sources += [ "mdns/public/mdns_reader.cc" ]
+    public += [
+      "mdns/public/mdns_reader.h",
+      "mdns/public/mdns_writer.h",
+    ]
+    sources += [
+      "mdns/public/mdns_reader.cc",
+      "mdns/public/mdns_writer.cc",
+    ]
   }
   friend = [ ":unittests" ]
 }
@@ -202,13 +212,18 @@ openscreen_source_set("unittests") {
     "mdns/impl/mdns_sender_unittest.cc",
     "mdns/impl/mdns_trackers_unittest.cc",
     "mdns/public/mdns_records_unittest.cc",
-    "mdns/public/mdns_writer_unittest.cc",
     "public/dns_sd_service_watcher_unittest.cc",
   ]
   if (use_rust_mdns_parser) {
-    sources += [ "mdns/public/simple_mdns_reader_unittest.cc" ]
+    sources += [
+      "mdns/public/simple_mdns_reader_unittest.cc",
+      "mdns/public/simple_mdns_writer_unittest.cc",
+    ]
   } else {
-    sources += [ "mdns/public/mdns_reader_unittest.cc" ]
+    sources += [
+      "mdns/public/mdns_reader_unittest.cc",
+      "mdns/public/mdns_writer_unittest.cc",
+    ]
   }
 
   deps = [

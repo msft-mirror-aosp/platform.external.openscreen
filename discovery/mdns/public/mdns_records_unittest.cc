@@ -10,8 +10,6 @@
 #include <utility>
 #include <vector>
 
-#include "discovery/mdns/public/mdns_reader.h"
-#include "discovery/mdns/public/mdns_writer.h"
 #include "discovery/mdns/testing/mdns_test_util.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

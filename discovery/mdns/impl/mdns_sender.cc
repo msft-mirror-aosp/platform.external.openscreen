@@ -8,9 +8,15 @@
 #include <iostream>
 #include <vector>
 
+#include "discovery/mdns/public/mdns_constants.h"
+#if defined(USE_RUST_MDNS_PARSER)
+#include "discovery/mdns/public/simple_mdns_writer.h"
+#else
 #include "discovery/mdns/public/mdns_writer.h"
+#endif
 #include "platform/api/udp_socket.h"
 #include "platform/base/span.h"
+#include "platform/base/udp_packet.h"
 
 namespace openscreen::discovery {
 
@@ -26,6 +32,25 @@ Error MdnsSender::SendMulticast(const MdnsMessage& message) {
 
 Error MdnsSender::SendMessage(const MdnsMessage& message,
                               const IPEndpoint& endpoint) {
+#if defined(USE_RUST_MDNS_PARSER)
+  static_assert(kMaxMulticastMessageSize <= UdpPacket::kUdpMaxPacketSize);
+  ErrorOr<std::vector<uint8_t>> bytes = SimpleMdnsWriter::Write(message);
+  if (!bytes) {
+    return bytes.error();
+  }
+  const size_t max_size = (endpoint == kMulticastSendIPv4Endpoint ||
+                           endpoint == kMulticastSendIPv6Endpoint ||
+                           endpoint == kDefaultSiteLocalGroupIPv4Endpoint ||
+                           endpoint == kDefaultSiteLocalGroupIPv6Endpoint)
+                              ? kMaxMulticastMessageSize
+                              : UdpPacket::kUdpMaxPacketSize;
+  if (bytes.value().size() > max_size) {
+    return Error::Code::kInsufficientBuffer;
+  }
+
+  socket_->SendMessage(ByteView(bytes.value()), endpoint);
+  return Error::Code::kNone;
+#else
   // Always try to write the message into the buffer even if MaxWireSize is
   // greater than maximum message size. Domain name compression might reduce the
   // on-the-wire size of the message sufficiently for it to fit into the buffer.
@@ -38,6 +63,7 @@ Error MdnsSender::SendMessage(const MdnsMessage& message,
 
   socket_->SendMessage(ByteView(buffer.data(), writer.offset()), endpoint);
   return Error::Code::kNone;
+#endif
 }
 
 void MdnsSender::OnSendError(UdpSocket* socket, const Error& error) {

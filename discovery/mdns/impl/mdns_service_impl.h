@@ -16,10 +16,8 @@
 #include "discovery/mdns/impl/mdns_sender.h"
 #include "discovery/mdns/public/mdns_constants.h"
 #include "discovery/mdns/public/mdns_domain_confirmed_provider.h"
-#include "discovery/mdns/public/mdns_reader.h"
 #include "discovery/mdns/public/mdns_records.h"
 #include "discovery/mdns/public/mdns_service.h"
-#include "discovery/mdns/public/mdns_writer.h"
 #include "platform/api/udp_socket.h"
 #include "util/raw_ref.h"
 

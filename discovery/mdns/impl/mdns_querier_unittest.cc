@@ -14,7 +14,11 @@
 #include "discovery/mdns/impl/mdns_sender.h"
 #include "discovery/mdns/impl/mdns_trackers.h"
 #include "discovery/mdns/public/mdns_record_changed_callback.h"
+#if defined(USE_RUST_MDNS_PARSER)
+#include "discovery/mdns/public/simple_mdns_writer.h"
+#else
 #include "discovery/mdns/public/mdns_writer.h"
+#endif
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "platform/base/udp_packet.h"
@@ -128,11 +132,17 @@ class MdnsQuerierTest : public testing::Test {
     for (const MdnsRecord& additional_record : additional_records) {
       message.AddAdditionalRecord(additional_record);
     }
+#if defined(USE_RUST_MDNS_PARSER)
+    ErrorOr<std::vector<uint8_t>> bytes = SimpleMdnsWriter::Write(message);
+    EXPECT_TRUE(bytes.is_value());
+    return UdpPacket(bytes.value().begin(), bytes.value().end());
+#else
     UdpPacket packet(message.MaxWireSize());
     MdnsWriter writer(packet.data(), packet.size());
     EXPECT_TRUE(writer.Write(message));
     packet.resize(writer.offset());
     return packet;
+#endif
   }
 
   UdpPacket CreatePacketWithRecords(

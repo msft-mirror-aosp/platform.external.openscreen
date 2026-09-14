@@ -5,13 +5,14 @@
 #include "discovery/mdns/public/mdns_records.h"
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <ostream>
 #include <sstream>
 #include <variant>
 #include <vector>
 
-#include "discovery/mdns/public/mdns_writer.h"
+#include "util/big_endian.h"
 #include "util/string_util.h"
 
 namespace openscreen::discovery {
@@ -40,35 +41,63 @@ inline int CompareIgnoreCase(const std::string& x, const std::string& y) {
   return i == y.size() ? 0 : -1;
 }
 
+void AppendDomainName(const DomainName& name, std::vector<uint8_t>& out) {
+  for (const std::string& label : name.labels()) {
+    out.push_back(static_cast<uint8_t>(label.size()));
+    out.insert(out.end(), label.begin(), label.end());
+  }
+  out.push_back(0);  // null-terminate
+}
+
+void AppendRdataBytes(const ARecordRdata& rdata, std::vector<uint8_t>& out) {
+  const auto ip = rdata.ipv4_address().bytes();
+  out.insert(out.end(), ip.begin(), ip.end());
+}
+
+void AppendRdataBytes(const AAAARecordRdata& rdata, std::vector<uint8_t>& out) {
+  const auto ip = rdata.ipv6_address().bytes();
+  out.insert(out.end(), ip.begin(), ip.end());
+}
+
+void AppendRdataBytes(const PtrRecordRdata& rdata, std::vector<uint8_t>& out) {
+  AppendDomainName(rdata.ptr_domain(), out);
+}
+
+void AppendRdataBytes(const SrvRecordRdata& rdata, std::vector<uint8_t>& out) {
+  std::array<uint8_t, 6> buffer;
+  BigEndianWriter writer(buffer);
+  writer.Write(rdata.priority());
+  writer.Write(rdata.weight());
+  writer.Write(rdata.port());
+  out.insert(out.end(), buffer.begin(), buffer.end());
+  AppendDomainName(rdata.target(), out);
+}
+
+void AppendRdataBytes(const TxtRecordRdata& rdata, std::vector<uint8_t>& out) {
+  for (const TxtRecordRdata::Entry& entry : rdata.texts()) {
+    OSP_CHECK_LE(entry.size(), kTXTMaxEntrySize);
+    out.push_back(static_cast<uint8_t>(entry.size()));
+    out.insert(out.end(), entry.begin(), entry.end());
+  }
+}
+
+void AppendRdataBytes(const NsecRecordRdata& rdata, std::vector<uint8_t>& out) {
+  AppendDomainName(rdata.next_domain_name(), out);
+  out.insert(out.end(), rdata.encoded_types().begin(),
+             rdata.encoded_types().end());
+}
+
+void AppendRdataBytes(const RawRecordRdata& rdata, std::vector<uint8_t>& out) {
+  out.insert(out.end(), rdata.data(), rdata.data() + rdata.size());
+}
+
 template <typename RDataType>
 bool IsGreaterThan(const Rdata& lhs, const Rdata& rhs) {
-  const RDataType& lhs_cast = std::get<RDataType>(lhs);
-  const RDataType& rhs_cast = std::get<RDataType>(rhs);
-
-  // The Extra 2 in length is from the record size that Write() prepends to the
-  // result.
-  const size_t lhs_size = lhs_cast.MaxWireSize() + 2;
-  const size_t rhs_size = rhs_cast.MaxWireSize() + 2;
-
-  std::vector<uint8_t> lhs_bytes(lhs_size);
-  std::vector<uint8_t> rhs_bytes(rhs_size);
-  MdnsWriter lhs_writer(lhs_bytes.data(), lhs_size);
-  MdnsWriter rhs_writer(rhs_bytes.data(), rhs_size);
-
-  const bool lhs_write = lhs_writer.Write(lhs_cast);
-  const bool rhs_write = rhs_writer.Write(rhs_cast);
-  OSP_CHECK(lhs_write);
-  OSP_CHECK(rhs_write);
-
-  // Skip the size bits.
-  const size_t min_size = std::min(lhs_writer.offset(), rhs_writer.offset());
-  for (size_t i = 2; i < min_size; i++) {
-    if (lhs_bytes[i] != rhs_bytes[i]) {
-      return lhs_bytes[i] > rhs_bytes[i];
-    }
-  }
-
-  return lhs_size > rhs_size;
+  std::vector<uint8_t> lhs_bytes;
+  std::vector<uint8_t> rhs_bytes;
+  AppendRdataBytes(std::get<RDataType>(lhs), lhs_bytes);
+  AppendRdataBytes(std::get<RDataType>(rhs), rhs_bytes);
+  return lhs_bytes > rhs_bytes;
 }
 
 bool IsGreaterThan(DnsType type, const Rdata& lhs, const Rdata& rhs) {
@@ -353,7 +382,7 @@ ErrorOr<TxtRecordRdata> TxtRecordRdata::TryCreate(std::vector<Entry> texts) {
     // max_wire_size includes uint16_t record length field.
     max_wire_size = sizeof(uint16_t);
     for (const auto& text : texts) {
-      if (text.empty()) {
+      if (text.empty() || text.size() > kTXTMaxEntrySize) {
         return Error::Code::kParameterInvalid;
       }
       // Include the length byte in the size calculation.
