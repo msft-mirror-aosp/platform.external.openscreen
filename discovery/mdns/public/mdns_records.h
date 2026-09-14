@@ -20,6 +20,7 @@
 #include "platform/base/error.h"
 #include "platform/base/interface_info.h"
 #include "platform/base/ip_address.h"
+#include "platform/base/span.h"
 #include "util/hashing.h"
 #include "util/osp_logging.h"
 
@@ -99,9 +100,11 @@ class DomainName {
 // distinguish a raw record type that we do not know the identity of.
 class RawRecordRdata {
  public:
+  static ErrorOr<RawRecordRdata> TryCreate(ByteView rdata);
   static ErrorOr<RawRecordRdata> TryCreate(std::vector<uint8_t> rdata);
 
   RawRecordRdata();
+  explicit RawRecordRdata(ByteView rdata);
   explicit RawRecordRdata(std::vector<uint8_t> rdata);
   RawRecordRdata(const uint8_t* begin, size_t size);
   RawRecordRdata(const RawRecordRdata& other);

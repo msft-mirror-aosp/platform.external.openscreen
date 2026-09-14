@@ -140,6 +140,15 @@ TEST(MdnsRawRecordRdataTest, Construct) {
   EXPECT_THAT(
       std::vector<uint8_t>(rdata3.data(), rdata3.data() + rdata3.size()),
       ElementsAreArray(kRawRdata));
+
+  RawRecordRdata rdata4{ByteView(kRawRdata)};
+  EXPECT_EQ(rdata4.MaxWireSize(), size_t{10});
+  EXPECT_EQ(rdata4.size(), UINT16_C(8));
+  EXPECT_EQ(rdata4, rdata2);
+
+  auto try_rdata = RawRecordRdata::TryCreate(ByteView(kRawRdata));
+  ASSERT_TRUE(try_rdata.is_value());
+  EXPECT_EQ(try_rdata.value(), rdata2);
 }
 
 TEST(MdnsRawRecordRdataTest, Compare) {

@@ -174,15 +174,24 @@ std::ostream& operator<<(std::ostream& os, const DomainName& domain_name) {
 }
 
 // static
-ErrorOr<RawRecordRdata> RawRecordRdata::TryCreate(std::vector<uint8_t> rdata) {
+ErrorOr<RawRecordRdata> RawRecordRdata::TryCreate(ByteView rdata) {
   if (rdata.size() > kMaxRawRecordSize) {
     return Error::Code::kIndexOutOfBounds;
-  } else {
-    return RawRecordRdata(std::move(rdata));
   }
+  return RawRecordRdata(rdata);
+}
+
+// static
+ErrorOr<RawRecordRdata> RawRecordRdata::TryCreate(std::vector<uint8_t> rdata) {
+  return TryCreate(ByteView(rdata));
 }
 
 RawRecordRdata::RawRecordRdata() = default;
+
+RawRecordRdata::RawRecordRdata(ByteView rdata)
+    : rdata_(rdata.begin(), rdata.end()) {
+  OSP_CHECK_LE(rdata_.size(), kMaxRawRecordSize);
+}
 
 RawRecordRdata::RawRecordRdata(std::vector<uint8_t> rdata)
     : rdata_(std::move(rdata)) {

@@ -6,7 +6,11 @@
 
 #include <utility>
 
+#if defined(USE_RUST_MDNS_PARSER)
+#include "discovery/mdns/public/simple_mdns_reader.h"
+#else
 #include "discovery/mdns/public/mdns_reader.h"
+#endif
 #include "util/std_util.h"
 #include "util/trace_logging.h"
 
@@ -62,8 +66,12 @@ void MdnsReceiver::OnRead(UdpSocket* socket,
   UdpPacket packet = std::move(packet_or_error.value());
 
   TRACE_SCOPED(TraceCategory::kMdns, "MdnsReceiver::OnRead");
+#if defined(USE_RUST_MDNS_PARSER)
+  const ErrorOr<MdnsMessage> message = SimpleMdnsReader::Read(config_, packet);
+#else
   MdnsReader reader(config_, packet.data(), packet.size());
   const ErrorOr<MdnsMessage> message = reader.Read();
+#endif
   if (message.is_error()) {
     TRACE_SET_RESULT(message.error());
     if (message.error().code() == Error::Code::kMdnsNonConformingFailure) {
