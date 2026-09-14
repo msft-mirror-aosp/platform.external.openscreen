@@ -155,11 +155,8 @@ void SDLPlayerBase::RenderAndSchedulePresentation() {
       (state_ == kError) ? frames_to_render_.end() : frames_to_render_.begin();
   if (it == frames_to_render_.end() || !it->second.decoded_frame) {
     if (RenderWhileIdle(state_ == kPresented ? &current_frame_ : nullptr)) {
-      // Schedule presentation to happen after a rather lengthy interval, to
-      // minimize redraw/etc. resource usage while doing "idle mode" play-out.
-      // The interval here, is "lengthy" from the program's perspective, but
-      // reasonably "snappy" from the user's perspective.
-      constexpr auto kIdlePresentInterval = milliseconds(250);
+      // Stay idle for a reasonable amount of time to save power.
+      constexpr auto kIdlePresentInterval = milliseconds(100);
       presentation_alarm_.ScheduleFromNow(
           [this] {
             Present();
