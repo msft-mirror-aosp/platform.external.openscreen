@@ -70,6 +70,9 @@ class CastService final : public discovery::ReportingClient {
 
     // Whether input event API should be enabled for this session.
     bool enable_input_events = false;
+
+    // The port to listen on (0 uses kDefaultCastServicePort).
+    uint16_t port = 0;
   };
 
   explicit CastService(Configuration config);

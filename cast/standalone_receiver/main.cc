@@ -25,6 +25,7 @@
 #include "platform/impl/text_trace_logging_platform.h"
 #include "third_party/getopt/getopt.h"
 #include "util/chrono_helpers.h"
+#include "util/string_parse.h"
 #include "util/string_util.h"
 #include "util/trace_logging.h"
 #include "util/uuid.h"
@@ -78,6 +79,8 @@ options:
     -v, --verbose: Enable verbose logging.
 
     -x, --disable-discovery: Disable discovery.
+
+    -r, --port: Port to listen on. Defaults to 8010.
 
     -P, --perfetto: Enable Perfetto based performance trace logging.
 
@@ -137,6 +140,7 @@ struct Arguments {
   std::string private_key_path;
   std::unique_ptr<TraceLoggingPlatform> trace_logger;
   bool is_verbose = false;
+  uint16_t port = 0;
 };
 
 std::optional<Arguments> ParseArgs(int argc, char* argv[]) {
@@ -159,11 +163,12 @@ std::optional<Arguments> ParseArgs(int argc, char* argv[]) {
 #if defined(USE_PERFETTO)
       {"perfetto", no_argument, nullptr, 'P'},
 #endif
+      {"port", required_argument, nullptr, 'r'},
       {nullptr, 0, nullptr, 0}};
 
   Arguments args;
   int ch = -1;
-  while ((ch = getopt_long(argc, argv, "d:f:ghim:p:qtvxP", kArgumentOptions,
+  while ((ch = getopt_long(argc, argv, "d:f:ghim:p:qtvxPr:", kArgumentOptions,
                            nullptr)) != -1) {
     switch (ch) {
       case 'd':
@@ -203,6 +208,16 @@ std::optional<Arguments> ParseArgs(int argc, char* argv[]) {
         args.trace_logger = std::make_unique<PerfettoTraceLoggingPlatform>();
         break;
 #endif
+      case 'r': {
+        const auto port = ParseAsciiNumber<uint16_t>(get_opt::optarg);
+        if (!port || *port <= 1024) {
+          OSP_LOG_ERROR << "Invalid port: " << get_opt::optarg
+                        << ". Port must be between 1025 and 65535.";
+          return std::nullopt;
+        }
+        args.port = *port;
+        break;
+      }
     }
   }
 
@@ -262,7 +277,7 @@ int RunStandaloneReceiver(int argc, char* argv[]) {
           raw_ref(*task_runner), interface, std::move(creds.value()),
           Uuid::GenerateRandomV4().AsLowercaseString(), args->friendly_name,
           args->model_name, args->enable_discovery, args->enable_dscp,
-          args->enable_input_events});
+          args->enable_input_events, args->port});
   PlatformClientPosix::ShutDown();
 
   return 0;

@@ -245,11 +245,25 @@ class StandaloneCastTest(unittest.TestCase):
             print('Generation failed with output: ', error.output.decode())
             raise
 
-    def launch_receiver(self):
+    @classmethod
+    def generate_port(cls):
+        """Finds an available port, starting from the standard port 8010."""
+        port = DEFAULT_TCP_PORT
+        while port < 65535:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(('127.0.0.1', port))
+                    return port
+                except OSError:
+                    port += 1
+        raise RuntimeError('No available ports found.')
+
+    def launch_receiver(self, port):
         """Launches the receiver process with discovery disabled."""
         logging.debug('Launching the receiver application...')
-        self.assertTrue(_wait_for_port_available(8010),
-                        'Port 8010 not available before launching receiver!')
+        self.assertTrue(
+            _wait_for_port_available(port),
+            f'Port {port} not available before launching receiver!')
         loopback = _get_loopback_adapter_name()
         self.assertTrue(loopback)
 
@@ -262,18 +276,24 @@ class StandaloneCastTest(unittest.TestCase):
             '-x',  # Skip discovery, only necessary on Mac OS X.
             '-v',  # Enable verbose logging.
             '-P',  # enable Perfetto based performance logging.
+            '-r',  # Set custom port.
+            str(port),
             loopback,
         ]
+        env = os.environ.copy()
+        env['SDL_VIDEODRIVER'] = 'dummy'
+        env['SDL_AUDIODRIVER'] = 'dummy'
         return subprocess.Popen(command,
                                 stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+                                stderr=subprocess.PIPE,
+                                env=env)
 
-    def launch_sender(self, flags, codec=None):
+    def launch_sender(self, port, flags, codec=None):
         """Launches the sender process, running the test video file once."""
         logging.debug('Launching the sender application...')
         command = [
             self.build_paths.cast_sender,
-            '127.0.0.1:8010',
+            f'127.0.0.1:{port}',
             self.build_paths.test_video,
             '-d',
             TEST_CERT_NAME,
@@ -340,10 +360,11 @@ class StandaloneCastTest(unittest.TestCase):
 
     def get_output(self, flags, codec=None):
         """Launches the sender and receiver, and handles exit output."""
-        receiver_process = self.launch_receiver()
+        port = self.generate_port()
+        receiver_process = self.launch_receiver(port)
         logging.debug('Letting the receiver start up...')
         time.sleep(3)
-        sender_process = self.launch_sender(flags, codec)
+        sender_process = self.launch_sender(port, flags, codec)
 
         logging.debug(
             'Launched sender PID %i and receiver PID %i...',
@@ -370,8 +391,9 @@ class StandaloneCastTest(unittest.TestCase):
             receiver_out, receiver_err = receiver_process.communicate()
 
             # Programmatically confirm that the OS released the socket port.
-            self.assertTrue(_wait_for_port_available(8010),
-                            'Port 8010 not released after receiver shutdown!')
+            self.assertTrue(
+                _wait_for_port_available(port),
+                f'Port {port} not released after receiver shutdown!')
 
             if TestFlags.USE_REMOTING not in flags:
                 self.assertEqual(sender_process.returncode, 0,

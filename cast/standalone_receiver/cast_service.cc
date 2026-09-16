@@ -27,12 +27,12 @@ constexpr int kCastUniqueIdLength = 6;
 constexpr int kDefaultMaxBacklogSize = 64;
 constexpr TlsListenOptions kDefaultListenOptions = {kDefaultMaxBacklogSize};
 
-IPEndpoint DetermineEndpoint(const InterfaceInfo& interface) {
+IPEndpoint DetermineEndpoint(const InterfaceInfo& interface, uint16_t port) {
   const IPAddress address = interface.GetIpAddressV4()
                                 ? interface.GetIpAddressV4()
                                 : interface.GetIpAddressV6();
   OSP_CHECK(address);
-  return IPEndpoint{address, kDefaultCastServicePort};
+  return IPEndpoint{address, port > 0 ? port : kDefaultCastServicePort};
 }
 
 discovery::Config MakeDiscoveryConfig(const InterfaceInfo& interface) {
@@ -42,7 +42,7 @@ discovery::Config MakeDiscoveryConfig(const InterfaceInfo& interface) {
 }  // namespace
 
 CastService::CastService(CastService::Configuration config)
-    : local_endpoint_(DetermineEndpoint(config.interface)),
+    : local_endpoint_(DetermineEndpoint(config.interface, config.port)),
       credentials_(std::move(config.credentials)),
       agent_(*config.task_runner, *credentials_.provider, config.device_uuid),
       mirroring_application_(*config.task_runner,
