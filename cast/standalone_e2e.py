@@ -201,6 +201,11 @@ class StandaloneCastTest(unittest.TestCase):
   Generated certificates should always be in |cls.build_paths.root|.
   """
 
+    perfetto = False
+    long_session = False
+    long_duration = 60
+    trace_files = []
+
     @classmethod
     def setUpClass(cls):
         """Shared setup method for all tests, handles one-time updates."""
@@ -208,6 +213,21 @@ class StandaloneCastTest(unittest.TestCase):
         os.chdir(cls.build_paths.root)
         cls.setup_video()
         cls.generate_certificates()
+
+        if cls.perfetto:
+            # Clean up any stale trace files from previous runs.
+            for p in pathlib.Path('.').glob('*.pftrace'):
+                try:
+                    p.unlink()
+                except OSError:
+                    pass
+
+    @classmethod
+    def tearDownClass(cls):
+        """Finalizes tests and logs collected trace files if enabled."""
+        if cls.perfetto and cls.trace_files:
+            logging.info('Collected %d trace files across sessions: %s',
+                         len(cls.trace_files), ', '.join(cls.trace_files))
 
     @classmethod
     def setup_video(cls):
@@ -275,11 +295,13 @@ class StandaloneCastTest(unittest.TestCase):
             TEST_KEY_NAME,
             '-x',  # Skip discovery, only necessary on Mac OS X.
             '-v',  # Enable verbose logging.
-            '-P',  # enable Perfetto based performance logging.
             '-r',  # Set custom port.
             str(port),
-            loopback,
         ]
+        if self.perfetto:
+            command.append('-P')
+        command.append(loopback)
+
         env = os.environ.copy()
         env['SDL_VIDEODRIVER'] = 'dummy'
         env['SDL_AUDIODRIVER'] = 'dummy'
@@ -288,7 +310,7 @@ class StandaloneCastTest(unittest.TestCase):
                                 stderr=subprocess.PIPE,
                                 env=env)
 
-    def launch_sender(self, port, flags, codec=None):
+    def launch_sender(self, port, flags, codec=None, looping=False):
         """Launches the sender process, running the test video file once."""
         logging.debug('Launching the sender application...')
         command = [
@@ -297,9 +319,11 @@ class StandaloneCastTest(unittest.TestCase):
             self.build_paths.test_video,
             '-d',
             TEST_CERT_NAME,
-            '-n',  # Only play the video once, and then exit.
-            '-P',  # enable Perfetto based performance logging.
         ]
+        if not looping:
+            command.append('-n')  # Only play the video once, and then exit.
+        if self.perfetto:
+            command.append('-P')
         if TestFlags.USE_ANDROID_HACK in flags:
             command.append('-a')
         if TestFlags.USE_REMOTING in flags:
@@ -358,13 +382,16 @@ class StandaloneCastTest(unittest.TestCase):
                                 f'Logs contained an error: {prefix}')
         logging.debug('Finished validating log output')
 
-    def get_output(self, flags, codec=None):
+    def get_output(self, flags, codec=None, is_long=False):
         """Launches the sender and receiver, and handles exit output."""
         port = self.generate_port()
         receiver_process = self.launch_receiver(port)
         logging.debug('Letting the receiver start up...')
         time.sleep(3)
-        sender_process = self.launch_sender(port, flags, codec)
+        sender_process = self.launch_sender(port,
+                                            flags,
+                                            codec,
+                                            looping=is_long)
 
         logging.debug(
             'Launched sender PID %i and receiver PID %i...',
@@ -373,11 +400,32 @@ class StandaloneCastTest(unittest.TestCase):
         )
         logging.debug('collating output...')
 
+        timeout = self.long_duration if is_long else PROCESS_TIMEOUT
         try:
             # We wait for the sender to complete, as it drives the session.
             sender_out, sender_err = sender_process.communicate(
-                timeout=PROCESS_TIMEOUT)
+                timeout=timeout)
+            sender_output = sender_err.decode('utf-8', errors='replace')
+        except subprocess.TimeoutExpired:
+            if is_long:
+                logging.info(
+                    'Long session duration reached. Stopping processes...')
+                sender_process.terminate()
+                sender_out, sender_err = sender_process.communicate()
+                sender_output = sender_err.decode('utf-8', errors='replace')
+            else:
+                logging.error('Test timed out, killing processes...')
+                receiver_process.kill()
+                sender_process.kill()
+                receiver_out, receiver_err = receiver_process.communicate()
+                sender_out, sender_err = sender_process.communicate()
+                logging.error('Receiver Stderr: %s',
+                              receiver_err.decode('utf-8', errors='replace'))
+                logging.error('Sender Stderr: %s',
+                              sender_err.decode('utf-8', errors='replace'))
+                raise
 
+        try:
             # Give the receiver a moment to process any final messages / settle.
             time.sleep(2)
 
@@ -389,31 +437,33 @@ class StandaloneCastTest(unittest.TestCase):
                 receiver_process.kill()
 
             receiver_out, receiver_err = receiver_process.communicate()
+            receiver_output = receiver_err.decode('utf-8', errors='replace')
 
             # Programmatically confirm that the OS released the socket port.
             self.assertTrue(
                 _wait_for_port_available(port),
                 f'Port {port} not released after receiver shutdown!')
 
-            if TestFlags.USE_REMOTING not in flags:
+            if self.perfetto:
+                logging.info('Perfetto enabled, searching for trace files...')
+                current_traces = []
+                for pid in [sender_process.pid, receiver_process.pid]:
+                    matches = list(pathlib.Path('.').glob(f'*{pid}.pftrace'))
+                    current_traces.extend([str(m) for m in matches])
+
+                if current_traces:
+                    self.trace_files.extend(current_traces)
+                    logging.info('Collected trace files: %s',
+                                 ', '.join(current_traces))
+                else:
+                    logging.warning('No trace files found for PIDs %d, %d',
+                                    sender_process.pid, receiver_process.pid)
+
+            if not is_long and TestFlags.USE_REMOTING not in flags:
                 self.assertEqual(sender_process.returncode, 0,
                                  'sender had non-zero exit code')
 
-            return (
-                receiver_err.decode('utf-8', errors='replace'),
-                sender_err.decode('utf-8', errors='replace'),
-            )
-        except subprocess.TimeoutExpired:
-            logging.error('Test timed out, killing processes...')
-            receiver_process.kill()
-            sender_process.kill()
-            receiver_out, receiver_err = receiver_process.communicate()
-            sender_out, sender_err = sender_process.communicate()
-            logging.error('Receiver Stderr: %s',
-                          receiver_err.decode('utf-8', errors='replace'))
-            logging.error('Sender Stderr: %s',
-                          sender_err.decode('utf-8', errors='replace'))
-            raise
+            return (receiver_output, sender_output)
         finally:
             if receiver_process.poll() is None:
                 receiver_process.kill()
@@ -424,6 +474,13 @@ class StandaloneCastTest(unittest.TestCase):
         """Tests that when settings are normal, things work end to end."""
         output = self.get_output([])
         self.check_logs(output)
+
+    def test_long_session(self):
+        """Runs a single long-running session for trace collection."""
+        if not self.long_session:
+            self.skipTest('Long session not requested (--long).')
+        self.get_output([], is_long=True)
+        logging.debug('Finished long session.')
 
     def test_remoting(self):
         """Tests that basic remoting works."""
@@ -474,15 +531,31 @@ def _parse_args():
                         '--verbose',
                         help='enable debug logging',
                         action='store_true')
+    parser.add_argument('--perfetto',
+                        help='enable perfetto tracing and analysis',
+                        action='store_true')
+    parser.add_argument('--long',
+                        help='enable a single long-running session',
+                        action='store_true')
+    parser.add_argument('--duration',
+                        help='duration for the long session in seconds',
+                        type=int,
+                        default=60)
 
     parsed_args, remaining_args = parser.parse_known_args(sys.argv[1:])
     _set_log_level(parsed_args.verbose)
-
-    # Crop Open Screen-specific command line arguments from sys.argv before
-    # calling unittest.main().
-    sys.argv = [sys.argv[0]] + remaining_args
+    return parsed_args, remaining_args
 
 
 if __name__ == '__main__':
-    _parse_args()
-    unittest.main()
+    args, unittest_args = _parse_args()
+    StandaloneCastTest.perfetto = args.perfetto
+    StandaloneCastTest.long_session = args.long
+    StandaloneCastTest.long_duration = args.duration
+
+    if args.long:
+        unittest_args = [sys.argv[0], 'StandaloneCastTest.test_long_session']
+    else:
+        unittest_args = [sys.argv[0]] + unittest_args
+
+    unittest.main(argv=unittest_args)
