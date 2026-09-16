@@ -20,7 +20,8 @@ openscreen_source_set("quic_adapters") {
   public_deps = [ "../../../third_party/quiche" ]
 
   deps = [
-    "../../../platform",
+    "../../../platform:api",
+    "../../../platform:base",
     "../../../third_party/abseil",
     "../../../util",
   ]

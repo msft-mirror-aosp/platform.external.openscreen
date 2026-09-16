@@ -41,6 +41,15 @@ class WebTransportStream {
 
     // Called when the stream is ready for writing.
     virtual void OnWriteReady(WebTransportStream* stream) {}
+
+    // Called when `stream` is about to be destroyed. After this returns,
+    // `stream` is invalid and must not be dereferenced.
+    //
+    // Delegates that do not own the stream (e.g. incoming streams, which are
+    // owned by the session) must drop their pointer to it here. There is no
+    // need to call SetDelegate(nullptr): the delegate is automatically unset
+    // before this is invoked, so re-entrant callbacks cannot occur.
+    virtual void OnDestroyed(WebTransportStream* stream) {}
   };
 
   virtual ~WebTransportStream() = default;
