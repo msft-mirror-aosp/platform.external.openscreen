@@ -277,7 +277,6 @@ def get_properties(
     if is_gcc:
         gn_args_dict["is_clang"] = False
         gn_args_dict["use_custom_libcxx"] = False
-        gn_args_dict["enable_rust"] = False
     if is_asan:
         gn_args_dict["is_asan"] = True
         properties["is_asan"] = True
