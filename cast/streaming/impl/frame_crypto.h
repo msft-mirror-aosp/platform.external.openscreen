@@ -53,11 +53,20 @@ class FrameCrypto {
 
   ~FrameCrypto();
 
+  // Encrypts `encoded_frame` into `dest`, reusing `dest`'s underlying buffer
+  // storage to avoid repeated allocations.
+  void Encrypt(const EncodedFrame& encoded_frame, EncryptedFrame& dest) const;
+
+  // Encrypts `encoded_frame` into a new EncryptedFrame.
   EncryptedFrame Encrypt(const EncodedFrame& encoded_frame) const;
 
   // Decrypts `chunks` into `out`. `out` must have a sufficiently-sized
   // data buffer.
   void Decrypt(FrameId frame_id, ChunkList chunks, ByteBuffer out) const;
+
+  // Decrypts `encrypted_frame` into `out`. `out` must have a sufficiently-sized
+  // data buffer.
+  void Decrypt(const EncryptedFrame& encrypted_frame, ByteBuffer out) const;
 
  private:
   // The 244-byte AES_KEY struct, derived from the `aes_key` passed to the ctor,

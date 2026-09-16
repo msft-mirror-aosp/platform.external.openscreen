@@ -87,7 +87,7 @@ Clock::duration SenderImpl::GetInFlightMediaDuration(
   // the checkpoint forward. See "CST2 feedback" discussion in rtp_defines.h.
   OSP_CHECK(oldest_slot.is_active_for_frame(checkpoint_frame_id_ + 1));
 
-  return (next_frame_rtp_timestamp - oldest_slot.frame->rtp_timestamp)
+  return (next_frame_rtp_timestamp - oldest_slot.frame.rtp_timestamp)
       .ToDuration<Clock::duration>(rtp_timebase_);
 }
 
@@ -182,11 +182,11 @@ openscreen::cast::Sender::EnqueueFrameResult SenderImpl::EnqueueFrame(
 
   // Encrypt the frame and initialize the slot tracking its sending.
   PendingFrameSlot& slot = get_slot_for(frame.frame_id);
-  OSP_CHECK(!slot.frame);
-  slot.frame = crypto_.Encrypt(frame);
-  const int packet_count = rtp_packetizer_.ComputeNumberOfPackets(*slot.frame);
+  OSP_CHECK(!slot.is_active_for_frame(frame.frame_id));
+  crypto_.Encrypt(frame, slot.frame);
+  const int packet_count = rtp_packetizer_.ComputeNumberOfPackets(slot.frame);
   if (packet_count <= 0) {
-    slot.frame.reset();
+    slot.frame.frame_id = FrameId();
     return PAYLOAD_TOO_LARGE;
   }
   slot.send_flags.Resize(packet_count, BitVector::SET);
@@ -194,30 +194,30 @@ openscreen::cast::Sender::EnqueueFrameResult SenderImpl::EnqueueFrame(
 
   // Officially record the "enqueue."
   ++num_frames_in_flight_;
-  last_enqueued_frame_id_ = slot.frame->frame_id;
+  last_enqueued_frame_id_ = slot.frame.frame_id;
   OSP_CHECK_LE(
       num_frames_in_flight_,
       static_cast<size_t>(last_enqueued_frame_id_ - checkpoint_frame_id_));
-  if (slot.frame->dependency == EncodedFrame::Dependency::kKeyFrame) {
-    last_enqueued_key_frame_id_ = slot.frame->frame_id;
+  if (slot.frame.dependency == EncodedFrame::Dependency::kKeyFrame) {
+    last_enqueued_key_frame_id_ = slot.frame.frame_id;
     last_enqueued_key_frame_time_ = now_();
   }
   TRACE_FLOW_STEP(TraceCategory::kSender, "Frame.Enqueued", frame.frame_id);
 
   // Update the target playout delay, if necessary.
-  if (slot.frame->new_playout_delay > milliseconds::zero()) {
-    target_playout_delay_ = slot.frame->new_playout_delay;
-    playout_delay_change_at_frame_id_ = slot.frame->frame_id;
+  if (slot.frame.new_playout_delay > milliseconds::zero()) {
+    target_playout_delay_ = slot.frame.new_playout_delay;
+    playout_delay_change_at_frame_id_ = slot.frame.frame_id;
   }
 
   // Update the lip-sync information for the next Sender Report, ensuring that
   // the reference time is monotonically increasing.
   pending_sender_report_.reference_time =
       frame.frame_id == FrameId::first()
-          ? slot.frame->reference_time
-          : std::max(slot.frame->reference_time,
+          ? slot.frame.reference_time
+          : std::max(slot.frame.reference_time,
                      pending_sender_report_.reference_time);
-  pending_sender_report_.rtp_timestamp = slot.frame->rtp_timestamp;
+  pending_sender_report_.rtp_timestamp = slot.frame.rtp_timestamp;
 
   // If the round trip time hasn't been computed yet, immediately send a RTCP
   // packet (i.e., before the RTP packets are sent). The RTCP packet will
@@ -321,15 +321,15 @@ ByteBuffer SenderImpl::GetRtpPacketForImmediateSend(Clock::time_point send_time,
 
   if (should_kickstart) {
     OSP_LOG_INFO << "Sending KICKSTART for frame "
-                 << chosen.slot->frame->frame_id
+                 << chosen.slot->frame.frame_id
                  << ", packet_id=" << chosen.packet_id;
   } else if (is_retransmission) {
-    OSP_LOG_INFO << "RETRANSMITTING frame " << chosen.slot->frame->frame_id
+    OSP_LOG_INFO << "RETRANSMITTING frame " << chosen.slot->frame.frame_id
                  << ", packet_id=" << chosen.packet_id;
   }
 
   const ByteBuffer result = rtp_packetizer_.GeneratePacket(
-      *chosen.slot->frame, chosen.packet_id, buffer);
+      chosen.slot->frame, chosen.packet_id, buffer);
   chosen.slot->send_flags.Clear(chosen.packet_id);
   chosen.slot->packet_sent_times[chosen.packet_id] = send_time;
 
@@ -506,7 +506,7 @@ void SenderImpl::OnReceiverCheckpoint(FrameId frame_id,
     ++checkpoint_frame_id_;
     PendingFrameSlot& slot = get_slot_for(checkpoint_frame_id_);
     if (slot.is_active_for_frame(checkpoint_frame_id_)) {
-      const RtpTimeTicks rtp_timestamp = slot.frame->rtp_timestamp;
+      const RtpTimeTicks rtp_timestamp = slot.frame.rtp_timestamp;
       statistics_dispatcher_.DispatchAckEvent(
           config_.stream_type, rtp_timestamp, checkpoint_frame_id_);
       CancelPendingFrame(checkpoint_frame_id_, /*was_acked*/ true);
@@ -543,7 +543,7 @@ void SenderImpl::OnReceiverHasFrames(std::vector<FrameId> acks) {
     TRACE_FLOW_STEP(TraceCategory::kSender, "Frame.Acked", id);
     PendingFrameSlot& slot = get_slot_for(id);
     if (slot.is_active_for_frame(id)) {
-      const RtpTimeTicks rtp_timestamp = slot.frame->rtp_timestamp;
+      const RtpTimeTicks rtp_timestamp = slot.frame.rtp_timestamp;
       statistics_dispatcher_.DispatchAckEvent(config_.stream_type,
                                               rtp_timestamp, id);
     }
@@ -718,10 +718,10 @@ void SenderImpl::CancelPendingFrame(FrameId frame_id, bool was_acked) {
 
   if (was_acked) {
     packet_router_->OnPayloadReceived(
-        slot.frame->data.size(), rtcp_packet_arrival_time_, round_trip_time_);
+        slot.frame.data.size(), rtcp_packet_arrival_time_, round_trip_time_);
   }
 
-  slot.frame.reset();
+  slot.frame.frame_id = FrameId();
   OSP_CHECK_GT(num_frames_in_flight_, 0);
   --num_frames_in_flight_;
   if (observer_) {

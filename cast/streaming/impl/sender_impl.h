@@ -84,8 +84,10 @@ class SenderImpl final : public Sender,
   // Tracking/Storage for frames that are ready-to-send, and until they are
   // fully received at the other end.
   struct PendingFrameSlot {
-    // The frame to send, or nullopt if this slot is not in use.
-    std::optional<EncryptedFrame> frame;
+    // The frame to send. Note that this is always set to avoid unnecessary
+    // re-allocations of the underlying buffer. Use is_active_for_frame() to
+    // check if it's currently in use for a specific FrameId.
+    EncryptedFrame frame;
 
     // Represents which packets need to be sent. Elements are indexed by
     // FramePacketId. A set bit means a packet needs to be sent (or re-sent).
@@ -101,7 +103,7 @@ class SenderImpl final : public Sender,
     ~PendingFrameSlot();
 
     bool is_active_for_frame(FrameId frame_id) const {
-      return frame && frame->frame_id == frame_id;
+      return !frame.frame_id.is_null() && frame.frame_id == frame_id;
     }
   };
 

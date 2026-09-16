@@ -61,18 +61,31 @@ FrameCrypto::FrameCrypto(const std::array<uint8_t, 16>& aes_key,
 FrameCrypto::~FrameCrypto() = default;
 
 EncryptedFrame FrameCrypto::Encrypt(const EncodedFrame& encoded_frame) const {
-  EncryptedFrame result;
-  encoded_frame.CopyMetadataTo(&result);
-  result.owned_data_.resize(encoded_frame.data.size());
-  result.data = result.owned_data_;
-  Crypt(encoded_frame.frame_id, {&encoded_frame.data, 1}, result.owned_data_);
-  return result;
+  EncryptedFrame dest;
+  Encrypt(encoded_frame, dest);
+  return dest;
+}
+
+void FrameCrypto::Encrypt(const EncodedFrame& encoded_frame,
+                          EncryptedFrame& dest) const {
+  encoded_frame.CopyMetadataTo(&dest);
+  dest.owned_data_.resize(encoded_frame.data.size());
+  dest.data = dest.owned_data_;
+  Crypt(encoded_frame.frame_id, {&encoded_frame.data, 1}, dest.owned_data_);
 }
 
 void FrameCrypto::Decrypt(FrameId frame_id,
                           ChunkList chunks,
                           ByteBuffer out) const {
   Crypt(frame_id, chunks, out);
+}
+
+void FrameCrypto::Decrypt(const EncryptedFrame& encrypted_frame,
+                          ByteBuffer out) const {
+  // AES-CTR is symmetric. Thus, decryption back to the plaintext is the same as
+  // encrypting the ciphertext; and both are the same size.
+  OSP_CHECK_EQ(encrypted_frame.data.size(), out.size());
+  Crypt(encrypted_frame.frame_id, {&encrypted_frame.data, 1}, out);
 }
 
 void FrameCrypto::Crypt(FrameId frame_id,

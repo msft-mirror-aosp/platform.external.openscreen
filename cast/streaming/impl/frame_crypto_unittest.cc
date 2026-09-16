@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -71,6 +72,37 @@ TEST(FrameCryptoTest, EncryptsAndDecryptsFrames) {
   decrypted_frame1.data = decrypted_frame1_buffer;
   EXPECT_EQ(frame1.frame_id, decrypted_frame1.frame_id);
   EXPECT_THAT(frame1.data, ElementsAreArray(decrypted_frame1.data));
+}
+
+TEST(FrameCryptoTest, EncryptsWithBufferReuseAndDecryptsEncryptedFrame) {
+  const char kPayload[] = "Buffer reuse encryption test payload.";
+  std::vector<uint8_t> buffer(
+      reinterpret_cast<const uint8_t*>(kPayload),
+      reinterpret_cast<const uint8_t*>(kPayload) + sizeof(kPayload));
+
+  EncodedFrame frame;
+  frame.frame_id = FrameId::first();
+  frame.data = buffer;
+
+  const FrameCrypto crypto(GenerateRandomBytes16(), GenerateRandomBytes16());
+
+  EncryptedFrame reusable_frame;
+  crypto.Encrypt(frame, reusable_frame);
+  EXPECT_EQ(frame.frame_id, reusable_frame.frame_id);
+  EXPECT_THAT(frame.data, Not(ElementsAreArray(reusable_frame.data)));
+
+  const uint8_t* first_buffer_ptr = reusable_frame.data.data();
+
+  // Encrypt a second frame of the same size and verify buffer capacity reuse.
+  frame.frame_id = FrameId::first() + 1;
+  crypto.Encrypt(frame, reusable_frame);
+  EXPECT_EQ(frame.frame_id, reusable_frame.frame_id);
+  EXPECT_EQ(first_buffer_ptr, reusable_frame.data.data());
+
+  // Verify the Decrypt(const EncryptedFrame&, ByteBuffer) overload.
+  std::vector<uint8_t> decrypted_buffer(reusable_frame.data.size());
+  crypto.Decrypt(reusable_frame, decrypted_buffer);
+  EXPECT_THAT(frame.data, ElementsAreArray(decrypted_buffer));
 }
 
 }  // namespace
