@@ -321,6 +321,10 @@ def _common_checks(input_api, output_api):
 
     results.extend(_check_generated_infra_files(input_api, output_api))
 
+    results.extend(
+        input_api.RunTests(
+            input_api.canned_checks.CheckVPythonSpec(input_api, output_api)))
+
     return results
 
 
