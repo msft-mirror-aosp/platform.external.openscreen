@@ -51,7 +51,7 @@ bool MdnsWriter::Write(ByteView value) {
   }
   Cursor cursor(this);
   if (Write(static_cast<uint8_t>(value.size())) &&
-      Write(value.data(), value.size())) {
+      BigEndianWriter::Write(value)) {
     cursor.Commit();
     return true;
   }
@@ -94,7 +94,7 @@ bool MdnsWriter::Write(const DomainName& name) {
           std::make_pair(subhashes[i], MakePointerLabel(current() - begin())));
     }
     if (!Write(MakeDirectLabel(labels[i].size())) ||
-        !Write(labels[i].data(), labels[i].size())) {
+        !BigEndianWriter::Write(ByteViewFromString(labels[i]))) {
       return false;
     }
   }
@@ -111,7 +111,8 @@ bool MdnsWriter::Write(const DomainName& name) {
 
 bool MdnsWriter::Write(const RawRecordRdata& rdata) {
   Cursor cursor(this);
-  if (Write(rdata.size()) && Write(rdata.data(), rdata.size())) {
+  if (Write(rdata.size()) &&
+      BigEndianWriter::Write(ByteView(rdata.data(), rdata.size()))) {
     cursor.Commit();
     return true;
   }
@@ -252,8 +253,7 @@ bool MdnsWriter::Write(const MdnsMessage& message) {
 }
 
 bool MdnsWriter::Write(const IPAddress& address) {
-  const auto bytes = address.bytes();
-  return BigEndianWriter::Write(bytes.data(), bytes.size());
+  return BigEndianWriter::Write(address.bytes());
 }
 
 bool MdnsWriter::Write(const Rdata& rdata) {

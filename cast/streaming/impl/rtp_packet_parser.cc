@@ -90,7 +90,7 @@ std::optional<RtpPacketParser::ParseResult> RtpPacketParser::Parse(
         return std::nullopt;
       }
       result.new_playout_delay =
-          std::chrono::milliseconds(ReadBigEndian<uint16_t>(buffer.data()));
+          std::chrono::milliseconds(ReadBigEndian<uint16_t>(buffer));
     }
     buffer = buffer.subspan(size);
   }

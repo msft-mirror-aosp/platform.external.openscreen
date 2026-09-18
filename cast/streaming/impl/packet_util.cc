@@ -17,7 +17,7 @@ std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(ByteView packet) {
     constexpr int kOffsetToSsrcField = 8;
     return std::make_pair(
         ApparentPacketType::RTP,
-        Ssrc{ReadBigEndian<uint32_t>(packet.data() + kOffsetToSsrcField)});
+        Ssrc{ReadBigEndian<uint32_t>(packet.subspan(kOffsetToSsrcField))});
   }
 
   // While RTCP packets are valid if they consist of just the RTCP Common
@@ -30,7 +30,7 @@ std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(ByteView packet) {
       RtcpCommonHeader::Parse(packet).has_value()) {
     return std::make_pair(
         ApparentPacketType::RTCP,
-        Ssrc{ReadBigEndian<uint32_t>(packet.data() + kRtcpCommonHeaderSize)});
+        Ssrc{ReadBigEndian<uint32_t>(packet.subspan(kRtcpCommonHeaderSize))});
   }
 
   return std::make_pair(ApparentPacketType::UNKNOWN, Ssrc{0});

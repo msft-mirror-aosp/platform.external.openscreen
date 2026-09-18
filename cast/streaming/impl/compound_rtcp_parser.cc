@@ -434,8 +434,8 @@ bool CompoundRtcpParser::ParseExtendedReports(
       if (block_data_size != sizeof(uint64_t)) {
         return false;  // Length field must always be 2 words.
       }
-      receiver_reference_time = session_->ntp_converter().ToLocalTime(
-          ReadBigEndian<uint64_t>(in.data()));
+      receiver_reference_time =
+          session_->ntp_converter().ToLocalTime(ReadBigEndian<uint64_t>(in));
     } else {
       // Ignore any other type of extended report.
     }

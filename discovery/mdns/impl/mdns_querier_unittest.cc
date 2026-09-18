@@ -138,7 +138,7 @@ class MdnsQuerierTest : public testing::Test {
     return UdpPacket(bytes.value().begin(), bytes.value().end());
 #else
     UdpPacket packet(message.MaxWireSize());
-    MdnsWriter writer(packet.data(), packet.size());
+    MdnsWriter writer(packet);
     EXPECT_TRUE(writer.Write(message));
     packet.resize(writer.offset());
     return packet;

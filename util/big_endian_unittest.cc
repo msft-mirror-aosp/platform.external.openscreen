@@ -98,6 +98,77 @@ TEST(BigEndianTest, WriteValues) {
   EXPECT_EQ(-2, ReadBigEndian<int64_t>(scratch + 5));
 }
 
+TEST(BigEndianTest, WriteValuesSpan) {
+  uint8_t scratch[16];
+  ByteBuffer dest(scratch);
+
+  WriteBigEndian<uint8_t>(0x07, dest);
+  EXPECT_EQ(UINT8_C(0x07), ReadBigEndian<uint8_t>(scratch));
+  WriteBigEndian<uint8_t>(0xf0, dest.subspan(1));
+  EXPECT_EQ(UINT8_C(0xf0), ReadBigEndian<uint8_t>(scratch + 1));
+  WriteBigEndian<int8_t>(23, dest.subspan(2));
+  EXPECT_EQ(23, ReadBigEndian<int8_t>(scratch + 2));
+  WriteBigEndian<int8_t>(-25, dest.subspan(3));
+  EXPECT_EQ(-25, ReadBigEndian<int8_t>(scratch + 3));
+
+  WriteBigEndian<uint16_t>(0x0102, dest);
+  EXPECT_EQ(UINT16_C(0x0102), ReadBigEndian<uint16_t>(scratch));
+  WriteBigEndian<uint16_t>(0x0304, dest.subspan(1));
+  EXPECT_EQ(UINT16_C(0x0304), ReadBigEndian<uint16_t>(scratch + 1));
+  WriteBigEndian<uint16_t>(0x0506, dest.subspan(2));
+  EXPECT_EQ(UINT16_C(0x0506), ReadBigEndian<uint16_t>(scratch + 2));
+
+  WriteBigEndian<uint32_t>(UINT32_C(0x03040506), dest);
+  EXPECT_EQ(UINT32_C(0x03040506), ReadBigEndian<uint32_t>(scratch));
+  WriteBigEndian<uint32_t>(UINT32_C(0x0708090a), dest.subspan(1));
+  EXPECT_EQ(UINT32_C(0x0708090a), ReadBigEndian<uint32_t>(scratch + 1));
+
+  WriteBigEndian<uint64_t>(UINT64_C(0x0f0e0d0c0b0a0908), dest);
+  EXPECT_EQ(UINT64_C(0x0f0e0d0c0b0a0908), ReadBigEndian<uint64_t>(scratch));
+  WriteBigEndian<uint64_t>(UINT64_C(0x0708090a0b0c0d0e), dest.subspan(1));
+  EXPECT_EQ(UINT64_C(0x0708090a0b0c0d0e), ReadBigEndian<uint64_t>(scratch + 1));
+}
+
+TEST(BigEndianTest, ByteSwap) {
+  EXPECT_EQ(ByteSwap<uint8_t>(0x12), UINT8_C(0x12));
+  EXPECT_EQ(ByteSwap<uint16_t>(0x1234), UINT16_C(0x3412));
+  EXPECT_EQ(ByteSwap<uint32_t>(0x12345678), UINT32_C(0x78563412));
+  EXPECT_EQ(ByteSwap<uint64_t>(0x0102030405060708ULL),
+            UINT64_C(0x0807060504030201));
+}
+
+TEST(BigEndianTest, ToAndFromBigEndian) {
+  constexpr auto be16 = ToBigEndian<uint16_t>(0x0102);
+  static_assert(be16[0] == 0x01 && be16[1] == 0x02);
+  EXPECT_EQ((FromBigEndian<uint16_t>(std::array<uint8_t, 2>{0x01, 0x02})),
+            UINT16_C(0x0102));
+
+  constexpr auto be32 = ToBigEndian<uint32_t>(0x01020304);
+  static_assert(be32[0] == 0x01 && be32[1] == 0x02 && be32[2] == 0x03 &&
+                be32[3] == 0x04);
+  EXPECT_EQ(
+      (FromBigEndian<uint32_t>(std::array<uint8_t, 4>{0x01, 0x02, 0x03, 0x04})),
+      UINT32_C(0x01020304));
+
+  constexpr auto be64 = ToBigEndian<uint64_t>(0x0102030405060708ULL);
+  EXPECT_EQ((FromBigEndian<uint64_t>(be64)), UINT64_C(0x0102030405060708));
+}
+
+TEST(BigEndianTest, ReadValuesSpan) {
+  const uint8_t kInput[] = {
+      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,    0xa,
+      0xb,  0xc,  0xd,  0xe,  0xf,  0xff, 0xff, 0xfe, 0xff, 0xff, 0xff,
+      0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
+  };
+  ByteView input_view(kInput);
+
+  EXPECT_EQ(UINT8_C(0x05), ReadBigEndian<uint8_t>(input_view.subspan(5)));
+  EXPECT_EQ(UINT16_C(0x0102), ReadBigEndian<uint16_t>(input_view.subspan(1)));
+  EXPECT_EQ(UINT32_C(0x03040506),
+            ReadBigEndian<uint32_t>(input_view.subspan(3)));
+  EXPECT_EQ(UINT64_C(0x0001020304050607), ReadBigEndian<uint64_t>(input_view));
+}
+
 TEST(BigEndianReaderTest, ConstructWithValidBuffer) {
   uint8_t data[64];
   BigEndianReader reader(data, sizeof(data));
@@ -250,6 +321,10 @@ TEST(BigEndianBufferCursorTest, CursorCommit) {
 
     EXPECT_FALSE(reader.Skip(2));
     EXPECT_EQ(cursor.delta(), 15u);
+    EXPECT_EQ(cursor.origin_span().data(), data);
+    EXPECT_EQ(cursor.origin_span().size(), 16u);
+    EXPECT_EQ(cursor.delta_span().data(), data);
+    EXPECT_EQ(cursor.delta_span().size(), 15u);
     EXPECT_EQ(reader.offset() - cursor.origin_offset(), cursor.delta());
 
     cursor.Commit();
@@ -282,10 +357,12 @@ TEST(BigEndianBufferCursorTest, CursorRollback) {
 
 TEST(BigEndianWriterTest, ConstructWithValidBuffer) {
   uint8_t data[64];
-  BigEndianWriter writer(data, sizeof(data));
+  BigEndianWriter writer(data);
 
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 0u);
   EXPECT_EQ(writer.offset(), 0u);
   EXPECT_EQ(writer.remaining(), 64u);
   EXPECT_EQ(writer.length(), 64u);
@@ -293,12 +370,14 @@ TEST(BigEndianWriterTest, ConstructWithValidBuffer) {
 
 TEST(BigEndianWriterTest, SkipLessThanRemaining) {
   uint8_t data[64];
-  BigEndianWriter writer(data, sizeof(data));
+  BigEndianWriter writer(data);
 
   EXPECT_TRUE(writer.Skip(16));
 
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data + 16u);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 16u);
   EXPECT_EQ(writer.offset(), 16u);
   EXPECT_EQ(writer.remaining(), 48u);
   EXPECT_EQ(writer.length(), 64u);
@@ -306,7 +385,7 @@ TEST(BigEndianWriterTest, SkipLessThanRemaining) {
 
 TEST(BigEndianWriterTest, SkipMoreThanRemaining) {
   uint8_t data[64];
-  BigEndianWriter writer(data, sizeof(data));
+  BigEndianWriter writer(data);
 
   EXPECT_TRUE(writer.Skip(16));
   EXPECT_FALSE(writer.Skip(64));
@@ -314,6 +393,8 @@ TEST(BigEndianWriterTest, SkipMoreThanRemaining) {
   // Check that failed Skip does not modify any pointers or offsets.
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data + 16u);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 16u);
   EXPECT_EQ(writer.offset(), 16u);
   EXPECT_EQ(writer.remaining(), 48u);
   EXPECT_EQ(writer.length(), 64u);
@@ -321,10 +402,12 @@ TEST(BigEndianWriterTest, SkipMoreThanRemaining) {
 
 TEST(BigEndianWriterTest, ConstructWithZeroLengthBuffer) {
   uint8_t data[8];
-  BigEndianWriter writer(data, 0);
+  BigEndianWriter writer(ByteBuffer(data, 0u));
 
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 0u);
   EXPECT_EQ(writer.offset(), 0u);
   EXPECT_EQ(writer.remaining(), 0u);
   EXPECT_EQ(writer.length(), 0u);
@@ -338,10 +421,10 @@ TEST(BigEndianWriterTest, WriteValues) {
 
   uint8_t data[17];
   memset(data, 0xFF, sizeof(data));
-  BigEndianWriter writer(data, sizeof(data));
+  BigEndianWriter writer(data);
 
   uint8_t buffer[] = {0x0, 0x1};
-  EXPECT_TRUE(writer.Write(buffer, sizeof(buffer)));
+  EXPECT_TRUE(writer.Write(buffer));
   EXPECT_TRUE(writer.Write<uint8_t>(UINT8_C(0x2)));
   EXPECT_TRUE(writer.Write<uint16_t>(UINT16_C(0x0304)));
   EXPECT_TRUE(writer.Write<uint32_t>(UINT32_C(0x05060708)));
@@ -350,6 +433,8 @@ TEST(BigEndianWriterTest, WriteValues) {
 
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data + 17);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 17u);
   EXPECT_EQ(writer.offset(), 17u);
   EXPECT_EQ(writer.remaining(), 0u);
   EXPECT_EQ(writer.length(), 17u);
@@ -357,7 +442,7 @@ TEST(BigEndianWriterTest, WriteValues) {
 
 TEST(BigEndianWriterTest, RespectLength) {
   uint8_t data[8];
-  BigEndianWriter writer(data, sizeof(data));
+  BigEndianWriter writer(data);
 
   // 8 left
   EXPECT_FALSE(writer.Skip(9));
@@ -375,7 +460,7 @@ TEST(BigEndianWriterTest, RespectLength) {
   EXPECT_FALSE(writer.Write<uint16_t>(0));
 
   uint8_t buffer[2];
-  EXPECT_FALSE(writer.Write(buffer, 2));
+  EXPECT_FALSE(writer.Write(buffer));
   EXPECT_TRUE(writer.Skip(1));
 
   // 0 left
@@ -384,6 +469,8 @@ TEST(BigEndianWriterTest, RespectLength) {
 
   EXPECT_EQ(writer.buffer().data(), data);
   EXPECT_EQ(writer.remaining_span().data(), data + 8);
+  EXPECT_EQ(writer.written_span().data(), data);
+  EXPECT_EQ(writer.written_span().size(), 8u);
   EXPECT_EQ(writer.offset(), 8u);
   EXPECT_EQ(writer.remaining(), 0u);
   EXPECT_EQ(writer.length(), 8u);

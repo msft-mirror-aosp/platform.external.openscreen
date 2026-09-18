@@ -56,12 +56,12 @@ Error MdnsSender::SendMessage(const MdnsMessage& message,
   // on-the-wire size of the message sufficiently for it to fit into the buffer.
   std::vector<uint8_t> buffer(
       std::min(message.MaxWireSize(), kMaxMulticastMessageSize));
-  MdnsWriter writer(buffer.data(), buffer.size());
+  MdnsWriter writer(buffer);
   if (!writer.Write(message)) {
     return Error::Code::kInsufficientBuffer;
   }
 
-  socket_->SendMessage(ByteView(buffer.data(), writer.offset()), endpoint);
+  socket_->SendMessage(writer.written_span(), endpoint);
   return Error::Code::kNone;
 #endif
 }

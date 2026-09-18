@@ -19,7 +19,7 @@ namespace openscreen::cast {
 template <typename Integer>
 inline Integer ConsumeField(ByteView& in) {
   OSP_CHECK_GE(in.size(), sizeof(Integer));
-  const Integer result = ReadBigEndian<Integer>(in.data());
+  const Integer result = ReadBigEndian<Integer>(in);
   in = in.subspan(sizeof(Integer));
   return result;
 }
@@ -28,7 +28,7 @@ inline Integer ConsumeField(ByteView& in) {
 // just after the field.
 template <typename Integer>
 inline void AppendField(Integer value, ByteBuffer& out) {
-  WriteBigEndian<Integer>(value, out.data());
+  WriteBigEndian<Integer>(value, out);
   out = out.subspan(sizeof(Integer));
 }
 

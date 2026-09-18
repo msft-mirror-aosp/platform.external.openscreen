@@ -64,8 +64,8 @@ Uuid Uuid::GenerateRandomV4() {
 Uuid Uuid::FormatRandomDataAsV4Impl(ByteView input) {
   OSP_CHECK_EQ(input.size(), kGuidV4InputLength);
 
-  auto first_u64 = ReadBigEndian<uint64_t>(input.first(8).data());
-  auto second_u64 = ReadBigEndian<uint64_t>(input.last(8).data());
+  auto first_u64 = ReadBigEndian<uint64_t>(input.first(8));
+  auto second_u64 = ReadBigEndian<uint64_t>(input.last(8));
 
   // Set the Uuid to version 4 as described in RFC 4122, section 4.4.
   // The format of Uuid version 4 must be xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx,

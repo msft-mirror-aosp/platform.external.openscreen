@@ -4,6 +4,8 @@
 
 #include "util/big_endian.h"
 
+#include <ranges>
+
 namespace openscreen {
 
 BigEndianReader::BigEndianReader(ByteView buffer) : BigEndianBuffer(buffer) {}
@@ -18,7 +20,7 @@ bool BigEndianReader::Read(size_t length, void* out) {
 bool BigEndianReader::Read(ByteBuffer out) {
   ByteView view = remaining_span();
   if (view.size() >= out.size()) {
-    std::copy(view.begin(), view.begin() + out.size(), out.begin());
+    std::ranges::copy(view.first(out.size()), out.begin());
     Skip(out.size());
     return true;
   }
@@ -27,17 +29,10 @@ bool BigEndianReader::Read(ByteBuffer out) {
 
 BigEndianWriter::BigEndianWriter(ByteBuffer buffer) : BigEndianBuffer(buffer) {}
 
-BigEndianWriter::BigEndianWriter(uint8_t* buffer, size_t length)
-    : BigEndianBuffer(buffer, length) {}
-
-bool BigEndianWriter::Write(const void* buffer, size_t length) {
-  return Write(ByteView(static_cast<const uint8_t*>(buffer), length));
-}
-
 bool BigEndianWriter::Write(ByteView buffer) {
   ByteBuffer view = remaining_span();
   if (view.size() >= buffer.size()) {
-    std::copy(buffer.begin(), buffer.end(), view.begin());
+    std::ranges::copy(buffer, view.begin());
     Skip(buffer.size());
     return true;
   }

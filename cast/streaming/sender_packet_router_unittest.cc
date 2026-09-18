@@ -115,7 +115,7 @@ char ParseFlag(ByteView fake_packet) {
 Clock::time_point ParseTimestamp(ByteView fake_packet) {
   Clock::duration::rep ticks = 0;
   if (fake_packet.size() >= sizeof(ticks)) {
-    ticks = ReadBigEndian<Clock::duration::rep>(fake_packet.data());
+    ticks = ReadBigEndian<Clock::duration::rep>(fake_packet);
   }
   return Clock::time_point() + Clock::duration(ticks);
 }

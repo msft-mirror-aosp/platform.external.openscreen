@@ -42,7 +42,7 @@ ErrorOr<DeserializeResult> TryDeserialize(ByteView input) {
     return Error::Code::kInsufficientBuffer;
   }
 
-  const uint32_t message_size = ReadBigEndian<uint32_t>(input.data());
+  const uint32_t message_size = ReadBigEndian<uint32_t>(input);
   if (message_size > kMaxBodySize) {
     return Error::Code::kCastV2InvalidMessage;
   }

@@ -24,7 +24,7 @@ void TestWriteEntrySucceeds(const T& entry,
                             const uint8_t* expected_data,
                             size_t expected_size) {
   std::vector<uint8_t> buffer(expected_size);
-  MdnsWriter writer(buffer.data(), buffer.size());
+  MdnsWriter writer(buffer);
   EXPECT_TRUE(writer.Write(entry));
   EXPECT_EQ(writer.remaining(), UINT64_C(0));
   EXPECT_THAT(buffer, ElementsAreArray(expected_data, expected_size));
@@ -33,7 +33,7 @@ void TestWriteEntrySucceeds(const T& entry,
 template <class T>
 void TestWriteEntryInsufficientBuffer(const T& entry) {
   std::vector<uint8_t> buffer(entry.MaxWireSize() - 1);
-  MdnsWriter writer(buffer.data(), buffer.size());
+  MdnsWriter writer(buffer);
   EXPECT_FALSE(writer.Write(entry));
   // There should be no side effects for failing to write an entry. The
   // underlying pointer should not have changed.
@@ -51,7 +51,7 @@ TEST(MdnsWriterTest, WriteDomainName) {
   };
   // clang-format on
   uint8_t result[sizeof(kExpectedResult)];
-  MdnsWriter writer(result, sizeof(kExpectedResult));
+  MdnsWriter writer(result);
   ASSERT_TRUE(writer.Write(DomainName{"testing", "local"}));
   EXPECT_EQ(0UL, writer.remaining());
   EXPECT_EQ(0, memcmp(kExpectedResult, result, sizeof(result)));
@@ -71,7 +71,7 @@ TEST(MdnsWriterTest, WriteDomainName_CompressedMessage) {
   };
   // clang-format on
   uint8_t result[sizeof(kExpectedResultCompressed)];
-  MdnsWriter writer(result, sizeof(kExpectedResultCompressed));
+  MdnsWriter writer(result);
   ASSERT_TRUE(writer.Write(DomainName{"testing", "local"}));
   ASSERT_TRUE(writer.Write(DomainName{"prefix", "local"}));
   ASSERT_TRUE(writer.Write(DomainName{"new", "prefix", "local"}));
@@ -93,7 +93,7 @@ TEST(MdnsWriterTest, WriteDomainName_NotEnoughSpace) {
   };
   // clang-format on
   uint8_t result[sizeof(kExpectedResultCompressed)];
-  MdnsWriter writer(result, sizeof(kExpectedResultCompressed));
+  MdnsWriter writer(result);
   ASSERT_TRUE(writer.Write(DomainName{"testing", "local"}));
   // Not enough space to write this domain name. Failure to write it must not
   // affect correct successful write of the next domain name.
@@ -130,7 +130,7 @@ TEST(MdnsWriterTest, WriteDomainName_Long) {
   // clang-format on
   DomainName name{kLongLabel, kLongLabel, kLongLabel, kLongLabel};
   uint8_t result[sizeof(kExpectedResult)];
-  MdnsWriter writer(result, sizeof(kExpectedResult));
+  MdnsWriter writer(result);
   ASSERT_TRUE(writer.Write(name));
   EXPECT_EQ(0UL, writer.remaining());
   EXPECT_EQ(0, memcmp(kExpectedResult, result, sizeof(result)));
@@ -139,7 +139,7 @@ TEST(MdnsWriterTest, WriteDomainName_Long) {
 TEST(MdnsWriterTest, WriteDomainName_Empty) {
   DomainName name;
   uint8_t result[256];
-  MdnsWriter writer(result, sizeof(result));
+  MdnsWriter writer(result);
   EXPECT_FALSE(writer.Write(name));
   // The writer should not have moved its internal pointer when it fails to
   // write. It should fail without any side effects.
@@ -164,7 +164,7 @@ TEST(MdnsWriterTest, WriteDomainName_NoCompressionForBigOffsets) {
   // produce compression label pointers.
   std::vector<uint8_t> buffer(0x4000 + sizeof(kExpectedResultCompressed));
   {
-    MdnsWriter writer(buffer.data(), buffer.size());
+    MdnsWriter writer(buffer);
     writer.Skip(0x4000);
     ASSERT_TRUE(writer.Write(name));
     ASSERT_TRUE(writer.Write(name));
@@ -446,7 +446,7 @@ TEST(MdnsWriterTest, WriteMdnsMessage) {
   message.AddAuthorityRecord(auth_record);
 
   std::vector<uint8_t> buffer(sizeof(kExpectedMessage));
-  MdnsWriter writer(buffer.data(), buffer.size());
+  MdnsWriter writer(buffer);
   EXPECT_TRUE(writer.Write(message));
   EXPECT_EQ(writer.remaining(), UINT64_C(0));
   EXPECT_THAT(buffer, ElementsAreArray(kExpectedMessage));
