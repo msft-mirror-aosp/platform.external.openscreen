@@ -9,7 +9,6 @@ Current builders include:
 |---------------------------|--------|-------------------------|-----------|---------|-----------------------------|-----|
 | linux_x64                 | x86-64 | Ubuntu Linux 24.04      | clang     | debug   | ASAN and code coverage      |  Y  |
 | linux_arm64               | arm64  | Ubuntu Linux 24.04 [\*] | clang     | debug   |                             |  N  |
-| linux_x64_gcc             | x86-64 | Ubuntu Linux 24.04      | gcc-9     | debug   |                             |  Y  |
 | linux_x64_msan_rel        | x86-64 | Ubuntu Linux 24.04      | clang     | release | MSAN enabled                |  N  |
 | linux_x64_tsan_rel        | x86-64 | Ubuntu Linux 24.04      | clang     | release | TSAN enabled                |  N  |
 | linux_arm64_cast_receiver | arm64  | Ubuntu Linux 24.04 [\*] | clang     | debug   | Builds cast sender/receiver |  N  |

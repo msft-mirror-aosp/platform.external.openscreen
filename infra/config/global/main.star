@@ -203,7 +203,6 @@ DEFAULT_BUILD_TARGETS = [
 def get_properties(
         target_cpu,
         is_debug = True,
-        is_gcc = False,
         is_asan = False,
         is_tsan = False,
         is_msan = False,
@@ -220,7 +219,6 @@ def get_properties(
       target_cpu: the target CPU. May differ from current_cpu or host_cpu
         if cross compiling.
       is_debug: if False, the build mode is release instead of debug.
-      is_gcc: if True, the GCC compiler is used instead of clang.
       is_asan: if True, this is an address sanitizer build.
       is_msan: if True, this is a memory sanitizer build.
       is_tsan: if True, this is a thread sanitizer build.
@@ -274,10 +272,6 @@ def get_properties(
     }
     if not is_debug:
         gn_args_dict["is_debug"] = False
-    if is_gcc:
-        gn_args_dict["is_clang"] = False
-        gn_args_dict["use_custom_libcxx"] = False
-        gn_args_dict["enable_rust"] = False
     if is_asan:
         gn_args_dict["is_asan"] = True
         properties["is_asan"] = True
@@ -462,12 +456,6 @@ ci_builder(
         use_clang_coverage = True,
         is_ci = True,
     ),
-)
-try_and_ci_builders(
-    "linux_x64_gcc",
-    LINUX_VERSION,
-    "x86-64",
-    get_properties("x64", is_gcc = True),
 )
 try_and_ci_builders(
     "linux_x64_msan_rel",
