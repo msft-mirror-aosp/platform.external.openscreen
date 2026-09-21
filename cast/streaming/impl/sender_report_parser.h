@@ -39,6 +39,19 @@ class SenderReportParser {
   std::optional<SenderReportWithId> Parse(ByteView packet);
 
  private:
+#if defined(USE_RUST_RTP_PARSER)
+  // ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+  // //cast/streaming/impl/rtp_wire.rs. Validates fixed-layout wire structures
+  // with compile-time checked slice bounds and extracts fields without
+  // intermediate buffering.
+  std::optional<SenderReportWithId> ParseV2(ByteView buffer);
+#else
+  // ParseV1: Original C++ wire parser implementation. Walks compound RTCP
+  // packets sequentially using field-by-field stream consumption
+  // (ConsumeField<T>).
+  std::optional<SenderReportWithId> ParseV1(ByteView buffer);
+#endif  // defined(USE_RUST_RTP_PARSER)
+
   const raw_ref<RtcpSession> session_;
 
   // Tracks the recently-parsed RTP timestamps so that the truncated values can

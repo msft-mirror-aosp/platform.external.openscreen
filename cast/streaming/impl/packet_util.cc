@@ -7,9 +7,25 @@
 #include "cast/streaming/impl/rtcp_common.h"
 #include "cast/streaming/impl/rtp_defines.h"
 
+#if defined(USE_RUST_RTP_PARSER)
+#include "cast/streaming/impl/rtp_wire.rs.h"
+#endif  // defined(USE_RUST_RTP_PARSER)
+
 namespace openscreen::cast {
 
 std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(ByteView packet) {
+#if defined(USE_RUST_RTP_PARSER)
+  const rust::Slice<const uint8_t> slice(packet.data(), packet.size());
+  const RoutingResult result = inspect_packet_for_routing(slice);
+  switch (result.apparent_type) {
+    case ApparentType::Rtp:
+      return std::make_pair(ApparentPacketType::RTP, Ssrc{result.ssrc});
+    case ApparentType::Rtcp:
+      return std::make_pair(ApparentPacketType::RTCP, Ssrc{result.ssrc});
+    default:
+      return std::make_pair(ApparentPacketType::UNKNOWN, Ssrc{0});
+  }
+#else
   // Check for RTP packets first, since they are more frequent.
   if (packet.size() >= kRtpPacketMinValidSize &&
       packet[0] == kRtpRequiredFirstByte &&
@@ -34,6 +50,7 @@ std::pair<ApparentPacketType, Ssrc> InspectPacketForRouting(ByteView packet) {
   }
 
   return std::make_pair(ApparentPacketType::UNKNOWN, Ssrc{0});
+#endif  // defined(USE_RUST_RTP_PARSER)
 }
 
 }  // namespace openscreen::cast

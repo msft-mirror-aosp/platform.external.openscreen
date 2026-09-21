@@ -7,6 +7,10 @@
 #include "cast/streaming/impl/packet_util.h"
 #include "util/osp_logging.h"
 
+#if defined(USE_RUST_RTP_PARSER)
+#include "cast/streaming/impl/rtp_wire.rs.h"
+#endif  // defined(USE_RUST_RTP_PARSER)
+
 namespace openscreen::cast {
 
 SenderReportParser::SenderReportWithId::SenderReportWithId() = default;
@@ -19,6 +23,62 @@ SenderReportParser::~SenderReportParser() = default;
 
 std::optional<SenderReportParser::SenderReportWithId> SenderReportParser::Parse(
     ByteView buffer) {
+#if defined(USE_RUST_RTP_PARSER)
+  return ParseV2(buffer);
+#else
+  return ParseV1(buffer);
+#endif  // defined(USE_RUST_RTP_PARSER)
+}
+
+#if defined(USE_RUST_RTP_PARSER)
+// ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+// //cast/streaming/impl/rtp_wire.rs.
+std::optional<SenderReportParser::SenderReportWithId>
+SenderReportParser::ParseV2(ByteView buffer) {
+  const rust::Slice<const uint8_t> slice(buffer.data(), buffer.size());
+  WireSenderReport wire;
+  if (!parse_sender_report_packet(slice, session_->sender_ssrc(),
+                                  session_->receiver_ssrc(), wire)) {
+    return std::nullopt;
+  }
+  if (!wire.has_sender_report) {
+    return std::nullopt;
+  }
+  SenderReportWithId report;
+  // wire.ntp_timestamp is uint64_t matching NtpTimestamp.
+  report.report_id = ToStatusReportId(wire.ntp_timestamp);
+  report.reference_time =
+      session_->ntp_converter().ToLocalTime(wire.ntp_timestamp);
+  // wire.truncated_rtp_timestamp is uint32_t matching RTP timestamp wire width.
+  report.rtp_timestamp =
+      last_parsed_rtp_timestamp_.Expand(wire.truncated_rtp_timestamp);
+  report.send_packet_count = wire.send_packet_count;
+  report.send_octet_count = wire.send_octet_count;
+  if (wire.has_report_block) {
+    RtcpReportBlock rb;
+    rb.ssrc = wire.report_block.ssrc;
+    // packet_fraction_lost_numerator is an 8-bit uint [0, 255] stored in
+    // i32/int.
+    rb.packet_fraction_lost_numerator =
+        wire.report_block.packet_fraction_lost_numerator;
+    // cumulative_packets_lost is a 24-bit uint [0, 16777215] stored in i32/int.
+    rb.cumulative_packets_lost = wire.report_block.cumulative_packets_lost;
+    rb.extended_high_sequence_number =
+        wire.report_block.extended_high_sequence_number;
+    rb.jitter = RtpTimeDelta::FromTicks(wire.report_block.jitter_ticks);
+    rb.last_status_report_id = wire.report_block.last_status_report_id;
+    rb.delay_since_last_report =
+        RtcpReportBlock::Delay(wire.report_block.delay_since_last_report_ticks);
+    report.report_block = rb;
+  }
+  last_parsed_rtp_timestamp_ = report.rtp_timestamp;
+  return report;
+}
+#else
+// ParseV1: Original C++ wire parser implementation. Walks compound RTCP
+// packets sequentially using field-by-field stream consumption.
+std::optional<SenderReportParser::SenderReportWithId>
+SenderReportParser::ParseV1(ByteView buffer) {
   std::optional<SenderReportWithId> sender_report;
 
   // The data contained in `buffer` can be a "compound packet," which means that
@@ -67,5 +127,6 @@ std::optional<SenderReportParser::SenderReportWithId> SenderReportParser::Parse(
   }
   return sender_report;
 }
+#endif  // defined(USE_RUST_RTP_PARSER)
 
 }  // namespace openscreen::cast

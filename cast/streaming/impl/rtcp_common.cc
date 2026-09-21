@@ -10,6 +10,10 @@
 #include "cast/streaming/impl/packet_util.h"
 #include "util/saturate_cast.h"
 
+#if defined(USE_RUST_RTP_PARSER)
+#include "cast/streaming/impl/rtp_wire.rs.h"
+#endif  // defined(USE_RUST_RTP_PARSER)
+
 namespace openscreen::cast {
 
 RtcpCommonHeader::RtcpCommonHeader() = default;
@@ -61,6 +65,61 @@ void RtcpCommonHeader::AppendFields(ByteBuffer& buffer) const {
 
 // static
 std::optional<RtcpCommonHeader> RtcpCommonHeader::Parse(ByteView buffer) {
+#if defined(USE_RUST_RTP_PARSER)
+  return ParseV2(buffer);
+#else
+  return ParseV1(buffer);
+#endif  // defined(USE_RUST_RTP_PARSER)
+}
+
+#if defined(USE_RUST_RTP_PARSER)
+// static
+// ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+// //cast/streaming/impl/rtp_wire.rs.
+std::optional<RtcpCommonHeader> RtcpCommonHeader::ParseV2(ByteView buffer) {
+  const rust::Slice<const uint8_t> slice(buffer.data(), buffer.size());
+  WireRtcpCommonHeader wire;
+  if (!parse_rtcp_common_header(slice, wire)) {
+    return std::nullopt;
+  }
+  // wire.packet_type is guaranteed to be a valid RtcpPacketType enum value
+  // validated by Rust's RtcpPacketType::from_u8.
+  if (!IsRtcpPacketType(wire.packet_type)) {
+    return std::nullopt;
+  }
+  RtcpCommonHeader header;
+  header.packet_type = static_cast<RtcpPacketType>(wire.packet_type);
+  switch (header.packet_type) {
+    case RtcpPacketType::kSenderReport:
+    case RtcpPacketType::kReceiverReport:
+      header.with.report_count = wire.report_count_or_subtype;
+      break;
+    case RtcpPacketType::kApplicationDefined:
+    case RtcpPacketType::kPayloadSpecific:
+      switch (static_cast<RtcpSubtype>(wire.report_count_or_subtype)) {
+        case RtcpSubtype::kPictureLossIndicator:
+        case RtcpSubtype::kReceiverLog:
+        case RtcpSubtype::kFeedback:
+          header.with.subtype =
+              static_cast<RtcpSubtype>(wire.report_count_or_subtype);
+          break;
+        default:
+          header.with.subtype = RtcpSubtype::kNull;
+          break;
+      }
+      break;
+    default:
+      break;
+  }
+  // Wire payload_size is (word_count * 4) where word_count is uint16_t,
+  // so payload_size is at most 65535 * 4 = 262140 bytes, safely fitting in int.
+  header.payload_size = static_cast<int>(wire.payload_size);
+  return header;
+}
+#else
+// static
+// ParseV1: Original C++ wire parser implementation using ConsumeField<T>.
+std::optional<RtcpCommonHeader> RtcpCommonHeader::ParseV1(ByteView buffer) {
   if (buffer.size() < kRtcpCommonHeaderSize) {
     return std::nullopt;
   }
@@ -111,6 +170,7 @@ std::optional<RtcpCommonHeader> RtcpCommonHeader::Parse(ByteView buffer) {
 
   return header;
 }
+#endif  // defined(USE_RUST_RTP_PARSER)
 
 RtcpReportBlock::RtcpReportBlock() = default;
 RtcpReportBlock::~RtcpReportBlock() = default;
@@ -205,6 +265,48 @@ void RtcpReportBlock::SetDelaySinceLastReport(
 std::optional<RtcpReportBlock> RtcpReportBlock::ParseOne(ByteView buffer,
                                                          int report_count,
                                                          Ssrc ssrc) {
+#if defined(USE_RUST_RTP_PARSER)
+  return ParseOneV2(buffer, report_count, ssrc);
+#else
+  return ParseOneV1(buffer, report_count, ssrc);
+#endif  // defined(USE_RUST_RTP_PARSER)
+}
+
+#if defined(USE_RUST_RTP_PARSER)
+// static
+// ParseOneV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+// //cast/streaming/impl/rtp_wire.rs.
+std::optional<RtcpReportBlock> RtcpReportBlock::ParseOneV2(ByteView buffer,
+                                                           int report_count,
+                                                           Ssrc ssrc) {
+  if (report_count < 0) {
+    return std::nullopt;
+  }
+  const rust::Slice<const uint8_t> slice(buffer.data(), buffer.size());
+  WireRtcpReportBlock wire;
+  if (!parse_rtcp_report_block(slice, static_cast<size_t>(report_count), ssrc,
+                               wire)) {
+    return std::nullopt;
+  }
+  RtcpReportBlock report_block;
+  report_block.ssrc = wire.ssrc;
+  report_block.packet_fraction_lost_numerator =
+      wire.packet_fraction_lost_numerator;
+  report_block.cumulative_packets_lost = wire.cumulative_packets_lost;
+  report_block.extended_high_sequence_number =
+      wire.extended_high_sequence_number;
+  report_block.jitter = RtpTimeDelta::FromTicks(wire.jitter_ticks);
+  report_block.last_status_report_id = wire.last_status_report_id;
+  report_block.delay_since_last_report =
+      RtcpReportBlock::Delay(wire.delay_since_last_report_ticks);
+  return report_block;
+}
+#else
+// static
+// ParseOneV1: Original C++ wire parser implementation using ConsumeField<T>.
+std::optional<RtcpReportBlock> RtcpReportBlock::ParseOneV1(ByteView buffer,
+                                                           int report_count,
+                                                           Ssrc ssrc) {
   if (static_cast<int>(buffer.size()) < (kRtcpReportBlockSize * report_count)) {
     return std::nullopt;
   }
@@ -234,6 +336,7 @@ std::optional<RtcpReportBlock> RtcpReportBlock::ParseOne(ByteView buffer,
   }
   return result;
 }
+#endif  // defined(USE_RUST_RTP_PARSER)
 
 RtcpSenderReport::RtcpSenderReport() = default;
 RtcpSenderReport::~RtcpSenderReport() = default;

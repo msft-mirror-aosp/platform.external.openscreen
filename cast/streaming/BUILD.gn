@@ -2,10 +2,39 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/rust.gni")
 import("//build_overrides/build.gni")
 import("//third_party/protobuf/proto_library.gni")
 import("../../gni/openscreen.gni")
 import("../../testing/libfuzzer/fuzzer_test.gni")
+
+declare_args() {
+  # Enables the Rust wire parser for Cast Streaming RTP/RTCP packets.
+  use_rust_rtp_parser = enable_rust
+}
+
+assert(!use_rust_rtp_parser || enable_rust,
+       "use_rust_rtp_parser requires enable_rust = true.")
+
+if (use_rust_rtp_parser) {
+  import("//build/rust/rust_static_library.gni")
+
+  config("rtp_rust_config") {
+    defines = [ "USE_RUST_RTP_PARSER" ]
+  }
+
+  # TODO(crbug.com/564552106): Define openscreen_rust_static_library at some
+  # point to automatically add our configs.
+  rust_static_library("rtp_rust") {
+    crate_root = "impl/rtp_wire.rs"
+    allow_unsafe = true
+    sources = [ crate_root ]
+    cxx_bindings = [ crate_root ]
+    deps = [ "//third_party/rust/strum/v0_28:lib" ]
+    configs += openscreen_add_public_configs
+    public_configs = [ ":rtp_rust_config" ]
+  }
+}
 
 # TODO(crbug.com/1378386): Update Chromium tests to not include private headers
 # noted by FIXME below.
@@ -123,6 +152,9 @@ openscreen_source_set("common") {
     "../../platform",
     "../../util",
   ]
+  if (use_rust_rtp_parser) {
+    deps += [ ":rtp_rust" ]
+  }
 
   friend = [
     ":unittests",
@@ -164,6 +196,9 @@ openscreen_source_set("receiver") {
   public_deps = [ ":common" ]
 
   deps = [ "../../util" ]
+  if (use_rust_rtp_parser) {
+    deps += [ ":rtp_rust" ]
+  }
 
   friend = [
     ":unittests",
@@ -292,6 +327,10 @@ openscreen_source_set("unittests") {
     "../../third_party/googletest:gtest",
     "../../util",
   ]
+  if (use_rust_rtp_parser) {
+    sources += [ "impl/rtp_wire_unittest.cc" ]
+    deps += [ ":rtp_rust" ]
+  }
   friend = [
     ":sender",
     ":receiver",
