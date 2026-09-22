@@ -132,7 +132,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling perfetto
   # and whatever else without interference from each other.
-  'perfetto_revision': 'ee6de33def9b6eb58d84eb0d4bab90f49c85549a',
+  'perfetto_revision': 'fbf873f53e8eae1bf8e5ebef8ae78d35b0a29b4a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling rust
   # and whatever else without interference from each other.
