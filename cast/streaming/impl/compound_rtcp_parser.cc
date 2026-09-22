@@ -14,6 +14,10 @@
 #include "util/osp_logging.h"
 #include "util/std_util.h"
 
+#if defined(USE_RUST_RTP_PARSER)
+#include "cast/streaming/impl/rtp_wire.rs.h"
+#endif
+
 namespace openscreen::cast {
 
 namespace {
@@ -82,14 +86,158 @@ void CanonicalizePacketNackVector(std::vector<PacketNack>* packets) {
 }  // namespace
 
 CompoundRtcpParser::CompoundRtcpParser(RtcpSession& session,
-                                       CompoundRtcpParser::Client& client)
+                                       CompoundRtcpParser::Client& client,
+                                       RtpParserVersion version)
     : session_(session),
       client_(client),
+      version_(version),
       latest_receiver_timestamp_(kNullTimePoint) {}
 
 CompoundRtcpParser::~CompoundRtcpParser() = default;
 
 bool CompoundRtcpParser::Parse(ByteView buffer, FrameId max_feedback_frame_id) {
+#if defined(USE_RUST_RTP_PARSER)
+  switch (version_) {
+    case RtpParserVersion::kV1:
+      return ParseV1(buffer, max_feedback_frame_id);
+    case RtpParserVersion::kV2:
+      return ParseV2(buffer, max_feedback_frame_id);
+  }
+#else
+  return ParseV1(buffer, max_feedback_frame_id);
+#endif
+}
+
+#if defined(USE_RUST_RTP_PARSER)
+// ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+// //cast/streaming/impl/rtp_wire.rs. Dispatches compound RTCP packets,
+// extracting receiver reports, NACK/ACK bitvectors, and frame log events
+// using compile-time checked slice bounds.
+bool CompoundRtcpParser::ParseV2(ByteView buffer,
+                                 FrameId max_feedback_frame_id) {
+  Clock::time_point receiver_reference_time = kNullTimePoint;
+  std::optional<RtcpReportBlock> receiver_report;
+  std::vector<RtcpReceiverFrameLogMessage> log_messages;
+  FrameId checkpoint_frame_id;
+  milliseconds target_playout_delay{};
+  std::vector<FrameId> received_frames;
+  std::vector<PacketNack> packet_nacks;
+  bool picture_loss_indicator = false;
+
+  const rust::Slice<const uint8_t> slice(buffer.data(), buffer.size());
+  WireCompoundRtcp wire;
+  if (!parse_compound_rtcp(slice, session_->receiver_ssrc(),
+                           session_->sender_ssrc(),
+                           max_feedback_frame_id.value(), wire)) {
+    return false;
+  }
+
+  if (wire.has_receiver_reference_ntp_time) {
+    receiver_reference_time =
+        session_->ntp_converter().ToLocalTime(wire.receiver_reference_ntp_time);
+    // Ignore stale RTCP packets that arrived out-of-order and/or late.
+    if (latest_receiver_timestamp_ != kNullTimePoint &&
+        receiver_reference_time < latest_receiver_timestamp_) {
+      return true;
+    }
+  }
+
+  if (wire.has_receiver_report) {
+    RtcpReportBlock rb;
+    rb.ssrc = wire.receiver_report.ssrc;
+    rb.packet_fraction_lost_numerator =
+        wire.receiver_report.packet_fraction_lost_numerator;
+    rb.cumulative_packets_lost = wire.receiver_report.cumulative_packets_lost;
+    rb.extended_high_sequence_number =
+        wire.receiver_report.extended_high_sequence_number;
+    rb.jitter = RtpTimeDelta::FromTicks(wire.receiver_report.jitter_ticks);
+    rb.last_status_report_id = wire.receiver_report.last_status_report_id;
+    rb.delay_since_last_report = RtcpReportBlock::Delay(
+        wire.receiver_report.delay_since_last_report_ticks);
+    receiver_report = rb;
+  }
+
+  log_messages.reserve(wire.log_messages.size());
+  for (const auto& wire_msg : wire.log_messages) {
+    const Clock::time_point event_timestamp_base =
+        session_->start_time() + milliseconds(wire_msg.raw_timestamp_ms);
+    const RtpTimeTicks frame_log_rtp_timestamp =
+        latest_frame_log_rtp_timestamp_.Expand(
+            wire_msg.truncated_rtp_timestamp);
+    RtcpReceiverFrameLogMessage frame_log_message{.rtp_timestamp =
+                                                      frame_log_rtp_timestamp};
+    for (const auto& wire_event : wire_msg.events) {
+      const auto event_type = StatisticsEvent::FromWireType(
+          static_cast<StatisticsEvent::WireType>(wire_event.wire_type));
+      if (event_type == StatisticsEvent::Type::kUnknown) {
+        continue;
+      }
+      RtcpReceiverEventLogMessage event_log{
+          .type = event_type,
+          .timestamp = event_timestamp_base +
+                       milliseconds(wire_event.timestamp_delta_ms)};
+      if (event_type == StatisticsEvent::Type::kPacketReceived) {
+        event_log.packet_id = wire_event.delay_delta_or_packet_id;
+      } else {
+        event_log.delay = milliseconds(
+            static_cast<int16_t>(wire_event.delay_delta_or_packet_id));
+      }
+      frame_log_message.messages.emplace_back(std::move(event_log));
+    }
+    latest_frame_log_rtp_timestamp_ = frame_log_rtp_timestamp;
+    log_messages.emplace_back(std::move(frame_log_message));
+  }
+
+  if (wire.has_checkpoint_frame_id) {
+    checkpoint_frame_id = FrameId(wire.checkpoint_frame_id);
+    target_playout_delay = milliseconds(wire.target_playout_delay_ms);
+  }
+
+  received_frames.reserve(wire.received_frames.size());
+  for (int64_t fid : wire.received_frames) {
+    received_frames.emplace_back(fid);
+  }
+
+  packet_nacks.reserve(wire.packet_nacks.size());
+  for (const auto& nack : wire.packet_nacks) {
+    packet_nacks.push_back(PacketNack{FrameId(nack.frame_id), nack.packet_id});
+  }
+
+  picture_loss_indicator = wire.picture_loss_indicator;
+
+  if (receiver_reference_time != kNullTimePoint) {
+    latest_receiver_timestamp_ = receiver_reference_time;
+    client_->OnReceiverReferenceTimeAdvanced(latest_receiver_timestamp_);
+  }
+
+  if (receiver_report) {
+    client_->OnReceiverReport(*receiver_report);
+  }
+  if (!log_messages.empty()) {
+    client_->OnCastReceiverFrameLogMessages(std::move(log_messages));
+  }
+  if (!checkpoint_frame_id.is_null()) {
+    client_->OnReceiverCheckpoint(checkpoint_frame_id, target_playout_delay);
+  }
+  if (!received_frames.empty()) {
+    OSP_DCHECK(AreElementsSortedAndUnique(received_frames));
+    client_->OnReceiverHasFrames(std::move(received_frames));
+  }
+  if (!packet_nacks.empty()) {
+    client_->OnReceiverIsMissingPackets(std::move(packet_nacks));
+  }
+  if (picture_loss_indicator) {
+    client_->OnReceiverIndicatesPictureLoss();
+  }
+
+  return true;
+}
+#endif  // defined(USE_RUST_RTP_PARSER)
+
+// ParseV1: Original C++ wire parser implementation. Iteratively processes
+// concatenated RTCP packets, parsing each sub-packet sequentially.
+bool CompoundRtcpParser::ParseV1(ByteView buffer,
+                                 FrameId max_feedback_frame_id) {
   // These will contain the results from the various ParseXYZ() methods. None of
   // the results will be dispatched to the Client until the entire parse
   // succeeds.
@@ -208,6 +356,10 @@ bool CompoundRtcpParser::Parse(ByteView buffer, FrameId max_feedback_frame_id) {
 
   return true;
 }
+
+// ============================================================================
+// Legacy V1 C++ Parser Helper Methods
+// ============================================================================
 
 bool CompoundRtcpParser::ParseReceiverReport(
     ByteView in,

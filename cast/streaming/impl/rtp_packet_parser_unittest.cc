@@ -14,8 +14,15 @@ using testing::ElementsAreArray;
 namespace openscreen::cast {
 namespace {
 
+class RtpPacketParserTest : public testing::TestWithParam<RtpParserVersion> {
+ public:
+  RtpPacketParser CreateParser(Ssrc sender_ssrc) {
+    return RtpPacketParser(sender_ssrc, GetParam());
+  }
+};
+
 // Tests that a simple packet for a key frame can be parsed.
-TEST(RtpPacketParserTest, ParsesPacketForKeyFrame) {
+TEST_P(RtpPacketParserTest, ParsesPacketForKeyFrame) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -32,7 +39,7 @@ TEST(RtpPacketParserTest, ParsesPacketForKeyFrame) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x01020304;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_TRUE(result);
   EXPECT_EQ(RtpPayloadType::kAudioOpus, result->payload_type);
@@ -49,7 +56,7 @@ TEST(RtpPacketParserTest, ParsesPacketForKeyFrame) {
 }
 
 // Tests that a packet which includes a "referenced frame ID" can be parsed.
-TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithReferenceFrameId) {
+TEST_P(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithReferenceFrameId) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -67,7 +74,7 @@ TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithReferenceFrameId) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x00000101;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_TRUE(result);
   EXPECT_EQ(RtpPayloadType::kAudioOpus, result->payload_type);
@@ -86,7 +93,7 @@ TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithReferenceFrameId) {
 // Tests that a packet which lacks a "referenced frame ID" field can be parsed,
 // but the parser will provide the implied referenced_frame_id value in the
 // result.
-TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithoutReferenceFrameId) {
+TEST_P(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithoutReferenceFrameId) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -103,7 +110,7 @@ TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithoutReferenceFrameId) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x00000101;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_TRUE(result);
   EXPECT_EQ(RtpPayloadType::kAudioOpus, result->payload_type);
@@ -121,7 +128,7 @@ TEST(RtpPacketParserTest, ParsesPacketForNonKeyFrameWithoutReferenceFrameId) {
 }
 
 // Tests that a packet indicating a new playout delay can be parsed.
-TEST(RtpPacketParserTest, ParsesPacketWithAdaptiveLatencyExtension) {
+TEST_P(RtpPacketParserTest, ParsesPacketWithAdaptiveLatencyExtension) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -140,7 +147,7 @@ TEST(RtpPacketParserTest, ParsesPacketWithAdaptiveLatencyExtension) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x00000101;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_TRUE(result);
   EXPECT_EQ(RtpPayloadType::kAudioOpus, result->payload_type);
@@ -158,7 +165,7 @@ TEST(RtpPacketParserTest, ParsesPacketWithAdaptiveLatencyExtension) {
 
 // Tests that the parser can handle multiple Cast Header Extensions in a RTP
 // packet, and ignores all but the one (Adaptive Latency) that it understands.
-TEST(RtpPacketParserTest, ParsesPacketWithMultipleExtensions) {
+TEST_P(RtpPacketParserTest, ParsesPacketWithMultipleExtensions) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -179,7 +186,7 @@ TEST(RtpPacketParserTest, ParsesPacketWithMultipleExtensions) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x00000101;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_TRUE(result);
   EXPECT_EQ(RtpPayloadType::kAudioOpus, result->payload_type);
@@ -196,7 +203,7 @@ TEST(RtpPacketParserTest, ParsesPacketWithMultipleExtensions) {
 }
 
 // Tests that the parser ignores packets from an unknown source.
-TEST(RtpPacketParserTest, IgnoresPacketWithWrongSsrc) {
+TEST_P(RtpPacketParserTest, IgnoresPacketWithWrongSsrc) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -213,14 +220,14 @@ TEST(RtpPacketParserTest, IgnoresPacketWithWrongSsrc) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x01020304;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   const auto result = parser.Parse(kInput);
   ASSERT_FALSE(result);
 }
 
 // Tests that unexpected truncations in the RTP packets does not crash the
 // parser, and that it correctly errors-out.
-TEST(RtpPacketParserTest, RejectsTruncatedPackets) {
+TEST_P(RtpPacketParserTest, RejectsTruncatedPackets) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -241,7 +248,7 @@ TEST(RtpPacketParserTest, RejectsTruncatedPackets) {
   // clang-format on
   const Ssrc kSenderSsrc = 0x00000101;
 
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   ASSERT_FALSE(parser.Parse(ByteView(kInput, 1)));
   ASSERT_FALSE(parser.Parse(ByteView(kInput, 18)));
   ASSERT_FALSE(parser.Parse(ByteView(kInput, 22)));
@@ -262,7 +269,7 @@ TEST(RtpPacketParserTest, RejectsTruncatedPackets) {
 }
 
 // Tests that the parser rejects invalid packet ID values.
-TEST(RtpPacketParserTest, RejectsPacketWithBadFramePacketIds) {
+TEST_P(RtpPacketParserTest, RejectsPacketWithBadFramePacketIds) {
   // clang-format off
   const uint8_t kInput[] = {
     0b10000000,  // Version/Padding byte.
@@ -281,7 +288,7 @@ TEST(RtpPacketParserTest, RejectsPacketWithBadFramePacketIds) {
 
   // The parser should reject the packet because its packet ID field is greater
   // than the max packet ID.
-  RtpPacketParser parser(kSenderSsrc);
+  RtpPacketParser parser = CreateParser(kSenderSsrc);
   ASSERT_FALSE(parser.Parse(kInput));
 
   // Now, modify the packet such that its "max packet ID" field is set to the
@@ -296,6 +303,17 @@ TEST(RtpPacketParserTest, RejectsPacketWithBadFramePacketIds) {
   ASSERT_LE(packet_id, kAllPacketsLost);
   ASSERT_FALSE(parser.Parse(input_with_bad_max_packet_id));
 }
+
+#if defined(USE_RUST_RTP_PARSER)
+INSTANTIATE_TEST_SUITE_P(All,
+                         RtpPacketParserTest,
+                         testing::Values(RtpParserVersion::kV1,
+                                         RtpParserVersion::kV2));
+#else
+INSTANTIATE_TEST_SUITE_P(All,
+                         RtpPacketParserTest,
+                         testing::Values(RtpParserVersion::kV1));
+#endif
 
 }  // namespace
 }  // namespace openscreen::cast

@@ -10,14 +10,73 @@
 #include "cast/streaming/impl/packet_util.h"
 #include "util/osp_logging.h"
 
+#if defined(USE_RUST_RTP_PARSER)
+#include "cast/streaming/impl/rtp_wire.rs.h"
+#endif
+
 namespace openscreen::cast {
 
-RtpPacketParser::RtpPacketParser(Ssrc sender_ssrc)
-    : sender_ssrc_(sender_ssrc), highest_rtp_frame_id_(FrameId::first()) {}
+RtpPacketParser::RtpPacketParser(Ssrc sender_ssrc, RtpParserVersion version)
+    : sender_ssrc_(sender_ssrc),
+      version_(version),
+      highest_rtp_frame_id_(FrameId::first()) {}
 
 RtpPacketParser::~RtpPacketParser() = default;
 
 std::optional<RtpPacketParser::ParseResult> RtpPacketParser::Parse(
+    ByteView buffer) {
+#if defined(USE_RUST_RTP_PARSER)
+  switch (version_) {
+    case RtpParserVersion::kV1:
+      return ParseV1(buffer);
+    case RtpParserVersion::kV2:
+      return ParseV2(buffer);
+  }
+#else
+  return ParseV1(buffer);
+#endif
+}
+
+#if defined(USE_RUST_RTP_PARSER)
+// ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+// //cast/streaming/impl/rtp_wire.rs.
+std::optional<RtpPacketParser::ParseResult> RtpPacketParser::ParseV2(
+    ByteView buffer) {
+  const rust::Slice<const uint8_t> slice(buffer.data(), buffer.size());
+  WireRtpPacket wire;
+  if (!parse_rtp_packet(slice, sender_ssrc_, wire)) {
+    return std::nullopt;
+  }
+  ParseResult result;
+  result.payload_type = static_cast<RtpPayloadType>(wire.payload_type);
+  result.sequence_number = wire.sequence_number;
+  result.rtp_timestamp =
+      last_parsed_rtp_timestamp_.Expand(wire.truncated_rtp_timestamp);
+  result.is_key_frame = wire.is_key_frame;
+  result.frame_id = highest_rtp_frame_id_.Expand(wire.truncated_frame_id);
+  result.packet_id = wire.packet_id;
+  result.max_packet_id = wire.max_packet_id;
+  if (wire.has_referenced_frame_id) {
+    result.referenced_frame_id =
+        result.frame_id.Expand(wire.truncated_referenced_frame_id);
+  } else {
+    result.referenced_frame_id =
+        result.is_key_frame ? result.frame_id : (result.frame_id - 1);
+  }
+  if (wire.has_new_playout_delay) {
+    result.new_playout_delay =
+        std::chrono::milliseconds(wire.new_playout_delay_ms);
+  }
+  result.payload = buffer.subspan(wire.payload_offset, wire.payload_len);
+
+  last_parsed_rtp_timestamp_ = result.rtp_timestamp;
+  highest_rtp_frame_id_ = std::max(highest_rtp_frame_id_, result.frame_id);
+  return result;
+}
+#endif  // defined(USE_RUST_RTP_PARSER)
+
+// ParseV1: Original C++ wire parser implementation using ConsumeField<T>.
+std::optional<RtpPacketParser::ParseResult> RtpPacketParser::ParseV1(
     ByteView buffer) {
   if (buffer.size() < kRtpPacketMinValidSize ||
       ConsumeField<uint8_t>(buffer) != kRtpRequiredFirstByte) {

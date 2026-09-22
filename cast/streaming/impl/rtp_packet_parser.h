@@ -50,7 +50,9 @@ class RtpPacketParser {
     ~ParseResult();
   };
 
-  explicit RtpPacketParser(Ssrc sender_ssrc);
+  explicit RtpPacketParser(
+      Ssrc sender_ssrc,
+      RtpParserVersion version = RtpParserVersion::kDefault);
   ~RtpPacketParser();
 
   // Parses the packet. The caller should use InspectPacketForRouting()
@@ -59,7 +61,20 @@ class RtpPacketParser {
   std::optional<ParseResult> Parse(ByteView packet);
 
  private:
+#if defined(USE_RUST_RTP_PARSER)
+  // ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+  // //cast/streaming/impl/rtp_wire.rs. Validates fixed and extension RTP
+  // headers using compile-time checked slice bounds and returns zero-copy
+  // payload offsets.
+  std::optional<ParseResult> ParseV2(ByteView packet);
+#endif
+
+  // ParseV1: Original C++ wire parser implementation. Walks RTP header fields
+  // and extension headers sequentially using ConsumeField<T>.
+  std::optional<ParseResult> ParseV1(ByteView packet);
+
   const Ssrc sender_ssrc_;
+  const RtpParserVersion version_;
 
   // Tracks recently-parsed RTP timestamps so that the truncated values can be
   // re-expanded into full-form.

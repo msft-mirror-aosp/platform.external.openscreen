@@ -242,6 +242,9 @@ openscreen_source_set("sender") {
   public_deps = [ ":common" ]
 
   deps = [ "../../util" ]
+  if (use_rust_rtp_parser) {
+    deps += [ ":rtp_rust" ]
+  }
 
   friend = [
     ":unittests",

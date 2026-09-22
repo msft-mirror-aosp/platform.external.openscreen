@@ -80,7 +80,9 @@ class CompoundRtcpParser {
 
   // `session` and `client` must be non-null and must outlive the
   // CompoundRtcpParser instance.
-  CompoundRtcpParser(RtcpSession& session, Client& client);
+  CompoundRtcpParser(RtcpSession& session,
+                     Client& client,
+                     RtpParserVersion version = RtpParserVersion::kDefault);
   ~CompoundRtcpParser();
 
   // Parses the packet, invoking the Client callback methods when appropriate.
@@ -94,6 +96,19 @@ class CompoundRtcpParser {
   bool Parse(ByteView packet, FrameId max_feedback_frame_id);
 
  private:
+#if defined(USE_RUST_RTP_PARSER)
+  // ParseV2: Memory-safe Rust wire parser implementation (via CXX FFI) in
+  // //cast/streaming/impl/rtp_wire.rs. Dispatches compound RTCP packets,
+  // extracting receiver reports, NACK/ACK bitvectors, and frame log events
+  // using compile-time checked slice bounds.
+  bool ParseV2(ByteView packet, FrameId max_feedback_frame_id);
+#endif
+
+  // ParseV1: Original C++ wire parser implementation. Iteratively processes
+  // concatenated RTCP packets, parsing each sub-packet sequentially.
+  bool ParseV1(ByteView packet, FrameId max_feedback_frame_id);
+
+  // Legacy V1 C++ parsing helpers:
   // These return true if the input was well-formed, and false if it was
   // invalid/corrupt. The true/false value does NOT indicate whether the data
   // contained within was ignored. Output arguments are only modified if the
@@ -120,6 +135,7 @@ class CompoundRtcpParser {
 
   const raw_ref<RtcpSession> session_;
   const raw_ref<Client> client_;
+  const RtpParserVersion version_;
 
   // Tracks the latest timestamp seen from any Receiver Reference Time Report,
   // and uses this to ignore stale RTCP packets that arrived out-of-order and/or

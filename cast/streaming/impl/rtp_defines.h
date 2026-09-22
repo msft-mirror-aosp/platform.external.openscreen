@@ -15,6 +15,17 @@ namespace openscreen::cast {
 // specification, but also adds some of its own extensions. See:
 // https://tools.ietf.org/html/rfc3550
 
+// Selects the implementation of the RTP and Compound RTCP wire parsers.
+enum class RtpParserVersion {
+  kV1,  // Legacy C++ wire parser.
+  kV2,  // Memory-safe Rust wire parser (via CXX FFI).
+#if defined(USE_RUST_RTP_PARSER)
+  kDefault = kV2,
+#else
+  kDefault = kV1,
+#endif
+};
+
 // Uniquely identifies one packet within a frame. These are sequence numbers,
 // starting at 0. Each Cast RTP packet also includes the "last ID" so that a
 // receiver always knows the range of valid FramePacketIds for a given frame.

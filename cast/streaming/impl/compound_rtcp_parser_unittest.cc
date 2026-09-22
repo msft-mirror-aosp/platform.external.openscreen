@@ -28,7 +28,7 @@ constexpr Ssrc kReceiverSsrc = 2;
 
 }  // namespace
 
-class CompoundRtcpParserTest : public testing::Test {
+class CompoundRtcpParserTest : public testing::TestWithParam<RtpParserVersion> {
  public:
   RtcpSession* session() { return &session_; }
   StrictMock<MockCompoundRtcpParserClient>* client() { return &client_; }
@@ -37,15 +37,15 @@ class CompoundRtcpParserTest : public testing::Test {
  private:
   RtcpSession session_{kSenderSsrc, kReceiverSsrc, Clock::now()};
   StrictMock<MockCompoundRtcpParserClient> client_;
-  CompoundRtcpParser parser_{session_, client_};
+  CompoundRtcpParser parser_{session_, client_, GetParam()};
 };
 
-TEST_F(CompoundRtcpParserTest, ProcessesEmptyPacket) {
+TEST_P(CompoundRtcpParserTest, ProcessesEmptyPacket) {
   // Expect NO calls to mock client.
   EXPECT_TRUE(parser()->Parse(ByteView(), FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest, ReturnsErrorForGarbage) {
+TEST_P(CompoundRtcpParserTest, ReturnsErrorForGarbage) {
   const uint8_t kGarbage[] = {
       0x42, 0x61, 0x16, 0x17, 0x26, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x69,
       0x6e, 0x67, 0x2f, 0x63, 0x61, 0x73, 0x74, 0x2f, 0x63, 0x6f, 0x6d, 0x70,
@@ -54,7 +54,7 @@ TEST_F(CompoundRtcpParserTest, ReturnsErrorForGarbage) {
   EXPECT_FALSE(parser()->Parse(kGarbage, FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest, ParsesReceiverReportWithoutReportBlock) {
+TEST_P(CompoundRtcpParserTest, ParsesReceiverReportWithoutReportBlock) {
   // clang-format off
   const uint8_t kReceiverReportWithoutReportBlock[] = {
       0b10000000,  // Version=2, Padding=no, ReportCount=0.
@@ -69,7 +69,7 @@ TEST_F(CompoundRtcpParserTest, ParsesReceiverReportWithoutReportBlock) {
       parser()->Parse(kReceiverReportWithoutReportBlock, FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest, ParsesReceiverReportWithReportBlock) {
+TEST_P(CompoundRtcpParserTest, ParsesReceiverReportWithReportBlock) {
   // clang-format off
   const uint8_t kReceiverReportWithReportBlock[] = {
       0b10000001,  // Version=2, Padding=no, ReportCount=1.
@@ -102,7 +102,7 @@ TEST_F(CompoundRtcpParserTest, ParsesReceiverReportWithReportBlock) {
   EXPECT_EQ(RtcpReportBlock::Delay(65536), block.delay_since_last_report);
 }
 
-TEST_F(CompoundRtcpParserTest, ParsesPictureLossIndicatorMessage) {
+TEST_P(CompoundRtcpParserTest, ParsesPictureLossIndicatorMessage) {
   // clang-format off
   const uint8_t kPictureLossIndicatorPacket[] = {
       0b10000000 | 1,  // Version=2, Padding=no, Subtype=PLI.
@@ -147,7 +147,7 @@ TEST_F(CompoundRtcpParserTest, ParsesPictureLossIndicatorMessage) {
   Mock::VerifyAndClearExpectations(client());
 }
 
-TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ValidPacket) {
+TEST_P(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ValidPacket) {
   // clang-format off
   const uint8_t kFrameLogPacket[] = {
       0b10000000 | 2,          // Version=2, Padding=no, Subtype=ReceiverLog.
@@ -181,7 +181,7 @@ TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ValidPacket) {
   EXPECT_EQ(FramePacketId{7701}, log.packet_id);
 }
 
-TEST_F(CompoundRtcpParserTest,
+TEST_P(CompoundRtcpParserTest,
        OnCastReceiverFrameLogMessages_MultiplePopulatedPackets) {
   // clang-format off
   const uint8_t kFrameLogPopulatedPacket[] = {
@@ -248,7 +248,7 @@ TEST_F(CompoundRtcpParserTest,
   EXPECT_EQ(FramePacketId{7701}, second_first_log.packet_id);
 }
 
-TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_WrongName) {
+TEST_P(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_WrongName) {
   // clang-format off
   const uint8_t kPacketWithWrongName[] = {
       0b10000000 | 2,          // Version=2, Padding=no, Subtype=ReceiverLog.
@@ -268,7 +268,7 @@ TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_WrongName) {
   EXPECT_TRUE(parser()->Parse(kPacketWithWrongName, FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_InvalidSsrc) {
+TEST_P(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_InvalidSsrc) {
   // clang-format off
   const uint8_t kPacketWithInvalidSsrc[] = {
       0b10000000 | 2,          // Version=2, Padding=no, Subtype=ReceiverLog.
@@ -288,7 +288,7 @@ TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_InvalidSsrc) {
   EXPECT_TRUE(parser()->Parse(kPacketWithInvalidSsrc, FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest,
+TEST_P(CompoundRtcpParserTest,
        OnCastReceiverFrameLogMessages_InvalidPacketSize) {
   // clang-format off
   const uint8_t kPacketWithInvalidPacketSize[] = {
@@ -307,7 +307,7 @@ TEST_F(CompoundRtcpParserTest,
   EXPECT_FALSE(parser()->Parse(kPacketWithInvalidPacketSize, FrameId::first()));
 }
 
-TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ShortPayload) {
+TEST_P(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ShortPayload) {
   // clang-format off
   const uint8_t kShortAppPacket[] = {
       0b10000000 | 2,          // Version=2, Padding=no, Subtype=ReceiverLog.
@@ -327,7 +327,7 @@ TEST_F(CompoundRtcpParserTest, OnCastReceiverFrameLogMessages_ShortPayload) {
 // ~1 second later without the PLI, indicating the problem has been resolved.
 // However, the packets are delivered out-of-order by the network. In this case,
 // the CompoundRtcpParser should ignore the stale packet containing the PLI.
-TEST_F(CompoundRtcpParserTest, IgnoresStalePackets) {
+TEST_P(CompoundRtcpParserTest, IgnoresStalePackets) {
   // clang-format off
   const uint8_t kNotStaleCompoundPacket[] = {
       // Receiver report:
@@ -379,7 +379,7 @@ TEST_F(CompoundRtcpParserTest, IgnoresStalePackets) {
 
 // Tests that unknown RTCP extended reports are ignored, but known ones are
 // still parsed when sent alongside the unknown ones.
-TEST_F(CompoundRtcpParserTest, IgnoresUnknownExtendedReports) {
+TEST_P(CompoundRtcpParserTest, IgnoresUnknownExtendedReports) {
   // clang-format off
   const uint8_t kPacketWithThreeExtendedReports[] = {
       0b10000000,  // Version=2, Padding=no.
@@ -421,7 +421,7 @@ TEST_F(CompoundRtcpParserTest, IgnoresUnknownExtendedReports) {
 
 // Tests that a simple Cast Feedback packet is parsed, and the checkpoint frame
 // ID is properly bit-extended, based on the current state of the Sender.
-TEST_F(CompoundRtcpParserTest, ParsesSimpleFeedback) {
+TEST_P(CompoundRtcpParserTest, ParsesSimpleFeedback) {
   // clang-format off
   const uint8_t kFeedbackPacket[] = {
       0b10000000 | 15,  // Version=2, Padding=no, Subtype=Feedback.
@@ -456,7 +456,7 @@ TEST_F(CompoundRtcpParserTest, ParsesSimpleFeedback) {
 
 // Tests NACK feedback parsing, and that redundant NACKs are de-duped, and that
 // the results are delivered to the client sorted.
-TEST_F(CompoundRtcpParserTest, ParsesFeedbackWithNacks) {
+TEST_P(CompoundRtcpParserTest, ParsesFeedbackWithNacks) {
   // clang-format off
   const uint8_t kFeedbackPacket[] = {
       0b10000000 | 15,  // Version=2, Padding=no, Subtype=Feedback.
@@ -505,7 +505,7 @@ TEST_F(CompoundRtcpParserTest, ParsesFeedbackWithNacks) {
 
 // Tests the CST2 "later frame ACK" parsing: Both the common "2 bytes of bit
 // vector" case, and a "multiple words of bit vector" case.
-TEST_F(CompoundRtcpParserTest, ParsesFeedbackWithAcks) {
+TEST_P(CompoundRtcpParserTest, ParsesFeedbackWithAcks) {
   // clang-format off
   const uint8_t kSmallerFeedbackPacket[] = {
       0b10000000 | 15,  // Version=2, Padding=no, Subtype=Feedback.
@@ -576,5 +576,16 @@ TEST_F(CompoundRtcpParserTest, ParsesFeedbackWithAcks) {
   EXPECT_TRUE(parser()->Parse(kLargerFeedbackPacket, kMaxFeedbackFrameId));
   Mock::VerifyAndClearExpectations(client());
 }
+
+#if defined(USE_RUST_RTP_PARSER)
+INSTANTIATE_TEST_SUITE_P(All,
+                         CompoundRtcpParserTest,
+                         testing::Values(RtpParserVersion::kV1,
+                                         RtpParserVersion::kV2));
+#else
+INSTANTIATE_TEST_SUITE_P(All,
+                         CompoundRtcpParserTest,
+                         testing::Values(RtpParserVersion::kV1));
+#endif
 
 }  // namespace openscreen::cast
