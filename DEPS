@@ -64,7 +64,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clang-format
   # and whatever else without interference from each other.
-  'clang_format_revision': '1baf9afe06a7955fd9489d11c7f703475d385926',
+  'clang_format_revision': '47dce8466cd71943f64df3860e608957d6e20007',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
