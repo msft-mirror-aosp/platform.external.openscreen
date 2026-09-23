@@ -100,7 +100,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling tinycbor
   # and whatever else without interference from each other.
-  'tinycbor_revision': 'bac6648fed8c0ff3d34616e4fff7cdcca634a18e',
+  'tinycbor_revision': '213155c8729b07dea836c5ac6e807a089486bf7b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling abseil
   # and whatever else without interference from each other.
