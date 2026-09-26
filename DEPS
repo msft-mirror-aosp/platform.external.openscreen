@@ -551,13 +551,9 @@ deps = {
     'condition': 'not build_with_chromium',
   },
 
-  # TODO(b/554350196): Host a Git-on-Borg mirror or vendor into Chromium
-  # //third_party/rust via gnrt for automated dependency rolling.
-  'third_party/simple_dns/src': {
-    'url': Var('github') + '/balliegojr/simple-dns.git' +
-      '@' + Var('simple_dns_revision'),
-    'condition': 'not build_with_chromium',
-  },
+  'third_party/simple_dns/src':
+    Var('chromium_git') + '/external/github.com/balliegojr/simple-dns.git' +
+    '@' + Var('simple_dns_revision'),
 }
 
 hooks = [

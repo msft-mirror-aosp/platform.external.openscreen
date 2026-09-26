@@ -10,12 +10,11 @@ import("../testing/libfuzzer/fuzzer_test.gni")
 declare_args() {
   # Enables the Rust simple-dns backend for mDNS packet parsing and
   # serialization.
-  use_rust_mdns_parser = enable_rust && !build_with_chromium
+  use_rust_mdns_parser = enable_rust
 }
 
-assert(
-    !use_rust_mdns_parser || (enable_rust && !build_with_chromium),
-    "use_rust_mdns_parser requires enable_rust = true and !build_with_chromium.")
+assert(!use_rust_mdns_parser || enable_rust,
+       "use_rust_mdns_parser requires enable_rust = true.")
 
 if (use_rust_mdns_parser) {
   import("//build/rust/rust_static_library.gni")
@@ -33,7 +32,7 @@ if (use_rust_mdns_parser) {
     allow_unsafe = true
     sources = [ crate_root ]
     cxx_bindings = [ crate_root ]
-    deps = [ "//third_party/simple_dns" ]
+    deps = [ "../third_party/simple_dns" ]
     configs += openscreen_add_public_configs
     configs += [ ":mdns_rust_config" ]
   }
