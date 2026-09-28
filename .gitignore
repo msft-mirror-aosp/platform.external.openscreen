@@ -14,8 +14,6 @@ clang-format
 /third_party/cpython3/linux-amd64
 third_party/rust-toolchain/
 third_party/rust/
-tools/clang/scripts/update.py
-tools/rust/update_rust.py
 yajsv
 yajsv.exe
 
@@ -46,6 +44,3 @@ generated_root_cast_receiver*
 .gemini/
 GEMINI.md
 claude.json
-tools/licenses/
-tools/protoc_wrapper/
-tools/rust/

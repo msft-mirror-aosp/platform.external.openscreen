@@ -453,7 +453,8 @@ ci_builder(
     get_properties(
         "x64",
         is_asan = True,
-        use_clang_coverage = True,
+        # TODO(b/566998334): Re-enable once download-chromium-file.py is fixed.
+        use_clang_coverage = False,
         is_ci = True,
     ),
 )

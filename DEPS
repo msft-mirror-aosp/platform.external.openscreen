@@ -561,26 +561,27 @@ deps = {
 }
 
 hooks = [
-  {
-    'name': 'clang_update_script',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'python3', 'tools/download-chromium-file.py',
-                '--revision', Var('chrome_version'),
-                '--path', 'tools/clang/scripts/update.py',
-                '--output', 'tools/clang/scripts/update.py' ],
-    # NOTE: This file appears in .gitignore, as it is not a part of the
-    # openscreen repo.
-  },
-  {
-    'name': 'rust_update_script',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'python3', 'tools/download-chromium-file.py',
-                '--revision', Var('chrome_version'),
-                '--path', 'tools/rust/update_rust.py',
-                '--output', 'tools/rust/update_rust.py' ],
-  },
+  # TODO(b/566998334): Re-enable once download-chromium-file.py is fixed.
+  # {
+  #   'name': 'clang_update_script',
+  #   'pattern': '.',
+  #   'condition': 'not build_with_chromium',
+  #   'action': [ 'python3', 'tools/download-chromium-file.py',
+  #               '--revision', Var('chrome_version'),
+  #               '--path', 'tools/clang/scripts/update.py',
+  #               '--output', 'tools/clang/scripts/update.py' ],
+  #   # NOTE: This file appears in .gitignore, as it is not a part of the
+  #   # openscreen repo.
+  # },
+  # {
+  #   'name': 'rust_update_script',
+  #   'pattern': '.',
+  #   'condition': 'not build_with_chromium',
+  #   'action': [ 'python3', 'tools/download-chromium-file.py',
+  #               '--revision', Var('chrome_version'),
+  #               '--path', 'tools/rust/update_rust.py',
+  #               '--output', 'tools/rust/update_rust.py' ],
+  # },
   {
     'name': 'rust_toolchain',
     'pattern': '.',
@@ -594,33 +595,33 @@ hooks = [
     'condition': 'checkout_win and not build_with_chromium',
     'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
   },
-  {
-    'name': 'licenses_script',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'python3', 'tools/download-chromium-file.py',
-                '--revision', Var('chrome_version'),
-                '--path', 'tools/licenses/licenses.py',
-                '--output', 'tools/licenses/licenses.py' ],
-  },
-  {
-    'name': 'licenses_spdx_writer',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'python3', 'tools/download-chromium-file.py',
-                '--revision', Var('chrome_version'),
-                '--path', 'tools/licenses/spdx_writer.py',
-                '--output', 'tools/licenses/spdx_writer.py' ],
-  },
-  {
-    'name': 'protoc_wrapper_script',
-    'pattern': '.',
-    'condition': 'not build_with_chromium',
-    'action': [ 'python3', 'tools/download-chromium-file.py',
-                '--revision', Var('chrome_version'),
-                '--path', 'tools/protoc_wrapper/protoc_wrapper.py',
-                '--output', 'tools/protoc_wrapper/protoc_wrapper.py' ],
-  },
+  # {
+  #   'name': 'licenses_script',
+  #   'pattern': '.',
+  #   'condition': 'not build_with_chromium',
+  #   'action': [ 'python3', 'tools/download-chromium-file.py',
+  #               '--revision', Var('chrome_version'),
+  #               '--path', 'tools/licenses/licenses.py',
+  #               '--output', 'tools/licenses/licenses.py' ],
+  # },
+  # {
+  #   'name': 'licenses_spdx_writer',
+  #   'pattern': '.',
+  #   'condition': 'not build_with_chromium',
+  #   'action': [ 'python3', 'tools/download-chromium-file.py',
+  #               '--revision', Var('chrome_version'),
+  #               '--path', 'tools/licenses/spdx_writer.py',
+  #               '--output', 'tools/licenses/spdx_writer.py' ],
+  # },
+  # {
+  #   'name': 'protoc_wrapper_script',
+  #   'pattern': '.',
+  #   'condition': 'not build_with_chromium',
+  #   'action': [ 'python3', 'tools/download-chromium-file.py',
+  #               '--revision', Var('chrome_version'),
+  #               '--path', 'tools/protoc_wrapper/protoc_wrapper.py',
+  #               '--output', 'tools/protoc_wrapper/protoc_wrapper.py' ],
+  # },
   {
     # Update LASTCHANGE.
     'name': 'lastchange',
