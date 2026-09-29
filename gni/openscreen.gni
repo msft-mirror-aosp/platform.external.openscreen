@@ -7,6 +7,9 @@ import("//build/config/compiler/pgo/pgo.gni")
 import("//build/config/gclient_args.gni")
 import("//build/config/ios/config.gni")
 import("//build/config/sanitizers/sanitizers.gni")
+import("//build/rust/rust_executable.gni")
+import("//build/rust/rust_macro.gni")
+import("//build/rust/rust_static_library.gni")
 import("//build_overrides/build.gni")
 
 declare_args() {
@@ -224,10 +227,127 @@ template("openscreen_static_library") {
     configs -= openscreen_remove_configs
     configs -= [ "//build/config/compiler:thin_archive" ]
     configs += openscreen_add_configs
-    configs += invoker.configs
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
     public_configs = openscreen_add_public_configs
     if (defined(invoker.public_configs)) {
       public_configs += invoker.public_configs
+    }
+  }
+}
+
+# TODO(https://crbug.com/559867579): Use a more generic reuse mechanism once
+# Chromium's `rust_gtest_interop` / Rust GN templates provide one.
+# Note: Rust targets do not support GN source_sets because rustc compiles whole
+# crates at a time. Other templates such as openscreen_rust_shared_library can
+# be added in the future as needed.
+template("openscreen_rust_executable") {
+  rust_executable(target_name) {
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "configs",
+                             "public_configs",
+                             "remove_configs",
+                           ])
+    configs -= openscreen_remove_configs
+    configs += openscreen_add_configs
+    if (defined(invoker.remove_configs)) {
+      configs -= invoker.remove_configs
+    }
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+    public_configs = openscreen_add_public_configs
+    if (defined(invoker.public_configs)) {
+      public_configs += invoker.public_configs
+    }
+    if (is_linux || is_chromeos) {
+      # For enabling ASLR.
+      ldflags = [ "-pie" ]
+    }
+
+    # Chromium's rust_executable defaults to injecting PartitionAlloc and
+    # Chromium std prelude. In standalone Open Screen builds without //base,
+    # default them to true unless explicitly overridden by the invoker.
+    if (!defined(invoker.no_allocator_crate)) {
+      no_allocator_crate = true
+    }
+    if (!defined(invoker.no_chromium_prelude)) {
+      no_chromium_prelude = true
+    }
+  }
+}
+
+# TODO(https://crbug.com/559867579): Use a more generic reuse mechanism once
+# Chromium's `rust_gtest_interop` / Rust GN templates provide one.
+template("openscreen_rust_static_library") {
+  rust_static_library(target_name) {
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "configs",
+                             "public_configs",
+                             "remove_configs",
+                           ])
+    configs -= openscreen_remove_configs
+    configs += openscreen_add_configs
+    if (defined(invoker.remove_configs)) {
+      configs -= invoker.remove_configs
+    }
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+    public_configs = openscreen_add_public_configs
+    if (defined(invoker.public_configs)) {
+      public_configs += invoker.public_configs
+    }
+
+    # Chromium's rust_static_library defaults to injecting PartitionAlloc and
+    # Chromium std prelude. In standalone Open Screen builds without //base,
+    # default them to true unless explicitly overridden by the invoker.
+    if (!defined(invoker.no_allocator_crate)) {
+      no_allocator_crate = true
+    }
+    if (!defined(invoker.no_chromium_prelude)) {
+      no_chromium_prelude = true
+    }
+  }
+}
+
+# TODO(https://crbug.com/559867579): Use a more generic reuse mechanism once
+# Chromium's `rust_gtest_interop` / Rust GN templates provide one.
+template("openscreen_rust_macro") {
+  rust_macro(target_name) {
+    forward_variables_from(invoker,
+                           "*",
+                           [
+                             "configs",
+                             "public_configs",
+                             "remove_configs",
+                           ])
+    configs -= openscreen_remove_configs
+    configs += openscreen_add_configs
+    if (defined(invoker.remove_configs)) {
+      configs -= invoker.remove_configs
+    }
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+    public_configs = openscreen_add_public_configs
+    if (defined(invoker.public_configs)) {
+      public_configs += invoker.public_configs
+    }
+
+    # Chromium's rust_macro defaults to injecting PartitionAlloc and
+    # Chromium std prelude. In standalone Open Screen builds without //base,
+    # default them to true unless explicitly overridden by the invoker.
+    if (!defined(invoker.no_allocator_crate)) {
+      no_allocator_crate = true
+    }
+    if (!defined(invoker.no_chromium_prelude)) {
+      no_chromium_prelude = true
     }
   }
 }

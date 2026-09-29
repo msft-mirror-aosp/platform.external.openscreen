@@ -5,6 +5,7 @@ LASTCHANGE.committime
 build/
 build/mac_files/
 gclient_args.gni
+target/
 
 # Tools & Dependencies
 *sysroot
