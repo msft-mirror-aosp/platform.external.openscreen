@@ -164,6 +164,29 @@ openscreen_source_set("common") {
   ]
 }
 
+openscreen_source_set("data_channel") {
+  visibility += [ "*" ]
+  public = [ "public/data_channel.h" ]
+  sources = [
+    "impl/data_channel_impl.cc",
+    "impl/data_channel_impl.h",
+    "impl/data_channel_session.cc",
+    "impl/data_channel_session.h",
+    "impl/data_channel_stream.cc",
+    "impl/data_channel_stream.h",
+  ]
+  public_deps = [ "../../platform:api" ]
+  deps = [
+    "../../platform",
+    "../../util",
+  ]
+  friend = [
+    ":unittests",
+    ":sender",
+    ":receiver",
+  ]
+}
+
 openscreen_source_set("receiver") {
   # Used by //components/cast_streaming and //chromecast/cast_core/browser in
   # Chromium.
@@ -288,6 +311,7 @@ openscreen_source_set("unittests") {
     "impl/clock_offset_estimator_impl_unittest.cc",
     "impl/compound_rtcp_builder_unittest.cc",
     "impl/compound_rtcp_parser_unittest.cc",
+    "impl/data_channel_unittest.cc",
     "impl/expanded_value_base_unittest.cc",
     "impl/frame_collector_unittest.cc",
     "impl/frame_crypto_unittest.cc",
@@ -321,6 +345,7 @@ openscreen_source_set("unittests") {
   ]
 
   deps = [
+    ":data_channel",
     ":receiver",
     ":sender",
     ":testing",
