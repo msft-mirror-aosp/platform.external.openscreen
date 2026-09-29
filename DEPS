@@ -140,9 +140,17 @@ vars = {
   'simple_dns_revision': '5c7ec98798d7c9f7d76df7aa3bbe754913ff5159',
 
   # Three lines of non-changing comments so that
-  # the commit queue can handle CLs rolling clang update.py
+  # the commit queue can handle CLs rolling tools/clang
   # and whatever else without interference from each other.
-  'chrome_version': 'a613b725b06a0561c03ee5b4ceadf8bc6774f884',
+  'tools_clang_revision': '48e6717e262a413cc614d04d98cff2e584cbbcc9',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling tools/rust
+  # and whatever else without interference from each other.
+  'tools_rust_revision': '34cf850d853c1160f364117288fc73d07b74163c',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling tools/protoc_wrapper
+  # and whatever else without interference from each other.
+  'tools_protoc_wrapper_revision': 'e9dbe1bf6a2a5d2d4973725874259eed587cf18d',
 
   # 'magic' text to tell depot_tools that git submodules should be accepted
   # but parity with DEPS file is expected.
@@ -554,30 +562,27 @@ deps = {
   'third_party/simple_dns/src':
     Var('chromium_git') + '/external/github.com/balliegojr/simple-dns.git' +
     '@' + Var('simple_dns_revision'),
+
+  'tools/clang': {
+    'url': Var('chromium_git') + '/chromium/src/tools/clang.git' +
+      '@' + Var('tools_clang_revision'),
+    'condition': 'not build_with_chromium',
+  },
+
+  'tools/rust': {
+    'url': Var('chromium_git') + '/chromium/src/tools/rust.git' +
+      '@' + Var('tools_rust_revision'),
+    'condition': 'not build_with_chromium',
+  },
+
+  'tools/protoc_wrapper': {
+    'url': Var('chromium_git') + '/chromium/src/tools/protoc_wrapper.git' +
+      '@' + Var('tools_protoc_wrapper_revision'),
+    'condition': 'not build_with_chromium',
+  },
 }
 
 hooks = [
-  # TODO(b/566998334): Re-enable once download-chromium-file.py is fixed.
-  # {
-  #   'name': 'clang_update_script',
-  #   'pattern': '.',
-  #   'condition': 'not build_with_chromium',
-  #   'action': [ 'python3', 'tools/download-chromium-file.py',
-  #               '--revision', Var('chrome_version'),
-  #               '--path', 'tools/clang/scripts/update.py',
-  #               '--output', 'tools/clang/scripts/update.py' ],
-  #   # NOTE: This file appears in .gitignore, as it is not a part of the
-  #   # openscreen repo.
-  # },
-  # {
-  #   'name': 'rust_update_script',
-  #   'pattern': '.',
-  #   'condition': 'not build_with_chromium',
-  #   'action': [ 'python3', 'tools/download-chromium-file.py',
-  #               '--revision', Var('chrome_version'),
-  #               '--path', 'tools/rust/update_rust.py',
-  #               '--output', 'tools/rust/update_rust.py' ],
-  # },
   {
     'name': 'rust_toolchain',
     'pattern': '.',
@@ -591,33 +596,6 @@ hooks = [
     'condition': 'checkout_win and not build_with_chromium',
     'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
   },
-  # {
-  #   'name': 'licenses_script',
-  #   'pattern': '.',
-  #   'condition': 'not build_with_chromium',
-  #   'action': [ 'python3', 'tools/download-chromium-file.py',
-  #               '--revision', Var('chrome_version'),
-  #               '--path', 'tools/licenses/licenses.py',
-  #               '--output', 'tools/licenses/licenses.py' ],
-  # },
-  # {
-  #   'name': 'licenses_spdx_writer',
-  #   'pattern': '.',
-  #   'condition': 'not build_with_chromium',
-  #   'action': [ 'python3', 'tools/download-chromium-file.py',
-  #               '--revision', Var('chrome_version'),
-  #               '--path', 'tools/licenses/spdx_writer.py',
-  #               '--output', 'tools/licenses/spdx_writer.py' ],
-  # },
-  # {
-  #   'name': 'protoc_wrapper_script',
-  #   'pattern': '.',
-  #   'condition': 'not build_with_chromium',
-  #   'action': [ 'python3', 'tools/download-chromium-file.py',
-  #               '--revision', Var('chrome_version'),
-  #               '--path', 'tools/protoc_wrapper/protoc_wrapper.py',
-  #               '--output', 'tools/protoc_wrapper/protoc_wrapper.py' ],
-  # },
   {
     # Update LASTCHANGE.
     'name': 'lastchange',

@@ -15,6 +15,9 @@ clang-format
 /third_party/cpython3/linux-amd64
 third_party/rust-toolchain/
 third_party/rust/
+tools/clang/
+tools/protoc_wrapper/
+tools/rust/
 yajsv
 yajsv.exe
 

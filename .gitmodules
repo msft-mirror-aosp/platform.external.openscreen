@@ -83,4 +83,15 @@
 [submodule "third_party/simple_dns/src"]
 	path = third_party/simple_dns/src
 	url = https://chromium.googlesource.com/external/github.com/balliegojr/simple-dns
-
+[submodule "tools/clang"]
+	path = tools/clang
+	url = https://chromium.googlesource.com/chromium/src/tools/clang
+	gclient-condition = not build_with_chromium
+[submodule "tools/rust"]
+	path = tools/rust
+	url = https://chromium.googlesource.com/chromium/src/tools/rust
+	gclient-condition = not build_with_chromium
+[submodule "tools/protoc_wrapper"]
+	path = tools/protoc_wrapper
+	url = https://chromium.googlesource.com/chromium/src/tools/protoc_wrapper
+	gclient-condition = not build_with_chromium
