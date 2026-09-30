@@ -340,12 +340,10 @@ fn parse_common_header(reader: &mut Reader<'_>) -> Option<ffi::WireRtcpCommonHea
         RtcpPacketType::SenderReport | RtcpPacketType::ReceiverReport => {
             raw_report_count_or_subtype
         }
-        RtcpPacketType::ApplicationDefined | RtcpPacketType::PayloadSpecific => {
-            if RtcpSubtype::from_repr(raw_report_count_or_subtype).is_some() {
-                raw_report_count_or_subtype
-            } else {
-                0
-            }
+        RtcpPacketType::ApplicationDefined | RtcpPacketType::PayloadSpecific
+            if RtcpSubtype::from_repr(raw_report_count_or_subtype).is_some() =>
+        {
+            raw_report_count_or_subtype
         }
         _ => 0,
     };
@@ -368,16 +366,14 @@ pub fn parse_rtcp_common_header(buffer: &[u8], out: &mut ffi::WireRtcpCommonHead
 
 pub fn inspect_packet_for_routing(packet: &[u8]) -> ffi::RoutingResult {
     let mut reader = Reader::new(packet);
-    if reader.remaining() >= RTP_PACKET_MIN_VALID_SIZE {
-        if let Some(first_byte) = reader.peek_u8() {
-            if first_byte == RTP_REQUIRED_FIRST_BYTE {
-                let second_byte = packet[1];
-                if is_rtp_payload_type(second_byte & RTP_PAYLOAD_TYPE_MASK) {
-                    let _ = reader.read_slice(8);
-                    if let Some(ssrc) = reader.read_u32_be() {
-                        return ffi::RoutingResult { apparent_type: ffi::ApparentType::Rtp, ssrc };
-                    }
-                }
+    if reader.remaining() >= RTP_PACKET_MIN_VALID_SIZE
+        && reader.peek_u8() == Some(RTP_REQUIRED_FIRST_BYTE)
+    {
+        let second_byte = packet[1];
+        if is_rtp_payload_type(second_byte & RTP_PAYLOAD_TYPE_MASK) {
+            let _ = reader.read_slice(8);
+            if let Some(ssrc) = reader.read_u32_be() {
+                return ffi::RoutingResult { apparent_type: ffi::ApparentType::Rtp, ssrc };
             }
         }
     }

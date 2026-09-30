@@ -24,6 +24,10 @@ default_args = {
   # Enable rust dependencies.
   enable_rust = true
 
+  # Enable rust clippy checks by default so lint issues are caught before
+  # autoroll.
+  enable_rust_clippy = true
+
   # Needed only for std::atomic_ref<T> for large Ts http://crbug.com/402171653
   use_llvm_libatomic = false
 
