@@ -344,6 +344,7 @@ def builder(builder_type, name, os, cpu, properties):
         },
         caches = caches,
         properties = properties,
+        resultdb_settings = resultdb.settings(enable = True),
         service_account = "openscreen-{}-builder@chops-service-accounts.iam.gserviceaccount.com".format(
             builder_type,
         ),
