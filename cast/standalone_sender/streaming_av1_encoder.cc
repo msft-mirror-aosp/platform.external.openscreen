@@ -117,10 +117,6 @@ void StreamingAv1Encoder::EncodeAndSend(
   work_unit.capture_begin_time = frame.capture_begin_time;
   work_unit.capture_end_time = frame.capture_end_time;
 
-  // TODO(jophba): The `VideoFrame` struct should provide the media timestamp,
-  // instead of this code inferring it from the reference timestamps, since: 1)
-  // the video capturer's clock may tick at a different rate than the system
-  // clock; and 2) to reduce jitter.
   if (start_time_ == Clock::time_point::min()) {
     start_time_ = reference_time;
     work_unit.rtp_timestamp = RtpTimeTicks();

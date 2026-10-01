@@ -197,9 +197,6 @@ void StreamingFfmpegEncoder::EncodeAndSend(
   work_unit.capture_begin_time = frame.capture_begin_time;
   work_unit.capture_end_time = frame.capture_end_time;
 
-  // The VideoFrame struct should provide the media timestamp, because the video
-  // capturer's clock may tick at a different rate than the system clock, and to
-  // reduce jitter.
   if (start_time_ == Clock::time_point::min()) {
     start_time_ = reference_time;
     work_unit.rtp_timestamp = RtpTimeTicks();
