@@ -64,11 +64,12 @@ def _check_licenses(input_api, output_api):
         os.path.join('third_party', 'perfetto', 'src', 'protos',
                      'third_party'),
         os.path.join('third_party', 'protobuf', 'third_party'),
-        os.path.join('third_party', 'rust'),
+        os.path.join('tools', 'clang'),
+        os.path.join('tools', 'rust'),
     ])
 
-    if any(s.LocalPath().startswith('third_party')
-           for s in input_api.change.AffectedFiles()):
+    if any(s.LocalPath().startswith('third_party') or s.LocalPath() in (
+            'DEPS', 'PRESUBMIT.py') for s in input_api.change.AffectedFiles()):
         try:
             _, had_errors = licenses._DiscoverMetadatas(_LicensesArgs())
             if had_errors:
