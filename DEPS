@@ -596,6 +596,34 @@ hooks = [
     'condition': 'checkout_win and not build_with_chromium',
     'action': ['python3', 'build/vs_toolchain.py', 'update', '--force'],
   },
+  # Pull dsymutil binaries using the hashes checked into the tools/clang
+  # sub-repository (pinned by tools_clang_revision).
+  {
+    'name': 'dsymutil_mac_arm64',
+    'pattern': '.',
+    'condition': 'host_os == "mac" and host_cpu == "arm64" and not build_with_chromium',
+    'action': [ 'download_from_google_storage',
+                '--no_resume',
+                '--bucket', 'chromium-browser-clang',
+                # The sha1 file must be refreshed from the same chrome_version commit
+                # whenever clang is rolled.
+                '-s', 'tools/clang/dsymutil/bin/dsymutil.arm64.sha1',
+                '-o', 'tools/clang/dsymutil/bin/dsymutil',
+    ],
+  },
+  {
+    'name': 'dsymutil_mac_x64',
+    'pattern': '.',
+    'condition': 'host_os == "mac" and host_cpu == "x64" and not build_with_chromium',
+    'action': [ 'download_from_google_storage',
+                '--no_resume',
+                '--bucket', 'chromium-browser-clang',
+                # The sha1 file must be refreshed from the same chrome_version commit
+                # whenever clang is rolled.
+                '-s', 'tools/clang/dsymutil/bin/dsymutil.x64.sha1',
+                '-o', 'tools/clang/dsymutil/bin/dsymutil',
+    ],
+  },
   {
     # Update LASTCHANGE.
     'name': 'lastchange',
