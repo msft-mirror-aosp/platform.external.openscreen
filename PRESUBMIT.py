@@ -267,6 +267,33 @@ def _check_luci_cfg_lint(input_api, output_api):
     return result
 
 
+def _check_recipes(input_api, output_api):
+    """Runs the recipe simulation tests and lint if any recipe files changed."""
+    recipes_dir = os.path.join('infra', 'recipes') + os.sep
+    recipes_cfg = os.path.join('infra', 'config', 'recipes.cfg')
+
+    def _is_recipe_file(f):
+        path = f.LocalPath()
+        return path == recipes_cfg or path.startswith(recipes_dir)
+
+    if not input_api.AffectedFiles(file_filter=_is_recipe_file):
+        return []
+
+    recipes_py = input_api.os_path.join(input_api.PresubmitLocalPath(),
+                                        'infra', 'recipes', 'recipes.py')
+    kwargs = {
+        'stderr': input_api.subprocess.STDOUT,
+        'cwd': input_api.PresubmitLocalPath(),
+    }
+    commands = []
+    for args in (['test', 'run'], ['lint']):
+        commands.append(
+            input_api.Command('recipes.py ' + ' '.join(args),
+                              [input_api.python3_executable, recipes_py] +
+                              args, kwargs, output_api.PresubmitError))
+    return input_api.RunTests(commands, parallel=False)
+
+
 def _common_checks(input_api, output_api):
     """Performs a list of checks that should be used for both presubmission and
        upload validation.
@@ -316,6 +343,9 @@ def _common_checks(input_api, output_api):
 
     # Ensure the LUCI configs pass the linter.
     results.extend(_check_luci_cfg_lint(input_api, output_api))
+
+    # Run the in-repo recipe tests if recipes changed.
+    results.extend(_check_recipes(input_api, output_api))
 
     # Run tools/licenses on code change.
     results.extend(_check_licenses(input_api, output_api))

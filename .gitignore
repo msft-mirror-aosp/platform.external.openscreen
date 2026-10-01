@@ -11,6 +11,7 @@ target/
 *sysroot
 buildtools/
 clang-format
+/infra/recipes/.recipe_deps/
 /third_party/cpython3/host
 /third_party/cpython3/linux-amd64
 third_party/rust-toolchain/
