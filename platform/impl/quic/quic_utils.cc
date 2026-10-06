@@ -16,20 +16,19 @@ namespace openscreen {
 
 quiche::QuicheIpAddress ToQuicheIpAddress(const IPAddress& address) {
   if (address.IsV4()) {
-    const std::span<const uint8_t> bytes = address.bytes();
-    const uint32_t address_32 =
-        (bytes[3] << 24) + (bytes[2] << 16) + (bytes[1] << 8) + (bytes[0]);
-    const in_addr result = {address_32};
+    in_addr result{};
     static_assert(sizeof(result) == IPAddress::kV4Size,
                   "Address size mismatch");
+    address.CopyTo(std::span<uint8_t>(
+        reinterpret_cast<uint8_t*>(&result.s_addr), IPAddress::kV4Size));
     return quiche::QuicheIpAddress(result);
   }
 
   if (address.IsV6()) {
     in6_addr result;
-    address.CopyTo(std::span<uint8_t>(result.s6_addr, 16));
     static_assert(sizeof(result) == IPAddress::kV6Size,
                   "Address size mismatch");
+    address.CopyTo(std::span<uint8_t>(result.s6_addr, 16));
     return quiche::QuicheIpAddress(result);
   }
 

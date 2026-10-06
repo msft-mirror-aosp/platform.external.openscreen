@@ -39,20 +39,20 @@ template <typename Integer>
   auto val = static_cast<Unsigned>(x);
   if constexpr (sizeof(Unsigned) == sizeof(uint8_t)) {
     return static_cast<Integer>(val);
-#if defined(_MSC_VER)
-  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned short)) {  // NOLINT
-    return static_cast<Integer>(_byteswap_ushort(val));
-  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned long)) {  // NOLINT
-    return static_cast<Integer>(_byteswap_ulong(val));
-  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned __int64)) {
-    return static_cast<Integer>(_byteswap_uint64(val));
-#else
+#if defined(__clang__) || defined(__GNUC__)
   } else if constexpr (sizeof(Unsigned) == sizeof(uint16_t)) {
     return static_cast<Integer>(__builtin_bswap16(val));
   } else if constexpr (sizeof(Unsigned) == sizeof(uint32_t)) {
     return static_cast<Integer>(__builtin_bswap32(val));
   } else if constexpr (sizeof(Unsigned) == sizeof(uint64_t)) {
     return static_cast<Integer>(__builtin_bswap64(val));
+#elif defined(_MSC_VER)
+  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned short)) {  // NOLINT
+    return static_cast<Integer>(_byteswap_ushort(val));
+  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned long)) {  // NOLINT
+    return static_cast<Integer>(_byteswap_ulong(val));
+  } else if constexpr (sizeof(Unsigned) == sizeof(unsigned __int64)) {
+    return static_cast<Integer>(_byteswap_uint64(val));
 #endif
   } else {
     static_assert(sizeof(Unsigned) == 0,

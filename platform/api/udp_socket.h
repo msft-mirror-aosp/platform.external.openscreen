@@ -10,11 +10,20 @@
 
 #include <memory>
 
+#include "build/build_config.h"
 #include "platform/api/network_interface.h"
 #include "platform/base/error.h"
 #include "platform/base/ip_address.h"
 #include "platform/base/span.h"
 #include "platform/base/udp_packet.h"
+
+#if BUILDFLAG(IS_WIN)
+// Windows `<winuser.h>` defines `SendMessage` as a macro expanding to
+// `SendMessageW`, which collides with `UdpSocket::SendMessage`.
+#ifdef SendMessage
+#undef SendMessage
+#endif
+#endif  // BUILDFLAG(IS_WIN)
 
 namespace openscreen {
 

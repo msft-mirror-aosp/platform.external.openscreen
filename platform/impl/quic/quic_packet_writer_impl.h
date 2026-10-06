@@ -5,9 +5,19 @@
 #ifndef PLATFORM_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
 #define PLATFORM_IMPL_QUIC_QUIC_PACKET_WRITER_IMPL_H_
 
+#include "build/build_config.h"
 #include "platform/api/udp_socket.h"
 #include "quiche/quic/core/quic_packet_writer.h"
 #include "util/raw_ptr.h"
+
+#if BUILDFLAG(IS_WIN)
+// Windows `<winuser.h>` (transitively included via QUICHE socket headers)
+// defines `SendMessage` as a macro expanding to `SendMessageW`, which collides
+// with `openscreen::UdpSocket::SendMessage`.
+#ifdef SendMessage
+#undef SendMessage
+#endif
+#endif  // BUILDFLAG(IS_WIN)
 
 namespace openscreen {
 
