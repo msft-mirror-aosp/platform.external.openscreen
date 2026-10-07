@@ -13,7 +13,7 @@
 
 #include <chrono>
 #include <fstream>
-#include <string>
+#include <utility>
 #include <vector>
 
 #include "perfetto/tracing/core/trace_config.h"
@@ -40,7 +40,8 @@ PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 namespace openscreen {
 
-PerfettoTraceLoggingPlatform::PerfettoTraceLoggingPlatform() {
+PerfettoTraceLoggingPlatform::PerfettoTraceLoggingPlatform(std::string app_name)
+    : app_name_(std::move(app_name)) {
   perfetto::TracingInitArgs args;
   // The in-process backend allows recording into a file or memory buffer
   // from within the same process.
@@ -66,7 +67,8 @@ PerfettoTraceLoggingPlatform::~PerfettoTraceLoggingPlatform() {
 
   tracing_session_->StopBlocking();
   const std::vector<char> trace_data(tracing_session_->ReadTraceBlocking());
-  const std::string filename = std::format("openscreen_{}.pftrace", getpid());
+  const std::string filename =
+      std::format("{}_{}.pftrace", app_name_, getpid());
 
   std::ofstream output_file(filename, std::ios::out | std::ios::binary);
   output_file.write(trace_data.data(), trace_data.size());
@@ -107,6 +109,12 @@ void PerfettoTraceLoggingPlatform::LogTrace(TraceEvent event,
       debug->set_name(arg.first);
       debug->set_string_value(arg.second);
     }
+
+    if (event.result != Error::Code::kNone) {
+      auto* debug = track_event->add_debug_annotations();
+      debug->set_name("result");
+      debug->set_string_value(ToString(event.result));
+    }
   });
 
   perfetto::TrackEvent::Trace([&](perfetto::TrackEvent::TraceContext ctx) {
@@ -140,6 +148,12 @@ void PerfettoTraceLoggingPlatform::LogAsyncStart(TraceEvent event) {
       debug->set_name(arg.first);
       debug->set_string_value(arg.second);
     }
+
+    if (event.result != Error::Code::kNone) {
+      auto* debug = track_event->add_debug_annotations();
+      debug->set_name("result");
+      debug->set_string_value(ToString(event.result));
+    }
   });
 }
 
@@ -165,11 +179,13 @@ void PerfettoTraceLoggingPlatform::LogFlow(TraceEvent event, FlowType type) {
   const auto timestamp_ns =
       to_nanoseconds(event.start_time.time_since_epoch()).count();
 
-  // Use root ID for flow correlation if available, otherwise current.
-  const uint64_t flow_id =
-      (event.ids.root != kUnsetTraceId && event.ids.root != kEmptyTraceId)
-          ? event.ids.root
-          : event.ids.current;
+  // Use the first flow ID if available, otherwise fall back to root or current.
+  const uint64_t flow_id = !event.flow_ids.empty()
+                               ? event.flow_ids[0]
+                               : ((event.ids.root != kUnsetTraceId &&
+                                   event.ids.root != kEmptyTraceId)
+                                      ? event.ids.root
+                                      : event.ids.current);
 
   perfetto::TrackEvent::Trace([&](perfetto::TrackEvent::TraceContext ctx) {
     auto packet = ctx.NewTracePacket();
@@ -185,10 +201,20 @@ void PerfettoTraceLoggingPlatform::LogFlow(TraceEvent event, FlowType type) {
       track_event->add_flow_ids(flow_id);
     }
 
+    auto* flow_debug = track_event->add_debug_annotations();
+    flow_debug->set_name("flow_id");
+    flow_debug->set_uint_value(flow_id);
+
     for (const auto& arg : event.arguments) {
       auto* debug = track_event->add_debug_annotations();
       debug->set_name(arg.first);
       debug->set_string_value(arg.second);
+    }
+
+    if (event.result != Error::Code::kNone) {
+      auto* debug = track_event->add_debug_annotations();
+      debug->set_name("result");
+      debug->set_string_value(ToString(event.result));
     }
   });
 }

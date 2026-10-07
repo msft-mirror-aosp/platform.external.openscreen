@@ -6,6 +6,7 @@
 #define PLATFORM_IMPL_PERFETTO_TRACE_LOGGING_PLATFORM_H_
 
 #include <memory>
+#include <string>
 
 #include "platform/api/trace_logging_platform.h"
 
@@ -17,7 +18,7 @@ namespace openscreen {
 
 class PerfettoTraceLoggingPlatform : public TraceLoggingPlatform {
  public:
-  PerfettoTraceLoggingPlatform();
+  explicit PerfettoTraceLoggingPlatform(std::string app_name = "openscreen");
 
   // NOTE: We will only emit a trace file if `this` is properly destructed.
   // Meaning that no file is emitted if the application crashes.
@@ -31,6 +32,7 @@ class PerfettoTraceLoggingPlatform : public TraceLoggingPlatform {
   void LogFlow(TraceEvent event, FlowType type) override;
 
  private:
+  std::string app_name_;
   std::unique_ptr<perfetto::TracingSession> tracing_session_;
 };
 

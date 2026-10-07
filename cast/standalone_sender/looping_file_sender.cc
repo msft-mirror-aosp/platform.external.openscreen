@@ -78,17 +78,19 @@ void LoopingFileSender::OnInputMessage(InputMessage message) {
 }
 
 void LoopingFileSender::UpdateEncoderBitrates() {
+  int video_bitrate = bandwidth_being_utilized_;
   if (audio_encoder_) {
     if (bandwidth_being_utilized_ >= kHighBandwidthThreshold) {
       audio_encoder_->UseHighQuality();
     } else {
       audio_encoder_->UseStandardQuality();
     }
-    video_encoder_->SetTargetBitrate(bandwidth_being_utilized_ -
-                                     audio_encoder_->GetBitrate());
-  } else {
-    video_encoder_->SetTargetBitrate(bandwidth_being_utilized_);
+    video_bitrate -= audio_encoder_->GetBitrate();
   }
+  TRACE_SCOPED2(TraceCategory::kStandaloneSender, "UpdateEncoderBitrates",
+                "video_bitrate", video_bitrate, "utilized_bandwidth",
+                bandwidth_being_utilized_);
+  video_encoder_->SetTargetBitrate(video_bitrate);
 }
 
 void LoopingFileSender::ControlForNetworkCongestion() {

@@ -168,6 +168,9 @@ class SDLPlayerBase : public Receiver::Consumer, public Decoder::Client {
   Alarm render_alarm_;
   Alarm presentation_alarm_;
 
+  FrameId current_frame_id_{FrameId::first() - 1};
+  FrameId last_enqueued_frame_id_{FrameId::first() - 1};
+
   // Maximum number of frames in the decode/render pipeline. This limit is about
   // making sure the player uses resources efficiently: It is better for frames
   // to remain in the Receiver's queue until this player is ready to process

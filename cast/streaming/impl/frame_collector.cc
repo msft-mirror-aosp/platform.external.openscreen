@@ -12,6 +12,7 @@
 #include "cast/streaming/public/frame_id.h"
 #include "platform/base/span.h"
 #include "util/osp_logging.h"
+#include "util/trace_logging.h"
 
 namespace openscreen::cast {
 
@@ -29,6 +30,7 @@ FrameCollector::~FrameCollector() = default;
 
 bool FrameCollector::CollectRtpPacket(const RtpPacketParser::ParseResult& part,
                                       std::vector<uint8_t>* buffer) {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   OSP_CHECK(!frame_.frame_id.is_null());
 
   if (part.frame_id != frame_.frame_id) {
@@ -123,11 +125,13 @@ void FrameCollector::GetMissingPackets(std::vector<PacketNack>* nacks) const {
 }
 
 const EncodedFrame& FrameCollector::PeekFrameMetadata() const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   OSP_CHECK(is_complete());
   return frame_;
 }
 
 size_t FrameCollector::GetFramePayloadSize() const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   OSP_CHECK(is_complete());
   return std::accumulate(
       chunks_.cbegin(), chunks_.cend(), size_t{0},
@@ -137,6 +141,7 @@ size_t FrameCollector::GetFramePayloadSize() const {
 }
 
 std::vector<ByteView> FrameCollector::GetPayloadChunks() const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   OSP_CHECK(is_complete());
   std::vector<ByteView> result;
   result.reserve(chunks_.size());
@@ -147,6 +152,7 @@ std::vector<ByteView> FrameCollector::GetPayloadChunks() const {
 }
 
 void FrameCollector::Reset() {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   num_missing_packets_ = kUnknownNumberOfPackets;
   frame_ = EncodedFrame();
   chunks_.clear();

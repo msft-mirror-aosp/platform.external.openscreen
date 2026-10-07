@@ -14,6 +14,7 @@
 #include "util/osp_logging.h"
 #include "util/saturate_cast.h"
 #include "util/string_util.h"
+#include "util/trace_logging.h"
 
 namespace openscreen::cast {
 
@@ -154,6 +155,7 @@ void SenderPacketRouter::ScheduleNextBurst() {
 }
 
 void SenderPacketRouter::SendBurstOfPackets() {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kSender);
   // Treat RTCP packets as "critical priority," and so there is no upper limit
   // on the number to send. Practically, this will always be limited by the
   // number of Senders; so, this won't be a huge number of packets.
@@ -200,6 +202,7 @@ int SenderPacketRouter::SendJustTheRtcpPackets(Clock::time_point send_time) {
 
 int SenderPacketRouter::SendJustTheRtpPackets(Clock::time_point send_time,
                                               int num_packets_to_send) {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kSender);
   int num_sent = 0;
   for (SenderEntry& entry : senders_) {
     if (num_sent >= num_packets_to_send) {

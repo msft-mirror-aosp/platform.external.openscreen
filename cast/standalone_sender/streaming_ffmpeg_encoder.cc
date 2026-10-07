@@ -17,6 +17,7 @@
 #include "cast/streaming/public/sender.h"
 #include "util/chrono_helpers.h"
 #include "util/osp_logging.h"
+#include "util/trace_logging.h"
 
 namespace openscreen::cast {
 
@@ -239,6 +240,14 @@ void StreamingFfmpegEncoder::EncodeAndSend(
     OSP_LOG_ERROR << "Failed to clone video frame into AVFrame.";
     return;
   }
+
+  TRACE_FLOW_STEP_WITH_TIME(TraceCategory::kStandaloneSender, "Frame.Capture",
+                            work_unit.rtp_timestamp.value(),
+                            work_unit.capture_begin_time);
+  TRACE_FLOW_STEP_WITH_TIME(
+      TraceCategory::kStandaloneSender, "Frame.Capture.End",
+      work_unit.rtp_timestamp.value(), work_unit.capture_end_time);
+
   work_unit.reference_time = reference_time;
   work_unit.stats_callback = std::move(stats_callback);
 
@@ -283,10 +292,17 @@ void StreamingFfmpegEncoder::ProcessWorkUnitsUntilTimeToQuit() {
     // dependency-injected "now function," since actual wall time is being
     // measured.
     const Clock::time_point encode_start_time = Clock::now();
+    TRACE_FLOW_STEP_WITH_TIME(
+        TraceCategory::kStandaloneSender, "Frame.Encode.Begin",
+        work_unit.rtp_timestamp.value(), encode_start_time);
     PrepareEncoder(work_unit.image->width, work_unit.image->height,
                    target_bitrate);
     EncodeFrame(force_key_frame, work_unit);
-    ComputeFrameEncodeStats(Clock::now() - encode_start_time, target_bitrate,
+    const Clock::time_point encode_end_time = Clock::now();
+    TRACE_FLOW_STEP_WITH_TIME(TraceCategory::kStandaloneSender,
+                              "Frame.Encode.End",
+                              work_unit.rtp_timestamp.value(), encode_end_time);
+    ComputeFrameEncodeStats(encode_end_time - encode_start_time, target_bitrate,
                             work_unit);
     UpdateSpeedSettingForNextFrame(work_unit.stats);
 

@@ -15,6 +15,7 @@
 #include "util/crypto/openssl_util.h"
 #include "util/crypto/random_bytes.h"
 #include "util/osp_logging.h"
+#include "util/trace_logging.h"
 
 namespace openscreen::cast {
 
@@ -68,6 +69,7 @@ EncryptedFrame FrameCrypto::Encrypt(const EncodedFrame& encoded_frame) const {
 
 void FrameCrypto::Encrypt(const EncodedFrame& encoded_frame,
                           EncryptedFrame& dest) const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kSender);
   encoded_frame.CopyMetadataTo(&dest);
   dest.owned_data_.resize(encoded_frame.data.size());
   dest.data = dest.owned_data_;
@@ -77,11 +79,13 @@ void FrameCrypto::Encrypt(const EncodedFrame& encoded_frame,
 void FrameCrypto::Decrypt(FrameId frame_id,
                           ChunkList chunks,
                           ByteBuffer out) const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   Crypt(frame_id, chunks, out);
 }
 
 void FrameCrypto::Decrypt(const EncryptedFrame& encrypted_frame,
                           ByteBuffer out) const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kReceiver);
   // AES-CTR is symmetric. Thus, decryption back to the plaintext is the same as
   // encrypting the ciphertext; and both are the same size.
   OSP_CHECK_EQ(encrypted_frame.data.size(), out.size());

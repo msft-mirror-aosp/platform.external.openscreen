@@ -26,8 +26,8 @@ class PerfettoTraceLoggingPlatformTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Construct the expected filename based on the current PID.
-    // implementation uses: "openscreen_{pid}.pftrace"
-    expected_filename_ = "openscreen_" + std::to_string(getpid()) + ".pftrace";
+    // implementation uses: "{app_name}_{pid}.pftrace"
+    expected_filename_ = "test_app_" + std::to_string(getpid()) + ".pftrace";
 
     // Ensure we start with a clean state.
     remove(expected_filename_.c_str());
@@ -44,7 +44,7 @@ class PerfettoTraceLoggingPlatformTest : public ::testing::Test {
 TEST_F(PerfettoTraceLoggingPlatformTest, LifecycleAndLogging) {
   // 1. Scope the platform instance to force destruction and file write.
   {
-    PerfettoTraceLoggingPlatform platform;
+    PerfettoTraceLoggingPlatform platform("test_app");
 
     // 2. Verify Logging is enabled
     EXPECT_TRUE(platform.IsTraceLoggingEnabled(TraceCategory::kAny));

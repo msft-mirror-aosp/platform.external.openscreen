@@ -13,6 +13,7 @@
 #include "util/big_endian.h"
 #include "util/integer_division.h"
 #include "util/osp_logging.h"
+#include "util/trace_logging.h"
 
 namespace openscreen::cast {
 
@@ -51,6 +52,7 @@ RtpPacketizer::~RtpPacketizer() = default;
 ByteBuffer RtpPacketizer::GeneratePacket(const EncryptedFrame& frame,
                                          FramePacketId packet_id,
                                          ByteBuffer buffer) {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kSender);
   OSP_CHECK_GE(static_cast<int>(buffer.size()), max_packet_size_);
 
   const int num_packets = ComputeNumberOfPackets(frame);
@@ -117,6 +119,7 @@ ByteBuffer RtpPacketizer::GeneratePacket(const EncryptedFrame& frame,
 }
 
 int RtpPacketizer::ComputeNumberOfPackets(const EncryptedFrame& frame) const {
+  TRACE_DEFAULT_SCOPED(TraceCategory::kSender);
   // The total number of packets is computed by assuming the payload will be
   // split-up across as few packets as possible.
   int num_packets = DividePositivesRoundingUp(

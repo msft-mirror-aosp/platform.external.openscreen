@@ -205,7 +205,8 @@ std::optional<Arguments> ParseArgs(int argc, char* argv[]) {
         break;
 #if defined(USE_PERFETTO)
       case 'P':
-        args.trace_logger = std::make_unique<PerfettoTraceLoggingPlatform>();
+        args.trace_logger =
+            std::make_unique<PerfettoTraceLoggingPlatform>("cast_receiver");
         break;
 #endif
       case 'r': {
